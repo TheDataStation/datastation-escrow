@@ -46,9 +46,16 @@ def brokerAccess_opt(user_id, api):
 
         # Get status for api_res
         status = set(need_to_access).issubset(set(accessible_set))
-        print(status)
 
         # Now that we have finished executing the function, we remove the working directory
         shutil.rmtree("Working")
 
-    return policy_info
+    # Lastly, prepare the dictionary to be returned
+    dict_res = dict()
+    dict_res["data"] = api_res
+    dict_res["outputID"] = res_id
+    dict_res["status"] = status
+    dict_res["accessed_data"] = need_to_access
+    dict_res["accessible_data"] = accessible_set
+
+    return dict_res

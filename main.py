@@ -10,6 +10,7 @@ from models.dataset import *
 from fastapi import UploadFile, File, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
+import json
 
 import database_pb2
 import database_pb2_grpc
@@ -154,4 +155,7 @@ async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
         return Response(status=get_user_response.status, message=get_user_response.msg)
     user_id = get_user_response.data[0].id
     gatekeeper_response = gatekeeper.brokerAccess_opt(user_id, "Preprocess")
-    return gatekeeper_response
+    print(gatekeeper_response)
+    data_list = gatekeeper_response["data"][0].tolist()
+    json_data_list = json.dumps(data_list)
+    return {"data": json_data_list}
