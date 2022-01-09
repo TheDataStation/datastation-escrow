@@ -154,8 +154,17 @@ async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
     if get_user_response.status != 1:
         return Response(status=get_user_response.status, message=get_user_response.msg)
     user_id = get_user_response.data[0].id
+    # Calling the GK
     gatekeeper_response = gatekeeper.brokerAccess_opt(user_id, "Preprocess")
-    print(gatekeeper_response)
-    data_list = gatekeeper_response["data"][0].tolist()
-    json_data_list = json.dumps(data_list)
-    return {"data": json_data_list}
+    # print(gatekeeper_response)
+    # Case one: output contains info from unauthorized datasets
+    if not gatekeeper_response["status"]:
+        return {"status": "Not enough permissions"}
+    # Case two: status == True, can return directly to users
+    else:
+        # In here we need to know the output format of the data
+        data_output = []
+        for ele in gatekeeper_response["data"]:
+            data_output.append(ele.tolist())
+        json_data_output = json.dumps(data_output)
+        return {"data": json_data_output}
