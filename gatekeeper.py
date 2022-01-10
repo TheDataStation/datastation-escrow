@@ -43,6 +43,8 @@ def brokerAccess(user_id, api, exe_mode):
             # Get function output
             if api == "Preprocess":
                 api_res = DataPreprocess("Working")
+            elif api == "ModelTrain":
+                api_res = ModelTrain("Working")
 
             # Generate ID for api_res
             res_id = random.randint(100001, 200000)
@@ -76,6 +78,8 @@ def brokerAccess(user_id, api, exe_mode):
                 # Get function output
                 if api == "Preprocess":
                     api_res = DataPreprocess("Working")
+                elif api == "ModelTrain":
+                    api_res = ModelTrain("Working")
 
                 # Generate ID for api_res
                 res_id = random.randint(100001, 200000)
