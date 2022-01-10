@@ -5,6 +5,7 @@ __pycache__/
 SM_storage/
 titanicML/sample_data/
 .idea/
+Working/
 
 # C extensions
 *.so

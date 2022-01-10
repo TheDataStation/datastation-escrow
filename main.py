@@ -147,6 +147,8 @@ async def remove_dataset(data_name: str,):
 # API for Data Users: Preprocess
 @app.get("/simpleML/datapreprocess/")
 async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
+    # First set an execution mode
+    exe_mode = "pessimistic"
     # Get caller uname
     username = userRegister.authenticate_user(token)
     # Get caller ID
@@ -155,11 +157,12 @@ async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
         return Response(status=get_user_response.status, message=get_user_response.msg)
     user_id = get_user_response.data[0].id
     # Calling the GK
-    gatekeeper_response = gatekeeper.brokerAccess_opt(user_id, "Preprocess", "optimistic")
+    gatekeeper_response = gatekeeper.brokerAccess(user_id, "Preprocess", exe_mode)
     # print(gatekeeper_response)
     # Case one: output contains info from unauthorized datasets
     if not gatekeeper_response["status"]:
         return {"status": "Not enough permissions"}
+        # Depends on the execution mode, we may still have a result that needs to be put into staging storage.
     # Case two: status == True, can return directly to users
     else:
         # In here we need to know the output format of the data: a tuple with np arrays
