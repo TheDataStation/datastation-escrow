@@ -176,7 +176,7 @@ async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
 @app.get("/simpleML/modeltrain/")
 async def model_train_wrapper(token: str = Depends(oauth2_scheme)):
     # First set an execution mode
-    exe_mode = "pessimistic"
+    exe_mode = "optimistic"
     # Get caller uname
     username = userRegister.authenticate_user(token)
     # Get caller ID
@@ -196,5 +196,35 @@ async def model_train_wrapper(token: str = Depends(oauth2_scheme)):
     else:
         # In here we need to know the output format of the data: a tuple with np arrays
         data_output = gatekeeper_response["data"].coef_.tolist()
+        json_data_output = json.dumps(data_output)
+        return {"data": json_data_output}
+
+# API for Data Users: Predict
+@app.post("/simpleML/predict/")
+async def predict_wrapper(token: str = Depends(oauth2_scheme),
+                          data: UploadFile = File(...),):
+    # First set an execution mode
+    exe_mode = "optimistic"
+    # Get caller uname
+    username = userRegister.authenticate_user(token)
+    # Get caller ID
+    get_user_response = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
+    if get_user_response.status != 1:
+        return Response(status=get_user_response.status, message=get_user_response.msg)
+    user_id = get_user_response.data[0].id
+    # Calling the GK
+    # Load the file in bytes
+    data_in_bytes = bytes(await data.read())
+    gatekeeper_response = gatekeeper.brokerAccess(user_id, "Predict", exe_mode, data_in_bytes)
+    print(gatekeeper_response)
+
+    # Case one: output contains info from unauthorized datasets
+    if not gatekeeper_response["status"]:
+        return {"status": "Not enough permissions"}
+        # Depends on the execution mode, we may still have a result that needs to be put into staging storage.
+    # Case two: status == True, can return directly to users
+    else:
+        # In here we need to know the output format of the data: a tuple with np arrays
+        data_output = gatekeeper_response["data"].tolist()
         json_data_output = json.dumps(data_output)
         return {"data": json_data_output}

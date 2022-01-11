@@ -1,7 +1,6 @@
 # These are the "actual APIs" that would be exposed to the users.
 
 from titanic import DataPreprocess, ModelTrain, Predict
-import matplotlib as plot
 
 # train_dir = "./testV1/titanicML/sample_data"
 # input_file = "./testV1/titanicML/test.csv"

@@ -13,7 +13,7 @@ from titanicML.titanic import DataPreprocess, ModelTrain, Predict
 database_service_channel = grpc.insecure_channel('localhost:50051')
 database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
-def brokerAccess(user_id, api, exe_mode):
+def brokerAccess(user_id, api, exe_mode, data):
     policy_info = policyWithDependency.get_user_api_info(user_id, api)
     accessible_set = policy_info.accessible_data
     need_to_access = []
@@ -45,6 +45,14 @@ def brokerAccess(user_id, api, exe_mode):
                 api_res = DataPreprocess("Working")
             elif api == "ModelTrain":
                 api_res = ModelTrain("Working")
+            elif api == "Predict":
+                # Create another temporary csv file to hold the params
+                f = open("cur_api_input.csv", 'wb')
+                f.write(data)
+                f.close()
+                api_res = Predict("Working", "cur_api_input.csv")
+                print(api_res)
+                os.remove("cur_api_input.csv")
 
             # Generate ID for api_res
             res_id = random.randint(100001, 200000)
@@ -54,7 +62,7 @@ def brokerAccess(user_id, api, exe_mode):
 
             # Now that we have finished executing the function, we remove the working directory
             shutil.rmtree("Working")
-    # Second case: we are running the optimistic execution mode
+    # Second case: we are running the pessimistic execution mode
     else:
         if policy_info.odata_type == "dir_accessible":
             # First fill in need_to_access
@@ -80,6 +88,14 @@ def brokerAccess(user_id, api, exe_mode):
                     api_res = DataPreprocess("Working")
                 elif api == "ModelTrain":
                     api_res = ModelTrain("Working")
+                elif api == "Predict":
+                    # Create another temporary csv file to hold the params
+                    f = open("cur_api_input.csv", 'wb')
+                    f.write(data)
+                    f.close()
+                    api_res = Predict("Working", "cur_api_input.csv")
+                    print(api_res)
+                    os.remove("cur_api_input.csv")
 
                 # Generate ID for api_res
                 res_id = random.randint(100001, 200000)
