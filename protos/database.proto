@@ -22,6 +22,8 @@ service Database {
 
   rpc CreatePolicy(Policy) returns (PolicyResp) {}
   rpc GetAllPolicies(DBEmpty) returns (PolicyResp) {}
+
+  rpc CreateDerived(Derived) returns (DerivedResp) {}
 }
 
 message User {
@@ -108,4 +110,16 @@ message PolicyResp {
   int32 status = 1;
   string msg = 2;
   repeated Policy data = 3;
+}
+
+message Derived {
+  int32 id  = 1;
+  int32 caller_id = 2;
+  string api = 3;
+}
+
+message DerivedResp {
+  int32 status = 1;
+  string msg = 2;
+  repeated Derived data = 3;
 }
