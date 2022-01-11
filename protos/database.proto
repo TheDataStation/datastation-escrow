@@ -24,6 +24,8 @@ service Database {
   rpc GetAllPolicies(DBEmpty) returns (PolicyResp) {}
 
   rpc CreateDerived(Derived) returns (DerivedResp) {}
+
+  rpc CreateProvenance(Provenance) returns (ProvenanceResp) {}
 }
 
 message User {
@@ -122,4 +124,15 @@ message DerivedResp {
   int32 status = 1;
   string msg = 2;
   repeated Derived data = 3;
+}
+
+message Provenance {
+  int32 child_id = 1;
+  int32 parent_id = 2;
+}
+
+message ProvenanceResp {
+  int32 status = 1;
+  string msg = 2;
+  repeated Provenance data = 3;
 }
