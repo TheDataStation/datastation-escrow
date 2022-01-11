@@ -176,7 +176,7 @@ async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
 @app.get("/simpleML/modeltrain/")
 async def model_train_wrapper(token: str = Depends(oauth2_scheme)):
     # First set an execution mode
-    exe_mode = "optimistic"
+    exe_mode = "pessimistic"
     # Get caller uname
     username = userRegister.authenticate_user(token)
     # Get caller ID
@@ -204,7 +204,7 @@ async def model_train_wrapper(token: str = Depends(oauth2_scheme)):
 async def predict_wrapper(token: str = Depends(oauth2_scheme),
                           data: UploadFile = File(...),):
     # First set an execution mode
-    exe_mode = "optimistic"
+    exe_mode = "pessimistic"
     # Get caller uname
     username = userRegister.authenticate_user(token)
     # Get caller ID
