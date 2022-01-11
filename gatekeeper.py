@@ -110,6 +110,14 @@ def brokerAccess(user_id, api, exe_mode, data=None):
                 res_id = -1
                 status = False
 
+    # Before we return, we have enough information to record this derived data in Derived DB
+    response = database_service_stub.CreateDerived(
+                    database_pb2.Derived(id=res_id,
+                                         caller_id=user_id,
+                                         api=api,))
+    if response.status == -1:
+        return {"status": -1}
+
     # Lastly, prepare the dictionary to be returned
     dict_res = dict()
     dict_res["data"] = api_res
