@@ -104,6 +104,11 @@ class DatabaseStub(object):
                 request_serializer=database__pb2.Derived.SerializeToString,
                 response_deserializer=database__pb2.DerivedResp.FromString,
                 )
+        self.CreateProvenance = channel.unary_unary(
+                '/Database/CreateProvenance',
+                request_serializer=database__pb2.Provenance.SerializeToString,
+                response_deserializer=database__pb2.ProvenanceResp.FromString,
+                )
 
 
 class DatabaseServicer(object):
@@ -217,6 +222,12 @@ class DatabaseServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateProvenance(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_DatabaseServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -309,6 +320,11 @@ def add_DatabaseServicer_to_server(servicer, server):
                     servicer.CreateDerived,
                     request_deserializer=database__pb2.Derived.FromString,
                     response_serializer=database__pb2.DerivedResp.SerializeToString,
+            ),
+            'CreateProvenance': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateProvenance,
+                    request_deserializer=database__pb2.Provenance.FromString,
+                    response_serializer=database__pb2.ProvenanceResp.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -623,5 +639,22 @@ class Database(object):
         return grpc.experimental.unary_unary(request, target, '/Database/CreateDerived',
             database__pb2.Derived.SerializeToString,
             database__pb2.DerivedResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CreateProvenance(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Database/CreateProvenance',
+            database__pb2.Provenance.SerializeToString,
+            database__pb2.ProvenanceResp.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
