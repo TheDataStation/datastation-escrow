@@ -176,7 +176,7 @@ async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
 @app.get("/simpleML/modeltrain/")
 async def model_train_wrapper(token: str = Depends(oauth2_scheme)):
     # First set an execution mode
-    exe_mode = "pessimistic"
+    exe_mode = "optimistic"
     # Get caller uname
     username = userRegister.authenticate_user(token)
     # Get caller ID
@@ -186,7 +186,7 @@ async def model_train_wrapper(token: str = Depends(oauth2_scheme)):
     user_id = get_user_response.data[0].id
     # Calling the GK
     gatekeeper_response = gatekeeper.brokerAccess(user_id, "ModelTrain", exe_mode)
-    print(gatekeeper_response)
+    print(gatekeeper_response["data"].coef_)
 
     # Case one: output contains info from unauthorized datasets
     if not gatekeeper_response["status"]:
