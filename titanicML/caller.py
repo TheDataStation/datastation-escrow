@@ -19,4 +19,3 @@ reg = ModelTrain((train_dir))
 
 # Calling Predict
 pred = Predict(train_dir, input_file)
-print(pred)
