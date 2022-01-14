@@ -232,7 +232,7 @@ class DatabaseServicer(object):
 def add_DatabaseServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CreateUser': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateUser,
+                    servicer.create_user,
                     request_deserializer=database__pb2.User.FromString,
                     response_serializer=database__pb2.UserResponse.SerializeToString,
             ),

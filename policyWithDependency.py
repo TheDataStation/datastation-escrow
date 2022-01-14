@@ -1,7 +1,7 @@
 import grpc
 import database_pb2
 import database_pb2_grpc
-from classes.policyInfo import *
+from classes.policy_info import *
 
 database_service_channel = grpc.insecure_channel('localhost:50051')
 database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)

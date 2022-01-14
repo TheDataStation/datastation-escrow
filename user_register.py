@@ -27,7 +27,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def CreateUser(request):
+def create_user(request):
     # check if there is an existing user
     existed_user = database_service_stub.GetUserByUserName(database_pb2.User(user_name=request.user_name))
     if existed_user.status == 1:
@@ -42,7 +42,7 @@ def CreateUser(request):
 
     return Response(status=0, message="success")
 
-def LoginUser(username, password):
+def login_user(username, password):
     # check if there is an existing user
     existed_user = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
     # If the user doesn't exist, something is wrong

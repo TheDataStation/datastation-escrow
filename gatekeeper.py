@@ -8,12 +8,12 @@ import shutil
 import random
 
 import policyWithDependency
-from titanicML.titanic import DataPreprocess, ModelTrain, Predict
+from titanicML.titanic import data_preprocess, model_train, predict
 
 database_service_channel = grpc.insecure_channel('localhost:50051')
 database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
-def brokerAccess(user_id, api, exe_mode, data=None):
+def broker_access(user_id, api, exe_mode, data=None):
     policy_info = policyWithDependency.get_user_api_info(user_id, api)
     accessible_set = policy_info.accessible_data
     need_to_access = []
@@ -42,15 +42,15 @@ def brokerAccess(user_id, api, exe_mode, data=None):
 
             # Get function output
             if api == "Preprocess":
-                api_res = DataPreprocess("Working")
+                api_res = data_preprocess("Working")
             elif api == "ModelTrain":
-                api_res = ModelTrain("Working")
+                api_res = model_train("Working")
             elif api == "Predict":
                 # Create another temporary csv file to hold the params
                 f = open("cur_api_input.csv", 'wb')
                 f.write(data)
                 f.close()
-                api_res = Predict("Working", "cur_api_input.csv")
+                api_res = predict("Working", "cur_api_input.csv")
                 print(api_res)
                 os.remove("cur_api_input.csv")
 
@@ -85,15 +85,15 @@ def brokerAccess(user_id, api, exe_mode, data=None):
             if set(need_to_access).issubset(set(accessible_set)):
                 # Get function output
                 if api == "Preprocess":
-                    api_res = DataPreprocess("Working")
+                    api_res = data_preprocess("Working")
                 elif api == "ModelTrain":
-                    api_res = ModelTrain("Working")
+                    api_res = model_train("Working")
                 elif api == "Predict":
                     # Create another temporary csv file to hold the params
                     f = open("cur_api_input.csv", 'wb')
                     f.write(data)
                     f.close()
-                    api_res = Predict("Working", "cur_api_input.csv")
+                    api_res = predict("Working", "cur_api_input.csv")
                     print(api_res)
                     os.remove("cur_api_input.csv")
 

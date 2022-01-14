@@ -15,8 +15,8 @@ import json
 import database_pb2
 import database_pb2_grpc
 
-import userRegister
-import dataRegister
+import user_register
+import data_register
 import gatekeeper
 
 # Adding global variables to support access token generation (for authentication)
@@ -44,8 +44,8 @@ async def startup_event():
 # The following API allows user log-in.
 @app.post("/token/")
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
-    response = userRegister.LoginUser(form_data.username,
-                                      form_data.password)
+    response = user_register.login_user(form_data.username,
+                                        form_data.password)
     if response.status == 0:
         return {"access_token": response.token, "token_type": "bearer"}
     else:
@@ -69,7 +69,7 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 async def get_all_apis(token: str = Depends(oauth2_scheme)):
 
     # Perform authentication
-    userRegister.authenticate_user(token)
+    user_register.authenticate_user(token)
 
     # Call policyWithDependency directly
     return policyWithDependency.get_all_apis()
@@ -90,7 +90,7 @@ async def get_all_apis(token: str = Depends(oauth2_scheme)):
 async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
 
     # Perform authentication
-    userRegister.authenticate_user(token)
+    user_register.authenticate_user(token)
 
     # Call policyWithDependency directly
     return policyWithDependency.get_all_dependencies()
@@ -122,7 +122,7 @@ async def get_dependency_graph():
 # Register a new user
 @app.post("/users/")
 async def create_user(user: User):
-    response = userRegister.CreateUser(user)
+    response = user_register.create_user(user)
     return Response(status=response.status, message=response.message)
 
 # Upload a new dataset
@@ -132,7 +132,7 @@ async def upload_dataset(data_name: str,
     # Load the file in bytes
     data_in_bytes = bytes(await data.read())
 
-    response = dataRegister.UploadData(data_name, data_in_bytes)
+    response = data_register.upload_data(data_name, data_in_bytes)
     if response.status != 0:
         return Response(status=response.status, message=response.message)
 
@@ -141,7 +141,7 @@ async def upload_dataset(data_name: str,
 # Remove a dataset that's uploaded
 @app.delete("/dataset/")
 async def remove_dataset(data_name: str,):
-    response = dataRegister.RemoveData(data_name)
+    response = data_register.remove_data(data_name)
     return Response(status=response.status, message=response.message)
 
 # API for Data Users: Preprocess
@@ -150,14 +150,14 @@ async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
     # First set an execution mode
     exe_mode = "optimistic"
     # Get caller uname
-    username = userRegister.authenticate_user(token)
+    username = user_register.authenticate_user(token)
     # Get caller ID
     get_user_response = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
     if get_user_response.status != 1:
         return Response(status=get_user_response.status, message=get_user_response.msg)
     user_id = get_user_response.data[0].id
     # Calling the GK
-    gatekeeper_response = gatekeeper.brokerAccess(user_id, "Preprocess", exe_mode)
+    gatekeeper_response = gatekeeper.broker_access(user_id, "Preprocess", exe_mode)
     # print(gatekeeper_response)
     # Case one: output contains info from unauthorized datasets
     if not gatekeeper_response["status"]:
@@ -178,14 +178,14 @@ async def model_train_wrapper(token: str = Depends(oauth2_scheme)):
     # First set an execution mode
     exe_mode = "optimistic"
     # Get caller uname
-    username = userRegister.authenticate_user(token)
+    username = user_register.authenticate_user(token)
     # Get caller ID
     get_user_response = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
     if get_user_response.status != 1:
         return Response(status=get_user_response.status, message=get_user_response.msg)
     user_id = get_user_response.data[0].id
     # Calling the GK
-    gatekeeper_response = gatekeeper.brokerAccess(user_id, "ModelTrain", exe_mode)
+    gatekeeper_response = gatekeeper.broker_access(user_id, "ModelTrain", exe_mode)
     print(gatekeeper_response["data"].coef_)
 
     # Case one: output contains info from unauthorized datasets
@@ -206,7 +206,7 @@ async def predict_wrapper(token: str = Depends(oauth2_scheme),
     # First set an execution mode
     exe_mode = "pessimistic"
     # Get caller uname
-    username = userRegister.authenticate_user(token)
+    username = user_register.authenticate_user(token)
     # Get caller ID
     get_user_response = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
     if get_user_response.status != 1:
@@ -215,7 +215,7 @@ async def predict_wrapper(token: str = Depends(oauth2_scheme),
     # Calling the GK
     # Load the file in bytes
     data_in_bytes = bytes(await data.read())
-    gatekeeper_response = gatekeeper.brokerAccess(user_id, "Predict", exe_mode, data_in_bytes)
+    gatekeeper_response = gatekeeper.broker_access(user_id, "Predict", exe_mode, data_in_bytes)
     print(gatekeeper_response)
 
     # Case one: output contains info from unauthorized datasets
