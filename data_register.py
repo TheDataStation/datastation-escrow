@@ -3,12 +3,12 @@ import database_pb2
 import database_pb2_grpc
 from models.response import *
 import random
-import storageManager
+import storage_manager
 
 database_service_channel = grpc.insecure_channel('localhost:50051')
 database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
-def UploadData(data_name, data):
+def upload_data(data_name, data):
 
     # check if there is an existing dataset
 
@@ -29,7 +29,7 @@ def UploadData(data_name, data):
         return Response(status=1, message="internal database error")
 
     # Registration of the dataset is successful. Now we call SM
-    storage_manager_response = storageManager.Store(data_name, dataset_id, data)
+    storage_manager_response = storage_manager.Store(data_name, dataset_id, data)
     # If dataset already exists
     if storage_manager_response.status == 1:
         return storage_manager_response
@@ -37,7 +37,7 @@ def UploadData(data_name, data):
     # Successful
     return UploadDataResponse(status=0, message="success", data_id=dataset_id)
 
-def RemoveData(data_name):
+def remove_data(data_name):
 
     # Step 1: check if there is an existing dataset
     existed_dataset = database_service_stub.GetDatasetByName(database_pb2.Dataset(name=data_name))
@@ -57,7 +57,7 @@ def RemoveData(data_name):
     # Get ID of the dataset
     dataset_id = existed_dataset.data[0].id
 
-    storage_manager_response = storageManager.Remove(data_name, dataset_id)
+    storage_manager_response = storage_manager.Remove(data_name, dataset_id)
 
     # If SM removal failed
     if storage_manager_response.status == 1:

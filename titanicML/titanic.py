@@ -5,7 +5,7 @@ from sklearn import linear_model
 from sklearn.impute import SimpleImputer
 from os import listdir, path
 
-def FilePreprocess(input_X_file):
+def file_preprocess(input_X_file):
   import_pd = pd.read_csv(input_X_file)
   import_X = import_pd.to_numpy()
   import_X = np.delete(import_X, 2, 1)
@@ -26,7 +26,7 @@ def FilePreprocess(input_X_file):
   import_X = imputer.transform(import_X)
   return import_X
 
-def DataPreprocess(data_dir):
+def data_preprocess(data_dir):
   all_df = []
 
   for file in listdir(data_dir):
@@ -66,17 +66,17 @@ def DataPreprocess(data_dir):
 
   return import_X, import_y
 
-def ModelTrain(data_dir):
-  import_X, import_y = DataPreprocess(data_dir)
+def model_train(data_dir):
+  import_X, import_y = data_preprocess(data_dir)
   train_X, test_X, train_y, test_y = train_test_split(import_X, import_y, test_size=0.33, random_state=1)
 
   reg = linear_model.LinearRegression()
   reg.fit(train_X, train_y)
   return reg
 
-def Predict(data_dir, input_X_file):
-  reg = ModelTrain(data_dir)
-  input_X = FilePreprocess(input_X_file)
+def predict(data_dir, input_X_file):
+  reg = model_train(data_dir)
+  input_X = file_preprocess(input_X_file)
   predictions = reg.predict(input_X).flatten()
   for i in range(len(predictions)):
     if predictions[i] <= 0.5:
