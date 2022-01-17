@@ -15,4 +15,3 @@ class GetAPIResponse(Response):
 class TokenResponse(BaseModel):
     status: int
     token: str
-

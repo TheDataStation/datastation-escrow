@@ -7,14 +7,14 @@ import shutil
 
 import random
 
-import policyWithDependency
+import policyBroker
 from titanicML.titanic import data_preprocess, model_train, predict
 
 database_service_channel = grpc.insecure_channel('localhost:50051')
 database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
 def broker_access(user_id, api, exe_mode, data=None):
-    policy_info = policyWithDependency.get_user_api_info(user_id, api)
+    policy_info = policyBroker.get_user_api_info(user_id, api)
     accessible_set = policy_info.accessible_data
     need_to_access = []
     listOfFiles = list()

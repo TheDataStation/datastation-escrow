@@ -7,6 +7,8 @@ from typing import Optional
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi import HTTPException, status
+from dbservice import database_api
+from models.user import *
 
 # Adding global variables to support access token generation (for authentication)
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"
@@ -29,14 +31,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def create_user(request):
     # check if there is an existing user
-    existed_user = database_service_stub.GetUserByUserName(database_pb2.User(user_name=request.user_name))
+    existed_user = database_api.get_user_by_user_name(User(user_name=request.user_name,
+                                                           password=""))
     if existed_user.status == 1:
         return Response(status=1, message="username already exists")
     # no existing username, create new user
     hashed = bcrypt.hashpw(request.password.encode(), bcrypt.gensalt())
-    new_user = database_pb2.User(user_name=request.user_name,
-                                 password=hashed.decode(),)
-    resp = database_service_stub.CreateUser(new_user)
+    resp = database_api.create_user(User(user_name=request.user_name, password=hashed.decode()))
     if resp.status == -1:
         return Response(status=1, message="internal database error")
 
@@ -44,7 +45,8 @@ def create_user(request):
 
 def login_user(username, password):
     # check if there is an existing user
-    existed_user = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
+    existed_user = database_api.get_user_by_user_name(User(user_name=username,
+                                                           password=""))
     # If the user doesn't exist, something is wrong
     if existed_user == -1:
         return TokenResponse(status=1, token="username is wrong")

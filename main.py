@@ -1,6 +1,6 @@
 import grpc
 from fastapi import FastAPI
-import policyWithDependency
+import policyBroker
 from models.api import *
 from models.api_dependency import *
 from models.response import *
@@ -39,7 +39,7 @@ async def root():
 # On startup: doing some initializations from DBS
 @app.on_event("startup")
 async def startup_event():
-    policyWithDependency.initialize()
+    policyBroker.initialize()
 
 # The following API allows user log-in.
 @app.post("/token/")
@@ -61,7 +61,7 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 # async def upload_api(api: API):
 #     response = database_service_stub.CreateAPI(
 #                 database_pb2.API(api_name=api.api_name))
-#     policyWithDependency.add_new_api(response.data[0].api_name)
+#     policyBroker.add_new_api(response.data[0].api_name)
 #     return Response(status=response.status, message=response.msg)
 
 # Look at all available APIs
@@ -71,8 +71,8 @@ async def get_all_apis(token: str = Depends(oauth2_scheme)):
     # Perform authentication
     user_register.authenticate_user(token)
 
-    # Call policyWithDependency directly
-    return policyWithDependency.get_all_apis()
+    # Call policyBroker directly
+    return policyBroker.get_all_apis()
 
 # # Upload a new API Dependency
 # @app.post("/api_depend/")
@@ -82,7 +82,7 @@ async def get_all_apis(token: str = Depends(oauth2_scheme)):
 #                                            to_api=api_dependency.to_api,))
 #     if response.status != -1:
 #         cur_tuple = (response.data[0].from_api, response.data[0].to_api)
-#         policyWithDependency.add_new_api_depend(cur_tuple)
+#         policyBroker.add_new_api_depend(cur_tuple)
 #     return Response(status=response.status, message=response.msg)
 
 # Look at all available API dependencies
@@ -92,8 +92,8 @@ async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
     # Perform authentication
     user_register.authenticate_user(token)
 
-    # Call policyWithDependency directly
-    return policyWithDependency.get_all_dependencies()
+    # Call policyBroker directly
+    return policyBroker.get_all_dependencies()
 
 # Upload a new policy
 @app.post("/policy/")
@@ -106,18 +106,18 @@ async def upload_policy(policy: Policy):
         cur_tuple = (response.data[0].user_id,
                      response.data[0].api,
                      response.data[0].data_id)
-        policyWithDependency.add_new_policy(cur_tuple)
+        policyBroker.add_new_policy(cur_tuple)
     return Response(status=response.status, message=response.msg)
 
 # Look at all available policies
 @app.get("/policy/")
 async def get_all_policies():
-    return policyWithDependency.get_all_policies()
+    return policyBroker.get_all_policies()
 
 # Look at the dependency graph
 @app.get("/dependency_graph/")
 async def get_dependency_graph():
-    return policyWithDependency.get_dependency_graph()
+    return policyBroker.get_dependency_graph()
 
 # Register a new user
 @app.post("/users/")
