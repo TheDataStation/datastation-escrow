@@ -48,7 +48,7 @@ def login_user(username, password):
     existed_user = database_api.get_user_by_user_name(User(user_name=username,
                                                            password=""))
     # If the user doesn't exist, something is wrong
-    if existed_user == -1:
+    if existed_user.status == -1:
         return TokenResponse(status=1, token="username is wrong")
     user_data = existed_user.data[0]
     # user = get_first_user(existed_user.data, password=True)
