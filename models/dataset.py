@@ -1,6 +1,11 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class Dataset(BaseModel):
-    data_name: str
-    data: bytes
+    id: Optional[int]
+    name: str
+    description: Optional[str]
+    upload: Optional[bool]
+    url: Optional[str]
+    owner_id: Optional[int]
