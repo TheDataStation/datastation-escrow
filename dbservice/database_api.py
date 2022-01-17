@@ -46,3 +46,17 @@ def remove_dataset_by_name(request):
         return response.DatasetResponse(status=1, msg="success", data=[])
     else:
         return response.DatasetResponse(status=-1, msg="fail", data=[])
+
+def create_api(request):
+    api = api_repo.create_api(next(get_db()), request)
+    if api:
+        return response.APIResponse(status=1, msg="success", data=[api])
+    else:
+        return response.APIResponse(status=-1, msg="fail", data=[])
+
+def create_api_dependency(request):
+    api_dependency = api_dependency_repo.create_api_dependency(next(get_db()), request)
+    if api_dependency:
+        return response.APIDependencyResponse(status=1, msg="success", data=[api_dependency])
+    else:
+        return response.APIDependencyResponse(status=-1, msg="fail", data=[])

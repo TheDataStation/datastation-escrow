@@ -24,8 +24,27 @@ class Dataset(BaseModel):
     class Config:
         orm_mode = True
 
+class API(BaseModel):
+    api_name: str
+
+    class Config:
+        orm_mode = True
+
+class APIDependency(BaseModel):
+    from_api: str
+    to_api: str
+
+    class Config:
+        orm_mode = True
+
 class UserResponse(Response):
     data: List[User]
 
 class DatasetResponse(Response):
     data: List[Dataset]
+
+class APIResponse(Response):
+    data: List[API]
+
+class APIDependencyResponse(Response):
+    data: List[APIDependency]
