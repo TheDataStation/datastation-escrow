@@ -8,7 +8,7 @@ class Response(BaseModel):
 class User(BaseModel):
     id: int
     user_name: str
-    password: str
+    password: Optional[str]
 
     class Config:
         orm_mode = True
@@ -37,6 +37,14 @@ class APIDependency(BaseModel):
     class Config:
         orm_mode = True
 
+class Policy(BaseModel):
+    user_id: int
+    api: str
+    data_id: int
+
+    class Config:
+        orm_mode = True
+
 class UserResponse(Response):
     data: List[User]
 
@@ -48,3 +56,6 @@ class APIResponse(Response):
 
 class APIDependencyResponse(Response):
     data: List[APIDependency]
+
+class PolicyResponse(Response):
+    data: List[Policy]

@@ -60,3 +60,11 @@ def create_api_dependency(request):
         return response.APIDependencyResponse(status=1, msg="success", data=[api_dependency])
     else:
         return response.APIDependencyResponse(status=-1, msg="fail", data=[])
+
+
+def create_policy(request):
+    policy = policy_repo.create_policy(next(get_db()), request)
+    if policy:
+        return response.PolicyResponse(status=1, msg="success", data=[policy])
+    else:
+        return response.PolicyResponse(status=-1, msg="fail", data=[])

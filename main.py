@@ -57,13 +57,13 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-# Upload a new API
-@app.post("/api/")
-async def upload_api(api: API):
-    response = database_api.create_api(api)
-    if response.status == 1:
-        policyBroker.add_new_api(response.data[0].api_name)
-    return Response(status=response.status, message=response.msg)
+# # Upload a new API
+# @app.post("/api/")
+# async def upload_api(api: API):
+#     response = database_api.create_api(api)
+#     if response.status == 1:
+#         policyBroker.add_new_api(response.data[0].api_name)
+#     return Response(status=response.status, message=response.msg)
 
 # Look at all available APIs
 @app.get("/api/")
@@ -75,14 +75,14 @@ async def get_all_apis(token: str = Depends(oauth2_scheme)):
     # Call policyBroker directly
     return policyBroker.get_all_apis()
 
-# Upload a new API Dependency
-@app.post("/api_depend/")
-async def upload_api_dependency(api_dependency: APIDependency):
-    response = database_api.create_api_dependency(api_dependency)
-    if response.status != -1:
-        cur_tuple = (response.data[0].from_api, response.data[0].to_api)
-        policyBroker.add_new_api_depend(cur_tuple)
-    return Response(status=response.status, message=response.msg)
+# # Upload a new API Dependency
+# @app.post("/api_depend/")
+# async def upload_api_dependency(api_dependency: APIDependency):
+#     response = database_api.create_api_dependency(api_dependency)
+#     if response.status != -1:
+#         cur_tuple = (response.data[0].from_api, response.data[0].to_api)
+#         policyBroker.add_new_api_depend(cur_tuple)
+#     return Response(status=response.status, message=response.msg)
 
 # Look at all available API dependencies
 @app.get("/api_depend/")
@@ -97,10 +97,7 @@ async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
 # Upload a new policy
 @app.post("/policy/")
 async def upload_policy(policy: Policy):
-    response = database_service_stub.CreatePolicy(
-                database_pb2.Policy(user_id=policy.user_id,
-                                    api=policy.api,
-                                    data_id=policy.data_id,))
+    response = database_api.create_policy(policy)
     if response.status != -1:
         cur_tuple = (response.data[0].user_id,
                      response.data[0].api,
@@ -151,10 +148,10 @@ async def data_process_wrapper(token: str = Depends(oauth2_scheme)):
     # Get caller uname
     username = user_register.authenticate_user(token)
     # Get caller ID
-    get_user_response = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
-    if get_user_response.status != 1:
-        return Response(status=get_user_response.status, message=get_user_response.msg)
-    user_id = get_user_response.data[0].id
+    get_caller_response = database_api.get_user_by_user_name(User(user_name=username,))
+    if get_caller_response.status != 1:
+        return Response(status=get_caller_response.status, message=get_caller_response.msg)
+    user_id = get_caller_response.data[0].id
     # Calling the GK
     gatekeeper_response = gatekeeper.broker_access(user_id, "Preprocess", exe_mode)
     # print(gatekeeper_response)
@@ -179,10 +176,10 @@ async def model_train_wrapper(token: str = Depends(oauth2_scheme)):
     # Get caller uname
     username = user_register.authenticate_user(token)
     # Get caller ID
-    get_user_response = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
-    if get_user_response.status != 1:
-        return Response(status=get_user_response.status, message=get_user_response.msg)
-    user_id = get_user_response.data[0].id
+    get_caller_response = database_api.get_user_by_user_name(User(user_name=username,))
+    if get_caller_response.status != 1:
+        return Response(status=get_caller_response.status, message=get_caller_response.msg)
+    user_id = get_caller_response.data[0].id
     # Calling the GK
     gatekeeper_response = gatekeeper.broker_access(user_id, "ModelTrain", exe_mode)
     print(gatekeeper_response["data"].coef_)
@@ -207,10 +204,10 @@ async def predict_wrapper(token: str = Depends(oauth2_scheme),
     # Get caller uname
     username = user_register.authenticate_user(token)
     # Get caller ID
-    get_user_response = database_service_stub.GetUserByUserName(database_pb2.User(user_name=username))
-    if get_user_response.status != 1:
-        return Response(status=get_user_response.status, message=get_user_response.msg)
-    user_id = get_user_response.data[0].id
+    get_caller_response = database_api.get_user_by_user_name(User(user_name=username,))
+    if get_caller_response.status != 1:
+        return Response(status=get_caller_response.status, message=get_caller_response.msg)
+    user_id = get_caller_response.data[0].id
     # Calling the GK
     # Load the file in bytes
     data_in_bytes = bytes(await data.read())
