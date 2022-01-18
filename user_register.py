@@ -31,8 +31,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def create_user(request):
     # check if there is an existing user
-    existed_user = database_api.get_user_by_user_name(User(user_name=request.user_name,
-                                                           password=""))
+    existed_user = database_api.get_user_by_user_name(User(user_name=request.user_name,))
     if existed_user.status == 1:
         return Response(status=1, message="username already exists")
     # no existing username, create new user
@@ -45,8 +44,7 @@ def create_user(request):
 
 def login_user(username, password):
     # check if there is an existing user
-    existed_user = database_api.get_user_by_user_name(User(user_name=username,
-                                                           password=""))
+    existed_user = database_api.get_user_by_user_name(User(user_name=username,))
     # If the user doesn't exist, something is wrong
     if existed_user.status == -1:
         return TokenResponse(status=1, token="username is wrong")
