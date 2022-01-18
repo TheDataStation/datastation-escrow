@@ -17,5 +17,4 @@ def create_derived(db: Session, derived: DerivedCreate):
     except SQLAlchemyError as e:
         db.rollback()
         return None
-    print(db_derived)
     return db_derived

@@ -13,9 +13,6 @@ from jose import jwt, JWTError
 import json
 from dbservice import database_api
 
-import database_pb2
-import database_pb2_grpc
-
 import user_register
 import data_register
 import gatekeeper
@@ -27,9 +24,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Specifying oauth2_scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-database_service_channel = grpc.insecure_channel('localhost:50051')
-database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
 app = FastAPI()
 

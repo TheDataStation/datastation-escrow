@@ -53,6 +53,13 @@ class Derived(BaseModel):
     class Config:
         orm_mode = True
 
+class Provenance(BaseModel):
+    child_id: int
+    parent_id: int
+
+    class Config:
+        orm_mode = True
+
 class UserResponse(Response):
     data: List[User]
 
@@ -73,3 +80,6 @@ class PolicyResponse(Response):
 
 class DerivedResponse(Response):
     data: List[Derived]
+
+class ProvenanceResponse(Response):
+    data: List[Provenance]

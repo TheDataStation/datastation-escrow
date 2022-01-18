@@ -1,6 +1,3 @@
-import grpc
-import database_pb2
-import database_pb2_grpc
 from models.response import *
 import bcrypt
 from typing import Optional
@@ -14,9 +11,6 @@ from models.user import *
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-database_service_channel = grpc.insecure_channel('localhost:50051')
-database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
 # The following function handles the creation of access tokens (for LoginUser)
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

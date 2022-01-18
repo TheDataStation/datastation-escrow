@@ -110,3 +110,10 @@ def create_derived(request):
         return response.DerivedResponse(status=1, msg="success", data=[derived])
     else:
         return response.DerivedResponse(status=-1, msg="fail", data=[])
+
+def create_provenance(request):
+    provenance = provenance_repo.create_provenance(next(get_db()), request)
+    if provenance:
+        return response.ProvenanceResponse(status=1, msg="success", data=[provenance])
+    else:
+        return response.ProvenanceResponse(status=-1, msg="fail", data=[])
