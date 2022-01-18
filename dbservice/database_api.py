@@ -55,6 +55,13 @@ def remove_dataset_by_name(request):
     else:
         return response.DatasetResponse(status=-1, msg="fail", data=[])
 
+def get_all_datasets():
+    datasets = dataset_repo.get_all_datasets(next(get_db()))
+    if len(datasets):
+        return response.DatasetResponse(status=1, msg="success", data=datasets)
+    else:
+        return response.DatasetResponse(status=-1, msg="no existing datasets", data=[])
+
 def create_api(request):
     api = api_repo.create_api(next(get_db()), request)
     if api:
@@ -89,3 +96,17 @@ def create_policy(request):
         return response.PolicyResponse(status=1, msg="success", data=[policy])
     else:
         return response.PolicyResponse(status=-1, msg="fail", data=[])
+
+def get_all_policies():
+    policies = policy_repo.get_all_policies(next(get_db()))
+    if len(policies):
+        return response.PolicyResponse(status=1, msg="success", data=policies)
+    else:
+        return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
+
+def create_derived(request):
+    derived = derived_repo.create_derived(next(get_db()), request)
+    if derived:
+        return response.DerivedResponse(status=1, msg="success", data=[derived])
+    else:
+        return response.DerivedResponse(status=-1, msg="fail", data=[])

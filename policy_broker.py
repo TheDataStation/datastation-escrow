@@ -83,37 +83,32 @@ def initialize():
         uid = user_res.data[i].id
         list_of_uid.append(uid)
 
-    print(list_of_apis)
-    print(list_of_dependencies)
-    print(dependency_graph)
-    print(list_of_uid)
+    # Initialize policy_with_dependency from dependency_graph and list_of_uid
+    for uid in list_of_uid:
+        for key in dependency_graph:
+            cur_key = (uid, key)
+            cur_accessible_data = []
+            cur_odata_type = get_odata_type(key, dependency_graph)
+            cur_policyInfo = PolicyInfo(cur_accessible_data, cur_odata_type)
+            policy_with_dependency[cur_key] = cur_policyInfo
 
-    # # Initialize policy_with_dependency from dependency_graph and list_of_uid
-    # for uid in list_of_uid:
-    #     for key in dependency_graph:
-    #         cur_key = (uid, key)
-    #         cur_accessible_data = []
-    #         cur_odata_type = get_odata_type(key, dependency_graph)
-    #         cur_policyInfo = PolicyInfo(cur_accessible_data, cur_odata_type)
-    #         policy_with_dependency[cur_key] = cur_policyInfo
-    #
-    # # get list of policies
-    # policy_res = database_service_stub.GetAllPolicies(database_pb2.DBEmpty())
-    # for i in range(len(policy_res.data)):
-    #     cur_tuple = (policy_res.data[i].user_id,
-    #                  policy_res.data[i].api,
-    #                  policy_res.data[i].data_id,)
-    #     list_of_policies.append(cur_tuple)
-    #
-    # # From list_of_policies, fill in policy_with_dependency with policies
-    # for policy in list_of_policies:
-    #     update_policy_effect(policy[0], policy[1], policy[2])
-    #
-    # # Check if policy_with_dependency is initialized correctly
-    # for key, value in policy_with_dependency.items():
-    #     print(key)
-    #     print(value.accessible_data)
-    #     print(value.odata_type)
+    # get list of policies
+    policy_res = database_api.get_all_policies()
+    for i in range(len(policy_res.data)):
+        cur_tuple = (policy_res.data[i].user_id,
+                     policy_res.data[i].api,
+                     policy_res.data[i].data_id,)
+        list_of_policies.append(cur_tuple)
+
+    # From list_of_policies, fill in policy_with_dependency with policies
+    for policy in list_of_policies:
+        update_policy_effect(policy[0], policy[1], policy[2])
+
+    # Check if policy_with_dependency is initialized correctly
+    for key, value in policy_with_dependency.items():
+        print(key)
+        print(value.accessible_data)
+        print(value.odata_type)
 
 def add_new_api(api):
     global list_of_apis

@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..models.derived import Derived
-
 from ..schemas.derived import DerivedCreate
 
 
@@ -18,4 +17,5 @@ def create_derived(db: Session, derived: DerivedCreate):
     except SQLAlchemyError as e:
         db.rollback()
         return None
+    print(db_derived)
     return db_derived

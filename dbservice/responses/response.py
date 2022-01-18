@@ -45,6 +45,14 @@ class Policy(BaseModel):
     class Config:
         orm_mode = True
 
+class Derived(BaseModel):
+    id: int
+    caller_id: int
+    api: str
+
+    class Config:
+        orm_mode = True
+
 class UserResponse(Response):
     data: List[User]
 
@@ -62,3 +70,6 @@ class APIDependencyResponse(Response):
 
 class PolicyResponse(Response):
     data: List[Policy]
+
+class DerivedResponse(Response):
+    data: List[Derived]
