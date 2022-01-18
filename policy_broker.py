@@ -1,11 +1,5 @@
-import grpc
-import database_pb2
-import database_pb2_grpc
 from classes.policy_info import *
 from dbservice import database_api
-
-database_service_channel = grpc.insecure_channel('localhost:50051')
-database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
 list_of_apis = []
 list_of_dependencies = []

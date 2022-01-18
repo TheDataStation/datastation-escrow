@@ -1,14 +1,8 @@
-import grpc
-import database_pb2
-import database_pb2_grpc
 from models.response import *
 import random
 import storage_manager
 from dbservice import database_api
 from models.dataset import *
-
-database_service_channel = grpc.insecure_channel('localhost:50051')
-database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
 def upload_data(data_name, data):
 

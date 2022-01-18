@@ -1,11 +1,8 @@
 import os
 import shutil
 
-import grpc
-import database_pb2
-import database_pb2_grpc
-
 from models.derived import *
+from models.provenance import *
 
 from dbservice import database_api
 
@@ -13,9 +10,6 @@ import random
 
 import policy_broker
 from titanicML.titanic import data_preprocess, model_train, predict
-
-database_service_channel = grpc.insecure_channel('localhost:50051')
-database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
 
 def broker_access(user_id, api, exe_mode, data=None):
     policy_info = policy_broker.get_user_api_info(user_id, api)
@@ -124,10 +118,8 @@ def broker_access(user_id, api, exe_mode, data=None):
     # Then we capture the provenance information using a loop
     for data_id in need_to_access:
         # print(data_id)
-        cur_prov_resp = database_service_stub.CreateProvenance(
-            database_pb2.Provenance(child_id=res_id,
-                                    parent_id=data_id)
-        )
+        cur_prov_resp = database_api.create_provenance(Provenance(child_id=res_id,
+                                                                  parent_id=data_id,))
         if cur_prov_resp.status == -1:
             return {"status": -1}
 
