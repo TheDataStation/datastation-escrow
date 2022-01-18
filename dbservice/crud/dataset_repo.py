@@ -7,7 +7,7 @@ from ..models.user import User
 from ..schemas.dataset import DatasetCreate
 
 
-def get_datasets(db: Session):
+def get_all_datasets(db: Session):
     all_data = db.query(Dataset).all()
     return all_data
 
