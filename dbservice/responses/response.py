@@ -54,6 +54,9 @@ class DatasetResponse(Response):
 class APIResponse(Response):
     data: List[API]
 
+class GetAPIResponse(Response):
+    data: list[str]
+
 class APIDependencyResponse(Response):
     data: List[APIDependency]
 
