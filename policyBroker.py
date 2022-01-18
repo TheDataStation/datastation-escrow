@@ -2,6 +2,7 @@ import grpc
 import database_pb2
 import database_pb2_grpc
 from classes.policy_info import *
+from dbservice import database_api
 
 database_service_channel = grpc.insecure_channel('localhost:50051')
 database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
@@ -58,7 +59,7 @@ def initialize():
     global policy_with_dependency
 
     # get list of APIs from DB
-    api_res = database_service_stub.GetAllAPIs(database_pb2.DBEmpty())
+    api_res = database_api.get_all_apis()
     list_of_apis = list(api_res.data)
 
     # Initialize dependency_graph using the list of apis as keys
@@ -66,7 +67,7 @@ def initialize():
         dependency_graph[api] = []
 
     # get list of API dependencies from DB, and fill in dependency_graph
-    api_depend_res = database_service_stub.GetAllDependencies(database_pb2.DBEmpty())
+    api_depend_res = database_api.get_all_api_dependencies()
     for i in range(len(api_depend_res.data)):
         from_api = api_depend_res.data[i].from_api
         to_api = api_depend_res.data[i].to_api
@@ -77,37 +78,42 @@ def initialize():
         dependency_graph[from_api].append(to_api)
 
     # get list of uids from DB
-    user_res = database_service_stub.GetAllUsers(database_pb2.DBEmpty())
+    user_res = database_api.get_all_users()
     for i in range(len(user_res.data)):
         uid = user_res.data[i].id
         list_of_uid.append(uid)
 
-    # Initialize policy_with_dependency from dependency_graph and list_of_uid
-    for uid in list_of_uid:
-        for key in dependency_graph:
-            cur_key = (uid, key)
-            cur_accessible_data = []
-            cur_odata_type = get_odata_type(key, dependency_graph)
-            cur_policyInfo = PolicyInfo(cur_accessible_data, cur_odata_type)
-            policy_with_dependency[cur_key] = cur_policyInfo
+    print(list_of_apis)
+    print(list_of_dependencies)
+    print(dependency_graph)
+    print(list_of_uid)
 
-    # get list of policies
-    policy_res = database_service_stub.GetAllPolicies(database_pb2.DBEmpty())
-    for i in range(len(policy_res.data)):
-        cur_tuple = (policy_res.data[i].user_id,
-                     policy_res.data[i].api,
-                     policy_res.data[i].data_id,)
-        list_of_policies.append(cur_tuple)
-
-    # From list_of_policies, fill in policy_with_dependency with policies
-    for policy in list_of_policies:
-        update_policy_effect(policy[0], policy[1], policy[2])
-
-    # Check if policy_with_dependency is initialized correctly
-    for key, value in policy_with_dependency.items():
-        print(key)
-        print(value.accessible_data)
-        print(value.odata_type)
+    # # Initialize policy_with_dependency from dependency_graph and list_of_uid
+    # for uid in list_of_uid:
+    #     for key in dependency_graph:
+    #         cur_key = (uid, key)
+    #         cur_accessible_data = []
+    #         cur_odata_type = get_odata_type(key, dependency_graph)
+    #         cur_policyInfo = PolicyInfo(cur_accessible_data, cur_odata_type)
+    #         policy_with_dependency[cur_key] = cur_policyInfo
+    #
+    # # get list of policies
+    # policy_res = database_service_stub.GetAllPolicies(database_pb2.DBEmpty())
+    # for i in range(len(policy_res.data)):
+    #     cur_tuple = (policy_res.data[i].user_id,
+    #                  policy_res.data[i].api,
+    #                  policy_res.data[i].data_id,)
+    #     list_of_policies.append(cur_tuple)
+    #
+    # # From list_of_policies, fill in policy_with_dependency with policies
+    # for policy in list_of_policies:
+    #     update_policy_effect(policy[0], policy[1], policy[2])
+    #
+    # # Check if policy_with_dependency is initialized correctly
+    # for key, value in policy_with_dependency.items():
+    #     print(key)
+    #     print(value.accessible_data)
+    #     print(value.odata_type)
 
 def add_new_api(api):
     global list_of_apis

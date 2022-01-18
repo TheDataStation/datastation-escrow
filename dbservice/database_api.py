@@ -26,6 +26,14 @@ def get_user_by_user_name(request):
     else:
         return response.UserResponse(status=-1, msg="internal database error", data=[])
 
+
+def get_all_users():
+    users = user_repo.get_all_users(next(get_db()))
+    if len(users):
+        return response.UserResponse(status=1, msg="success", data=users)
+    else:
+        return response.UserResponse(status=-1, msg="no existing users", data=[])
+
 def create_dataset(request):
     dataset = dataset_repo.create_dataset(next(get_db()), request)
     if dataset:
@@ -54,6 +62,13 @@ def create_api(request):
     else:
         return response.APIResponse(status=-1, msg="fail", data=[])
 
+def get_all_apis():
+    apis = api_repo.get_all_apis(next(get_db()))
+    if len(apis):
+        return response.GetAPIResponse(status=1, msg="success", data=apis)
+    else:
+        return response.GetAPIResponse(status=-1, msg="no existing apis", data=[])
+
 def create_api_dependency(request):
     api_dependency = api_dependency_repo.create_api_dependency(next(get_db()), request)
     if api_dependency:
@@ -61,6 +76,12 @@ def create_api_dependency(request):
     else:
         return response.APIDependencyResponse(status=-1, msg="fail", data=[])
 
+def get_all_api_dependencies():
+    api_dependencies = api_dependency_repo.get_all_dependencies(next(get_db()))
+    if len(api_dependencies):
+        return response.APIDependencyResponse(status=1, msg="success", data=api_dependencies)
+    else:
+        return response.APIDependencyResponse(status=-1, msg="no existing dependencies", data=[])
 
 def create_policy(request):
     policy = policy_repo.create_policy(next(get_db()), request)
