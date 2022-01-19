@@ -98,11 +98,11 @@ def initialize():
     for policy in list_of_policies:
         update_policy_effect(policy[0], policy[1], policy[2])
 
-    # Check if policy_with_dependency is initialized correctly
-    for key, value in policy_with_dependency.items():
-        print(key)
-        print(value.accessible_data)
-        print(value.odata_type)
+    # # Check if policy_with_dependency is initialized correctly
+    # for key, value in policy_with_dependency.items():
+    #     print(key)
+    #     print(value.accessible_data)
+    #     print(value.odata_type)
 
 def add_new_api(api):
     global list_of_apis
@@ -135,3 +135,20 @@ def get_dependency_graph():
 def get_user_api_info(user_id, api):
     cur_key = (user_id, api)
     return policy_with_dependency[cur_key]
+
+# For gatekeeper
+def get_user_api_info_two(user_id, api):
+    print(user_id)
+    print(api)
+    list_of_policies_two = []
+
+    # get list of policies for the current user
+    policy_res = database_api.get_policy_for_user(user_id)
+    for i in range(len(policy_res.data)):
+        cur_tuple = (policy_res.data[i].user_id,
+                     policy_res.data[i].api,
+                     policy_res.data[i].data_id,)
+        list_of_policies_two.append(cur_tuple)
+    print(list_of_policies_two)
+
+    return 1
