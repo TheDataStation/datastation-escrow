@@ -13,7 +13,7 @@ def initialize_system():
 def run_system():
 
     # start frontend
-    os.system("uvicorn web_api:app --reload")
+    os.system("uvicorn fast_api:app --reload")
 
     return
 
