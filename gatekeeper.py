@@ -13,6 +13,8 @@ from titanicML.titanic import data_preprocess, model_train, predict
 
 def broker_access(user_id, api, exe_mode, data=None):
     policy_info = policy_broker.get_user_api_info(user_id, api)
+    print(policy_info.accessible_data)
+    print(policy_info.odata_type)
     accessible_set = policy_info.accessible_data
     need_to_access = []
     listOfFiles = list()

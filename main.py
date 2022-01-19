@@ -34,7 +34,7 @@ async def root():
 # On startup: doing some initializations from DBS
 @app.on_event("startup")
 async def startup_event():
-    policy_broker.initialize()
+    pass
 
 # The following API allows user log-in.
 @app.post("/token/")
@@ -92,22 +92,12 @@ async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
 @app.post("/policy/")
 async def upload_policy(policy: Policy):
     response = database_api.create_policy(policy)
-    if response.status != -1:
-        cur_tuple = (response.data[0].user_id,
-                     response.data[0].api,
-                     response.data[0].data_id)
-        policy_broker.add_new_policy(cur_tuple)
     return Response(status=response.status, message=response.msg)
 
 # Look at all available policies
 @app.get("/policy/")
 async def get_all_policies():
     return policy_broker.get_all_policies()
-
-# Look at the dependency graph
-@app.get("/dependency_graph/")
-async def get_dependency_graph():
-    return policy_broker.get_dependency_graph()
 
 # Register a new user
 @app.post("/users/")
