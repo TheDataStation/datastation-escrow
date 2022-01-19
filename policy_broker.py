@@ -44,6 +44,25 @@ def update_policy_effect(user_id, api, data_id):
         for child_api in dependency_graph[api]:
             update_policy_effect(user_id, child_api, data_id)
 
+# Helper function to update a policy's effect in policy_with_dependency
+def update_policy_effect_two(api, data_id, d_graph, policy_dict):
+    # Base case: current API does not point to other APIs
+    # Right now it means d_graph[api] == ["dir_accessible"]
+    if d_graph[api] == ["dir_accessible"]:
+        cur_key = api
+        cur_policy_info = policy_dict[cur_key]
+        if data_id not in cur_policy_info.accessible_data:
+            policy_dict[cur_key].accessible_data.append(data_id)
+    # Recursive case: current API has children
+    # We first update the policy's effect for this API, then for all its children
+    else:
+        cur_key = api
+        cur_policy_info = policy_dict[cur_key]
+        if data_id not in cur_policy_info.accessible_data:
+            policy_dict[cur_key].accessible_data.append(data_id)
+        for child_api in d_graph[api]:
+            update_policy_effect_two(child_api, data_id, d_graph, policy_dict)
+
 def initialize():
     global list_of_apis
     global list_of_dependencies
@@ -133,14 +152,31 @@ def get_dependency_graph():
 
 # For gatekeeper
 def get_user_api_info(user_id, api):
-    cur_key = (user_id, api)
-    return policy_with_dependency[cur_key]
 
-# For gatekeeper
-def get_user_api_info_two(user_id, api):
-    print(user_id)
-    print(api)
+    # Initialize the variables needed
     list_of_policies_two = []
+    list_of_dependencies_two = []
+    dependency_graph_two = dict()
+    policy_with_dependency_two = dict()
+
+    # get list of APIs from DB
+    api_res = database_api.get_all_apis()
+    list_of_apis_two = list(api_res.data)
+
+    # Initialize dependency_graph using the list of apis as keys
+    for cur_api in list_of_apis_two:
+        dependency_graph_two[cur_api] = []
+
+    # get list of API dependencies from DB, and fill in dependency_graph
+    api_depend_res = database_api.get_all_api_dependencies()
+    for i in range(len(api_depend_res.data)):
+        from_api = api_depend_res.data[i].from_api
+        to_api = api_depend_res.data[i].to_api
+        cur_tuple = (from_api, to_api)
+        # Fill in list of dependencies
+        list_of_dependencies_two.append(cur_tuple)
+        # Fill in dependency_graph dict
+        dependency_graph_two[from_api].append(to_api)
 
     # get list of policies for the current user
     policy_res = database_api.get_policy_for_user(user_id)
@@ -149,6 +185,22 @@ def get_user_api_info_two(user_id, api):
                      policy_res.data[i].api,
                      policy_res.data[i].data_id,)
         list_of_policies_two.append(cur_tuple)
-    print(list_of_policies_two)
 
-    return 1
+    # Initialize cur_policy_info from dependency_graph
+    for key in dependency_graph_two:
+        cur_accessible_data = []
+        cur_odata_type = get_odata_type(key, dependency_graph_two)
+        cur_policy_info = PolicyInfo(cur_accessible_data, cur_odata_type)
+        policy_with_dependency_two[key] = cur_policy_info
+
+    # From list_of_policies, fill in policy_with_dependency with policies
+    for policy in list_of_policies_two:
+        update_policy_effect_two(policy[1], policy[2], dependency_graph_two, policy_with_dependency_two)
+
+    # Check if policy_with_dependency is correct
+    # for key, value in policy_with_dependency_two.items():
+    #     print(key)
+    #     print(value.accessible_data)
+    #     print(value.odata_type)
+
+    return policy_with_dependency_two[api]
