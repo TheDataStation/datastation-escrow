@@ -1,5 +1,3 @@
-# Currently, the web_api supports FastAPI
-
 from fastapi import FastAPI
 import policy_broker
 from models.api import *
