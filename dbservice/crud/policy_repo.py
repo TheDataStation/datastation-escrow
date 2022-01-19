@@ -20,3 +20,7 @@ def create_policy(db: Session, policy: PolicyCreate):
 def get_all_policies(db: Session):
     policies = db.query(Policy).all()
     return policies
+
+def get_policy_for_user(db: Session, user_id: str):
+    policies = db.query(Policy).filter(Policy.user_id == user_id).all()
+    return policies

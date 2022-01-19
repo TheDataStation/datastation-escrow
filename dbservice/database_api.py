@@ -104,6 +104,13 @@ def get_all_policies():
     else:
         return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
 
+def get_policy_for_user(user_id):
+    policies = policy_repo.get_policy_for_user(next(get_db()), user_id)
+    if len(policies):
+        return response.PolicyResponse(status=1, msg="success", data=policies)
+    else:
+        return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
+
 def create_derived(request):
     derived = derived_repo.create_derived(next(get_db()), request)
     if derived:

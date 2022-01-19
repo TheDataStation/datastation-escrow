@@ -13,6 +13,9 @@ from titanicML.titanic import data_preprocess, model_train, predict
 
 def broker_access(user_id, api, exe_mode, data=None):
     policy_info = policy_broker.get_user_api_info(user_id, api)
+    policy_broker.get_user_api_info_two(user_id, api)
+    print(policy_info.accessible_data)
+    print(policy_info.odata_type)
     accessible_set = policy_info.accessible_data
     need_to_access = []
     listOfFiles = list()
@@ -25,7 +28,7 @@ def broker_access(user_id, api, exe_mode, data=None):
             for i in range(len(all_datasets.data)):
                 cur_id = all_datasets.data[i].id
                 need_to_access.append(cur_id)
-            print(need_to_access)
+            # print(need_to_access)
             # Then fill in the path of all available files (in string format)
             SM_storage_path = "SM_storage"
             for (dirpath, dirnames, filenames) in os.walk(SM_storage_path):
