@@ -1,6 +1,14 @@
 import os
+import sys
 
-def initialize_system():
+import yaml
+
+def parse_config(path_to_config):
+    with open(path_to_config) as config_file:
+        ds_config = yaml.load(config_file, Loader=yaml.FullLoader)
+    return ds_config
+
+def initialize_system(ds_config):
 
     # setup dbservice (if needed)
 
@@ -8,19 +16,22 @@ def initialize_system():
 
     # setup client_api (if needed)
 
+    # setup storage_manager
+
     return
 
-def run_system():
+def run_system(ds_config):
 
     # start frontend
-    os.system("uvicorn fast_api:app --reload")
+    if ds_config["front_end"] == "fastapi":
+        os.system("uvicorn fast_api:app --reload")
 
     return
 
 
 if __name__ == "__main__":
     print("Main")
-
-    # parse input commands and config file
-    initialize_system()
-    run_system()
+    # First parse config files and command line arguments
+    data_station_config = parse_config(sys.argv[1])
+    initialize_system(data_station_config)
+    run_system(data_station_config)
