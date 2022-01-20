@@ -33,6 +33,9 @@ def run_system(ds_config):
 if __name__ == "__main__":
     print("Main")
     # First parse config files and command line arguments
+
+    # https://docs.python.org/3/library/argparse.html
+    # (potentiall need to re-write some key-values from clg)
     data_station_config = parse_config(sys.argv[1])
     initialize_system(data_station_config)
     run_system(data_station_config)
