@@ -2,8 +2,6 @@ import os
 import sys
 import yaml
 
-# import storage_manager
-
 def parse_config(path_to_config):
     with open(path_to_config) as config_file:
         ds_config = yaml.load(config_file, Loader=yaml.FullLoader)

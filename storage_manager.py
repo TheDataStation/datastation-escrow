@@ -38,3 +38,4 @@ def Remove(data_name, data_id):
         return Response(status=1,
                         message="Error removing data from storage")
     return Response(status=0, message="success")
+
