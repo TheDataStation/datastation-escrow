@@ -38,6 +38,11 @@ async def root():
 async def startup_event():
     pass
 
+# Register a new user
+@app.post("/users/")
+async def create_user(user: User):
+    return client_api.create_user(user)
+
 # The following API allows user log-in.
 @app.post("/token/")
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -63,59 +68,38 @@ async def upload_api(api: API):
 async def get_all_apis(token: str = Depends(oauth2_scheme)):
     return client_api.get_all_apis(token)
 
-# # # Upload a new API Dependency
-# # @app.post("/api_depend/")
-# # async def upload_api_dependency(api_dependency: APIDependency):
-# #     response = database_api.create_api_dependency(api_dependency)
-# #     if response.status != -1:
-# #         cur_tuple = (response.data[0].from_api, response.data[0].to_api)
-# #         policy_broker.add_new_api_depend(cur_tuple)
-# #     return Response(status=response.status, message=response.msg)
-#
-# # Look at all available API dependencies
-# @app.get("/api_depend/")
-# async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
-#
-#     # Perform authentication
-#     user_register.authenticate_user(token)
-#
-#     # Call policy_broker directly
-#     return policy_broker.get_all_dependencies()
-#
-# # Upload a new policy
-# @app.post("/policy/")
-# async def upload_policy(policy: Policy):
-#     response = database_api.create_policy(policy)
-#     return Response(status=response.status, message=response.msg)
-#
-# # Look at all available policies
-# @app.get("/policy/")
-# async def get_all_policies():
-#     return policy_broker.get_all_policies()
-#
-# Register a new user
-@app.post("/users/")
-async def create_user(user: User):
-    return client_api.create_user(user)
-#
-# # Upload a new dataset
-# @app.post("/dataset/")
-# async def upload_dataset(data_name: str,
-#                          data: UploadFile = File(...),):
-#     # Load the file in bytes
-#     data_in_bytes = bytes(await data.read())
-#
-#     response = data_register.upload_data(data_name, data_in_bytes)
-#     if response.status != 0:
-#         return Response(status=response.status, message=response.message)
-#
-#     return response
-#
-# # Remove a dataset that's uploaded
-# @app.delete("/dataset/")
-# async def remove_dataset(data_name: str,):
-#     response = data_register.remove_data(data_name)
-#     return Response(status=response.status, message=response.message)
+# Upload a new API Dependency
+@app.post("/api_depend/")
+async def upload_api_dependency(api_dependency: APIDependency):
+    return client_api.upload_api_dependency(api_dependency)
+
+# Look at all available API dependencies
+@app.get("/api_depend/")
+async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
+    return client_api.get_all_api_dependencies(token)
+
+# Upload a new dataset
+@app.post("/dataset/")
+async def upload_dataset(data_name: str,
+                         data: UploadFile = File(...),):
+    # Load the file in bytes
+    data_in_bytes = bytes(await data.read())
+    return client_api.upload_dataset(data_name, data_in_bytes)
+
+# Remove a dataset that's uploaded
+@app.delete("/dataset/")
+async def remove_dataset(data_name: str,):
+    return client_api.remove_dataset(data_name)
+
+# Upload a new policy
+@app.post("/policy/")
+async def upload_policy(policy: Policy):
+    return client_api.upload_policy(policy)
+
+# Look at all available policies
+@app.get("/policy/")
+async def get_all_policies():
+    return client_api.get_all_policies()
 #
 # # API for Data Users: Preprocess
 # @app.get("/simpleML/datapreprocess/")

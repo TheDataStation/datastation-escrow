@@ -1,10 +1,13 @@
 from dbservice import database_api
 
 from models.api import *
+from models.api_dependency import *
 from models.user import *
 from models.response import *
+from models.policy import *
 
 import user_register
+import data_register
 import policy_broker
 
 # Agent APIs
@@ -25,6 +28,8 @@ def login_user(username, password):
         # if password cannot correctly be verified, we return -1 to indicate login has failed
         return -1
 
+# list application apis
+
 def get_all_apis(token):
 
     # Perform authentication
@@ -33,7 +38,15 @@ def get_all_apis(token):
     # Call policy_broker directly
     return policy_broker.get_all_apis()
 
-# list_application_apis
+# list application api dependencies
+
+def get_all_api_dependencies(token):
+
+    # Perform authentication
+    user_register.authenticate_user(token)
+
+    # Call policy_broker directly
+    return policy_broker.get_all_dependencies()
 
 # User Agent APIs
 
@@ -43,15 +56,35 @@ def get_all_apis(token):
 
 # upload data element
 
+def upload_dataset(data_name, data_in_bytes):
+    response = data_register.upload_data(data_name, data_in_bytes)
+    if response.status != 0:
+        return Response(status=response.status, message=response.message)
+
+    return response
+
 # remote data element
+
+def remove_dataset(data_name):
+    response = data_register.remove_data(data_name)
+    return Response(status=response.status, message=response.message)
 
 # list_policies, list_policies(data_element), list_policies(fn)
 
 # create_policies
 
+def upload_policy(policy: Policy):
+    response = database_api.create_policy(policy)
+    return Response(status=response.status, message=response.msg)
+
 # delete_policies
 
 # Operator Agent APIs
+
+# list all available policies
+
+def get_all_policies():
+    return policy_broker.get_all_policies()
 
 # Developer APIs (may be removed in future)
 
@@ -59,6 +92,12 @@ def get_all_apis(token):
 
 def upload_api(api: API):
     response = database_api.create_api(api)
+    return Response(status=response.status, message=response.msg)
+
+# Upload a new API Dependency
+
+def upload_api_dependency(api_dependency: APIDependency):
+    response = database_api.create_api_dependency(api_dependency)
     return Response(status=response.status, message=response.msg)
 
 
