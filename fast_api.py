@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-import policy_broker
 from models.api import *
 from models.api_dependency import *
 from models.response import *
@@ -17,6 +16,7 @@ from clientapi import client_api
 import user_register
 import data_register
 import gatekeeper
+import policy_broker
 
 
 # Adding global variables to support access token generation (for authentication)
@@ -32,12 +32,12 @@ app = FastAPI()
 @app.get('/')
 async def root():
     return {"message": "Welcome to Data Station"}
-#
-# # On startup: doing some initializations from DBS
-# @app.on_event("startup")
-# async def startup_event():
-#     pass
-#
+
+# On startup: doing some initializations from DBS
+@app.on_event("startup")
+async def startup_event():
+    pass
+
 # The following API allows user log-in.
 @app.post("/token/")
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -52,25 +52,17 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
         )
     else:
         return response
-#
-# # # Upload a new API
-# # @app.post("/api/")
-# # async def upload_api(api: API):
-# #     response = database_api.create_api(api)
-# #     if response.status == 1:
-# #         policy_broker.add_new_api(response.data[0].api_name)
-# #     return Response(status=response.status, message=response.msg)
-#
-# # Look at all available APIs
-# @app.get("/api/")
-# async def get_all_apis(token: str = Depends(oauth2_scheme)):
-#
-#     # Perform authentication
-#     user_register.authenticate_user(token)
-#
-#     # Call policy_broker directly
-#     return policy_broker.get_all_apis()
-#
+
+# Upload a new API
+@app.post("/api/")
+async def upload_api(api: API):
+    return client_api.upload_api(api)
+
+# Look at all available APIs
+@app.get("/api/")
+async def get_all_apis(token: str = Depends(oauth2_scheme)):
+    return client_api.get_all_apis(token)
+
 # # # Upload a new API Dependency
 # # @app.post("/api_depend/")
 # # async def upload_api_dependency(api_dependency: APIDependency):
