@@ -4,7 +4,7 @@ from typing import Optional
 
 class Dataset(BaseModel):
     id: Optional[int]
-    name: str
+    name: Optional[str]
     description: Optional[str]
     upload: Optional[bool]
     url: Optional[str]
