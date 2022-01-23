@@ -81,8 +81,12 @@ def remove_dataset(data_name, token):
 
 # create_policies
 
-def upload_policy(policy: Policy):
-    response = policy_broker.upload_policy(policy)
+def upload_policy(policy: Policy, token):
+
+    # Perform authentication
+    cur_username = user_register.authenticate_user(token)
+
+    response = policy_broker.upload_policy(policy, cur_username)
     return Response(status=response.status, message=response.message)
 
 # delete_policies
