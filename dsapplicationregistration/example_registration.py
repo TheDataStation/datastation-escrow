@@ -4,7 +4,8 @@ from dsapplicationregistration.dsar_core import expose
 @expose
 def preprocess(a: str):
     """preprocess all the data"""
-    return
+    print("Hi, this is preprocess")
+    return 33
 
 
 @expose
