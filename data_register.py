@@ -3,8 +3,9 @@ import random
 import storage_manager
 from dbservice import database_api
 from models.dataset import *
+from models.user import *
 
-def upload_data(data_name, data):
+def upload_data(data_name, data, cur_username):
 
     # check if there is an existing dataset
 
@@ -18,8 +19,16 @@ def upload_data(data_name, data):
 
     # We now call DB to register a new dataset in the database
 
+    # check if there is an existing user
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
+    # If the user doesn't exist, something is wrong
+    if cur_user.status == -1:
+        return Response(status=1, token="Something wrong with the current user")
+    cur_user_id = cur_user.data[0].id
+
     new_dataset = Dataset(id=dataset_id,
-                          name=data_name,)
+                          name=data_name,
+                          owner_id=cur_user_id,)
     database_service_response = database_api.create_dataset(new_dataset)
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
