@@ -104,6 +104,13 @@ def create_policy(request):
     else:
         return response.PolicyResponse(status=-1, msg="fail", data=[])
 
+def remove_policy(request):
+    res = policy_repo.remove_policy(next(get_db()), request)
+    if res == "success":
+        return response.PolicyResponse(status=1, msg="success", data=[])
+    else:
+        return response.PolicyResponse(status=-1, msg="fail", data=[])
+
 def get_all_policies():
     policies = policy_repo.get_all_policies(next(get_db()))
     if len(policies):
