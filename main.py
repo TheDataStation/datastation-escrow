@@ -1,6 +1,7 @@
 import os
 import sys
 import yaml
+import storage_manager
 
 def parse_config(path_to_config):
     with open(path_to_config) as config_file:
@@ -16,7 +17,9 @@ def initialize_system(ds_config):
     # setup client_api (if needed)
 
     # setup storage_manager
+    storage_manager.init_SM()
 
+    # return an instance of the client API?
     return
 
 def run_system(ds_config):
@@ -36,4 +39,5 @@ if __name__ == "__main__":
     # (potentiall need to re-write some key-values from clg)
     data_station_config = parse_config(sys.argv[1])
     initialize_system(data_station_config)
+
     run_system(data_station_config)

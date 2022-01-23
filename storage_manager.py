@@ -4,6 +4,11 @@ from models.response import *
 
 local_storage_path = "./SM_storage/"
 
+def init_SM():
+    global local_storage_path
+    local_storage_path = "./random_storage"
+    print(local_storage_path)
+
 def get_dir_path(data_id):
     dir_path = path.join(local_storage_path, str(data_id))
     return dir_path
