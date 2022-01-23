@@ -1,9 +1,11 @@
-from models.response import *
 import random
 import storage_manager
 from dbservice import database_api
+from common import common_procedure
 from models.dataset import *
 from models.user import *
+from models.response import *
+
 
 def upload_data(data_name, data, cur_username):
 
@@ -54,24 +56,9 @@ def remove_data(data_name, cur_username):
     dataset_id = existed_dataset.data[0].id
 
     # Step 2: if exists, check if the dataset owner is the current user
-
-    # get dataset owner id
-    dataset_owner = database_api.get_dataset_owner(Dataset(id=dataset_id,))
-    if dataset_owner.status == -1:
-        return Response(status=1, message="Error retrieving data owner.")
-    dataset_owner_id = dataset_owner.data[0].id
-    # print("Dataset owner id is: " + str(dataset_owner_id))
-
-    # get current user id
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
-    # If the user doesn't exist, something is wrong
-    if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
-    cur_user_id = cur_user.data[0].id
-    # print("Current user id is: "+str(cur_user_id))
-
-    if cur_user_id != dataset_owner_id:
-        return Response(status=1, message="Current user is not owner of dataset")
+    verify_owner_response = common_procedure.verify_dataset_owner(dataset_id, cur_username)
+    if verify_owner_response.status == 1:
+        return verify_owner_response
 
     # Step 3: actually remove the dataset
     dataset_to_remove = Dataset(name=data_name,)
