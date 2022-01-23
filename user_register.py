@@ -1,4 +1,3 @@
-from models.response import *
 import bcrypt
 from typing import Optional
 from datetime import datetime, timedelta
@@ -6,6 +5,7 @@ from jose import jwt, JWTError
 from fastapi import HTTPException, status
 from dbservice import database_api
 from models.user import *
+from models.response import *
 
 # Adding global variables to support access token generation (for authentication)
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"

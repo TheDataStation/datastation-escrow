@@ -1,5 +1,8 @@
 from classes.policy_info import *
 from dbservice import database_api
+from models.policy import *
+from models.response import *
+
 
 # Helper function to get the odata_type used in policy_with_dependency
 def get_odata_type(api, d_graph):
@@ -27,6 +30,14 @@ def update_policy_effect(api, data_id, d_graph, policy_dict):
             policy_dict[cur_key].accessible_data.append(data_id)
         for child_api in d_graph[api]:
             update_policy_effect(child_api, data_id, d_graph, policy_dict)
+
+# upload a new policy to DB
+
+def upload_policy(policy: Policy):
+    response = database_api.create_policy(policy)
+    return Response(status=response.status, message=response.msg)
+
+# get all policies from DB
 
 def get_all_apis():
     # get list of APIs from DB
