@@ -1,7 +1,8 @@
 import functools
+import importlib.util
 
 
-class Expose:
+class Register:
     def __init__(self):
         self.registered_functions = []
         self.dependencies = dict()
@@ -22,7 +23,7 @@ class Expose:
             return decorator_func(_f)
 
 
-expose = Expose()
+register = Register()
 
 
 def validate_registration():
@@ -34,7 +35,7 @@ def validate_registration():
     # Check that all functions have been registered
     invalid_name = True
     reg_functions = get_names_registered_functions()
-    for key, value in expose.dependencies.items():
+    for key, value in register.dependencies.items():
         if key not in reg_functions:
             invalid_name = False
         else:
@@ -49,27 +50,45 @@ def validate_registration():
     return valid
 
 
+def register_connectors(connector_name, connector_module_path):
+    spec = importlib.util.spec_from_file_location(connector_name, connector_module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+
+def __test_registration():
+    print("Any registered?")
+    funcs_reg = get_registered_functions()
+    for el in funcs_reg:
+        print(el)
+        print(el.__name__)
+        print(el.__doc__)
+
+    deps = get_registered_dependencies()
+    print(deps)
+
+
 def get_names_registered_functions():
     function_names = []
-    for f in expose.registered_functions:
+    for f in register.registered_functions:
         function_names.append(f.__name__)
     return function_names
 
 
 def get_registered_functions():
-    copy = [el for el in expose.registered_functions]
+    copy = [el for el in register.registered_functions]
     return copy
 
 
 def get_registered_dependencies():
-    return expose.dependencies
+    return register.dependencies
 
 
 if __name__ == "__main__":
     print("Data Station application registration CORE")
 
-    from dsapplicationregistration.example_registration import *
-    from dsapplicationregistration.example_registration2 import *
+    from app_connectors.example_registration import *
+    from app_connectors.example_registration2 import *
 
     # @expose
     # def test1(a: int) -> int:

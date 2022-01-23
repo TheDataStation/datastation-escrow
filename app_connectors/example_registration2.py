@@ -1,13 +1,13 @@
-from dsapplicationregistration.dsar_core import expose
+from dsapplicationregistration.dsar_core import register
 
 
-@expose
+@register
 def preprocess2(a: str):
     """preprocess all the data"""
     return
 
 
-@expose
+@register
 def train2(a: int):
     """trains the model"""
     return
