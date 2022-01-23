@@ -43,6 +43,17 @@ def upload_policy(policy: Policy, cur_username):
     response = database_api.create_policy(policy)
     return Response(status=response.status, message=response.msg)
 
+# remove a policy from DB
+
+def remove_policy(policy: Policy, cur_username):
+    # First check if the dataset owner is the current user
+    verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
+    if verify_owner_response.status == 1:
+        return verify_owner_response
+
+    response = database_api.remove_policy(policy)
+    return Response(status=response.status, message=response.msg)
+
 # get all policies from DB
 
 def get_all_apis():

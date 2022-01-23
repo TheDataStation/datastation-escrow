@@ -87,6 +87,12 @@ async def upload_policy(policy: Policy,
                         token: str = Depends(oauth2_scheme),):
     return client_api.upload_policy(policy, token)
 
+# Remove a policy
+@app.delete("/policy/")
+async def remove_policy(policy: Policy,
+                        token: str = Depends(oauth2_scheme),):
+    return client_api.remove_policy(policy, token)
+
 # Look at all available policies
 @app.get("/policy/")
 async def get_all_policies():

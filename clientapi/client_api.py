@@ -91,6 +91,14 @@ def upload_policy(policy: Policy, token):
 
 # delete_policies
 
+def remove_policy(policy: Policy, token):
+
+    # Perform authentication
+    cur_username = user_register.authenticate_user(token)
+
+    response = policy_broker.remove_policy(policy, cur_username)
+    return Response(status=response.status, message=response.message)
+
 # Operator Agent APIs
 
 # list all available policies
