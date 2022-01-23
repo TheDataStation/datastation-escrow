@@ -10,19 +10,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 import json
 
-from dbservice import database_api
 from clientapi import client_api
-
-import user_register
-import data_register
-import gatekeeper
-import policy_broker
-
-
-# Adding global variables to support access token generation (for authentication)
-SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Specifying oauth2_scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -81,10 +69,11 @@ async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
 # Upload a new dataset
 @app.post("/dataset/")
 async def upload_dataset(data_name: str,
+                         token: str = Depends(oauth2_scheme),
                          data: UploadFile = File(...),):
     # Load the file in bytes
     data_in_bytes = bytes(await data.read())
-    return client_api.upload_dataset(data_name, data_in_bytes)
+    return client_api.upload_dataset(data_name, data_in_bytes, token)
 
 # Remove a dataset that's uploaded
 @app.delete("/dataset/")
