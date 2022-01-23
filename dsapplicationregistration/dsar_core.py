@@ -63,3 +63,11 @@ if __name__ == "__main__":
         print(el)
         print(el.__name__)
         print(el.__doc__)
+
+
+    input = 'preprocess'
+
+    for el in funcs_reg:
+        if el.__name__ == input:
+            print("Calling function")
+            el.__call__("hi")
