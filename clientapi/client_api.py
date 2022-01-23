@@ -82,8 +82,8 @@ def remove_dataset(data_name, token):
 # create_policies
 
 def upload_policy(policy: Policy):
-    response = database_api.create_policy(policy)
-    return Response(status=response.status, message=response.msg)
+    response = policy_broker.upload_policy(policy)
+    return Response(status=response.status, message=response.message)
 
 # delete_policies
 
