@@ -63,7 +63,7 @@ def upload_dataset(data_name, data_in_bytes, token):
 
     # continue from here: adding owner_id to upload_dataset
 
-    response = data_register.upload_data(data_name, data_in_bytes)
+    response = data_register.upload_data(data_name, data_in_bytes, cur_username)
     if response.status != 0:
         return Response(status=response.status, message=response.message)
 
