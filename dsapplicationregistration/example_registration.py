@@ -8,8 +8,14 @@ def preprocess(a: str):
     return 33
 
 
-@expose
+@expose(depends_on=[preprocess])
 def train(a: int):
     """trains the model"""
+    return
+
+
+@expose(depends_on=[train])
+def query_inference(q: int):
+    """queries a model"""
     return
 
