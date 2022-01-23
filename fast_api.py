@@ -83,8 +83,9 @@ async def remove_dataset(data_name: str,
 
 # Upload a new policy
 @app.post("/policy/")
-async def upload_policy(policy: Policy):
-    return client_api.upload_policy(policy)
+async def upload_policy(policy: Policy,
+                        token: str = Depends(oauth2_scheme),):
+    return client_api.upload_policy(policy, token)
 
 # Look at all available policies
 @app.get("/policy/")
