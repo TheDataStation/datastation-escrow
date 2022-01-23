@@ -77,8 +77,9 @@ async def upload_dataset(data_name: str,
 
 # Remove a dataset that's uploaded
 @app.delete("/dataset/")
-async def remove_dataset(data_name: str,):
-    return client_api.remove_dataset(data_name)
+async def remove_dataset(data_name: str,
+                         token: str = Depends(oauth2_scheme),):
+    return client_api.remove_dataset(data_name, token)
 
 # Upload a new policy
 @app.post("/policy/")

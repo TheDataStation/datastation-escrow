@@ -61,8 +61,6 @@ def upload_dataset(data_name, data_in_bytes, token):
     # Perform authentication
     cur_username = user_register.authenticate_user(token)
 
-    # continue from here: adding owner_id to upload_dataset
-
     response = data_register.upload_data(data_name, data_in_bytes, cur_username)
     if response.status != 0:
         return Response(status=response.status, message=response.message)
@@ -71,8 +69,12 @@ def upload_dataset(data_name, data_in_bytes, token):
 
 # remote data element
 
-def remove_dataset(data_name):
-    response = data_register.remove_data(data_name)
+def remove_dataset(data_name, token):
+
+    # Perform authentication
+    cur_username = user_register.authenticate_user(token)
+
+    response = data_register.remove_data(data_name, cur_username)
     return Response(status=response.status, message=response.message)
 
 # list_policies, list_policies(data_element), list_policies(fn)

@@ -55,6 +55,13 @@ def remove_dataset_by_name(request):
     else:
         return response.DatasetResponse(status=-1, msg="fail", data=[])
 
+def get_dataset_owner(request):
+    owner = dataset_repo.get_dataset_owner(next(get_db()), request.id)
+    if owner:
+        return response.UserResponse(status=1, msg="success", data=[owner])
+    else:
+        return response.UserResponse(status=-1, msg="fail", data=[])
+
 def get_all_datasets():
     datasets = dataset_repo.get_all_datasets(next(get_db()))
     if len(datasets):
