@@ -56,7 +56,13 @@ def get_all_api_dependencies(token):
 
 # upload data element
 
-def upload_dataset(data_name, data_in_bytes):
+def upload_dataset(data_name, data_in_bytes, token):
+
+    # Perform authentication
+    cur_username = user_register.authenticate_user(token)
+
+    # continue from here: adding owner_id to upload_dataset
+
     response = data_register.upload_data(data_name, data_in_bytes)
     if response.status != 0:
         return Response(status=response.status, message=response.message)
