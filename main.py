@@ -1,7 +1,7 @@
 import os
 import sys
 import yaml
-import storage_manager
+from storage_manager import StorageManager
 
 def parse_config(path_to_config):
     with open(path_to_config) as config_file:
@@ -17,10 +17,10 @@ def initialize_system(ds_config):
     # setup client_api (if needed)
 
     # setup storage_manager
-    storage_manager.init_SM()
+    storage_manager = StorageManager("./random_storage")
 
     # return an instance of the client API?
-    return
+    return storage_manager
 
 def run_system(ds_config):
 
