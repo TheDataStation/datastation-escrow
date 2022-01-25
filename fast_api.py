@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+
+from clientapi.client_api import ClientAPI
 from models.api import *
 from models.api_dependency import *
 from models.response import *
@@ -10,7 +12,6 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 import json
 
-# from clientapi import client_api
 import main
 
 # Specifying oauth2_scheme
@@ -18,7 +19,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI()
 
-ClientAPI = None
+client_api: ClientAPI = None
 
 @app.get('/')
 async def root():
@@ -27,20 +28,20 @@ async def root():
 # On startup: doing some initializations from DBS
 @app.on_event("startup")
 async def startup_event():
-    global ClientAPI
-    if ClientAPI is None:
-        ClientAPI = main.initialize_system(main.parse_config("data_station_config.yaml"))
+    global client_api
+    if client_api is None:
+        client_api = main.initialize_system(main.parse_config("data_station_config.yaml"))
 
 # Register a new user
 @app.post("/users/")
 async def create_user(user: User):
-    return ClientAPI.create_user(user)
+    return client_api.create_user(user)
 
 # The following API allows user log-in.
 @app.post("/token/")
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
-    response = ClientAPI.login_user(form_data.username,
-                                    form_data.password)
+    response = client_api.login_user(form_data.username,
+                                     form_data.password)
     if response == -1:
         # raise an exception to indicate login has failed
         raise HTTPException(
@@ -54,22 +55,22 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 # Upload a new API
 @app.post("/api/")
 async def upload_api(api: API):
-    return ClientAPI.upload_api(api)
+    return client_api.upload_api(api)
 
 # Look at all available APIs
 @app.get("/api/")
 async def get_all_apis(token: str = Depends(oauth2_scheme)):
-    return ClientAPI.get_all_apis(token)
+    return client_api.get_all_apis(token)
 
 # Upload a new API Dependency
 @app.post("/api_depend/")
 async def upload_api_dependency(api_dependency: APIDependency):
-    return ClientAPI.upload_api_dependency(api_dependency)
+    return client_api.upload_api_dependency(api_dependency)
 
 # Look at all available API dependencies
 @app.get("/api_depend/")
 async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
-    return ClientAPI.get_all_api_dependencies(token)
+    return client_api.get_all_api_dependencies(token)
 
 # Upload a new dataset
 @app.post("/dataset/")
@@ -78,30 +79,30 @@ async def upload_dataset(data_name: str,
                          data: UploadFile = File(...),):
     # Load the file in bytes
     data_in_bytes = bytes(await data.read())
-    return ClientAPI.upload_dataset(data_name, data_in_bytes, token)
+    return client_api.upload_dataset(data_name, data_in_bytes, token)
 
 # Remove a dataset that's uploaded
 @app.delete("/dataset/")
 async def remove_dataset(data_name: str,
                          token: str = Depends(oauth2_scheme),):
-    return ClientAPI.remove_dataset(data_name, token)
+    return client_api.remove_dataset(data_name, token)
 
 # Upload a new policy
 @app.post("/policy/")
 async def upload_policy(policy: Policy,
                         token: str = Depends(oauth2_scheme),):
-    return ClientAPI.upload_policy(policy, token)
+    return client_api.upload_policy(policy, token)
 
 # Remove a policy
 @app.delete("/policy/")
 async def remove_policy(policy: Policy,
                         token: str = Depends(oauth2_scheme),):
-    return ClientAPI.remove_policy(policy, token)
+    return client_api.remove_policy(policy, token)
 
 # Look at all available policies
 @app.get("/policy/")
 async def get_all_policies():
-    return ClientAPI.get_all_policies()
+    return client_api.get_all_policies()
 
 # # API for Data Users: Preprocess
 # @app.get("/simpleML/datapreprocess/")
