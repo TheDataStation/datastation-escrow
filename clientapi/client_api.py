@@ -9,6 +9,7 @@ from models.policy import *
 import user_register
 import data_register
 import policy_broker
+import storage_manager
 
 # Agent APIs
 
@@ -61,11 +62,20 @@ def upload_dataset(data_name, data_in_bytes, token):
     # Perform authentication
     cur_username = user_register.authenticate_user(token)
 
-    response = data_register.upload_data(data_name, data_in_bytes, cur_username)
-    if response.status != 0:
-        return Response(status=response.status, message=response.message)
+    # First we call data_register to register a new dataset in the database
+    data_register_response = data_register.upload_data(data_name, cur_username)
+    if data_register_response.status != 0:
+        return Response(status=data_register_response.status, message=data_register_response.message)
 
-    return response
+    # Registration of the dataset is successful. Now we call SM
+    storage_manager_response = storage_manager.Store(data_name,
+                                                     data_register_response.data_id,
+                                                     data_in_bytes)
+    # If dataset already exists
+    if storage_manager_response.status == 1:
+        return storage_manager_response
+
+    return data_register_response
 
 # remote data element
 
@@ -74,8 +84,21 @@ def remove_dataset(data_name, token):
     # Perform authentication
     cur_username = user_register.authenticate_user(token)
 
-    response = data_register.remove_data(data_name, cur_username)
-    return Response(status=response.status, message=response.message)
+    # First we call data_register to remove the existing dataset from the database
+    data_register_response = data_register.remove_data(data_name, cur_username)
+    if data_register_response.status != 0:
+        return Response(status=data_register_response.status, message=data_register_response.message)
+
+    # At this step we have removed the record about the dataset from DB
+    # Now we remove its actual content from SM
+    storage_manager_response = storage_manager.Remove(data_name,
+                                                      data_register_response.data_id)
+
+    # If SM removal failed
+    if storage_manager_response.status == 1:
+        return storage_manager_response
+
+    return Response(status=data_register_response.status, message=data_register_response.message)
 
 # list_policies, list_policies(data_element), list_policies(fn)
 
@@ -123,3 +146,8 @@ def upload_api_dependency(api_dependency: APIDependency):
 
 if __name__ == "__main__":
     print("Client API")
+
+class ClientAPI:
+
+    def __init__(self, storage_manager):
+        self.storage_manager = storage_manager
