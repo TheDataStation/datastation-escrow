@@ -10,14 +10,13 @@ def parse_config(path_to_config):
 
 def initialize_system(ds_config):
 
-    # setup dbservice (if needed)
+    # In this function we set up all components that need to be initialized
 
-    # setup gatekeeper (if needed)
+    # set up an instance of the storage_manager
+    storage_path = ds_config["storage_path"]
+    storage_manager = StorageManager(storage_path)
 
-    # setup client_api (if needed)
-
-    # setup storage_manager
-    storage_manager = StorageManager("./random_storage")
+    # lastly, set up an instance of the client_api
 
     # return an instance of the client API?
     return storage_manager
