@@ -7,7 +7,7 @@ from models.user import *
 from models.response import *
 
 
-def upload_data(data_name, data, cur_username):
+def upload_data(data_name, cur_username):
 
     # check if there is an existing dataset
 
@@ -35,13 +35,6 @@ def upload_data(data_name, data, cur_username):
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
 
-    # Registration of the dataset is successful. Now we call SM
-    storage_manager_response = storage_manager.Store(data_name, dataset_id, data)
-    # If dataset already exists
-    if storage_manager_response.status == 1:
-        return storage_manager_response
-
-    # Successful
     return UploadDataResponse(status=0, message="success", data_id=dataset_id)
 
 def remove_data(data_name, cur_username):
@@ -66,13 +59,4 @@ def remove_data(data_name, cur_username):
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
 
-    # Step 3: at this step we have removed the record about the dataset from DB
-    # Now we remove its actual content from SM
-
-    storage_manager_response = storage_manager.Remove(data_name, dataset_id)
-
-    # If SM removal failed
-    if storage_manager_response.status == 1:
-        return storage_manager_response
-
-    return Response(status=0, message="Successfully removed data")
+    return RemoveDataResponse(status=0, message="Successfully removed data", data_id=dataset_id)
