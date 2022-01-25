@@ -44,6 +44,8 @@ def Remove(data_name, data_id):
                         message="Error removing data from storage")
     return Response(status=0, message="success")
 
+# Class version of the storage manager
+
 class StorageManager:
 
     def __init__(self, storage_path):
