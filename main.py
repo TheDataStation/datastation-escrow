@@ -1,29 +1,44 @@
-from database_service import database_api
+import os
+import sys
+import yaml
+from storage_manager import StorageManager
+from clientapi.client_api import ClientAPI
 
+def parse_config(path_to_config):
+    with open(path_to_config) as config_file:
+        ds_config = yaml.load(config_file, Loader=yaml.FullLoader)
+    return ds_config
 
-def initialize_system():
+def initialize_system(ds_config):
 
-    # start database_service
+    # In this function we set up all components that need to be initialized
 
-    # setup gatekeeper
+    # set up an instance of the storage_manager
+    storage_path = ds_config["storage_path"]
+    storage_manager = StorageManager(storage_path)
 
-    # setup client_api
+    # lastly, set up an instance of the client_api
+    client_api = ClientAPI(storage_manager)
 
-    return
+    # return an instance of the client API?
+    return client_api
 
-
-def run_system():
+def run_system(ds_config):
 
     # start frontend
+    if ds_config["front_end"] == "fastapi":
+        os.system("uvicorn fast_api:app --reload")
 
     return
 
 
 if __name__ == "__main__":
     print("Main")
+    # First parse config files and command line arguments
 
-    # parse input commands and config file
+    # https://docs.python.org/3/library/argparse.html
+    # (potentiall need to re-write some key-values from clg)
+    data_station_config = parse_config(sys.argv[1])
+    initialize_system(data_station_config)
 
-    initialize_system()
-
-    run_system()
+    # run_system(parse_config("data_station_config.yaml"))

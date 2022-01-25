@@ -1,0 +1,2 @@
+front_end: "fastapi"
+storage_path: "./SM_storage/"
