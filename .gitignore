@@ -6,6 +6,7 @@ SM_storage/
 titanicML/sample_data/
 .idea/
 Working/
+data_station.db
 
 # C extensions
 *.so
