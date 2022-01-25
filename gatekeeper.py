@@ -1,20 +1,20 @@
-import grpc
-import database_pb2
-import database_pb2_grpc
-
 import os
 import shutil
 
+from models.derived import *
+from models.provenance import *
+
+from dbservice import database_api
+
 import random
 
-import policyWithDependency
+import policy_broker
 from titanicML.titanic import data_preprocess, model_train, predict
 
-database_service_channel = grpc.insecure_channel('localhost:50051')
-database_service_stub = database_pb2_grpc.DatabaseStub(database_service_channel)
-
 def broker_access(user_id, api, exe_mode, data=None):
-    policy_info = policyWithDependency.get_user_api_info(user_id, api)
+    policy_info = policy_broker.get_user_api_info(user_id, api)
+    print(policy_info.accessible_data)
+    print(policy_info.odata_type)
     accessible_set = policy_info.accessible_data
     need_to_access = []
     listOfFiles = list()
@@ -23,10 +23,11 @@ def broker_access(user_id, api, exe_mode, data=None):
         if policy_info.odata_type == "dir_accessible":
             # First fill in need_to_access
             # In optimistic mode, need_to_access == all data in DB
-            all_datasets = database_service_stub.GetAllDatasets(database_pb2.DBEmpty())
+            all_datasets = database_api.get_all_datasets()
             for i in range(len(all_datasets.data)):
                 cur_id = all_datasets.data[i].id
                 need_to_access.append(cur_id)
+            # print(need_to_access)
             # Then fill in the path of all available files (in string format)
             SM_storage_path = "SM_storage"
             for (dirpath, dirnames, filenames) in os.walk(SM_storage_path):
@@ -51,7 +52,6 @@ def broker_access(user_id, api, exe_mode, data=None):
                 f.write(data)
                 f.close()
                 api_res = predict("Working", "cur_api_input.csv")
-                print(api_res)
                 os.remove("cur_api_input.csv")
 
             # Generate ID for api_res
@@ -94,7 +94,7 @@ def broker_access(user_id, api, exe_mode, data=None):
                     f.write(data)
                     f.close()
                     api_res = predict("Working", "cur_api_input.csv")
-                    print(api_res)
+                    # print(api_res)
                     os.remove("cur_api_input.csv")
 
                 # Generate ID for api_res
@@ -111,20 +111,17 @@ def broker_access(user_id, api, exe_mode, data=None):
                 status = False
 
     # Before we return, we have enough information to record this derived data in Derived DB
-    derived_response = database_service_stub.CreateDerived(
-                        database_pb2.Derived(id=res_id,
-                                             caller_id=user_id,
-                                             api=api,))
+    derived_response = database_api.create_derived(Derived(id=res_id,
+                                                           caller_id=user_id,
+                                                           api=api,))
     if derived_response.status == -1:
         return {"status": -1}
 
     # Then we capture the provenance information using a loop
     for data_id in need_to_access:
-        print(data_id)
-        cur_prov_resp = database_service_stub.CreateProvenance(
-            database_pb2.Provenance(child_id=res_id,
-                                    parent_id=data_id)
-        )
+        # print(data_id)
+        cur_prov_resp = database_api.create_provenance(Provenance(child_id=res_id,
+                                                                  parent_id=data_id,))
         if cur_prov_resp.status == -1:
             return {"status": -1}
 
