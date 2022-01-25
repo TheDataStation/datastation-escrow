@@ -9,13 +9,13 @@ from models.response import *
 
 def upload_data(data_name, cur_username):
 
-    # check if there is an existing dataset
+    # TODO: check if there is an existing dataset
 
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
     if existed_dataset.status == 1:
         return Response(status=1, message="there is a dataset using the same name")
 
-    # call identity_manager to compute the dataset id
+    # TODO: call identity_manager to compute the dataset id
 
     dataset_id = random.randint(1, 100000)
 
