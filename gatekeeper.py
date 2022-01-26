@@ -8,7 +8,7 @@ from dbservice import database_api
 
 import random
 
-import policy_broker
+from policybroker import policy_broker
 from titanicML.titanic import data_preprocess, model_train, predict
 
 def broker_access(user_id, api, exe_mode, data=None):
