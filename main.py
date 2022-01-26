@@ -1,7 +1,7 @@
 import os
 import sys
 import yaml
-from storage_manager import StorageManager
+from storagemanager.storage_manager import StorageManager
 from clientapi.client_api import ClientAPI
 
 def parse_config(path_to_config):
