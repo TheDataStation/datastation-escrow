@@ -1,5 +1,4 @@
 import random
-import storage_manager
 from dbservice import database_api
 from common import common_procedure
 from models.dataset import *

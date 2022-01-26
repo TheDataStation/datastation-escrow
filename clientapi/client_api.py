@@ -9,7 +9,7 @@ from models.policy import *
 from userregister import user_register
 from dataregister import data_register
 from policybroker import policy_broker
-from storage_manager import StorageManager
+from storagemanager.storage_manager import StorageManager
 
 
 class ClientAPI:
