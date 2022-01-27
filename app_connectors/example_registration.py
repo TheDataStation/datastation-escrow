@@ -4,18 +4,17 @@ from dsapplicationregistration import register
 @register
 def preprocess():
     """preprocess all the data"""
-    print("Hi, this is preprocess")
-    return 33
+    print("preprocess called")
 
 
 @register(depends_on=[preprocess])
-def train(a: int):
+def modeltrain():
     """trains the model"""
-    return
+    print("modeltrain called")
 
 
-@register(depends_on=[train])
-def query_inference(q: int):
-    """queries a model"""
-    return
+@register(depends_on=[modeltrain])
+def predict():
+    """submits input to get predictions"""
+    print("predict called")
 
