@@ -26,46 +26,34 @@ class Register:
 register = Register()
 
 
-def validate_registration():
-    """
-    Check that functions depend on existing functions
-    Check that function dependency graph does not have cycles
-    :return:
-    """
-    # Check that all functions have been registered
-    invalid_name = True
-    reg_functions = get_names_registered_functions()
-    for key, value in register.dependencies.items():
-        if key not in reg_functions:
-            invalid_name = False
-        else:
-            for func in value:
-                if func not in reg_functions:
-                    invalid_name = False
-    if not invalid_name:
-        return False, "Invalid names registered"
-    # Check for loops
-    valid = True
-    # TODO
-    return valid
+# def validate_registration():
+#     """
+#     Check that functions depend on existing functions
+#     Check that function dependency graph does not have cycles
+#     :return:
+#     """
+#     # Check that all functions have been registered
+#     invalid_name = True
+#     reg_functions = get_names_registered_functions()
+#     for key, value in register.dependencies.items():
+#         if key not in reg_functions:
+#             invalid_name = False
+#         else:
+#             for func in value:
+#                 if func not in reg_functions:
+#                     invalid_name = False
+#     if not invalid_name:
+#         return False, "Invalid names registered"
+#     # Check for loops
+#     valid = True
+#     # TODO
+#     return valid
 
 
 def register_connectors(connector_name, connector_module_path):
     spec = importlib.util.spec_from_file_location(connector_name, connector_module_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-
-
-def __test_registration():
-    print("Any registered?")
-    funcs_reg = get_registered_functions()
-    for el in funcs_reg:
-        print(el)
-        print(el.__name__)
-        print(el.__doc__)
-
-    deps = get_registered_dependencies()
-    print(deps)
 
 
 def get_names_registered_functions():
@@ -84,47 +72,13 @@ def get_registered_dependencies():
     return register.dependencies
 
 
-# if __name__ == "__main__":
-#     print("Data Station application registration CORE")
-#
-#     from app_connectors.example_registration import *
-#     from app_connectors.example_registration2 import *
-#
-#     # @expose
-#     # def test1(a: int) -> int:
-#     #     """test 1 increments a number"""
-#     #     a += 1
-#     #     return a
-#     #
-#     #
-#     # @expose
-#     # def test2(b: str = "None", c: str = "None") -> str:
-#     #     """test2 appends aa to a string"""
-#     #     b = b + c
-#     #     return b
-#
-#     # c = test2("a", "b")
-#     # print("THIS: " + str(c))
-#
-#     # print(test2.__name__)
-#
-#     # preprocess("path")
-#     #
-#     # train(33)
-#
-#     print("Any registered?")
-#     funcs_reg = get_registered_functions()
-#     for el in funcs_reg:
-#         print(el)
-#         print(el.__name__)
-#         print(el.__doc__)
-#
-#     # input = 'preprocess'
-#     #
-#     # for el in funcs_reg:
-#     #     if el.__name__ == input:
-#     #         print("Calling function")
-#     #         el.__call__("hi")
-#
-#     deps = get_registered_dependencies()
-#     print(deps)
+def __test_registration():
+    print("Any registered?")
+    funcs_reg = get_registered_functions()
+    for el in funcs_reg:
+        print(el)
+        print(el.__name__)
+        print(el.__doc__)
+
+    deps = get_registered_dependencies()
+    print(deps)
