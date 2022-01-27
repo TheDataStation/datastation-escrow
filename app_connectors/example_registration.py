@@ -2,7 +2,7 @@ from dsapplicationregistration import register
 
 
 @register
-def preprocess(a: str):
+def preprocess():
     """preprocess all the data"""
     print("Hi, this is preprocess")
     return 33

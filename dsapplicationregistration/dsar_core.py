@@ -84,47 +84,47 @@ def get_registered_dependencies():
     return register.dependencies
 
 
-if __name__ == "__main__":
-    print("Data Station application registration CORE")
-
-    from app_connectors.example_registration import *
-    from app_connectors.example_registration2 import *
-
-    # @expose
-    # def test1(a: int) -> int:
-    #     """test 1 increments a number"""
-    #     a += 1
-    #     return a
-    #
-    #
-    # @expose
-    # def test2(b: str = "None", c: str = "None") -> str:
-    #     """test2 appends aa to a string"""
-    #     b = b + c
-    #     return b
-
-    # c = test2("a", "b")
-    # print("THIS: " + str(c))
-
-    # print(test2.__name__)
-
-    # preprocess("path")
-    #
-    # train(33)
-
-    print("Any registered?")
-    funcs_reg = get_registered_functions()
-    for el in funcs_reg:
-        print(el)
-        print(el.__name__)
-        print(el.__doc__)
-
-    # input = 'preprocess'
-    #
-    # for el in funcs_reg:
-    #     if el.__name__ == input:
-    #         print("Calling function")
-    #         el.__call__("hi")
-
-    deps = get_registered_dependencies()
-    print(deps)
+# if __name__ == "__main__":
+#     print("Data Station application registration CORE")
+#
+#     from app_connectors.example_registration import *
+#     from app_connectors.example_registration2 import *
+#
+#     # @expose
+#     # def test1(a: int) -> int:
+#     #     """test 1 increments a number"""
+#     #     a += 1
+#     #     return a
+#     #
+#     #
+#     # @expose
+#     # def test2(b: str = "None", c: str = "None") -> str:
+#     #     """test2 appends aa to a string"""
+#     #     b = b + c
+#     #     return b
+#
+#     # c = test2("a", "b")
+#     # print("THIS: " + str(c))
+#
+#     # print(test2.__name__)
+#
+#     # preprocess("path")
+#     #
+#     # train(33)
+#
+#     print("Any registered?")
+#     funcs_reg = get_registered_functions()
+#     for el in funcs_reg:
+#         print(el)
+#         print(el.__name__)
+#         print(el.__doc__)
+#
+#     # input = 'preprocess'
+#     #
+#     # for el in funcs_reg:
+#     #     if el.__name__ == input:
+#     #         print("Calling function")
+#     #         el.__call__("hi")
+#
+#     deps = get_registered_dependencies()
+#     print(deps)
