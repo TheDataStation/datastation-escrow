@@ -9,6 +9,7 @@ from models.policy import *
 from userregister import user_register
 from dataregister import data_register
 from policybroker import policy_broker
+from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
 
 
@@ -143,6 +144,13 @@ class ClientAPI:
     def upload_api_dependency(api_dependency: APIDependency):
         response = database_api.create_api_dependency(api_dependency)
         return Response(status=response.status, message=response.msg)
+
+    # data users actually calling the application apis
+
+    @staticmethod
+    def call_api(api: API, *args, **kwargs):
+        res = gatekeeper.call_api(api, *args, **kwargs)
+        return res
 
 
 if __name__ == "__main__":
