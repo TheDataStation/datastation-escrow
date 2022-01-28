@@ -1,13 +1,8 @@
 import os
 import sys
-import yaml
 from storagemanager.storage_manager import StorageManager
 from clientapi.client_api import ClientAPI
-
-def parse_config(path_to_config):
-    with open(path_to_config) as config_file:
-        ds_config = yaml.load(config_file, Loader=yaml.FullLoader)
-    return ds_config
+from common.utils import parse_config
 
 def initialize_system(ds_config):
 

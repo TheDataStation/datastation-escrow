@@ -1,4 +1,5 @@
 import sys
+from common.utils import parse_config
 
 from dsapplicationregistration.dsar_core import register_connectors, __test_registration
 
@@ -6,8 +7,9 @@ if __name__ == "__main__":
 
     # take path to connector from command line
     # FIXME: use argparse and do this properly
-    connector_name = sys.argv[1]
-    connector_module_path = sys.argv[2]
+    app_config = parse_config(sys.argv[1])
+    connector_name = app_config["connector_name"]
+    connector_module_path = app_config["connector_module_path"]
     print("connector name: " + str(connector_name))
     print("connector module path: " + str(connector_module_path))
 

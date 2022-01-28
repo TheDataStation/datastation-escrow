@@ -26,30 +26,6 @@ class Register:
 register = Register()
 
 
-# def validate_registration():
-#     """
-#     Check that functions depend on existing functions
-#     Check that function dependency graph does not have cycles
-#     :return:
-#     """
-#     # Check that all functions have been registered
-#     invalid_name = True
-#     reg_functions = get_names_registered_functions()
-#     for key, value in register.dependencies.items():
-#         if key not in reg_functions:
-#             invalid_name = False
-#         else:
-#             for func in value:
-#                 if func not in reg_functions:
-#                     invalid_name = False
-#     if not invalid_name:
-#         return False, "Invalid names registered"
-#     # Check for loops
-#     valid = True
-#     # TODO
-#     return valid
-
-
 def register_connectors(connector_name, connector_module_path):
     spec = importlib.util.spec_from_file_location(connector_name, connector_module_path)
     module = importlib.util.module_from_spec(spec)
@@ -82,3 +58,26 @@ def __test_registration():
 
     deps = get_registered_dependencies()
     print(deps)
+
+# def validate_registration():
+#     """
+#     Check that functions depend on existing functions
+#     Check that function dependency graph does not have cycles
+#     :return:
+#     """
+#     # Check that all functions have been registered
+#     invalid_name = True
+#     reg_functions = get_names_registered_functions()
+#     for key, value in register.dependencies.items():
+#         if key not in reg_functions:
+#             invalid_name = False
+#         else:
+#             for func in value:
+#                 if func not in reg_functions:
+#                     invalid_name = False
+#     if not invalid_name:
+#         return False, "Invalid names registered"
+#     # Check for loops
+#     valid = True
+#     # TODO
+#     return valid
