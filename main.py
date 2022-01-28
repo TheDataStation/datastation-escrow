@@ -1,13 +1,13 @@
 import os
 import sys
 from storagemanager.storage_manager import StorageManager
+from gatekeeper import gatekeeper
 from clientapi.client_api import ClientAPI
 from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_names_registered_functions,
                                                  get_registered_dependencies,)
 from dsapplicationregistration import register
 from common.utils import parse_config
-from gatekeeper import gatekeeper_setup
 
 def initialize_system(ds_config, app_config):
 
@@ -29,7 +29,7 @@ def initialize_system(ds_config, app_config):
     register_connectors(connector_name, connector_module_path)
 
     # Then call the setup function of the gatekeeper
-    gatekeeper_setup()
+    gatekeeper.gatekeeper_setup()
 
     # __test_registration()
     # print(register.registered_functions)

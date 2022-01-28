@@ -16,8 +16,9 @@ def modeltrain(num_models: int):
 
 
 @register(depends_on=[modeltrain])
-def predict(accuracy: int):
+def predict(accuracy: int,
+            num_times: int):
     """submits input to get predictions"""
     print("predict called")
     print("Prediction accuracy is "+str(accuracy)+" percent :(")
-
+    print("Please try "+str(num_times)+" more!")
