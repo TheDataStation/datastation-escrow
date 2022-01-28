@@ -1,15 +1,20 @@
 import os
 import shutil
+import random
 
 from models.derived import *
 from models.provenance import *
 
 from dbservice import database_api
-
-import random
-
 from policybroker import policy_broker
+from dsapplicationregistration import register
 from titanicML.titanic import data_preprocess, model_train, predict
+
+def gatekeeper_setup():
+    print("Start setting up the gatekeeper")
+    print(register.registered_functions)
+    print(register.dependencies)
+
 
 def broker_access(user_id, api, exe_mode, data=None):
     policy_info = policy_broker.get_user_api_info(user_id, api)
