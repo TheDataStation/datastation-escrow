@@ -52,20 +52,20 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
     else:
         return response
 
-# Upload a new API
-@app.post("/api/")
-async def upload_api(api: API):
-    return client_api.upload_api(api)
+# # Upload a new API
+# @app.post("/api/")
+# async def upload_api(api: API):
+#     return client_api.upload_api(api)
 
 # Look at all available APIs
 @app.get("/api/")
 async def get_all_apis(token: str = Depends(oauth2_scheme)):
     return client_api.get_all_apis(token)
 
-# Upload a new API Dependency
-@app.post("/api_depend/")
-async def upload_api_dependency(api_dependency: APIDependency):
-    return client_api.upload_api_dependency(api_dependency)
+# # Upload a new API Dependency
+# @app.post("/api_depend/")
+# async def upload_api_dependency(api_dependency: APIDependency):
+#     return client_api.upload_api_dependency(api_dependency)
 
 # Look at all available API dependencies
 @app.get("/api_depend/")

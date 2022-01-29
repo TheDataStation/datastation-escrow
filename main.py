@@ -22,7 +22,9 @@ def initialize_system(ds_config, app_config):
     # set up the application registration in the gatekeeper
     connector_name = app_config["connector_name"]
     connector_module_path = app_config["connector_module_path"]
-    gatekeeper.gatekeeper_setup(connector_name, connector_module_path)
+    gatekeeper_response = gatekeeper.gatekeeper_setup(connector_name, connector_module_path)
+    if gatekeeper_response.status == 1:
+        print("something went wrong in gatekeeper setup")
 
     # __test_registration()
     # print(register.registered_functions)
