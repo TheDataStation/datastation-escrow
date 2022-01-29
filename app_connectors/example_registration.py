@@ -2,23 +2,25 @@ from dsapplicationregistration import register
 
 
 @register()
-def preprocess(num_files: int):
+def preprocess():
     """preprocess all the data"""
     print("preprocess called")
-    print("Let's clean "+str(num_files)+" files!")
+    return 0
 
 
 @register(depends_on=[preprocess])
-def modeltrain(num_models: int):
+def modeltrain():
     """trains the model"""
+    res = preprocess()
     print("modeltrain called")
-    print("I want to train "+str(num_models)+" models!")
+    return 0
 
 
 @register(depends_on=[modeltrain])
 def predict(accuracy: int,
             num_times: int):
     """submits input to get predictions"""
-    print("predict called")
+    res = modeltrain()
     print("Prediction accuracy is "+str(accuracy)+" percent :(")
-    print("Please try "+str(num_times)+" more!")
+    print("Please try "+str(num_times)+" times more!")
+    return 0
