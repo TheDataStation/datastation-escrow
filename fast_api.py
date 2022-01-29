@@ -30,7 +30,8 @@ async def root():
 async def startup_event():
     global client_api
     if client_api is None:
-        client_api = main.initialize_system(main.parse_config("data_station_config.yaml"))
+        client_api = main.initialize_system(main.parse_config("data_station_config.yaml"),
+                                            main.parse_config("app_connector_config.yaml"),)
 
 # Register a new user
 @app.post("/users/")
@@ -103,6 +104,23 @@ async def remove_policy(policy: Policy,
 @app.get("/policy/")
 async def get_all_policies():
     return client_api.get_all_policies()
+
+# Let's now add ways for fastapi users to call preprocess, modeltrain, and predict
+
+# preprocess
+@app.post("/applications/preprocess")
+async def preprocess():
+    return client_api.call_api("preprocess")
+
+# modeltrain
+@app.post("/applications/modeltrain")
+async def modeltrain():
+    return client_api.call_api("modeltrain")
+
+# predict
+@app.post("/applications/predict")
+async def predict(accuracy: int, num_times: int):
+    return client_api.call_api("predict", accuracy, num_times)
 
 # # API for Data Users: Preprocess
 # @app.get("/simpleML/datapreprocess/")
