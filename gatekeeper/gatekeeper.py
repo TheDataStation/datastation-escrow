@@ -1,9 +1,12 @@
-from dsapplicationregistration.dsar_core import (get_names_registered_functions,
+from dsapplicationregistration.dsar_core import (register_connectors,
+                                                 get_names_registered_functions,
                                                  get_registered_functions,
-                                                 get_registered_dependencies)
+                                                 get_registered_dependencies,)
 
-def gatekeeper_setup():
+def gatekeeper_setup(connector_name, connector_module_path):
     print("Start setting up the gatekeeper")
+    register_connectors(connector_name, connector_module_path)
+    print("Check registration results:")
     print(get_names_registered_functions())
     print(get_registered_functions())
     print(get_registered_dependencies())
