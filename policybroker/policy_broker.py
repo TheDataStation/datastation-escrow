@@ -1,4 +1,4 @@
-from classes.policy_info import *
+from common.policy_info import *
 from dbservice import database_api
 from common import common_procedure
 from models.policy import *
