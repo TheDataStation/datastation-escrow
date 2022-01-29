@@ -37,6 +37,7 @@ def broker_access(user_id, api, exe_mode, data=None):
                 cur_id = all_datasets.data[i].id
                 need_to_access.append(cur_id)
             # print(need_to_access)
+
             # Then fill in the path of all available files (in string format)
             SM_storage_path = "SM_storage"
             for (dirpath, dirnames, filenames) in os.walk(SM_storage_path):
