@@ -10,7 +10,7 @@ def verify_dataset_owner(dataset_id, cur_username):
     if dataset_owner.status == -1:
         return Response(status=1, message="Error retrieving data owner.")
     dataset_owner_id = dataset_owner.data[0].id
-    print("Dataset owner id is: " + str(dataset_owner_id))
+    # print("Dataset owner id is: " + str(dataset_owner_id))
 
     # get current user id
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
@@ -18,7 +18,7 @@ def verify_dataset_owner(dataset_id, cur_username):
     if cur_user.status == -1:
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
-    print("Current user id is: "+str(cur_user_id))
+    # print("Current user id is: "+str(cur_user_id))
 
     if cur_user_id != dataset_owner_id:
         return Response(status=1, message="Current user is not owner of dataset")
