@@ -1,3 +1,5 @@
+import random
+
 from dbservice import database_api
 
 from models.api import *
@@ -65,8 +67,13 @@ class ClientAPI:
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
+        # TODO: call identity_manager to compute the dataset id
+
+        data_id = random.randint(1, 100000)
+
         # First we call data_register to register a new dataset in the database
-        data_register_response = data_register.upload_data(data_name,
+        data_register_response = data_register.upload_data(data_id,
+                                                           data_name,
                                                            cur_username,
                                                            data_type)
         if data_register_response.status != 0:
@@ -74,7 +81,7 @@ class ClientAPI:
 
         # Registration of the dataset is successful. Now we call SM
         storage_manager_response = self.storage_manager.store(data_name,
-                                                              data_register_response.data_id,
+                                                              data_id,
                                                               data_in_bytes)
         # If dataset already exists
         if storage_manager_response.status == 1:
