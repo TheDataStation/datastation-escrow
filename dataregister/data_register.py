@@ -1,4 +1,3 @@
-import random
 from dbservice import database_api
 from common import common_procedure
 from models.dataset import *
@@ -6,17 +5,13 @@ from models.user import *
 from models.response import *
 
 
-def upload_data(data_name, cur_username, data_type):
+def upload_data(data_id, data_name, cur_username, data_type):
 
     # TODO: check if there is an existing dataset
 
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
     if existed_dataset.status == 1:
         return Response(status=1, message="there is a dataset using the same name")
-
-    # TODO: call identity_manager to compute the dataset id
-
-    dataset_id = random.randint(1, 100000)
 
     # We now call DB to register a new dataset in the database
 
@@ -27,7 +22,7 @@ def upload_data(data_name, cur_username, data_type):
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
-    new_dataset = Dataset(id=dataset_id,
+    new_dataset = Dataset(id=data_id,
                           name=data_name,
                           owner_id=cur_user_id,
                           type=data_type,)
@@ -35,7 +30,7 @@ def upload_data(data_name, cur_username, data_type):
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
 
-    return UploadDataResponse(status=0, message="success", data_id=dataset_id)
+    return UploadDataResponse(status=0, message="success", data_id=data_id)
 
 def remove_data(data_name, cur_username):
 
