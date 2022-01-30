@@ -8,9 +8,9 @@ from models.api_dependency import *
 from models.response import *
 
 def gatekeeper_setup(connector_name, connector_module_path):
-    print("Start setting up the gatekeeper")
+    # print("Start setting up the gatekeeper")
     register_connectors(connector_name, connector_module_path)
-    print("Check registration results:")
+    # print("Check registration results:")
     # TODO: change this part once the interceptor has been added in
     # add dependency X -> "dir_accessible" if X does not depend on anything else
     apis_to_register = get_names_registered_functions()
@@ -21,8 +21,8 @@ def gatekeeper_setup(connector_name, connector_module_path):
     # add "dir_accessible" to list of apis
     if "dir_accessible" not in apis_to_register:
         apis_to_register.append("dir_accessible")
-    print(apis_to_register)
-    print(dependencies_to_register)
+    # print(apis_to_register)
+    # print(dependencies_to_register)
 
     # now we call dbservice to register these info in the DB
     for cur_api in apis_to_register:
