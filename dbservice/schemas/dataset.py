@@ -5,9 +5,9 @@ class Dataset(BaseModel):
     id: int
     owner_id: int  # pk user.id
     name: str
-    desc: str
-    upload: bool
-    url: str
+    description: str
+    type: str
+    access_type: str
 
     class Config:
         orm_mode = True
@@ -18,5 +18,5 @@ class DatasetCreate(BaseModel):
     owner_id: int  # pk user.id
     name: str
     description: str
-    upload: bool
-    url: str
+    type: str
+    access_type: str

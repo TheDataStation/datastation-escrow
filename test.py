@@ -50,7 +50,10 @@ for cur_name in list_of_files:
     cur_full_name = "test_file/" + cur_name
     cur_file = open(cur_full_name, "rb")
     cur_file_bytes = cur_file.read()
-    cur_res = client_api.upload_dataset(cur_name.split(".")[0], cur_file_bytes, cur_token)
+    cur_res = client_api.upload_dataset(cur_name.split(".")[0],
+                                        cur_file_bytes,
+                                        "file",
+                                        cur_token)
     list_of_data_ids.append(cur_res.data_id)
     cur_file.close()
 
