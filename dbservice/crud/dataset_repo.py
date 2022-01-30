@@ -41,9 +41,9 @@ def create_dataset(db: Session, dataset: DatasetCreate):
     db_dataset = Dataset(id=dataset.id,
                          owner_id=dataset.owner_id,
                          name=dataset.name,
-                         url=dataset.url,
-                         description=dataset.description,
-                         upload=dataset.upload,)
+                         type=dataset.type,
+                         access_type=dataset.access_type,
+                         description=dataset.description,)
 
     try:
         db.add(db_dataset)
@@ -53,15 +53,6 @@ def create_dataset(db: Session, dataset: DatasetCreate):
         db.rollback()
         return None
     return db_dataset
-
-
-# # The following function returns all dataset ID whose derived_type == metadata
-# def get_all_metadata_ID(db: Session):
-#     dataset = db.query(Dataset).filter(Dataset.derived_type == "metadata")
-#     metadata_ID_array = []
-#     for data in dataset:
-#         metadata_ID_array.append(data.id)
-#     return metadata_ID_array
 
 
 # The following function returns the owner, given a dataset ID.
