@@ -3,6 +3,7 @@ from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_registered_functions,
                                                  get_registered_dependencies,)
 from dbservice import database_api
+from policybroker import policy_broker
 from models.api import *
 from models.api_dependency import *
 from models.response import *
@@ -41,9 +42,17 @@ def gatekeeper_setup(connector_name, connector_module_path):
     return Response(status=0, message="Gatekeeper setup success")
 
 
+def get_accessible_data(user_id, api):
+    policy_info = policy_broker.get_user_api_info(user_id, api)
+    print(policy_info.accessible_data)
+    print(policy_info.odata_type)
+
+
 def call_api(api, *args, **kwargs):
-    list_of_apis = get_registered_functions()
     # TODO: add the intent-policy matching process in here
+
+    # Acutally calling the api
+    list_of_apis = get_registered_functions()
     for cur_api in list_of_apis:
         if api == cur_api.__name__:
             return cur_api(*args, **kwargs)

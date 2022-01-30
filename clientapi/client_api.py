@@ -152,6 +152,11 @@ class ClientAPI:
         res = gatekeeper.call_api(api, *args, **kwargs)
         return res
 
+    # TODO: remove this in the future once interceptor is integrated
+    @staticmethod
+    def get_accessible_data(user_id: int, api: str):
+        gatekeeper.get_accessible_data(user_id, api)
+
 
 if __name__ == "__main__":
     print("Client API")
