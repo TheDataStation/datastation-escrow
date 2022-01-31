@@ -17,8 +17,8 @@ class Dataset(BaseModel):
     id: int
     name: str
     description: Optional[str]
-    upload: Optional[bool]
-    url: Optional[str]
+    type: Optional[str]
+    access_type: Optional[str]
     owner_id: Optional[int]
 
     class Config:

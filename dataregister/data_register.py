@@ -5,7 +5,7 @@ from models.user import *
 from models.response import *
 
 
-def upload_data(data_id, data_name, cur_username, data_type):
+def upload_data(data_id, data_name, cur_username, data_type, access_type):
 
     # TODO: check if there is an existing dataset
 
@@ -25,7 +25,8 @@ def upload_data(data_id, data_name, cur_username, data_type):
     new_dataset = Dataset(id=data_id,
                           name=data_name,
                           owner_id=cur_user_id,
-                          type=data_type,)
+                          type=data_type,
+                          access_type=access_type,)
     database_service_response = database_api.create_dataset(new_dataset)
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
@@ -40,8 +41,11 @@ def remove_data(data_name, cur_username):
     if existed_dataset.status == -1:
         return Response(status=1, message="Dataset does not exist.")
 
+    # print(existed_dataset.data[0])
+
     # Get ID of the dataset
     dataset_id = existed_dataset.data[0].id
+    type_of_data = existed_dataset.data[0].type
 
     # Step 2: if exists, check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(dataset_id, cur_username)
@@ -54,4 +58,7 @@ def remove_data(data_name, cur_username):
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
 
-    return RemoveDataResponse(status=0, message="Successfully removed data", data_id=dataset_id)
+    return RemoveDataResponse(status=0,
+                              message="Successfully removed data",
+                              data_id=dataset_id,
+                              type=type_of_data,)

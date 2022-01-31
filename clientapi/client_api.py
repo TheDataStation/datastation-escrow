@@ -71,21 +71,25 @@ class ClientAPI:
 
         data_id = random.randint(1, 100000)
 
-        # First we call data_register to register a new dataset in the database
+        # We first call SM to store the data
+        # Note that SM needs to return access_type (how can the data element be accessed)
+        # so that data_register can register thsi info
+        storage_manager_response = self.storage_manager.store(data_name,
+                                                              data_id,
+                                                              data_in_bytes,
+                                                              data_type,)
+        if storage_manager_response.status == 1:
+            return storage_manager_response
+
+        # Storing data is successful. We now call data_register to register this data element in DB
         data_register_response = data_register.upload_data(data_id,
                                                            data_name,
                                                            cur_username,
-                                                           data_type)
+                                                           data_type,
+                                                           storage_manager_response.access_type,)
         if data_register_response.status != 0:
-            return Response(status=data_register_response.status, message=data_register_response.message)
-
-        # Registration of the dataset is successful. Now we call SM
-        storage_manager_response = self.storage_manager.store(data_name,
-                                                              data_id,
-                                                              data_in_bytes)
-        # If dataset already exists
-        if storage_manager_response.status == 1:
-            return storage_manager_response
+            return Response(status=data_register_response.status,
+                            message=data_register_response.message)
 
         return data_register_response
 
@@ -104,7 +108,8 @@ class ClientAPI:
         # At this step we have removed the record about the dataset from DB
         # Now we remove its actual content from SM
         storage_manager_response = self.storage_manager.remove(data_name,
-                                                               data_register_response.data_id)
+                                                               data_register_response.data_id,
+                                                               data_register_response.type,)
 
         # If SM removal failed
         if storage_manager_response.status == 1:

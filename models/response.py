@@ -10,6 +10,10 @@ class UploadDataResponse(Response):
 
 class RemoveDataResponse(Response):
     data_id: int
+    type: str
+
+class StoreDataResponse(Response):
+    access_type: str
 
 class GetAPIResponse(Response):
     data: list[str]
