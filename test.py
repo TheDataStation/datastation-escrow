@@ -65,12 +65,7 @@ client_api.upload_policy(Policy(user_id=1, api="modeltrain", data_id=list_of_dat
 client_api.upload_policy(Policy(user_id=1, api="modeltrain", data_id=list_of_data_ids[4]), cur_token)
 client_api.upload_policy(Policy(user_id=1, api="predict", data_id=list_of_data_ids[5]), cur_token)
 
-# Check accessible data
-client_api.get_accessible_data(1, "preprocess")
-client_api.get_accessible_data(1, "modeltrain")
-client_api.get_accessible_data(1, "predict")
-
 # call available APIs
-client_api.call_api("preprocess")
-client_api.call_api("modeltrain")
-client_api.call_api("predict", 10, 5)
+client_api.call_api("preprocess", cur_token)
+client_api.call_api("modeltrain", cur_token)
+client_api.call_api("predict", cur_token, 10, 5)

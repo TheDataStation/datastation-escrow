@@ -82,11 +82,13 @@ class ClientAPI:
             return storage_manager_response
 
         # Storing data is successful. We now call data_register to register this data element in DB
+        access_type = storage_manager_response.access_type
+
         data_register_response = data_register.upload_data(data_id,
                                                            data_name,
                                                            cur_username,
                                                            data_type,
-                                                           storage_manager_response.access_type,)
+                                                           access_type,)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status,
                             message=data_register_response.message)
@@ -162,14 +164,13 @@ class ClientAPI:
     # data users actually calling the application apis
 
     @staticmethod
-    def call_api(api: API, *args, **kwargs):
-        res = gatekeeper.call_api(api, *args, **kwargs)
-        return res
+    def call_api(api: API, token, *args, **kwargs):
 
-    # TODO: remove this in the future once interceptor is integrated
-    @staticmethod
-    def get_accessible_data(user_id: int, api: str):
-        gatekeeper.get_accessible_data(user_id, api)
+        # Perform authentication
+        cur_username = user_register.authenticate_user(token)
+
+        res = gatekeeper.call_api(api, cur_username, *args, **kwargs)
+        return res
 
 
 if __name__ == "__main__":
