@@ -76,11 +76,12 @@ async def get_all_api_dependencies(token: str = Depends(oauth2_scheme)):
 # Upload a new dataset
 @app.post("/dataset/")
 async def upload_dataset(data_name: str,
+                         data_type: str,
                          token: str = Depends(oauth2_scheme),
                          data: UploadFile = File(...),):
     # Load the file in bytes
     data_in_bytes = bytes(await data.read())
-    return client_api.upload_dataset(data_name, data_in_bytes, token)
+    return client_api.upload_dataset(data_name, data_in_bytes, data_type, token)
 
 # Remove a dataset that's uploaded
 @app.delete("/dataset/")
