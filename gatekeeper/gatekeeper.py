@@ -6,6 +6,7 @@ from dbservice import database_api
 from policybroker import policy_broker
 from models.api import *
 from models.api_dependency import *
+from models.user import *
 from models.response import *
 
 def gatekeeper_setup(connector_name, connector_module_path):
@@ -48,8 +49,19 @@ def get_accessible_data(user_id, api):
     print(policy_info.odata_type)
 
 
-def call_api(api, *args, **kwargs):
+def call_api(api, cur_username, *args, **kwargs):
+
     # TODO: add the intent-policy matching process in here
+
+    # get current user id
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
+    # If the user doesn't exist, something is wrong
+    if cur_user.status == -1:
+        return Response(status=1, message="Something wrong with the current user")
+    cur_user_id = cur_user.data[0].id
+
+    # look at the accessible data for current (user, api)
+    get_accessible_data(cur_user_id, api)
 
     # Acutally calling the api
     list_of_apis = get_registered_functions()
