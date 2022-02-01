@@ -20,6 +20,7 @@ class Dataset(BaseModel):
     type: Optional[str]
     access_type: Optional[str]
     owner_id: Optional[int]
+    optimisitc: Optional[bool]
 
     class Config:
         orm_mode = True

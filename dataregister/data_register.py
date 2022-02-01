@@ -5,7 +5,7 @@ from models.user import *
 from models.response import *
 
 
-def upload_data(data_id, data_name, cur_username, data_type, access_type):
+def upload_data(data_id, data_name, cur_username, data_type, access_type, optimistic):
 
     # TODO: check if there is an existing dataset
 
@@ -26,7 +26,8 @@ def upload_data(data_id, data_name, cur_username, data_type, access_type):
                           name=data_name,
                           owner_id=cur_user_id,
                           type=data_type,
-                          access_type=access_type,)
+                          access_type=access_type,
+                          optimistic=optimistic,)
     database_service_response = database_api.create_dataset(new_dataset)
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")

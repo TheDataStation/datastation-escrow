@@ -62,7 +62,12 @@ class ClientAPI:
 
     # upload data element
 
-    def upload_dataset(self, data_name, data_in_bytes, data_type, token):
+    def upload_dataset(self,
+                       data_name,
+                       data_in_bytes,
+                       data_type,
+                       optimistic,
+                       token):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
@@ -88,7 +93,8 @@ class ClientAPI:
                                                            data_name,
                                                            cur_username,
                                                            data_type,
-                                                           access_type,)
+                                                           access_type,
+                                                           optimistic,)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status,
                             message=data_register_response.message)
