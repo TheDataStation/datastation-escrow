@@ -45,8 +45,7 @@ def gatekeeper_setup(connector_name, connector_module_path):
 
 def get_accessible_data(user_id, api):
     policy_info = policy_broker.get_user_api_info(user_id, api)
-    print(policy_info.accessible_data)
-    print(policy_info.odata_type)
+    return policy_info
 
 
 def call_api(api, cur_username, *args, **kwargs):
@@ -60,8 +59,28 @@ def call_api(api, cur_username, *args, **kwargs):
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
-    # look at the accessible data for current (user, api)
-    get_accessible_data(cur_user_id, api)
+    # look at the accessible data by policy for current (user, api)
+    policy_info = get_accessible_data(cur_user_id, api)
+    accessible_data_policy = policy_info.accessible_data
+
+    # look at all optimistic data from the DB
+    optimistic_data= database_api.get_all_optimistic_datasets()
+    accessible_data_optimistic = []
+    for i in range(len(optimistic_data.data)):
+        cur_optimistic_id = optimistic_data.data[i].id
+        accessible_data_optimistic.append(cur_optimistic_id)
+
+    # Combine these two types of accessible data elements together
+    all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
+    print("all accessible data elements are: ")
+    print(all_accessible_data_id)
+
+    # Getting these data elements from the DB
+    all_accessible_data = filter(lambda data: data.id in all_accessible_data_id,
+                                 database_api.get_all_datasets().data)
+    print("looking at the access types:")
+    for cur_data in all_accessible_data:
+        print(cur_data.access_type)
 
     # Acutally calling the api
     list_of_apis = get_registered_functions()
