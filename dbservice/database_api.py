@@ -69,6 +69,13 @@ def get_all_datasets():
     else:
         return response.DatasetResponse(status=-1, msg="no existing datasets", data=[])
 
+def get_all_optimistic_datasets():
+    datasets = dataset_repo.get_all_optimistic_datasets(next(get_db()))
+    if len(datasets):
+        return response.DatasetResponse(status=1, msg="success", data=datasets)
+    else:
+        return response.DatasetResponse(status=-1, msg="no optimistic datasets", data=[])
+
 def create_api(request):
     api = api_repo.create_api(next(get_db()), request)
     if api:
