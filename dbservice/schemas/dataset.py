@@ -8,6 +8,7 @@ class Dataset(BaseModel):
     description: str
     type: str
     access_type: str
+    optimistic: bool
 
     class Config:
         orm_mode = True
@@ -20,3 +21,4 @@ class DatasetCreate(BaseModel):
     description: str
     type: str
     access_type: str
+    optimistic: bool

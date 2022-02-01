@@ -9,3 +9,4 @@ class Dataset(BaseModel):
     description: Optional[str]
     access_type: Optional[str]
     owner_id: Optional[int]
+    optimistic: Optional[bool]

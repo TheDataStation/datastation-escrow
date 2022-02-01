@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 
 from ..database import Base
@@ -12,7 +12,8 @@ class Dataset(Base):
     description = Column(String)
     type = Column(String)
     access_type = Column(String)
-    # owner_id = Column(Integer, ForeignKey("users.id"))
+    optimistic = Column(Boolean)
     owner_id = Column(Integer)
+    # owner_id = Column(Integer, ForeignKey("users.id"))
 
     # owner = relationship("User", back_populates="datasets")
