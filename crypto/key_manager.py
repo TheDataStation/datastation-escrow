@@ -33,21 +33,21 @@ class KeyManager:
         self.ds_private_key = private_key
         self.ds_public_key = public_key
 
-    def store_agent_symmetric_key(self):
+    def store_agent_symmetric_key(self, agent_id, ciphertext_symmetric_key):
         """
         All agent keys are signed with DS's public key. This function 1) decrypts the agent's key 2) stores it in memory.
         The DS loses access to the agent's key if restarted
         :return:
         """
+        symmetric_key = cu.decrypt_data_with_private_key(ciphertext_symmetric_key, self.ds_private_key)
+        self.agents_symmetric_key[agent_id] = symmetric_key
 
-        return
-
-    def store_agent_public_key(self):
+    def store_agent_public_key(self, agent_id, public_key):
         """
         Stores agent's public key
         :return:
         """
-        return
+        self.agents_public_key[agent_id] = public_key
 
 
 if __name__ == "__main__":
