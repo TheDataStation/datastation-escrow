@@ -31,6 +31,7 @@ def get_dataset_by_name(db: Session, name: str):
     else:
         return None
 
+# zz: get id by access_type
 
 def remove_dataset_by_name(db: Session, name: str):
     try:
