@@ -8,6 +8,7 @@ from common import utils
 from models.user import *
 from models.policy import *
 
+# System initialization
 
 ds_config = utils.parse_config("data_station_config.yaml")
 app_config = utils.parse_config("app_connector_config.yaml")
