@@ -86,6 +86,9 @@ def get_all_policies():
     return list_of_policies
 
 # For gatekeeper
+# TODO: the efficiency of this function can be improved
+# TODO: Right now we are adding the effect of all policies for a user, but we only need all ancestors of current API.
+# TODO: Improve this if efficiency becomes a problem.
 def get_user_api_info(user_id, api):
 
     # Initialize the variables needed
