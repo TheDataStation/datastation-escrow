@@ -5,6 +5,7 @@ import os
 import shutil
 import time
 import math
+import random
 
 from common import utils
 from models.user import *
@@ -35,10 +36,10 @@ client_api.create_user(User(user_name="jerry", password="string"))
 client_api.create_user(User(user_name="lucy", password="123456"))
 client_api.create_user(User(user_name="david", password="string"))
 
-# cur_time = time.time()
-# print("User addition done")
-# print("--- %s seconds ---" % (cur_time - prev_time))
-# prev_time = cur_time
+cur_time = time.time()
+print("User addition done")
+print("--- %s seconds ---" % (cur_time - prev_time))
+prev_time = cur_time
 
 # Log in a user to get a token
 
@@ -49,17 +50,17 @@ cur_token = client_api.login_user("jerry", "string")["access_token"]
 # print("--- %s seconds ---" % (cur_time - prev_time))
 # prev_time = cur_time
 
-# # Look at all available APIs and APIDependencies
-#
-# apis = client_api.get_all_apis(cur_token)
-# api_dependencies = client_api.get_all_api_dependencies(cur_token)
-# print(apis)
-# print(api_dependencies)
+# Look at all available APIs and APIDependencies
 
-cur_time = time.time()
-print("Looking at dependency graph done")
-print("--- %s seconds ---" % (cur_time - prev_time))
-prev_time = cur_time
+apis = client_api.get_all_apis(cur_token)
+api_dependencies = client_api.get_all_api_dependencies(cur_token)
+print(apis)
+print(api_dependencies)
+
+# cur_time = time.time()
+# print("Looking at dependency graph done")
+# print("--- %s seconds ---" % (cur_time - prev_time))
+# prev_time = cur_time
 
 # Upload datasets
 
@@ -103,20 +104,20 @@ prev_time = cur_time
 
 policy_type = test_config["policy_type"]
 num_policies = test_config["num_policies"]
-total_num_policies = 0
+num_data_with_policy = 0
 if policy_type == "fixed":
-    total_num_policies = min(num_policies, len(list_of_data_ids))
+    num_data_with_policy = min(num_policies, len(list_of_data_ids))
 else:
-    total_num_policies = math.floor(num_policies*len(list_of_data_ids)/100)
-print("Total number of policies to create is: ")
-print(total_num_policies)
+    num_data_with_policy = math.floor(num_policies * len(list_of_data_ids) / 100)
+print("Total number of data with policies to create is: ")
+print(num_data_with_policy)
 
-client_api.upload_policy(Policy(user_id=1, api="preprocess", data_id=list_of_data_ids[0]), cur_token)
-client_api.upload_policy(Policy(user_id=1, api="preprocess", data_id=list_of_data_ids[1]), cur_token)
-client_api.upload_policy(Policy(user_id=1, api="preprocess", data_id=list_of_data_ids[2]), cur_token)
-client_api.upload_policy(Policy(user_id=1, api="modeltrain", data_id=list_of_data_ids[3]), cur_token)
-client_api.upload_policy(Policy(user_id=1, api="modeltrain", data_id=list_of_data_ids[4]), cur_token)
-client_api.upload_policy(Policy(user_id=1, api="predict", data_id=list_of_data_ids[5]), cur_token)
+# Right now for each dataset, we pick one API for it to create a policy
+# TODO: change this to something configurable
+
+for i in range(num_data_with_policy):
+    api_picked = random.choice(apis)
+    client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
 
 cur_time = time.time()
 print("Uploading policies done")

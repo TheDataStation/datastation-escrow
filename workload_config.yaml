@@ -1,3 +1,3 @@
-num_files: 51    # how many files in total are we uploading
+num_files: 50    # how many files in total are we uploading
 policy_type: proportional    # "fixed" number of policies or "proportional" number of policies
-num_policies: 20    # a number when policy_type == "fixed"; a proportion when policy_type == "proportional"
+num_policies: 50    # a number when policy_type == "fixed"; a proportion when policy_type == "proportional"
