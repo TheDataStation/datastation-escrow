@@ -4,6 +4,7 @@ import main
 import os
 import shutil
 import time
+import math
 
 from common import utils
 from models.user import *
@@ -23,10 +24,10 @@ app_config = utils.parse_config("app_connector_config.yaml")
 
 client_api = main.initialize_system(ds_config, app_config)
 
-cur_time = time.time()
-print("System initialization done")
-print("--- %s seconds ---" % (cur_time - prev_time))
-prev_time = cur_time
+# cur_time = time.time()
+# print("System initialization done")
+# print("--- %s seconds ---" % (cur_time - prev_time))
+# prev_time = cur_time
 
 # Adding new users
 
@@ -34,21 +35,31 @@ client_api.create_user(User(user_name="jerry", password="string"))
 client_api.create_user(User(user_name="lucy", password="123456"))
 client_api.create_user(User(user_name="david", password="string"))
 
-cur_time = time.time()
-print("User addition done")
-print("--- %s seconds ---" % (cur_time - prev_time))
-prev_time = cur_time
+# cur_time = time.time()
+# print("User addition done")
+# print("--- %s seconds ---" % (cur_time - prev_time))
+# prev_time = cur_time
 
 # Log in a user to get a token
 
 cur_token = client_api.login_user("jerry", "string")["access_token"]
 
-# Look at all available APIs and APIDependencies
+# cur_time = time.time()
+# print("Log in done")
+# print("--- %s seconds ---" % (cur_time - prev_time))
+# prev_time = cur_time
 
-apis = client_api.get_all_apis(cur_token)
-api_dependencies = client_api.get_all_api_dependencies(cur_token)
-print(apis)
-print(api_dependencies)
+# # Look at all available APIs and APIDependencies
+#
+# apis = client_api.get_all_apis(cur_token)
+# api_dependencies = client_api.get_all_api_dependencies(cur_token)
+# print(apis)
+# print(api_dependencies)
+
+cur_time = time.time()
+print("Looking at dependency graph done")
+print("--- %s seconds ---" % (cur_time - prev_time))
+prev_time = cur_time
 
 # Upload datasets
 
@@ -81,7 +92,25 @@ for cur_num in range(num_files):
         list_of_data_ids.append(cur_res.data_id)
     cur_file.close()
 
+# print(list_of_data_ids)
+
+cur_time = time.time()
+print("Uploading datasets done")
+print("--- %s seconds ---" % (cur_time - prev_time))
+prev_time = cur_time
+
 # Upload Policies
+
+policy_type = test_config["policy_type"]
+num_policies = test_config["num_policies"]
+total_num_policies = 0
+if policy_type == "fixed":
+    total_num_policies = min(num_policies, len(list_of_data_ids))
+else:
+    total_num_policies = math.floor(num_policies*len(list_of_data_ids)/100)
+print("Total number of policies to create is: ")
+print(total_num_policies)
+
 client_api.upload_policy(Policy(user_id=1, api="preprocess", data_id=list_of_data_ids[0]), cur_token)
 client_api.upload_policy(Policy(user_id=1, api="preprocess", data_id=list_of_data_ids[1]), cur_token)
 client_api.upload_policy(Policy(user_id=1, api="preprocess", data_id=list_of_data_ids[2]), cur_token)
@@ -89,7 +118,17 @@ client_api.upload_policy(Policy(user_id=1, api="modeltrain", data_id=list_of_dat
 client_api.upload_policy(Policy(user_id=1, api="modeltrain", data_id=list_of_data_ids[4]), cur_token)
 client_api.upload_policy(Policy(user_id=1, api="predict", data_id=list_of_data_ids[5]), cur_token)
 
+cur_time = time.time()
+print("Uploading policies done")
+print("--- %s seconds ---" % (cur_time - prev_time))
+prev_time = cur_time
+
 # call available APIs
 client_api.call_api("preprocess", cur_token)
 client_api.call_api("modeltrain", cur_token)
 client_api.call_api("predict", cur_token, 10, 5)
+
+cur_time = time.time()
+print("Calling APIs done")
+print("--- %s seconds ---" % (cur_time - prev_time))
+prev_time = cur_time
