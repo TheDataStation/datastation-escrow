@@ -71,7 +71,7 @@ class APIResponse(Response):
     data: List[API]
 
 class GetAPIResponse(Response):
-    data: list[str]
+    data: List[str]
 
 class APIDependencyResponse(Response):
     data: List[APIDependency]
