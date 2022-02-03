@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class Derived(BaseModel):
     id: int
     caller_id: int  # pk user.id
-    api: str # pk list_of_apis.api_name
+    api: str # pk apis.api_name
 
     class Config:
         orm_mode = True
@@ -13,7 +13,7 @@ class Derived(BaseModel):
 class DerivedCreate(BaseModel):
     id: int
     caller_id: int  # pk user.id
-    api: str  # pk list_of_apis.api_name
+    api: str  # pk apis.api_name
 
     class Config:
         orm_mode = True

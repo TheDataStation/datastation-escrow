@@ -88,7 +88,7 @@ def get_all_apis():
     if len(apis):
         return response.GetAPIResponse(status=1, msg="success", data=apis)
     else:
-        return response.GetAPIResponse(status=-1, msg="no existing list_of_apis", data=[])
+        return response.GetAPIResponse(status=-1, msg="no existing apis", data=[])
 
 def create_api_dependency(request):
     api_dependency = api_dependency_repo.create_api_dependency(next(get_db()), request)
