@@ -1,7 +1,8 @@
 # This script loads a complete state of the data station
+import os
+os.remove("data_station.db")
 
 import main
-import os
 import shutil
 
 from common import utils

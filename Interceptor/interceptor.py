@@ -11,6 +11,7 @@ from __future__ import print_function
 
 import os, sys
 import pathlib
+import socket
 from errno import *
 from stat import *
 import fcntl
@@ -25,7 +26,12 @@ from fuse import Fuse
 
 import threading
 from pathlib import Path
-import mock_gatekeeper
+# import mock_gatekeeper
+# sys.path.append( '.' )
+# import gatekeeper.gatekeeper
+sys.path.insert(0, str(pathlib.Path(os.getcwd())))
+# print(str(pathlib.Path(os.getcwd()).parent))
+from gatekeeper import gatekeeper
 
 if not hasattr(fuse, '__version__'):
     raise RuntimeError("your fuse-py doesn't know of fuse.__version__, probably it's too old.")
@@ -74,8 +80,11 @@ class Xmp(Fuse):
         return os.readlink("." + path)
 
     def readdir(self, path, offset):
+        # print("readdir", path)
         for e in os.listdir("." + path):
-            yield fuse.Direntry(e)
+            # print(str(e))
+            if not (str(e) == "25622" or str(e) == "train-6"):
+                yield fuse.Direntry(e)
 
     def unlink(self, path):
         os.unlink("." + path)
@@ -194,11 +203,20 @@ class Xmp(Fuse):
             user_id = pathlib.PurePath(args[-1]).parts[-2]
             api_name = pathlib.PurePath(args[-1]).parts[-1]
 
-            if mock_gatekeeper.check(user_id=user_id, api_name=api_name, file_to_access=self.file_path):
-                print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-            else:
-                self.file = None
-                print("Access denied for " + self.file_path)
+            # if mock_gatekeeper.check(user_id=user_id, api_name=api_name, file_to_access=self.file_path):
+            #     print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+            # else:
+            #     self.file = None
+            #     print("Access denied for " + self.file_path)
+            #     raise IOError("Access denied for " + self.file_path)
+            print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+            data_id = gatekeeper.record_data_ids_accessed(self.file_path, user_id, api_name)
+            data_ids_accessed.add(data_id)
+            # f = open("/tmp/data_ids_accessed.txt", 'a+')
+            # f.write(str(data_id) + '\n')
+            # f.close()
+
+            print("data id accessed: ", str(data_id))
 
         def read(self, length, offset):
             if self.file != None:
@@ -318,7 +336,20 @@ class Xmp(Fuse):
 
 def main(root_dir, mount_point):
     global args
-    args = ["-o", "root="+root_dir, mount_point]
+    # run in foreground
+    # args = ["-f", "-o", "root="+root_dir, mount_point]
+    # run in background
+    args = ["-o", "root=" + root_dir, mount_point]
+
+    global data_ids_accessed
+    data_ids_accessed = set()
+
+    # host = "localhost"
+    # port = 6666
+    # sock = socket.socket()
+    # sock.bind((host, port))
+    # sock.listen(1)
+
     # print(args)
 
     usage = """
@@ -348,6 +379,22 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
         sys.exit(1)
 
     server.main()
+
+    print("Data ids accessed:")
+    print(data_ids_accessed)
+
+    # f = open("/tmp/data_ids_accessed.txt", 'a+')
+    # f.write(str(data_ids_accessed) + '\n')
+    # f.close()
+
+    host = "localhost"
+    port = 6666
+    sock = socket.socket()
+    sock.bind((host, port))
+    sock.listen(1)
+    c, addr = sock.accept()
+    sock.send(str(data_ids_accessed).encode())
+    c.close()
 
 
 if __name__ == '__main__':

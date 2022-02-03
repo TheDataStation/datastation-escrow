@@ -13,6 +13,10 @@ def union_all_files(dir_path):
                         cur_file.close()
                 except Exception as e:
                     print("IO error on " + str(file) + ": " + str(e))
+                    raise
+                # with open(file, "r") as cur_file:
+                #     new_file.write(cur_file.read() + "\n")
+                #     cur_file.close()
 
 def read_all_files(dir_path):
     files = pathlib.Path(dir_path).glob('*.txt')
