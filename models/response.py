@@ -1,6 +1,9 @@
 from pydantic import BaseModel
 
 # A general response type
+from typing import List
+
+
 class Response(BaseModel):
     status: int
     message: str
@@ -16,7 +19,7 @@ class StoreDataResponse(Response):
     access_type: str
 
 class GetAPIResponse(Response):
-    data: list[str]
+    data: List[str]
 
 # Response type for user login
 class TokenResponse(BaseModel):

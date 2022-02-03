@@ -75,6 +75,12 @@ def call_api(api, cur_username, *args, **kwargs):
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
 
+    # zz: create a working dir from all_accessible_data_id
+    # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
+    # zz: run api
+    # zz: record all data ids that are accessed by the api through interceptor
+    # zz: check whether access to those data ids is valid, if not we cannot release the results
+
     # Getting these data elements from the DB
     all_accessible_data = filter(lambda data: data.id in all_accessible_data_id,
                                  database_api.get_all_datasets().data)
