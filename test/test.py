@@ -52,10 +52,10 @@ cur_token = client_api.login_user("jerry", "string")["access_token"]
 
 # Look at all available APIs and APIDependencies
 
-apis = client_api.get_all_apis(cur_token)
-api_dependencies = client_api.get_all_api_dependencies(cur_token)
-print(apis)
-print(api_dependencies)
+list_of_apis = client_api.get_all_apis(cur_token)
+list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+print(list_of_apis)
+print(list_of_api_dependencies)
 
 # cur_time = time.time()
 # print("Looking at dependency graph done")
@@ -104,8 +104,6 @@ prev_time = cur_time
 
 data_with_policy_proportion = test_config["data_with_policy_proportion"]
 num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
-print("Total number of data with policies to create is: ")
-print(num_data_with_policy)
 
 # Right now for each dataset, we pick one API for it to create a policy
 # TODO: change this to something configurable
@@ -113,13 +111,20 @@ print(num_data_with_policy)
 # Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
 # this probability should be in workload_config
 
-for i in range(num_data_with_policy):
-    api_picked = random.choice(apis)
-    client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+policy_proportion = test_config["policy_proportion"]
+policy_created = 0
+
+for api_picked in list_of_apis:
+    for i in range(num_data_with_policy):
+        if random.random() < policy_proportion:
+            policy_created += 1
+            client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
 
 cur_time = time.time()
 print("Uploading policies done")
 print("--- %s seconds ---" % (cur_time - prev_time))
+print("Number of policies created is: " + str(policy_created))
+print("Expected number of policies is: " + str(math.floor(num_data_with_policy*len(list_of_apis)*policy_proportion)))
 prev_time = cur_time
 
 # call available APIs
