@@ -101,7 +101,7 @@ def get_user_api_info(user_id, api):
     api_res = database_api.get_all_apis()
     list_of_apis = list(api_res.data)
 
-    # Initialize dependency_graph using the list of list_of_apis as keys
+    # Initialize dependency_graph using the list of apis as keys
     for cur_api in list_of_apis:
         dependency_graph[cur_api] = []
 

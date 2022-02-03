@@ -38,7 +38,7 @@ class ClientAPI:
             # if password cannot correctly be verified, we return -1 to indicate login has failed
             return -1
 
-    # list application list_of_apis
+    # list application apis
 
     @staticmethod
     def get_all_apis(token):
@@ -167,7 +167,7 @@ class ClientAPI:
     #     response = database_api.create_api_dependency(api_dependency)
     #     return Response(status=response.status, message=response.msg)
 
-    # data users actually calling the application list_of_apis
+    # data users actually calling the application apis
 
     @staticmethod
     def call_api(api: API, token, *args, **kwargs):
