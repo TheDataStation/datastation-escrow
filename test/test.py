@@ -102,18 +102,16 @@ prev_time = cur_time
 
 # Upload Policies
 
-policy_type = test_config["policy_type"]
-num_policies = test_config["num_policies"]
-num_data_with_policy = 0
-if policy_type == "fixed":
-    num_data_with_policy = min(num_policies, len(list_of_data_ids))
-else:
-    num_data_with_policy = math.floor(num_policies * len(list_of_data_ids) / 100)
+data_with_policy_proportion = test_config["data_with_policy_proportion"]
+num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
 print("Total number of data with policies to create is: ")
 print(num_data_with_policy)
 
 # Right now for each dataset, we pick one API for it to create a policy
 # TODO: change this to something configurable
+
+# Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
+# this probability should be in workload_config
 
 for i in range(num_data_with_policy):
     api_picked = random.choice(apis)

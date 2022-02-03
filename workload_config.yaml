@@ -1,3 +1,2 @@
 num_files: 50    # how many files in total are we uploading
-policy_type: proportional    # "fixed" number of policies or "proportional" number of policies
-num_policies: 50    # a number when policy_type == "fixed"; a proportion when policy_type == "proportional"
+data_with_policy_proportion: 0.5    # what proportion of datasets have policies on them
