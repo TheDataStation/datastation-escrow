@@ -1,10 +1,19 @@
-from dsapplicationregistration import register
+import pathlib
 
+from dsapplicationregistration import register
+import glob
 
 @register()
 def preprocess():
     """preprocess all the data"""
     print("preprocess called")
+    files = glob.glob("/Users/zhiruzhu/Desktop/data_station/DataStation/SM_storage/**/*", recursive=True)
+    for file in files:
+        # print(file)
+        if pathlib.Path(file).is_file():
+            with open(file, "r") as cur_file:
+                cur_file.readline()
+            print("read ", file)
     return 0
 
 

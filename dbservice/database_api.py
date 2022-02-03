@@ -48,6 +48,20 @@ def get_dataset_by_name(request):
     else:
         return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
+def get_dataset_by_id(request):
+    dataset = dataset_repo.get_dataset_by_id(next(get_db()), request)
+    if dataset:
+        return response.DatasetResponse(status=1, msg="success", data=[dataset])
+    else:
+        return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+
+def get_dataset_by_access_type(request):
+    dataset = dataset_repo.get_dataset_by_access_type(next(get_db()), request)
+    if dataset:
+        return response.DatasetResponse(status=1, msg="success", data=[dataset])
+    else:
+        return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+
 def remove_dataset_by_name(request):
     res = dataset_repo.remove_dataset_by_name(next(get_db()), request.name)
     if res == "success":
