@@ -74,7 +74,7 @@ class ClientAPI:
 
         # TODO: call identity_manager to compute the dataset id
 
-        data_id = random.randint(1, 100000)
+        data_id = random.randint(1, 1000000)
 
         # We first call SM to store the data
         # Note that SM needs to return access_type (how can the data element be accessed)

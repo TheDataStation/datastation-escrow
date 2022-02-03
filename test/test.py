@@ -1,12 +1,20 @@
 # This script loads a complete state of the data station
-
+import sys
 import main
 import os
 import shutil
+import time
 
 from common import utils
 from models.user import *
 from models.policy import *
+from common.utils import parse_config
+
+# Get start time of the script
+prev_time = time.time()
+
+# Read in the configuration file
+test_config = parse_config(sys.argv[1])
 
 # System initialization
 
@@ -15,11 +23,21 @@ app_config = utils.parse_config("app_connector_config.yaml")
 
 client_api = main.initialize_system(ds_config, app_config)
 
+cur_time = time.time()
+print("System initialization done")
+print("--- %s seconds ---" % (cur_time - prev_time))
+prev_time = cur_time
+
 # Adding new users
 
 client_api.create_user(User(user_name="jerry", password="string"))
 client_api.create_user(User(user_name="lucy", password="123456"))
 client_api.create_user(User(user_name="david", password="string"))
+
+cur_time = time.time()
+print("User addition done")
+print("--- %s seconds ---" % (cur_time - prev_time))
+prev_time = cur_time
 
 # Log in a user to get a token
 
@@ -44,22 +62,23 @@ for filename in os.listdir(folder):
     elif os.path.isdir(file_path):
         shutil.rmtree(file_path)
 
-list_of_files = ["train-1.csv", "train-2.csv", "train-3.csv", "train-4.csv", "train-5.csv", "train-6.csv"]
+num_files = test_config["num_files"]
 list_of_data_ids = []
 
-for cur_name in list_of_files:
-    cur_full_name = "test/test_file/" + cur_name
+for cur_num in range(num_files):
+    cur_file_index = (cur_num % 6) + 1
+    cur_full_name = "test/test_file/train-" + str(cur_file_index) + ".csv"
     cur_file = open(cur_full_name, "rb")
     cur_file_bytes = cur_file.read()
     cur_optimistic = False
-    if cur_name == "train-3.csv":
-        cur_optimistic = True
-    cur_res = client_api.upload_dataset(cur_name.split(".")[0],
+    name_to_upload = "file-" + str(cur_num)
+    cur_res = client_api.upload_dataset(name_to_upload,
                                         cur_file_bytes,
                                         "file",
                                         cur_optimistic,
                                         cur_token,)
-    list_of_data_ids.append(cur_res.data_id)
+    if cur_res.status == 0:
+        list_of_data_ids.append(cur_res.data_id)
     cur_file.close()
 
 # Upload Policies

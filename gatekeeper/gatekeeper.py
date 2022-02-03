@@ -84,9 +84,9 @@ def call_api(api, cur_username, *args, **kwargs):
     # Getting these data elements from the DB
     all_accessible_data = filter(lambda data: data.id in all_accessible_data_id,
                                  database_api.get_all_datasets().data)
-    print("looking at the access types:")
-    for cur_data in all_accessible_data:
-        print(cur_data.access_type)
+    # print("looking at the access types:")
+    # for cur_data in all_accessible_data:
+    #     print(cur_data.access_type)
 
     # Acutally calling the api
     list_of_apis = get_registered_functions()
