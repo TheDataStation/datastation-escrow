@@ -20,7 +20,7 @@ def gatekeeper_setup(connector_name, connector_module_path):
     for cur_api in apis_to_register:
         if cur_api not in dependencies_to_register.keys():
             dependencies_to_register[cur_api] = ["dir_accessible"]
-    # add "dir_accessible" to list of apis
+    # add "dir_accessible" to list of list_of_apis
     if "dir_accessible" not in apis_to_register:
         apis_to_register.append("dir_accessible")
     # print(apis_to_register)
