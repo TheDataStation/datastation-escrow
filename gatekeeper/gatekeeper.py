@@ -1,3 +1,10 @@
+import os
+import pathlib
+import socket
+import subprocess
+import time
+from multiprocessing import Process
+
 from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_names_registered_functions,
                                                  get_registered_functions,
@@ -8,6 +15,7 @@ from models.api import *
 from models.api_dependency import *
 from models.user import *
 from models.response import *
+from common import utils
 
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
@@ -75,16 +83,78 @@ def call_api(api, cur_username, *args, **kwargs):
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
 
+
+    # zz: mount data station's storage dir to mount point that encodes user_id and api name using interceptor
+    # zz: run api
+    # zz: record all data ids that are accessed by the api through interceptor
+    # zz: check whether access to those data ids is valid, if not we cannot release the results
+
+    # global data_ids_accessed
+    # data_ids_accessed = set()
+
+
+    ds_config = utils.parse_config("data_station_config.yaml")
+    ds_storage_path = pathlib.Path(ds_config["storage_path"]).absolute()
+    ds_storage_mount_path = ds_config["mount_path"]
+
+    mount_point = pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute()
+    pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
+
+    interceptor_path = pathlib.Path(ds_config["interceptor_path"]).absolute()
+    # print(interceptor_path, ds_storage_path, mount_point)
+
+    subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
+    # time.sleep(5)
+
+    # interceptor_process = Process(target=interceptor.main, args=(ds_storage_path, mount_point))
+    # interceptor_process.start()
+    # os.system("umount " + mount_point)
+    # interceptor_process.join()
+
     # Getting these data elements from the DB
-    all_accessible_data = filter(lambda data: data.id in all_accessible_data_id,
-                                 database_api.get_all_datasets().data)
-    print("looking at the access types:")
-    for cur_data in all_accessible_data:
-        print(cur_data.access_type)
+    # all_accessible_data = filter(lambda data: data.id in all_accessible_data_id,
+    #                              database_api.get_all_datasets().data)
+    # print("looking at the access types:")
+    # for cur_data in all_accessible_data:
+    #     print(cur_data.access_type)
 
     # Acutally calling the api
+    status = "Error"
     list_of_apis = get_registered_functions()
     for cur_api in list_of_apis:
         if api == cur_api.__name__:
-            return cur_api(*args, **kwargs)
-    return "Error"
+            status =  cur_api(*args, **kwargs)
+
+
+    os.system("umount " + str(mount_point))
+
+    host = "localhost"
+    port = 6666
+    sock = socket.socket()
+    sock.connect((host, port))
+    while True:
+        data = sock.recv(1024)
+        if not data:
+            break
+        print(data.decode())
+    sock.close()
+
+    # time.sleep(5)
+    # print("Data ids accessed:")
+    # with open("/tmp/data_ids_accessed.txt", 'r') as f:
+    #     print(f.read())
+    # os.remove("/tmp/data_ids_accessed.txt")
+
+    return status
+
+def record_data_ids_accessed(data_path, user_id, api_name):
+    data_id = database_api.get_dataset_by_access_type(data_path).data[0].id
+    # data_id = 666
+    # data_ids_accessed.add(data_id)
+    # ds_config = utils.parse_config("data_station_config.yaml")
+    # ds_storage_path = pathlib.Path(ds_config["storage_path"]).absolute()
+    # f_path = os.path.join(str(ds_storage_path), "data_ids_accessed.txt")
+    # f = open("/tmp/data_ids_accessed.txt", 'a+')
+    # f.write(str(data_id) + '\n')
+    # f.close()
+    return data_id

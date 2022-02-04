@@ -1,2 +1,4 @@
 front_end: "fastapi"
 storage_path: "./SM_storage/"
+mount_path: "./SM_storage_mount/"
+interceptor_path: "./Interceptor/interceptor.py"
