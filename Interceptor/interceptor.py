@@ -83,7 +83,7 @@ class Xmp(Fuse):
         # print("readdir", path)
         for e in os.listdir("." + path):
             # print(str(e))
-            if not (str(e) == "25622" or str(e) == "train-6"):
+            if not str(e) == "train-6":
                 yield fuse.Direntry(e)
 
     def unlink(self, path):
@@ -383,18 +383,18 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
     print("Data ids accessed:")
     print(data_ids_accessed)
 
-    # f = open("/tmp/data_ids_accessed.txt", 'a+')
-    # f.write(str(data_ids_accessed) + '\n')
-    # f.close()
+    f = open("/tmp/data_ids_accessed.txt", 'a+')
+    f.write(str(data_ids_accessed) + '\n')
+    f.close()
 
-    host = "localhost"
-    port = 6666
-    sock = socket.socket()
-    sock.bind((host, port))
-    sock.listen(1)
-    c, addr = sock.accept()
-    sock.send(str(data_ids_accessed).encode())
-    c.close()
+    # host = "localhost"
+    # port = 6666
+    # sock = socket.socket()
+    # sock.bind((host, port))
+    # sock.listen(1)
+    # c, addr = sock.accept()
+    # sock.send(str(data_ids_accessed).encode())
+    # c.close()
 
 
 if __name__ == '__main__':

@@ -128,22 +128,22 @@ def call_api(api, cur_username, *args, **kwargs):
 
     os.system("umount " + str(mount_point))
 
-    host = "localhost"
-    port = 6666
-    sock = socket.socket()
-    sock.connect((host, port))
-    while True:
-        data = sock.recv(1024)
-        if not data:
-            break
-        print(data.decode())
-    sock.close()
+    # host = "localhost"
+    # port = 6666
+    # sock = socket.socket()
+    # sock.connect((host, port))
+    # while True:
+    #     data = sock.recv(1024)
+    #     if not data:
+    #         break
+    #     print(data.decode())
+    # sock.close()
 
-    # time.sleep(5)
-    # print("Data ids accessed:")
-    # with open("/tmp/data_ids_accessed.txt", 'r') as f:
-    #     print(f.read())
-    # os.remove("/tmp/data_ids_accessed.txt")
+    time.sleep(1)
+    print("Data ids accessed:")
+    with open("/tmp/data_ids_accessed.txt", 'r') as f:
+        print(f.read())
+    os.remove("/tmp/data_ids_accessed.txt")
 
     return status
 

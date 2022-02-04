@@ -8,8 +8,9 @@ def preprocess():
     """preprocess all the data"""
     print("preprocess called")
     # files = glob.glob("/Users/zhiruzhu/Desktop/data_station/DataStation/SM_storage/**/*", recursive=True)
-    files = glob.glob("SM_storage/**/*", recursive=True)
-    for file in files:
+    files = glob.glob("SM_storage_mount/**/**/**/*", recursive=True)
+    # print(set(files))
+    for file in set(files):
         # print(file)
         if pathlib.Path(file).is_file():
             with open(file, "r") as cur_file:
