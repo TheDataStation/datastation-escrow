@@ -5,6 +5,7 @@ import subprocess
 import time
 from multiprocessing import Process
 
+from Interceptor import interceptor
 from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_names_registered_functions,
                                                  get_registered_functions,
@@ -83,7 +84,8 @@ def call_api(api, cur_username, *args, **kwargs):
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
 
-
+    # zz: create an exec env (docker)
+    # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
     # zz: mount data station's storage dir to mount point that encodes user_id and api name using interceptor
     # zz: run api
     # zz: record all data ids that are accessed by the api through interceptor
@@ -103,11 +105,19 @@ def call_api(api, cur_username, *args, **kwargs):
     interceptor_path = pathlib.Path(ds_config["interceptor_path"]).absolute()
     # print(interceptor_path, ds_storage_path, mount_point)
 
-    subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
+    # subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
+    # time.sleep(1)
+
+    # print("check")
+    # # from Interceptor.interceptor import real_main2
+    #
+    # interceptor_process = Process(target=f, args=("", ""))
     # time.sleep(5)
 
-    # interceptor_process = Process(target=interceptor.main, args=(ds_storage_path, mount_point))
-    # interceptor_process.start()
+    interceptor_process = Process(target=interceptor.main, args=(str(ds_storage_path), str(mount_point)))
+    interceptor_process.start()
+    print("start process")
+    time.sleep(1)
     # os.system("umount " + mount_point)
     # interceptor_process.join()
 
@@ -127,6 +137,7 @@ def call_api(api, cur_username, *args, **kwargs):
 
 
     os.system("umount " + str(mount_point))
+    interceptor_process.join()
 
     # host = "localhost"
     # port = 6666
@@ -140,15 +151,20 @@ def call_api(api, cur_username, *args, **kwargs):
     # sock.close()
 
     time.sleep(1)
-    print("Data ids accessed:")
-    with open("/tmp/data_ids_accessed.txt", 'r') as f:
+    print("Data accessed:")
+    with open("/tmp/data_accessed.txt", 'r') as f:
         print(f.read())
-    os.remove("/tmp/data_ids_accessed.txt")
+    os.remove("/tmp/data_accessed.txt")
 
     return status
 
 def record_data_ids_accessed(data_path, user_id, api_name):
-    data_id = database_api.get_dataset_by_access_type(data_path).data[0].id
+    response = database_api.get_dataset_by_access_type(data_path)
+    if response.status != 1:
+        print("get_dataset_by_access_type database error")
+        return None
+    else:
+        data_id = response.data[0].id
     # data_id = 666
     # data_ids_accessed.add(data_id)
     # ds_config = utils.parse_config("data_station_config.yaml")
@@ -157,4 +173,7 @@ def record_data_ids_accessed(data_path, user_id, api_name):
     # f = open("/tmp/data_ids_accessed.txt", 'a+')
     # f.write(str(data_id) + '\n')
     # f.close()
-    return data_id
+        return data_id
+
+if __name__ == '__main__':
+    call_api("preprocess", "xxx")

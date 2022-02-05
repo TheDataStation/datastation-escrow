@@ -179,6 +179,7 @@ class Xmp(Fuse):
 
     class XmpFile(object):
 
+
         def __init__(self, path, flags, *mode):
             # currentThread = threading.current_thread()
             # dictionary = currentThread.__dict__
@@ -210,13 +211,15 @@ class Xmp(Fuse):
             #     print("Access denied for " + self.file_path)
             #     raise IOError("Access denied for " + self.file_path)
             print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-            data_id = gatekeeper.record_data_ids_accessed(self.file_path, user_id, api_name)
-            data_ids_accessed.add(data_id)
+            # data_id = gatekeeper.record_data_ids_accessed(self.file_path, user_id, api_name)
+            # if data_id != None:
+            #     data_ids_accessed.add(data_id)
             # f = open("/tmp/data_ids_accessed.txt", 'a+')
             # f.write(str(data_id) + '\n')
             # f.close()
 
-            print("data id accessed: ", str(data_id))
+            # print("data id accessed: ", str(data_id))
+            data_accessed.add(self.file_path)
 
         def read(self, length, offset):
             if self.file != None:
@@ -341,8 +344,8 @@ def main(root_dir, mount_point):
     # run in background
     args = ["-o", "root=" + root_dir, mount_point]
 
-    global data_ids_accessed
-    data_ids_accessed = set()
+    global data_accessed
+    data_accessed = set()
 
     # host = "localhost"
     # port = 6666
@@ -380,11 +383,11 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
 
     server.main()
 
-    print("Data ids accessed:")
-    print(data_ids_accessed)
+    # print("Data ids accessed:")
+    # print(data_ids_accessed)
 
-    f = open("/tmp/data_ids_accessed.txt", 'a+')
-    f.write(str(data_ids_accessed) + '\n')
+    f = open("/tmp/data_accessed.txt", 'a+')
+    f.write(str(data_accessed))
     f.close()
 
     # host = "localhost"
