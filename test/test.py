@@ -12,6 +12,10 @@ from models.user import *
 from models.policy import *
 from common.utils import parse_config
 
+# TODO 1: vary what's inside of the dependency graph (api and api dependencies)
+# TODO 2: vary how we select the APIs (right now we are uniformly selecting the APIs
+# TODO 2: we can do 1) uniform 2) those with few descendants 3) those with many descendants
+
 # Get start time of the script
 prev_time = time.time()
 
