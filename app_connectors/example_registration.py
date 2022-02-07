@@ -5,6 +5,7 @@ from dsapplicationregistration import register
 import glob
 from common import utils
 
+
 @register()
 def preprocess():
     """preprocess all the data"""
@@ -37,6 +38,6 @@ def predict(accuracy: int,
             num_times: int):
     """submits input to get predictions"""
     res = modeltrain()
-    print("Prediction accuracy is "+str(accuracy)+" percent :(")
-    print("Please try "+str(num_times)+" times more!")
+    print("Prediction accuracy is " + str(accuracy) + " percent :(")
+    print("Please try " + str(num_times) + " times more!")
     return 0
