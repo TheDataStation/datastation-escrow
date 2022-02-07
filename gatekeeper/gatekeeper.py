@@ -9,7 +9,7 @@ from Interceptor import interceptor
 from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_names_registered_functions,
                                                  get_registered_functions,
-                                                 get_registered_dependencies,)
+                                                 get_registered_dependencies, )
 from dbservice import database_api
 from policybroker import policy_broker
 from models.api import *
@@ -17,6 +17,7 @@ from models.api_dependency import *
 from models.user import *
 from models.response import *
 from common import utils
+
 
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
@@ -45,7 +46,7 @@ def gatekeeper_setup(connector_name, connector_module_path):
         to_api_list = dependencies_to_register[cur_from_api]
         for cur_to_api in to_api_list:
             api_dependency_db = APIDependency(from_api=cur_from_api,
-                                              to_api=cur_to_api,)
+                                              to_api=cur_to_api, )
             database_service_response = database_api.create_api_dependency(api_dependency_db)
             if database_service_response.status == -1:
                 return Response(status=1, message="internal database error")
@@ -58,11 +59,10 @@ def get_accessible_data(user_id, api):
 
 
 def call_api(api, cur_username, *args, **kwargs):
-
     # TODO: add the intent-policy matching process in here
 
     # get current user id
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
         print("Something wrong with the current user")
@@ -107,11 +107,11 @@ def call_api(api, cur_username, *args, **kwargs):
     # global data_ids_accessed
     # data_ids_accessed = set()
 
-
     ds_config = utils.parse_config("data_station_config.yaml")
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     ds_storage_mount_path = ds_config["mount_path"]
 
+    # TODO: we might not need to pass user_id and api_name to interceptor
     mount_point = str(pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute())
     pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
 
@@ -155,7 +155,7 @@ def call_api(api, cur_username, *args, **kwargs):
     list_of_apis = get_registered_functions()
     for cur_api in list_of_apis:
         if api == cur_api.__name__:
-            status =  cur_api(*args, **kwargs)
+            status = cur_api(*args, **kwargs)
 
     unmount_status = os.system("umount " + str(mount_point))
     if unmount_status != 0:
@@ -198,6 +198,7 @@ def call_api(api, cur_username, *args, **kwargs):
         print("Accessed data elements illegally")
         return None
 
+
 def record_data_ids_accessed(data_path, user_id, api_name):
     response = database_api.get_dataset_by_access_type(data_path)
     if response.status != 1:
@@ -205,15 +206,16 @@ def record_data_ids_accessed(data_path, user_id, api_name):
         return None
     else:
         data_id = response.data[0].id
-    # data_id = 666
-    # data_ids_accessed.add(data_id)
-    # ds_config = utils.parse_config("data_station_config.yaml")
-    # ds_storage_path = pathlib.Path(ds_config["storage_path"]).absolute()
-    # f_path = os.path.join(str(ds_storage_path), "data_ids_accessed.txt")
-    # f = open("/tmp/data_ids_accessed.txt", 'a+')
-    # f.write(str(data_id) + '\n')
-    # f.close()
+        # data_id = 666
+        # data_ids_accessed.add(data_id)
+        # ds_config = utils.parse_config("data_station_config.yaml")
+        # ds_storage_path = pathlib.Path(ds_config["storage_path"]).absolute()
+        # f_path = os.path.join(str(ds_storage_path), "data_ids_accessed.txt")
+        # f = open("/tmp/data_ids_accessed.txt", 'a+')
+        # f.write(str(data_id) + '\n')
+        # f.close()
         return data_id
+
 
 if __name__ == '__main__':
     call_api("preprocess", "xxx")

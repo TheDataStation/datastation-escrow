@@ -16,6 +16,7 @@ from errno import *
 from stat import *
 import fcntl
 from threading import Lock
+
 # pull in some spaghetti to make this stuff work without fuse-py being installed
 try:
     import _find_fuse_parts
@@ -26,6 +27,7 @@ from fuse import Fuse
 
 import threading
 from pathlib import Path
+
 # import mock_gatekeeper
 # sys.path.append( '.' )
 # import gatekeeper.gatekeeper
@@ -58,20 +60,20 @@ class Xmp(Fuse):
         Fuse.__init__(self, *args, **kw)
 
         # do stuff to set up your filesystem here, if you want
-        #import thread
-        #thread.start_new_thread(self.mythread, ())
+        # import thread
+        # thread.start_new_thread(self.mythread, ())
         self.root = '/'
 
-#    def mythread(self):
-#
-#        """
-#        The beauty of the FUSE python implementation is that with the python interp
-#        running in foreground, you can have threads
-#        """
-#        print "mythread: started"
-#        while 1:
-#            time.sleep(120)
-#            print "mythread: ticking"
+    #    def mythread(self):
+    #
+    #        """
+    #        The beauty of the FUSE python implementation is that with the python interp
+    #        running in foreground, you can have threads
+    #        """
+    #        print "mythread: started"
+    #        while 1:
+    #            time.sleep(120)
+    #            print "mythread: ticking"
 
     def getattr(self, path):
         return os.lstat("." + path)
@@ -133,37 +135,37 @@ class Xmp(Fuse):
     def utime(self, path, times):
         os.utime("." + path, times)
 
-#    The following utimens method would do the same as the above utime method.
-#    We can't make it better though as the Python stdlib doesn't know of
-#    subsecond preciseness in acces/modify times.
-#  
-#    def utimens(self, path, ts_acc, ts_mod):
-#      os.utime("." + path, (ts_acc.tv_sec, ts_mod.tv_sec))
+    #    The following utimens method would do the same as the above utime method.
+    #    We can't make it better though as the Python stdlib doesn't know of
+    #    subsecond preciseness in acces/modify times.
+    #
+    #    def utimens(self, path, ts_acc, ts_mod):
+    #      os.utime("." + path, (ts_acc.tv_sec, ts_mod.tv_sec))
 
     def access(self, path, mode):
         # print("I am accessing " + path)
         if not os.access("." + path, mode):
             return -EACCES
 
-#    This is how we could add stub extended attribute handlers...
-#    (We can't have ones which aptly delegate requests to the underlying fs
-#    because Python lacks a standard xattr interface.)
-#
-#    def getxattr(self, path, name, size):
-#        val = name.swapcase() + '@' + path
-#        if size == 0:
-#            # We are asked for size of the value.
-#            return len(val)
-#        return val
-#
-#    def listxattr(self, path, size):
-#        # We use the "user" namespace to please XFS utils
-#        aa = ["user." + a for a in ("foo", "bar")]
-#        if size == 0:
-#            # We are asked for size of the attr list, ie. joint size of attrs
-#            # plus null separators.
-#            return len("".join(aa)) + len(aa)
-#        return aa
+    #    This is how we could add stub extended attribute handlers...
+    #    (We can't have ones which aptly delegate requests to the underlying fs
+    #    because Python lacks a standard xattr interface.)
+    #
+    #    def getxattr(self, path, name, size):
+    #        val = name.swapcase() + '@' + path
+    #        if size == 0:
+    #            # We are asked for size of the value.
+    #            return len(val)
+    #        return val
+    #
+    #    def listxattr(self, path, size):
+    #        # We use the "user" namespace to please XFS utils
+    #        aa = ["user." + a for a in ("foo", "bar")]
+    #        if size == 0:
+    #            # We are asked for size of the attr list, ie. joint size of attrs
+    #            # plus null separators.
+    #            return len("".join(aa)) + len(aa)
+    #        return aa
 
     def statfs(self):
         """
@@ -190,7 +192,6 @@ class Xmp(Fuse):
         os.chdir(self.root)
 
     class XmpFile(object):
-
 
         def __init__(self, path, flags, *mode):
             # currentThread = threading.current_thread()
@@ -326,9 +327,9 @@ class Xmp(Fuse):
 
                 # Convert fcntl-ish lock parameters to Python's weird
                 # lockf(3)/flock(2) medley locking API...
-                op = { fcntl.F_UNLCK : fcntl.LOCK_UN,
-                       fcntl.F_RDLCK : fcntl.LOCK_SH,
-                       fcntl.F_WRLCK : fcntl.LOCK_EX }[kw['l_type']]
+                op = {fcntl.F_UNLCK: fcntl.LOCK_UN,
+                      fcntl.F_RDLCK: fcntl.LOCK_SH,
+                      fcntl.F_WRLCK: fcntl.LOCK_EX}[kw['l_type']]
                 if cmd == fcntl.F_GETLK:
                     return -EOPNOTSUPP
                 elif cmd == fcntl.F_SETLK:
@@ -340,7 +341,6 @@ class Xmp(Fuse):
                     return -EINVAL
 
                 fcntl.lockf(self.fd, op, kw['l_start'], kw['l_len'])
-
 
     def main(self, *a, **kw):
 
