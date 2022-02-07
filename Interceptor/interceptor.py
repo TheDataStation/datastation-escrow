@@ -81,10 +81,22 @@ class Xmp(Fuse):
 
     def readdir(self, path, offset):
         # print("readdir", path)
+        path_to_access = pathlib.Path("." + path).absolute()
+        # print(str(path_to_access))
         for e in os.listdir("." + path):
             # print(str(e))
-            if not str(e) == "train-6":
-                yield fuse.Direntry(e)
+            for acc_path in accessible_data_paths:
+                if path_to_access in pathlib.Path(acc_path).parents or str(path_to_access) == acc_path:
+                    # print("yield")
+                    yield fuse.Direntry(e)
+                    break
+                # parts = pathlib.Path(acc_path).parts
+                # # print(parts)
+                # # TODO: prob too hacky
+                # if str(e) in parts:
+                #     # print("yield")
+                #     yield fuse.Direntry(e)
+                #     break
 
     def unlink(self, path):
         os.unlink("." + path)
@@ -201,8 +213,8 @@ class Xmp(Fuse):
 
             # print(sys.argv[-1])
 
-            user_id = pathlib.PurePath(args[-1]).parts[-2]
-            api_name = pathlib.PurePath(args[-1]).parts[-1]
+            # user_id = pathlib.PurePath(args[-1]).parts[-2]
+            # api_name = pathlib.PurePath(args[-1]).parts[-1]
 
             # if mock_gatekeeper.check(user_id=user_id, api_name=api_name, file_to_access=self.file_path):
             #     print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
@@ -347,6 +359,16 @@ def main(root_dir, mount_point):
     global data_accessed
     data_accessed = set()
 
+    global accessible_data_paths
+    accessible_data_paths = []
+    with open("/tmp/accessible_data_paths.txt", "r") as f:
+        content = f.read()
+        if len(content) != 0:
+            accessible_data_paths = content.split("\n")[:-1]
+    print("accessible data paths:")
+    print(accessible_data_paths)
+    os.remove("/tmp/accessible_data_paths.txt")
+
     # host = "localhost"
     # port = 6666
     # sock = socket.socket()
@@ -386,9 +408,20 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
     # print("Data ids accessed:")
     # print(data_ids_accessed)
 
-    f = open("/tmp/data_accessed.txt", 'a+')
-    f.write(str(data_accessed))
-    f.close()
+    # TODO: can record data paths instead of ids and move this to gatekeeper
+    user_id = pathlib.PurePath(args[-1]).parts[-2]
+    api_name = pathlib.PurePath(args[-1]).parts[-1]
+    data_ids_accessed = set()
+    for file_path in data_accessed:
+        data_id = gatekeeper.record_data_ids_accessed(file_path, user_id, api_name)
+        if data_id != None:
+            data_ids_accessed.add(data_id)
+
+    with open("/tmp/data_ids_accessed.txt", 'w') as f:
+        for id in data_ids_accessed:
+            f.write(str(id) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
 
     # host = "localhost"
     # port = 6666

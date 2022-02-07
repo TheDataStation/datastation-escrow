@@ -65,6 +65,7 @@ def call_api(api, cur_username, *args, **kwargs):
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
     # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
+        print("Something wrong with the current user")
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
@@ -73,7 +74,7 @@ def call_api(api, cur_username, *args, **kwargs):
     accessible_data_policy = policy_info.accessible_data
 
     # look at all optimistic data from the DB
-    optimistic_data= database_api.get_all_optimistic_datasets()
+    optimistic_data = database_api.get_all_optimistic_datasets()
     accessible_data_optimistic = []
     for i in range(len(optimistic_data.data)):
         cur_optimistic_id = optimistic_data.data[i].id
@@ -83,6 +84,18 @@ def call_api(api, cur_username, *args, **kwargs):
     all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
+
+    accessible_data_paths = set()
+    for id in all_accessible_data_id:
+        accessible_data_paths.add(str(database_api.get_dataset_by_id(id).data[0].access_type))
+    # print(accessible_data_paths)
+    with open("/tmp/accessible_data_paths.txt", "w") as f:
+        for path in accessible_data_paths:
+            f.write(path + "\n")
+        f.flush()
+        os.fsync(f.fileno())
+
+        # f.write(str(all_accessible_data_id))
 
     # zz: create an exec env (docker)
     # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
@@ -96,16 +109,16 @@ def call_api(api, cur_username, *args, **kwargs):
 
 
     ds_config = utils.parse_config("data_station_config.yaml")
-    ds_storage_path = pathlib.Path(ds_config["storage_path"]).absolute()
+    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     ds_storage_mount_path = ds_config["mount_path"]
 
-    mount_point = pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute()
+    mount_point = str(pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute())
     pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
 
     interceptor_path = pathlib.Path(ds_config["interceptor_path"]).absolute()
     # print(interceptor_path, ds_storage_path, mount_point)
 
-    # subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
+    subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
     # time.sleep(1)
 
     # print("check")
@@ -114,10 +127,18 @@ def call_api(api, cur_username, *args, **kwargs):
     # interceptor_process = Process(target=f, args=("", ""))
     # time.sleep(5)
 
-    interceptor_process = Process(target=interceptor.main, args=(str(ds_storage_path), str(mount_point)))
-    interceptor_process.start()
-    print("start process")
-    time.sleep(1)
+    # interceptor_process = Process(target=interceptor.main, args=(ds_storage_path, mount_point))
+    # interceptor_process.start()
+    print("starting interceptor...")
+    # time.sleep(1)
+    counter = 0
+    while not os.path.ismount(mount_point):
+        time.sleep(1)
+        counter += 1
+        if counter == 10:
+            print("mount time out")
+            exit(1)
+    print("mounted:", os.path.ismount(mount_point))
     # os.system("umount " + mount_point)
     # interceptor_process.join()
 
@@ -128,16 +149,20 @@ def call_api(api, cur_username, *args, **kwargs):
     # for cur_data in all_accessible_data:
     #     print(cur_data.access_type)
 
-    # Acutally calling the api
-    status = "Error"
+    # Actually calling the api
+    # TODO: need to change returns
+    status = None
     list_of_apis = get_registered_functions()
     for cur_api in list_of_apis:
         if api == cur_api.__name__:
             status =  cur_api(*args, **kwargs)
 
-
-    os.system("umount " + str(mount_point))
-    interceptor_process.join()
+    unmount_status = os.system("umount " + str(mount_point))
+    if unmount_status != 0:
+        print("Unmount failed")
+        return None
+    # interceptor_process.join()
+    assert os.path.ismount(mount_point) == False
 
     # host = "localhost"
     # port = 6666
@@ -150,13 +175,28 @@ def call_api(api, cur_username, *args, **kwargs):
     #     print(data.decode())
     # sock.close()
 
-    time.sleep(1)
-    print("Data accessed:")
-    with open("/tmp/data_accessed.txt", 'r') as f:
-        print(f.read())
-    os.remove("/tmp/data_accessed.txt")
+    counter = 0
+    while not pathlib.Path("/tmp/data_ids_accessed.txt").exists():
+        time.sleep(1)
+        counter += 1
+        if counter == 10:
+            print("error: /tmp/data_ids_accessed.txt does not exist")
+            return None
 
-    return status
+    data_ids_accessed = []
+    with open("/tmp/data_ids_accessed.txt", 'r') as f:
+        content = f.read()
+        if len(content) != 0:
+            data_ids_accessed = [int(id) for id in content.split("\n")[:-1]]
+    print("Data accessed:")
+    print(data_ids_accessed)
+    os.remove("/tmp/data_ids_accessed.txt")
+
+    if set(data_ids_accessed).issubset(all_accessible_data_id):
+        return status
+    else:
+        print("Accessed data elements illegally")
+        return None
 
 def record_data_ids_accessed(data_path, user_id, api_name):
     response = database_api.get_dataset_by_access_type(data_path)
