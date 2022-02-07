@@ -409,17 +409,17 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
     # print(data_ids_accessed)
 
     # TODO: can record data paths instead of ids and move this to gatekeeper
-    user_id = pathlib.PurePath(args[-1]).parts[-2]
-    api_name = pathlib.PurePath(args[-1]).parts[-1]
-    data_ids_accessed = set()
-    for file_path in data_accessed:
-        data_id = gatekeeper.record_data_ids_accessed(file_path, user_id, api_name)
-        if data_id != None:
-            data_ids_accessed.add(data_id)
+    # user_id = pathlib.PurePath(args[-1]).parts[-2]
+    # api_name = pathlib.PurePath(args[-1]).parts[-1]
+    # data_ids_accessed = set()
+    # for file_path in data_accessed:
+    #     data_id = gatekeeper.record_data_ids_accessed(file_path, user_id, api_name)
+    #     if data_id != None:
+    #         data_ids_accessed.add(data_id)
 
-    with open("/tmp/data_ids_accessed.txt", 'w') as f:
-        for id in data_ids_accessed:
-            f.write(str(id) + "\n")
+    with open("/tmp/data_accessed.txt", 'w') as f:
+        for path in data_accessed:
+            f.write(path + "\n")
         f.flush()
         os.fsync(f.fileno())
 

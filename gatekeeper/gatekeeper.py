@@ -176,21 +176,29 @@ def call_api(api, cur_username, *args, **kwargs):
     # sock.close()
 
     counter = 0
-    while not pathlib.Path("/tmp/data_ids_accessed.txt").exists():
+    while not pathlib.Path("/tmp/data_accessed.txt").exists():
         time.sleep(1)
         counter += 1
         if counter == 10:
-            print("error: /tmp/data_ids_accessed.txt does not exist")
+            print("error: /tmp/data_accessed.txt does not exist")
             return None
 
-    data_ids_accessed = []
-    with open("/tmp/data_ids_accessed.txt", 'r') as f:
+    data_accessed = []
+    with open("/tmp/data_accessed.txt", 'r') as f:
         content = f.read()
         if len(content) != 0:
-            data_ids_accessed = [int(id) for id in content.split("\n")[:-1]]
-    print("Data accessed:")
+            data_accessed = content.split("\n")[:-1]
+    data_ids_accessed = set()
+    for path in data_accessed:
+        data_id = record_data_ids_accessed(path, cur_user_id, api)
+        if data_id != None:
+            data_ids_accessed.add(data_id)
+        else:
+            os.remove("/tmp/data_accessed.txt")
+            return None
+    print("Data ids accessed:")
     print(data_ids_accessed)
-    os.remove("/tmp/data_ids_accessed.txt")
+    os.remove("/tmp/data_accessed.txt")
 
     if set(data_ids_accessed).issubset(all_accessible_data_id):
         return status
