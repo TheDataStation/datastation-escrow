@@ -61,6 +61,13 @@ def get_accessible_data(user_id, api):
 def call_api(api, cur_username, *args, **kwargs):
     # TODO: add the intent-policy matching process in here
 
+    # zz: create an exec env (docker)
+    # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
+    # zz: mount data station's storage dir to mount point that encodes user_id and api name using interceptor
+    # zz: run api
+    # zz: record all data ids that are accessed by the api through interceptor
+    # zz: check whether access to those data ids is valid, if not we cannot release the results
+
     # get current user id
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     # If the user doesn't exist, something is wrong
@@ -96,13 +103,6 @@ def call_api(api, cur_username, *args, **kwargs):
         os.fsync(f.fileno())
 
         # f.write(str(all_accessible_data_id))
-
-    # zz: create an exec env (docker)
-    # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
-    # zz: mount data station's storage dir to mount point that encodes user_id and api name using interceptor
-    # zz: run api
-    # zz: record all data ids that are accessed by the api through interceptor
-    # zz: check whether access to those data ids is valid, if not we cannot release the results
 
     # global data_ids_accessed
     # data_ids_accessed = set()
