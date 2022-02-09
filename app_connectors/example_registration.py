@@ -10,8 +10,10 @@ from common import utils
 def preprocess():
     """preprocess all the data"""
     print("preprocess called")
-    # files = glob.glob("/Users/zhiruzhu/Desktop/data_station/DataStation/SM_storage/**/*", recursive=True)
-    ds_config = utils.parse_config("data_station_config.yaml")
+    # print(pathlib.Path(__file__).parent.resolve())
+    # print(os.getcwd())
+    ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
+    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
     files = glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True)
     # print(set(files))

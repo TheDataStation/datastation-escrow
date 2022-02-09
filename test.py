@@ -1,6 +1,9 @@
 # This script loads a complete state of the data station
 import os
-os.remove("data_station.db")
+# if os.path.exists("data_station.db"):
+#     os.remove("data_station.db")
+# os.system("dropdb data_station")
+# os.system("createdb data_station")
 
 import main
 import shutil
@@ -62,6 +65,9 @@ if __name__ == '__main__':
                                             "file",
                                             cur_optimistic,
                                             cur_token,)
+        if cur_res.status != 0:
+            print("upload_dataset error: ", cur_res.message)
+            exit(1)
         list_of_data_ids.append(cur_res.data_id)
         cur_file.close()
 
@@ -75,8 +81,8 @@ if __name__ == '__main__':
 
     # call available APIs
     client_api.call_api("preprocess", cur_token)
-    print("xxx")
+    print("preprocess finished")
     client_api.call_api("modeltrain", cur_token)
-    print("yyy")
+    print("modeltrain finished")
     client_api.call_api("predict", cur_token, 10, 5)
-    print("zzz")
+    print("predict finished")

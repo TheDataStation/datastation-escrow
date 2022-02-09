@@ -31,9 +31,10 @@ from pathlib import Path
 # import mock_gatekeeper
 # sys.path.append( '.' )
 # import gatekeeper.gatekeeper
-sys.path.insert(0, str(pathlib.Path(os.getcwd())))
+# sys.path.insert(0, str(pathlib.Path(os.getcwd())))
 # print(str(pathlib.Path(os.getcwd()).parent))
-from gatekeeper import gatekeeper
+# from gatekeeper import gatekeeper
+# from dbservice.database_api import get_db
 
 if not hasattr(fuse, '__version__'):
     raise RuntimeError("your fuse-py doesn't know of fuse.__version__, probably it's too old.")
@@ -349,25 +350,30 @@ class Xmp(Fuse):
         return Fuse.main(self, *a, **kw)
 
 
-def main(root_dir, mount_point):
+def main(root_dir, mount_point, accessible_data, send_end):
+    # engine.dispose()
+
     global args
     # run in foreground
-    # args = ["-f", "-o", "root="+root_dir, mount_point]
+    # args = ["-s", "-f", "-o", "root="+root_dir, mount_point]
     # run in background
-    args = ["-o", "root=" + root_dir, mount_point]
+    args = ["-s", "-o", "root=" + root_dir, mount_point]
 
     global data_accessed
     data_accessed = set()
 
     global accessible_data_paths
-    accessible_data_paths = []
-    with open("/tmp/accessible_data_paths.txt", "r") as f:
-        content = f.read()
-        if len(content) != 0:
-            accessible_data_paths = content.split("\n")[:-1]
-    print("accessible data paths:")
-    print(accessible_data_paths)
-    os.remove("/tmp/accessible_data_paths.txt")
+    accessible_data_paths = accessible_data
+
+    # global accessible_data_paths
+    # accessible_data_paths = []
+    # with open("/tmp/accessible_data_paths.txt", "r") as f:
+    #     content = f.read()
+    #     if len(content) != 0:
+    #         accessible_data_paths = content.split("\n")[:-1]
+    # print("accessible data paths:")
+    # print(accessible_data_paths)
+    # os.remove("/tmp/accessible_data_paths.txt")
 
     # host = "localhost"
     # port = 6666
@@ -417,11 +423,12 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
     #     if data_id != None:
     #         data_ids_accessed.add(data_id)
 
-    with open("/tmp/data_accessed.txt", 'w') as f:
-        for path in data_accessed:
-            f.write(path + "\n")
-        f.flush()
-        os.fsync(f.fileno())
+    # with open("/tmp/data_accessed.txt", 'w') as f:
+    #     for path in data_accessed:
+    #         f.write(path + "\n")
+    #     f.flush()
+    #     os.fsync(f.fileno())
+    send_end.send(list(data_accessed))
 
     # host = "localhost"
     # port = 6666
@@ -434,4 +441,4 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], [])
