@@ -3,10 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 SM_storage/
+SM_storage_mount/
 titanicML/sample_data/
 .idea/
 Working/
 data_station.db
+test_process.py
+test_main.py
 
 # C extensions
 *.so
