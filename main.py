@@ -1,6 +1,7 @@
 import os
 import sys
 from storagemanager.storage_manager import StorageManager
+from verifiability.log import Log
 from gatekeeper import gatekeeper
 from clientapi.client_api import ClientAPI
 from common.utils import parse_config
@@ -16,8 +17,12 @@ def initialize_system(ds_config, app_config):
     storage_path = ds_config["storage_path"]
     storage_manager = StorageManager(storage_path)
 
+    # set up an instance of the log
+    log_in_memory_flag = ds_config["log_in_memory"]
+    data_station_log = Log(log_in_memory_flag)
+
     # lastly, set up an instance of the client_api
-    client_api = ClientAPI(storage_manager)
+    client_api = ClientAPI(storage_manager, data_station_log)
 
     # set up the application registration in the gatekeeper
     connector_name = app_config["connector_name"]

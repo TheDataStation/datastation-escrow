@@ -140,3 +140,6 @@ cur_time = time.time()
 print("Calling APIs done")
 print("--- %s seconds ---" % (cur_time - prev_time))
 prev_time = cur_time
+
+# take a look at the log
+client_api.print_log()
