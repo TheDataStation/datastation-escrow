@@ -78,6 +78,12 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
 
+    # Look at what data elements this current API actually accesses
+    # TODO: change this once interceptor is added
+    if policy_info.odata_type == "dir_accessible":
+        print("all accssed data elements are: ")
+        print(all_accessible_data_id)
+
     # zz: create a working dir from all_accessible_data_id
     # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
     # zz: run api
