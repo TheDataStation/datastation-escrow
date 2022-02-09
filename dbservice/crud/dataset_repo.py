@@ -13,7 +13,7 @@ def get_all_datasets(db: Session):
 
 # The following function returns all datasets with optimistic == True
 def get_all_optimistic_datasets(db: Session):
-    all_optimistic_data = db.query(Dataset).filter(Dataset.optimistic == 1).all()
+    all_optimistic_data = db.query(Dataset).filter(Dataset.optimistic == True).all()
     return all_optimistic_data
 
 def get_dataset_by_id(db: Session, dataset_id: int):

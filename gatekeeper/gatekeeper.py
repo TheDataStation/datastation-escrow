@@ -3,7 +3,7 @@ import pathlib
 import socket
 import subprocess
 import time
-from multiprocessing import Process
+import multiprocessing
 
 from Interceptor import interceptor
 from dsapplicationregistration.dsar_core import (register_connectors,
@@ -17,7 +17,8 @@ from models.api_dependency import *
 from models.user import *
 from models.response import *
 from common import utils
-
+# from dbservice.database import engine, SessionLocal
+import threading
 
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
@@ -57,6 +58,8 @@ def get_accessible_data(user_id, api):
     policy_info = policy_broker.get_user_api_info(user_id, api)
     return policy_info
 
+def foo(a, b):
+    print("in foo")
 
 def call_api(api, cur_username, *args, **kwargs):
     # TODO: add the intent-policy matching process in here
@@ -96,18 +99,19 @@ def call_api(api, cur_username, *args, **kwargs):
     for id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(id).data[0].access_type))
     # print(accessible_data_paths)
-    with open("/tmp/accessible_data_paths.txt", "w") as f:
-        for path in accessible_data_paths:
-            f.write(path + "\n")
-        f.flush()
-        os.fsync(f.fileno())
+    # with open("/tmp/accessible_data_paths.txt", "w") as f:
+    #     for path in accessible_data_paths:
+    #         f.write(path + "\n")
+    #     f.flush()
+    #     os.fsync(f.fileno())
 
         # f.write(str(all_accessible_data_id))
 
     # global data_ids_accessed
     # data_ids_accessed = set()
-
-    ds_config = utils.parse_config("data_station_config.yaml")
+    # print(pathlib.Path(__file__).parent.resolve())
+    ds_path = str(pathlib.Path(__file__).parent.resolve().parent)
+    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     ds_storage_mount_path = ds_config["mount_path"]
 
@@ -115,10 +119,9 @@ def call_api(api, cur_username, *args, **kwargs):
     mount_point = str(pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute())
     pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
 
-    interceptor_path = pathlib.Path(ds_config["interceptor_path"]).absolute()
+    # interceptor_path = pathlib.Path(ds_config["interceptor_path"]).absolute()
     # print(interceptor_path, ds_storage_path, mount_point)
-
-    subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
+    # subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
     # time.sleep(1)
 
     # print("check")
@@ -127,10 +130,19 @@ def call_api(api, cur_username, *args, **kwargs):
     # interceptor_process = Process(target=f, args=("", ""))
     # time.sleep(5)
 
-    # interceptor_process = Process(target=interceptor.main, args=(ds_storage_path, mount_point))
-    # interceptor_process.start()
+    # SessionLocal().close()
+    # engine.dispose()
+    # from dbservice.database_api import get_db
+    recv_end, send_end = multiprocessing.Pipe(False)
+    interceptor_process = multiprocessing.Process(target=interceptor.main,
+                                                  args=(ds_storage_path, mount_point, accessible_data_paths, send_end))
+    # interceptor_process = Process(target=foo, args=(ds_storage_path, mount_point))
+    interceptor_process.start()
+    # cwd = os.getcwd()
+    # interceptor_thread = threading.Thread(target=interceptor.main, args=(ds_storage_path, mount_point))
+    # interceptor_thread.start()
     print("starting interceptor...")
-    # time.sleep(1)
+    time.sleep(1)
     counter = 0
     while not os.path.ismount(mount_point):
         time.sleep(1)
@@ -139,8 +151,6 @@ def call_api(api, cur_username, *args, **kwargs):
             print("mount time out")
             exit(1)
     print("mounted:", os.path.ismount(mount_point))
-    # os.system("umount " + mount_point)
-    # interceptor_process.join()
 
     # Getting these data elements from the DB
     # all_accessible_data = filter(lambda data: data.id in all_accessible_data_id,
@@ -161,8 +171,13 @@ def call_api(api, cur_username, *args, **kwargs):
     if unmount_status != 0:
         print("Unmount failed")
         return None
-    # interceptor_process.join()
+
     assert os.path.ismount(mount_point) == False
+    interceptor_process.join()
+    data_accessed = recv_end.recv()
+    # interceptor_thread.join()
+    # os.chdir(cwd)
+    # engine.dispose()
 
     # host = "localhost"
     # port = 6666
@@ -175,30 +190,31 @@ def call_api(api, cur_username, *args, **kwargs):
     #     print(data.decode())
     # sock.close()
 
-    counter = 0
-    while not pathlib.Path("/tmp/data_accessed.txt").exists():
-        time.sleep(1)
-        counter += 1
-        if counter == 10:
-            print("error: /tmp/data_accessed.txt does not exist")
-            return None
-
-    data_accessed = []
-    with open("/tmp/data_accessed.txt", 'r') as f:
-        content = f.read()
-        if len(content) != 0:
-            data_accessed = content.split("\n")[:-1]
+    # counter = 0
+    # while not pathlib.Path("/tmp/data_accessed.txt").exists():
+    #     time.sleep(1)
+    #     counter += 1
+    #     if counter == 10:
+    #         print("error: /tmp/data_accessed.txt does not exist")
+    #         return None
+    #
+    # data_accessed = []
+    # with open("/tmp/data_accessed.txt", 'r') as f:
+    #     content = f.read()
+    #     if len(content) != 0:
+    #         data_accessed = content.split("\n")[:-1]
+        # print(content)
     data_ids_accessed = set()
     for path in data_accessed:
         data_id = record_data_ids_accessed(path, cur_user_id, api)
         if data_id != None:
             data_ids_accessed.add(data_id)
         else:
-            os.remove("/tmp/data_accessed.txt")
+            # os.remove("/tmp/data_accessed.txt")
             return None
     print("Data ids accessed:")
     print(data_ids_accessed)
-    os.remove("/tmp/data_accessed.txt")
+    # os.remove("/tmp/data_accessed.txt")
 
     if set(data_ids_accessed).issubset(all_accessible_data_id):
         return status
