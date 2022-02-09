@@ -29,7 +29,7 @@ class Log:
         # Indicates that a function was granted permission to execute
         GRANT_F_EXECUTION = 5
 
-    def __init__(self, config, in_memory=False):
+    def __init__(self, in_memory=True):
         # variable to indicate whether this log is in-memory only
         self.in_memory = in_memory
         # Option for in-memory only log
@@ -38,7 +38,7 @@ class Log:
         else:
             # Initialize storage
             # TODO: config
-            return
+            pass
 
     def log_intent_definite(self, agent_id: int, api_id: int, list_des: [int]):
         entry = self.IntentDefiniteDES(log_entry_type=self.LogEntryType.INTENT_DEFINITE_DES,
@@ -82,6 +82,9 @@ class Log:
             len_entry_types = len(entry_bytes)
             # TODO: store these bytes
             return
+
+    def print_log(self):
+        print("hello from data station log")
 
 
 if __name__ == "__main__":
