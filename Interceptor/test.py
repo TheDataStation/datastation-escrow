@@ -3,6 +3,7 @@ import sys
 import threading
 import os
 import subprocess
+from multiprocessing import Process
 
 import interceptor
 import mock_api
@@ -30,18 +31,24 @@ if __name__ == '__main__':
 
     # zz: run the interceptor, mount the data_path to mount_point
     interceptor_path = "/Users/zhiruzhu/Desktop/data_station/DataStation/Interceptor/interceptor.py"
-    subprocess.call( #-s -o root=
-        "python " + interceptor_path + " " + data_path + " " + mount_point,
-        shell=True)
+    subprocess.call(["python", interceptor_path, data_path, mount_point], #-s -o root=
+        # "python " + interceptor_path + " " + data_path + " " + mount_point,
+        shell=False)
     # interceptor.main(root_dir=data_path, mount_point=mount_point)
+    # interceptor_process = Process(target=interceptor.main, args=(data_path, mount_point))
+    # interceptor_process.start()
 
     # zz: call the api, note the api should access data in mount_point in data station's workspace
-    mock_api.union_all_files(mount_point)
+    try:
+        mock_api.union_all_files(mount_point)
+    except Exception as e:
+        print("error: " + str(e))
 
     # zz: check result (it should contain the content of all accessible files)
-    # with open(os.path.join(mount_point, "staging/result.txt"), "r") as f:
+    with open(os.path.join(mount_point, "staging/result.txt"), "r") as f:
         # print(f.read())
-        # print(f.readlines())
+        print(f.readlines())
 
     # zz: unmount immediately after we're done
     os.system("umount " + mount_point)
+    # interceptor_process.join()
