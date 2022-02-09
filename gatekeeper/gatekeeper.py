@@ -48,7 +48,10 @@ def get_accessible_data(user_id, api):
     return policy_info
 
 
-def call_api(api, cur_username, *args, **kwargs):
+def call_api(api, cur_username, data_station_log, *args, **kwargs):
+
+    # TODO: fill the actual log operations in
+    data_station_log._log(api)
 
     # TODO: add the intent-policy matching process in here
 
