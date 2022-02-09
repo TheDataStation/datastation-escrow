@@ -84,7 +84,8 @@ class Log:
             return
 
     def print_log(self):
-        print("hello from data station log")
+        print("Printing contents of the log:")
+        print(self.log)
 
 
 if __name__ == "__main__":
