@@ -13,7 +13,7 @@ def get_all_datasets(db: Session):
 
 # The following function returns all datasets with optimistic == True
 def get_all_optimistic_datasets(db: Session):
-    all_optimistic_data = db.query(Dataset).filter(Dataset.optimistic == 1).all()
+    all_optimistic_data = db.query(Dataset).filter(Dataset.optimistic == True).all()
     return all_optimistic_data
 
 def get_dataset_by_id(db: Session, dataset_id: int):
@@ -32,6 +32,12 @@ def get_dataset_by_name(db: Session, name: str):
         return None
 
 # zz: get id by access_type
+def get_dataset_by_access_type(db: Session, access_type: str):
+    dataset = db.query(Dataset).filter(Dataset.access_type == access_type).first()
+    if dataset:
+        return dataset
+    else:
+        return None
 
 def remove_dataset_by_name(db: Session, name: str):
     try:

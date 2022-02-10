@@ -1,3 +1,5 @@
+import pathlib
+
 from dbservice import database_api
 from common import common_procedure
 from models.dataset import *
@@ -22,6 +24,8 @@ def upload_data(data_id, data_name, cur_username, data_type, access_type, optimi
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
+    if pathlib.Path(access_type).is_file():
+        access_type = str(pathlib.Path(access_type).absolute())
     new_dataset = Dataset(id=data_id,
                           name=data_name,
                           owner_id=cur_user_id,

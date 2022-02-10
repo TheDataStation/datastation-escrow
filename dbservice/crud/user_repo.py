@@ -14,7 +14,11 @@ def get_user(db: Session, user_id: int):
 
 
 def get_user_by_user_name(db: Session, user_name: str):
-    user = db.query(User).filter(User.user_name == user_name).first()
+    res = db.query(User).filter(User.user_name == user_name)
+    # print(res)
+    # print(user_name)
+    # print(res.first())
+    user = res.first()
     if user:
         return user
     else:
