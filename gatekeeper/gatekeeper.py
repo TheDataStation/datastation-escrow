@@ -59,8 +59,6 @@ def get_accessible_data(user_id, api):
 
 def call_api(api, cur_username, data_station_log, *args, **kwargs):
 
-    # TODO: fill in the log operations in here
-
     # zz: create an exec env (docker)
     # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
     # zz: mount data station's storage dir to mount point that encodes user_id and api name using interceptor
