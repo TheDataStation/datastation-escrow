@@ -50,8 +50,7 @@ def get_accessible_data(user_id, api):
 
 def call_api(api, cur_username, data_station_log, *args, **kwargs):
 
-    # TODO: fill the actual log operations in
-    data_station_log._log(api)
+    # TODO: fill in the log operations in here
 
     # TODO: add the intent-policy matching process in here
 
@@ -83,6 +82,8 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
     if policy_info.odata_type == "dir_accessible":
         print("all accssed data elements are: ")
         print(all_accessible_data_id)
+        # This is an indefinite intent
+        data_station_log.log_intent_indefinite(cur_user_id, api)
 
     # zz: create a working dir from all_accessible_data_id
     # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
