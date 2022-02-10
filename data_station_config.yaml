@@ -3,7 +3,8 @@ storage_path: "./SM_storage/"
 log_in_memory: True
 mount_path: "./SM_storage_mount/"
 #interceptor_path: "./Interceptor/interceptor.py"
-postgres:
-  user_name: "zhiruzhu"
-  password: ""
-  database_name: "data_station"
+#postgres:
+#  user_name: "zhiruzhu"
+#  password: ""
+#  database_name: "data_station"
+database_url: "sqlite:///./data_station.db"
