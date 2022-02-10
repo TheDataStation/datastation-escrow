@@ -94,13 +94,12 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
 
-    # Look at what data elements this current API actually accesses
-    # TODO: change this once interceptor is added
-    if policy_info.odata_type == "dir_accessible":
-        print("all accssed data elements are: ")
-        print(all_accessible_data_id)
-        # This is an indefinite intent
-        data_station_log.log_intent_indefinite(cur_user_id, api)
+    # TODO: change this once definite vs. indefinite can be determined
+    #       Question: how do we know if an intent is definite or indefinite?
+    #       Right now we assume that all intents are indefinite intents
+
+    # log operation: logging the intent
+    data_station_log.log_intent_indefinite(cur_user_id, api)
 
     # zz: create a working dir from all_accessible_data_id
     # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
@@ -111,14 +110,6 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
     accessible_data_paths = set()
     for cur_id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
-    # print(accessible_data_paths)
-    # with open("/tmp/accessible_data_paths.txt", "w") as f:
-    #     for path in accessible_data_paths:
-    #         f.write(path + "\n")
-    #     f.flush()
-    #     os.fsync(f.fileno())
-
-        # f.write(str(all_accessible_data_id))
 
     # global data_ids_accessed
     # data_ids_accessed = set()
@@ -174,64 +165,34 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
 
     # Actually calling the api
     # TODO: need to change returns
-    status = None
+    api_res = None
     list_of_apis = get_registered_functions()
     for cur_api in list_of_apis:
         if api == cur_api.__name__:
-            status = cur_api(*args, **kwargs)
+            api_res = cur_api(*args, **kwargs)
 
     unmount_status = os.system("umount " + str(mount_point))
     if unmount_status != 0:
         print("Unmount failed")
         return None
 
-    assert os.path.ismount(mount_point) == False
+    assert os.path.ismount(mount_point) is False
     interceptor_process.join()
     data_accessed = recv_end.recv()
-    # interceptor_thread.join()
-    # os.chdir(cwd)
-    # engine.dispose()
 
-    # host = "localhost"
-    # port = 6666
-    # sock = socket.socket()
-    # sock.connect((host, port))
-    # while True:
-    #     data = sock.recv(1024)
-    #     if not data:
-    #         break
-    #     print(data.decode())
-    # sock.close()
-
-    # counter = 0
-    # while not pathlib.Path("/tmp/data_accessed.txt").exists():
-    #     time.sleep(1)
-    #     counter += 1
-    #     if counter == 10:
-    #         print("error: /tmp/data_accessed.txt does not exist")
-    #         return None
-    #
-    # data_accessed = []
-    # with open("/tmp/data_accessed.txt", 'r') as f:
-    #     content = f.read()
-    #     if len(content) != 0:
-    #         data_accessed = content.split("\n")[:-1]
-        # print(content)
     data_ids_accessed = set()
     for path in data_accessed:
         data_id = record_data_ids_accessed(path, cur_user_id, api)
         if data_id is not None:
             data_ids_accessed.add(data_id)
         else:
-            # os.remove("/tmp/data_accessed.txt")
             return None
     print("Data ids accessed:")
     print(data_ids_accessed)
-    # os.remove("/tmp/data_accessed.txt")
 
     if set(data_ids_accessed).issubset(all_accessible_data_id):
         print("All data access legal")
-        return status
+        return api_res
     else:
         print("Accessed data elements illegally")
         return None
@@ -244,14 +205,6 @@ def record_data_ids_accessed(data_path, user_id, api_name):
         return None
     else:
         data_id = response.data[0].id
-        # data_id = 666
-        # data_ids_accessed.add(data_id)
-        # ds_config = utils.parse_config("data_station_config.yaml")
-        # ds_storage_path = pathlib.Path(ds_config["storage_path"]).absolute()
-        # f_path = os.path.join(str(ds_storage_path), "data_ids_accessed.txt")
-        # f = open("/tmp/data_ids_accessed.txt", 'a+')
-        # f.write(str(data_id) + '\n')
-        # f.close()
         return data_id
 
 
