@@ -14,6 +14,9 @@ from common.utils import parse_config
 
 if __name__ == '__main__':
 
+    if os.path.exists("data_station.db"):
+        os.remove("data_station.db")
+
 
     # TODO 1: vary what's inside of the dependency graph (api and api dependencies)
     # TODO 2: vary how we select the APIs (right now we are uniformly selecting the APIs

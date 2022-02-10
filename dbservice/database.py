@@ -9,11 +9,14 @@ from common import utils
 
 ds_path = str(pathlib.Path(__file__).parent.resolve().parent)
 ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-db_user_name = ds_config["postgres"]["user_name"]
-db_password = ds_config["postgres"]["password"]
-db_name = ds_config["postgres"]["database_name"]
+# db_user_name = ds_config["postgres"]["user_name"]
+# db_password = ds_config["postgres"]["password"]
+# db_name = ds_config["postgres"]["database_name"]
 
-DATABASE_URL = "postgresql://{}:{}@localhost:5432/{}".format(db_user_name, db_password, db_name)
+# DATABASE_URL = "postgresql://{}:{}@localhost:5432/{}".format(db_user_name, db_password, db_name)
+# DATABASE_URL = "sqlite:///./data_station.db"
+DATABASE_URL = ds_config["database_url"]
+
 #
 # # engine = create_engine(
 # #     DATABASE_URL, connect_args={"check_same_thread": False}

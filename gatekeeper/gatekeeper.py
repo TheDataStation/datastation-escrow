@@ -217,6 +217,7 @@ def call_api(api, cur_username, *args, **kwargs):
     # os.remove("/tmp/data_accessed.txt")
 
     if set(data_ids_accessed).issubset(all_accessible_data_id):
+        print("All data access legal")
         return status
     else:
         print("Accessed data elements illegally")
