@@ -58,8 +58,6 @@ def get_accessible_data(user_id, api):
     policy_info = policy_broker.get_user_api_info(user_id, api)
     return policy_info
 
-def foo(a, b):
-    print("in foo")
 
 def call_api(api, cur_username, *args, **kwargs):
     # TODO: add the intent-policy matching process in here
