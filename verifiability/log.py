@@ -8,11 +8,16 @@ class Log:
     Definition of log entries. Each has a log_entry_type that determines the meaning of this entry. log_entry_types are
     declared in an Enum type.
     """
-    IntentDefiniteDES = namedtuple('IntentFiniteDES', 'log_entry_type, agent_id, api, list_DES')
-    IntentIndefiniteDES = namedtuple('IntentIndefiniteDES', 'log_entry_type, agent_id, api')
-    IntentPolicyMatch = namedtuple('IntentPolicyMatch', 'log_entry_type, agent_id, api, list_DES')
-    IntentPolicyMismatch = namedtuple('IntentPolicyMismatch', 'log_entry_type, agent_id, api, list_DES')
-    GrantFExecution = namedtuple('GrantFExecution', 'log_entry_type, agent_id, api')
+    IntentDefiniteDES = namedtuple('IntentFiniteDES',
+                                   'log_entry_type, agent_id, api, list_DES')
+    IntentIndefiniteDES = namedtuple('IntentIndefiniteDES',
+                                     'log_entry_type, agent_id, api')
+    IntentPolicyMatch = namedtuple('IntentPolicyMatch',
+                                   'log_entry_type, agent_id, api, list_DES_accessed')
+    IntentPolicyMismatch = namedtuple('IntentPolicyMismatch',
+                                      'log_entry_type, agent_id, api, list_DES_accessed, list_DES_by_policy')
+    GrantFExecution = namedtuple('GrantFExecution',
+                                 'log_entry_type, agent_id, api')
 
     """
     An internal enum class to declare the log entry types
@@ -53,18 +58,23 @@ class Log:
                                          api=api)
         self._log(entry)
 
-    def log_intent_policy_match(self, agent_id: int, api: str, list_des: [int]):
+    def log_intent_policy_match(self, agent_id: int, api: str, list_des_accessed: [int]):
         entry = self.IntentPolicyMatch(log_entry_type=self.LogEntryType.INTENT_POLICY_MATCH,
                                        agent_id=agent_id,
                                        api=api,
-                                       list_DES=list_des)
+                                       list_DES_accessed=list_des_accessed)
         self._log(entry)
 
-    def log_intent_policy_mismatch(self, agent_id: int, api: str, list_des: [int]):
+    def log_intent_policy_mismatch(self,
+                                   agent_id: int,
+                                   api: str,
+                                   list_des_accessed: [int],
+                                   list_des_by_policy: [int]):
         entry = self.IntentPolicyMismatch(log_entry_type=self.LogEntryType.INTENT_POLICY_MISMATCH,
                                           agent_id=agent_id,
                                           api=api,
-                                          list_DES=list_des)
+                                          list_DES_accessed=list_des_accessed,
+                                          list_DES_by_policy=list_des_by_policy,)
         self._log(entry)
 
     def log_grant_f_execution(self, agent_id, api):
@@ -85,7 +95,8 @@ class Log:
 
     def print_log(self):
         print("Printing contents of the log:")
-        print(self.log)
+        for cur_entry in self.log:
+            print(cur_entry)
 
 
 if __name__ == "__main__":

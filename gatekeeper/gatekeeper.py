@@ -17,8 +17,6 @@ from models.api_dependency import *
 from models.user import *
 from models.response import *
 from common import utils
-# from dbservice.database import engine, SessionLocal
-import threading
 
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
@@ -111,9 +109,6 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
     for cur_id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
 
-    # global data_ids_accessed
-    # data_ids_accessed = set()
-    # print(pathlib.Path(__file__).parent.resolve())
     ds_path = str(pathlib.Path(__file__).parent.resolve().parent)
     ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
@@ -123,28 +118,10 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
     mount_point = str(pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute())
     pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
 
-    # interceptor_path = pathlib.Path(ds_config["interceptor_path"]).absolute()
-    # print(interceptor_path, ds_storage_path, mount_point)
-    # subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
-    # time.sleep(1)
-
-    # print("check")
-    # # from Interceptor.interceptor import real_main2
-    #
-    # interceptor_process = Process(target=f, args=("", ""))
-    # time.sleep(5)
-
-    # SessionLocal().close()
-    # engine.dispose()
-    # from dbservice.database_api import get_db
     recv_end, send_end = multiprocessing.Pipe(False)
     interceptor_process = multiprocessing.Process(target=interceptor.main,
                                                   args=(ds_storage_path, mount_point, accessible_data_paths, send_end))
-    # interceptor_process = Process(target=foo, args=(ds_storage_path, mount_point))
     interceptor_process.start()
-    # cwd = os.getcwd()
-    # interceptor_thread = threading.Thread(target=interceptor.main, args=(ds_storage_path, mount_point))
-    # interceptor_thread.start()
     print("starting interceptor...")
     time.sleep(1)
     counter = 0
@@ -155,13 +132,6 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
             print("mount time out")
             exit(1)
     print("mounted:", os.path.ismount(mount_point))
-
-    # Getting these data elements from the DB
-    # all_accessible_data = filter(lambda data: data.id in all_accessible_data_id,
-    #                              database_api.get_all_datasets().data)
-    # print("looking at the access types:")
-    # for cur_data in all_accessible_data:
-    #     print(cur_data.access_type)
 
     # Actually calling the api
     # TODO: need to change returns
@@ -190,11 +160,19 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
     print("Data ids accessed:")
     print(data_ids_accessed)
 
-    if set(data_ids_accessed).issubset(all_accessible_data_id):
-        print("All data access legal")
+    if set(data_ids_accessed).issubset(set(accessible_data_policy)):
+        print("All data access allowed by policy.")
+        # log operation: logging intent_policy match
+        data_station_log.log_intent_policy_match(cur_user_id, api, data_ids_accessed)
         return api_res
+    elif set(data_ids_accessed.issubset(all_accessible_data_id)):
+        print("Some access to optimistic data not allowed by policy.")
+        # log operation: logging intent_policy mismatch
+        data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))
+        return None
     else:
-        print("Accessed data elements illegally")
+        # We should not get in here in the first place.
+        print("Access to illegal data happened. Something went wrong")
         return None
 
 
