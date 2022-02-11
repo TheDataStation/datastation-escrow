@@ -132,6 +132,14 @@ def get_all_optimistic_datasets():
         else:
             return response.DatasetResponse(status=-1, msg="no optimistic datasets", data=[])
 
+def get_data_with_max_id():
+    with get_db() as session:
+        dataset = dataset_repo.get_data_with_max_id(session)
+        if dataset:
+            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        else:
+            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+
 def create_api(request):
     with get_db() as session:
         api = api_repo.create_api(session, request)

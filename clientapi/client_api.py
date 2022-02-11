@@ -22,6 +22,14 @@ class ClientAPI:
         self.storage_manager = storageManager
         self.log = data_station_log
 
+        # The following code decides which data_id we should use when we upload a new data
+        # right now we are just incrementing by 1
+        resp = database_api.get_data_with_max_id()
+        if resp.status == 1:
+            self.cur_data_id = resp.data[0].id + 1
+        else:
+            self.cur_data_id = 1
+
     # create user
 
     @staticmethod
@@ -74,9 +82,9 @@ class ClientAPI:
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        # TODO: call identity_manager to compute the dataset id
-
-        data_id = random.randint(1, 1000000)
+        # Decide which data_id to use from self.cur_data_id field
+        data_id = self.cur_data_id
+        self.cur_data_id += 1
 
         # We first call SM to store the data
         # Note that SM needs to return access_type (how can the data element be accessed)

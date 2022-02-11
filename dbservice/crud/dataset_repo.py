@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 from ..models.dataset import Dataset
 from ..models.user import User
@@ -77,3 +78,11 @@ def get_dataset_owner(db: Session, dataset_id: int):
             return user
     return None
 
+# The following function returns the dataset with the max ID
+def get_data_with_max_id(db: Session):
+    max_id = db.query(func.max(Dataset.id)).scalar_subquery()
+    dataset = db.query(Dataset).filter(Dataset.id == max_id).first()
+    if dataset:
+        return dataset
+    else:
+        return None
