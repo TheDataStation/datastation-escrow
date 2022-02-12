@@ -16,6 +16,7 @@ from errno import *
 from stat import *
 import fcntl
 from threading import Lock
+
 # pull in some spaghetti to make this stuff work without fuse-py being installed
 try:
     import _find_fuse_parts
@@ -26,12 +27,14 @@ from fuse import Fuse
 
 import threading
 from pathlib import Path
+
 # import mock_gatekeeper
 # sys.path.append( '.' )
 # import gatekeeper.gatekeeper
-sys.path.insert(0, str(pathlib.Path(os.getcwd())))
+# sys.path.insert(0, str(pathlib.Path(os.getcwd())))
 # print(str(pathlib.Path(os.getcwd()).parent))
-from gatekeeper import gatekeeper
+# from gatekeeper import gatekeeper
+# from dbservice.database_api import get_db
 
 if not hasattr(fuse, '__version__'):
     raise RuntimeError("your fuse-py doesn't know of fuse.__version__, probably it's too old.")
@@ -58,20 +61,20 @@ class Xmp(Fuse):
         Fuse.__init__(self, *args, **kw)
 
         # do stuff to set up your filesystem here, if you want
-        #import thread
-        #thread.start_new_thread(self.mythread, ())
+        # import thread
+        # thread.start_new_thread(self.mythread, ())
         self.root = '/'
 
-#    def mythread(self):
-#
-#        """
-#        The beauty of the FUSE python implementation is that with the python interp
-#        running in foreground, you can have threads
-#        """
-#        print "mythread: started"
-#        while 1:
-#            time.sleep(120)
-#            print "mythread: ticking"
+    #    def mythread(self):
+    #
+    #        """
+    #        The beauty of the FUSE python implementation is that with the python interp
+    #        running in foreground, you can have threads
+    #        """
+    #        print "mythread: started"
+    #        while 1:
+    #            time.sleep(120)
+    #            print "mythread: ticking"
 
     def getattr(self, path):
         return os.lstat("." + path)
@@ -81,10 +84,22 @@ class Xmp(Fuse):
 
     def readdir(self, path, offset):
         # print("readdir", path)
+        path_to_access = pathlib.Path("." + path).absolute()
+        # print(str(path_to_access))
         for e in os.listdir("." + path):
             # print(str(e))
-            if not (str(e) == "25622" or str(e) == "train-6"):
-                yield fuse.Direntry(e)
+            for acc_path in accessible_data_paths:
+                if path_to_access in pathlib.Path(acc_path).parents or str(path_to_access) == acc_path:
+                    # print("yield")
+                    yield fuse.Direntry(e)
+                    break
+                # parts = pathlib.Path(acc_path).parts
+                # # print(parts)
+                # # TODO: prob too hacky
+                # if str(e) in parts:
+                #     # print("yield")
+                #     yield fuse.Direntry(e)
+                #     break
 
     def unlink(self, path):
         os.unlink("." + path)
@@ -121,37 +136,37 @@ class Xmp(Fuse):
     def utime(self, path, times):
         os.utime("." + path, times)
 
-#    The following utimens method would do the same as the above utime method.
-#    We can't make it better though as the Python stdlib doesn't know of
-#    subsecond preciseness in acces/modify times.
-#  
-#    def utimens(self, path, ts_acc, ts_mod):
-#      os.utime("." + path, (ts_acc.tv_sec, ts_mod.tv_sec))
+    #    The following utimens method would do the same as the above utime method.
+    #    We can't make it better though as the Python stdlib doesn't know of
+    #    subsecond preciseness in acces/modify times.
+    #
+    #    def utimens(self, path, ts_acc, ts_mod):
+    #      os.utime("." + path, (ts_acc.tv_sec, ts_mod.tv_sec))
 
     def access(self, path, mode):
         # print("I am accessing " + path)
         if not os.access("." + path, mode):
             return -EACCES
 
-#    This is how we could add stub extended attribute handlers...
-#    (We can't have ones which aptly delegate requests to the underlying fs
-#    because Python lacks a standard xattr interface.)
-#
-#    def getxattr(self, path, name, size):
-#        val = name.swapcase() + '@' + path
-#        if size == 0:
-#            # We are asked for size of the value.
-#            return len(val)
-#        return val
-#
-#    def listxattr(self, path, size):
-#        # We use the "user" namespace to please XFS utils
-#        aa = ["user." + a for a in ("foo", "bar")]
-#        if size == 0:
-#            # We are asked for size of the attr list, ie. joint size of attrs
-#            # plus null separators.
-#            return len("".join(aa)) + len(aa)
-#        return aa
+    #    This is how we could add stub extended attribute handlers...
+    #    (We can't have ones which aptly delegate requests to the underlying fs
+    #    because Python lacks a standard xattr interface.)
+    #
+    #    def getxattr(self, path, name, size):
+    #        val = name.swapcase() + '@' + path
+    #        if size == 0:
+    #            # We are asked for size of the value.
+    #            return len(val)
+    #        return val
+    #
+    #    def listxattr(self, path, size):
+    #        # We use the "user" namespace to please XFS utils
+    #        aa = ["user." + a for a in ("foo", "bar")]
+    #        if size == 0:
+    #            # We are asked for size of the attr list, ie. joint size of attrs
+    #            # plus null separators.
+    #            return len("".join(aa)) + len(aa)
+    #        return aa
 
     def statfs(self):
         """
@@ -200,8 +215,8 @@ class Xmp(Fuse):
 
             # print(sys.argv[-1])
 
-            user_id = pathlib.PurePath(args[-1]).parts[-2]
-            api_name = pathlib.PurePath(args[-1]).parts[-1]
+            # user_id = pathlib.PurePath(args[-1]).parts[-2]
+            # api_name = pathlib.PurePath(args[-1]).parts[-1]
 
             # if mock_gatekeeper.check(user_id=user_id, api_name=api_name, file_to_access=self.file_path):
             #     print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
@@ -210,13 +225,15 @@ class Xmp(Fuse):
             #     print("Access denied for " + self.file_path)
             #     raise IOError("Access denied for " + self.file_path)
             print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-            data_id = gatekeeper.record_data_ids_accessed(self.file_path, user_id, api_name)
-            data_ids_accessed.add(data_id)
+            # data_id = gatekeeper.record_data_ids_accessed(self.file_path, user_id, api_name)
+            # if data_id != None:
+            #     data_ids_accessed.add(data_id)
             # f = open("/tmp/data_ids_accessed.txt", 'a+')
             # f.write(str(data_id) + '\n')
             # f.close()
 
-            print("data id accessed: ", str(data_id))
+            # print("data id accessed: ", str(data_id))
+            data_accessed.add(self.file_path)
 
         def read(self, length, offset):
             if self.file != None:
@@ -311,9 +328,9 @@ class Xmp(Fuse):
 
                 # Convert fcntl-ish lock parameters to Python's weird
                 # lockf(3)/flock(2) medley locking API...
-                op = { fcntl.F_UNLCK : fcntl.LOCK_UN,
-                       fcntl.F_RDLCK : fcntl.LOCK_SH,
-                       fcntl.F_WRLCK : fcntl.LOCK_EX }[kw['l_type']]
+                op = {fcntl.F_UNLCK: fcntl.LOCK_UN,
+                      fcntl.F_RDLCK: fcntl.LOCK_SH,
+                      fcntl.F_WRLCK: fcntl.LOCK_EX}[kw['l_type']]
                 if cmd == fcntl.F_GETLK:
                     return -EOPNOTSUPP
                 elif cmd == fcntl.F_SETLK:
@@ -326,7 +343,6 @@ class Xmp(Fuse):
 
                 fcntl.lockf(self.fd, op, kw['l_start'], kw['l_len'])
 
-
     def main(self, *a, **kw):
 
         self.file_class = self.XmpFile
@@ -334,15 +350,30 @@ class Xmp(Fuse):
         return Fuse.main(self, *a, **kw)
 
 
-def main(root_dir, mount_point):
+def main(root_dir, mount_point, accessible_data, send_end):
+    # engine.dispose()
+
     global args
     # run in foreground
-    # args = ["-f", "-o", "root="+root_dir, mount_point]
+    # args = ["-s", "-f", "-o", "root="+root_dir, mount_point]
     # run in background
-    args = ["-o", "root=" + root_dir, mount_point]
+    args = ["-s", "-o", "root=" + root_dir, mount_point]
 
-    global data_ids_accessed
-    data_ids_accessed = set()
+    global data_accessed
+    data_accessed = set()
+
+    global accessible_data_paths
+    accessible_data_paths = accessible_data
+
+    # global accessible_data_paths
+    # accessible_data_paths = []
+    # with open("/tmp/accessible_data_paths.txt", "r") as f:
+    #     content = f.read()
+    #     if len(content) != 0:
+    #         accessible_data_paths = content.split("\n")[:-1]
+    # print("accessible data paths:")
+    # print(accessible_data_paths)
+    # os.remove("/tmp/accessible_data_paths.txt")
 
     # host = "localhost"
     # port = 6666
@@ -380,22 +411,34 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
 
     server.main()
 
-    print("Data ids accessed:")
-    print(data_ids_accessed)
+    # print("Data ids accessed:")
+    # print(data_ids_accessed)
 
-    # f = open("/tmp/data_ids_accessed.txt", 'a+')
-    # f.write(str(data_ids_accessed) + '\n')
-    # f.close()
+    # TODO: can record data paths instead of ids and move this to gatekeeper
+    # user_id = pathlib.PurePath(args[-1]).parts[-2]
+    # api_name = pathlib.PurePath(args[-1]).parts[-1]
+    # data_ids_accessed = set()
+    # for file_path in data_accessed:
+    #     data_id = gatekeeper.record_data_ids_accessed(file_path, user_id, api_name)
+    #     if data_id != None:
+    #         data_ids_accessed.add(data_id)
 
-    host = "localhost"
-    port = 6666
-    sock = socket.socket()
-    sock.bind((host, port))
-    sock.listen(1)
-    c, addr = sock.accept()
-    sock.send(str(data_ids_accessed).encode())
-    c.close()
+    # with open("/tmp/data_accessed.txt", 'w') as f:
+    #     for path in data_accessed:
+    #         f.write(path + "\n")
+    #     f.flush()
+    #     os.fsync(f.fileno())
+    send_end.send(list(data_accessed))
+
+    # host = "localhost"
+    # port = 6666
+    # sock = socket.socket()
+    # sock.bind((host, port))
+    # sock.listen(1)
+    # c, addr = sock.accept()
+    # sock.send(str(data_ids_accessed).encode())
+    # c.close()
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], [])
