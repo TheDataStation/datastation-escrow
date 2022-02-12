@@ -82,7 +82,7 @@ class ClientAPI:
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        # Decide which data_id to use from self.cur_data_id field
+        # Decide which data_id to use from ClientAPI.cur_data_id field
         data_id = self.cur_data_id
         self.cur_data_id += 1
 
