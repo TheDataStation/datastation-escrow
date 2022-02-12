@@ -59,8 +59,6 @@ def get_accessible_data(user_id, api):
 
 def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
 
-    print(exec_mode)
-
     # zz: create an exec env (docker)
     # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
     # zz: mount data station's storage dir to mount point that encodes user_id and api name using interceptor
@@ -88,7 +86,10 @@ def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
         accessible_data_optimistic.append(cur_optimistic_id)
 
     # Combine these two types of accessible data elements together
-    all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
+    if exec_mode == "optimistic":
+        all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
+    else:
+        all_accessible_data_id = set(accessible_data_policy)
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
 

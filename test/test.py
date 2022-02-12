@@ -140,11 +140,11 @@ if __name__ == '__main__':
     prev_time = cur_time
 
     # call available APIs
-    client_api.call_api("preprocess", cur_token, "pessimistic")
+    client_api.call_api("preprocess", cur_token, "optimistic")
     print("preprocess finished\n")
-    client_api.call_api("modeltrain", cur_token, "pessimistic")
+    client_api.call_api("modeltrain", cur_token, "optimistic")
     print("modeltrain finished\n")
-    client_api.call_api("predict", cur_token, "pessimictic", 10, 5)
+    client_api.call_api("predict", cur_token, "pessimistic", 10, 5)
     print("predict finished\n")
 
     cur_time = time.time()
