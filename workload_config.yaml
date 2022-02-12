@@ -1,3 +1,4 @@
 num_files: 10    # how many files in total are we uploading
 data_with_policy_proportion: 0.5    # what proportion of datasets have policies on them
 policy_proportion: 0.5    # for all combinations of (api, data_id), what proportion should have a policy on them
+opt_data_proportion: 0.2    # what proportion of datasets should be labeled as optimistic

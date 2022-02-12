@@ -57,7 +57,9 @@ def get_accessible_data(user_id, api):
     return policy_info
 
 
-def call_api(api, cur_username, data_station_log, *args, **kwargs):
+def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
+
+    print(exec_mode)
 
     # zz: create an exec env (docker)
     # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
@@ -163,7 +165,7 @@ def call_api(api, cur_username, data_station_log, *args, **kwargs):
         # log operation: logging intent_policy match
         data_station_log.log_intent_policy_match(cur_user_id, api, data_ids_accessed)
         return api_res
-    elif set(data_ids_accessed.issubset(all_accessible_data_id)):
+    elif set(data_ids_accessed).issubset(all_accessible_data_id):
         print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
         data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))

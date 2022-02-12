@@ -17,7 +17,6 @@ if __name__ == '__main__':
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
-
     # TODO 1: vary what's inside of the dependency graph (api and api dependencies)
     # TODO 2: vary how we select the APIs (right now we are uniformly selecting the APIs
     # TODO 2: we can do 1) uniform 2) those with few descendants 3) those with many descendants
@@ -85,6 +84,7 @@ if __name__ == '__main__':
             shutil.rmtree(file_path)
 
     num_files = test_config["num_files"]
+    opt_data_proportion = test_config["opt_data_proportion"]
     list_of_data_ids = []
 
     for cur_num in range(num_files):
@@ -92,12 +92,14 @@ if __name__ == '__main__':
         cur_full_name = "test/test_file/train-" + str(cur_file_index) + ".csv"
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
-        cur_optimistic = False
-        name_to_upload = "file-" + str(cur_num)
+        cur_optimistic_flag = False
+        if random.random() < opt_data_proportion:
+            cur_optimistic_flag = True
+        name_to_upload = "file-" + str(cur_num+1)
         cur_res = client_api.upload_dataset(name_to_upload,
                                             cur_file_bytes,
                                             "file",
-                                            cur_optimistic,
+                                            cur_optimistic_flag,
                                             cur_token,)
         if cur_res.status == 0:
             list_of_data_ids.append(cur_res.data_id)
@@ -138,11 +140,11 @@ if __name__ == '__main__':
     prev_time = cur_time
 
     # call available APIs
-    client_api.call_api("preprocess", cur_token)
+    client_api.call_api("preprocess", cur_token, "pessimistic")
     print("preprocess finished\n")
-    client_api.call_api("modeltrain", cur_token)
+    client_api.call_api("modeltrain", cur_token, "pessimistic")
     print("modeltrain finished\n")
-    client_api.call_api("predict", cur_token, 10, 5)
+    client_api.call_api("predict", cur_token, "pessimictic", 10, 5)
     print("predict finished\n")
 
     cur_time = time.time()
