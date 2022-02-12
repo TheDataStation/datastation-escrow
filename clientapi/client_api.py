@@ -179,13 +179,14 @@ class ClientAPI:
 
     # data users actually calling the application apis
 
-    def call_api(self, api: API, token, *args, **kwargs):
+    def call_api(self, api: API, token, exec_mode, *args, **kwargs):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
         res = gatekeeper.call_api(api,
                                   cur_username,
+                                  exec_mode,
                                   self.log,
                                   *args,
                                   **kwargs,)
