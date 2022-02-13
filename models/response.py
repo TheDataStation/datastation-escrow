@@ -8,6 +8,9 @@ class Response(BaseModel):
     status: int
     message: str
 
+class UploadUserResponse(Response):
+    user_id: int
+
 class UploadDataResponse(Response):
     data_id: int
 

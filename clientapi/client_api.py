@@ -41,8 +41,7 @@ class ClientAPI:
 
     # create user
 
-    @staticmethod
-    def create_user(user: User, user_sym_key=None, user_public_key=None):
+    def create_user(self, user: User, user_sym_key=None, user_public_key=None):
 
         # First part: Call the user_register to register the user in the DB
         response = user_register.create_user(user)
@@ -51,8 +50,9 @@ class ClientAPI:
             return Response(status=response.status, message=response.message)
 
         # Second part: register this user's symmetric key and public key
-        print(user_sym_key)
-        print(user_public_key)
+        user_id = response.user_id
+        self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
+        self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         return Response(status=response.status, message=response.message)
 
@@ -107,7 +107,7 @@ class ClientAPI:
 
         # We first call SM to store the data
         # Note that SM needs to return access_type (how can the data element be accessed)
-        # so that data_register can register thsi info
+        # so that data_register can register this info
         storage_manager_response = self.storage_manager.store(data_name,
                                                               data_id,
                                                               data_in_bytes,
