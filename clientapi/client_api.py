@@ -22,12 +22,16 @@ class ClientAPI:
     def __init__(self,
                  storageManager: StorageManager,
                  data_station_log: Log,
-                 keyManager: KeyManager):
+                 keyManager: KeyManager,
+                 trust_mode: str):
         self.storage_manager = storageManager
         self.log = data_station_log
         self.key_manager = keyManager
 
-        # The following code decides which data_id we should use when we upload a new data
+        # The following field decides the trust mode for the DS
+        self.trust_mode = trust_mode
+
+        # The following field decides which data_id we should use when we upload a new data
         # right now we are just incrementing by 1
         resp = database_api.get_data_with_max_id()
         if resp.status == 1:
@@ -39,6 +43,7 @@ class ClientAPI:
 
     @staticmethod
     def create_user(user: User):
+        # Call the user_register to register the user in the DB
         response = user_register.create_user(user)
         return Response(status=response.status, message=response.message)
 

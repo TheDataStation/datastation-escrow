@@ -25,10 +25,14 @@ def initialize_system(ds_config, app_config):
     # set up an instance of the key manager
     key_manager = KeyManager()
 
+    # get the trust mode for the data station
+    trust_mode = ds_config["trust_mode"]
+
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,
                            data_station_log,
-                           key_manager)
+                           key_manager,
+                           trust_mode,)
 
     # set up the application registration in the gatekeeper
     connector_name = app_config["connector_name"]

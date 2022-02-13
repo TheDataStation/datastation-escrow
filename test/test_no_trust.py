@@ -34,8 +34,8 @@ if __name__ == '__main__':
     # Save data station's public key
     ds_public_key = client_api.key_manager.ds_public_key
 
-    print("Data Station's public key is:")
-    print(ds_public_key)
+    # print("Data Station's public key is:")
+    # print(ds_public_key)
 
     # cur_time = time.time()
     # print("System initialization done")
@@ -67,7 +67,8 @@ if __name__ == '__main__':
         # print("Decrypted symmetric key is:")
         # print(dec_sym_key)
 
-        # Now uploading both the user's public key, and the encrypted symmetric key to the DS
+        # TODO: Now uploading both the user's public key, and the encrypted symmetric key to the DS
+
 
     # client_api.create_user(User(user_name="jerry", password="string"))
     # client_api.create_user(User(user_name="lucy", password="123456"))
