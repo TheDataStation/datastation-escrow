@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     # Adding new users
 
-    list_of_users = ["jerry"]
+    list_of_users = ["jerry", "lucy", "david"]
 
     # In no trust mode, when a user registers, he needs to upload his symmetric key and public key as well
 
@@ -72,13 +72,37 @@ if __name__ == '__main__':
         # TODO: Now uploading both the user's public key, and the encrypted symmetric key to the DS
         client_api.create_user(User(user_name=cur_user, password="string"), cipher_sym_key, cur_public_key)
 
-    # client_api.create_user(User(user_name="jerry", password="string"))
-    # client_api.create_user(User(user_name="lucy", password="123456"))
-    # client_api.create_user(User(user_name="david", password="string"))
+    # Taking a look at the keys that are stored
+    # print(client_api.key_manager.agents_symmetric_key)
+    # print(client_api.key_manager.agents_public_key)
 
     # cur_time = time.time()
     # print("User addition done")
     # print("--- %s seconds ---" % (cur_time - prev_time))
     # prev_time = cur_time
 
+    # Log in a user to get a token
 
+    cur_token = client_api.login_user("jerry", "string")["access_token"]
+
+    # cur_time = time.time()
+    # print("Log in done")
+    # print("--- %s seconds ---" % (cur_time - prev_time))
+    # prev_time = cur_time
+
+    # Look at all available APIs and APIDependencies
+
+    list_of_apis = client_api.get_all_apis(cur_token)
+    list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+    print(list_of_apis)
+    print(list_of_api_dependencies)
+
+    # cur_time = time.time()
+    # print("Looking at dependency graph done")
+    # print("--- %s seconds ---" % (cur_time - prev_time))
+    # prev_time = cur_time
+
+    # Upload datasets
+
+    # TODO: before we test uploading datasets,
+    #       we first have to create the encrypted files using the newly generated symmetric keys
