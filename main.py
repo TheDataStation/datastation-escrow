@@ -2,6 +2,7 @@ import os
 import sys
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
+from crypto.key_manager import KeyManager
 from gatekeeper import gatekeeper
 from clientapi.client_api import ClientAPI
 from common.utils import parse_config
@@ -21,8 +22,13 @@ def initialize_system(ds_config, app_config):
     log_in_memory_flag = ds_config["log_in_memory"]
     data_station_log = Log(log_in_memory_flag)
 
+    # set up an instance of the key manager
+    key_manager = KeyManager()
+
     # lastly, set up an instance of the client_api
-    client_api = ClientAPI(storage_manager, data_station_log)
+    client_api = ClientAPI(storage_manager,
+                           data_station_log,
+                           key_manager)
 
     # set up the application registration in the gatekeeper
     connector_name = app_config["connector_name"]
