@@ -11,6 +11,7 @@ from common import utils
 from models.user import *
 from models.policy import *
 from common.utils import parse_config
+from crypto import cryptoutils
 
 if __name__ == '__main__':
 
@@ -37,9 +38,16 @@ if __name__ == '__main__':
 
     # Adding new users
 
-    client_api.create_user(User(user_name="jerry", password="string"))
-    client_api.create_user(User(user_name="lucy", password="123456"))
-    client_api.create_user(User(user_name="david", password="string"))
+    # In no trust mode, when a user registers, he needs to upload his symmetric key and public key as well
+
+    for _ in range(3):
+        # Create a new symmetric key
+        sym_key = cryptoutils.generate_symmetric_key()
+        print(sym_key)
+
+    # client_api.create_user(User(user_name="jerry", password="string"))
+    # client_api.create_user(User(user_name="lucy", password="123456"))
+    # client_api.create_user(User(user_name="david", password="string"))
 
     cur_time = time.time()
     print("User addition done")

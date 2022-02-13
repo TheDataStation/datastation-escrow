@@ -30,6 +30,14 @@ def generate_private_public_key_pair(public_exponent=65537, key_size=2048):
     return private_key, public_key
 
 
+def generate_symmetric_key():
+    """
+    Generates a public private key pair
+    """
+    sym_key = Fernet.generate_key()
+    return sym_key
+
+
 def encrypt_data_with_public_key(data, public_key):
     """
     Given data and a public key, it encrypts the data
