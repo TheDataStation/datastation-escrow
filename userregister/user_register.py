@@ -34,7 +34,7 @@ def create_user(request):
     if resp.status == -1:
         return Response(status=1, message="internal database error")
 
-    return Response(status=0, message="success")
+    return UploadUserResponse(status=0, message="success", user_id=resp.data[0].id)
 
 def login_user(username, password):
     # check if there is an existing user
