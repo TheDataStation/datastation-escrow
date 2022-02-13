@@ -10,6 +10,7 @@ Working/
 data_station.db
 test_process.py
 test_main.py
+test/test_file_no_trust
 
 # C extensions
 *.so

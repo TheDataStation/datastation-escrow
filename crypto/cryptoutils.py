@@ -38,6 +38,14 @@ def generate_symmetric_key():
     return sym_key
 
 
+def get_symmetric_key_from_bytes(key_bytes):
+    """
+    Generates a Fernet key from bytes
+    """
+    sym_key = Fernet(key_bytes)
+    return sym_key
+
+
 def encrypt_data_with_public_key(data, public_key):
     """
     Given data and a public key, it encrypts the data

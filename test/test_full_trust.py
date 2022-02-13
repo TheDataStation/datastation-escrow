@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     # Upload datasets
 
-    # First clear the storage place
+    # First clear SM_storage
 
     folder = 'SM_storage'
     for filename in os.listdir(folder):

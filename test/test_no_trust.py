@@ -106,3 +106,24 @@ if __name__ == '__main__':
 
     # TODO: before we test uploading datasets,
     #       we first have to create the encrypted files using the newly generated symmetric keys
+
+    # First clear test_file_no_trust
+
+    no_trust_folder = 'test/test_file_no_trust'
+    for filename in os.listdir(no_trust_folder):
+        file_path = os.path.join(no_trust_folder, filename)
+        if os.path.isfile(file_path) or os.path.islink(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
+    # Now we create the encrypted files
+    for cur_num in range(6):
+        cur_plain_name = "test/test_file_full_trust/train-" + str(cur_num+1) + ".csv"
+        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[1]
+        cur_plain_file = open(cur_plain_name, 'rb').read()
+        ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(cur_plain_file)
+        cur_cipher_name = "test/test_file_no_trust/train-" + str(cur_num+1) + ".csv"
+        cur_cipher_file = open(cur_cipher_name, "wb")
+        cur_cipher_file.write(ciphertext_bytes)
+        cur_cipher_file.close()
