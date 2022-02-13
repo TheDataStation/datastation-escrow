@@ -14,13 +14,18 @@ from policybroker import policy_broker
 from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
+from crypto.key_manager import KeyManager
 
 
 class ClientAPI:
 
-    def __init__(self, storageManager: StorageManager, data_station_log: Log):
+    def __init__(self,
+                 storageManager: StorageManager,
+                 data_station_log: Log,
+                 keyManager: KeyManager):
         self.storage_manager = storageManager
         self.log = data_station_log
+        self.key_manager = keyManager
 
         # The following code decides which data_id we should use when we upload a new data
         # right now we are just incrementing by 1

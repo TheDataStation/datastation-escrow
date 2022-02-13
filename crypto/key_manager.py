@@ -7,10 +7,8 @@ class KeyManager:
     uses to authenticate itself and sign outgoing messages, as well as all symmetric keys and public keys from agents.
     """
 
-    def __init__(self, config):
+    def __init__(self):
         """
-
-        :param config:
         """
         # Own keys
         self.ds_private_key = None
