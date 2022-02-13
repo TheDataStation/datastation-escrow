@@ -212,8 +212,22 @@ class ClientAPI:
         return res
 
     # print out the contents of the log
+
     def print_log(self):
         self.log.print_log()
+
+    # retrieve a file from the storage (for testing purposes)
+
+    def retrieve_data_by_id(self, data_id):
+        # First get the data element's info from DB
+        resp = database_api.get_dataset_by_id(data_id)
+        if resp.status != 1:
+            return resp
+        print(resp.data[0].type)
+        print(resp.data[0].access_type)
+
+        # storage_manager_response = self.storage_manager.retrieve_data_by_id(data_id,)
+        # return storage_manager_response
 
 
 if __name__ == "__main__":

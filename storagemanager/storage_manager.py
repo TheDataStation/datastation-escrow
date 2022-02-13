@@ -51,3 +51,7 @@ class StorageManager:
 
         # Other types of data elements are not currently supported
         return Response(status=1, message="data type not currently supported")
+
+    def retrieve_data_by_id(self, data_id):
+        pass
+

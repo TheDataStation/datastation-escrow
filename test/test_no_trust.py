@@ -127,3 +127,47 @@ if __name__ == '__main__':
         cur_cipher_file = open(cur_cipher_name, "wb")
         cur_cipher_file.write(ciphertext_bytes)
         cur_cipher_file.close()
+
+    # Proceeding to actually uploads the datasets
+
+    # First clear SM_storage
+
+    folder = 'SM_storage'
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        if os.path.isfile(file_path) or os.path.islink(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
+    num_files = test_config["num_files"]
+    opt_data_proportion = test_config["opt_data_proportion"]
+    list_of_data_ids = []
+
+    for cur_num in range(num_files):
+        cur_file_index = (cur_num % 6) + 1
+        cur_full_name = "test/test_file_no_trust/train-" + str(cur_file_index) + ".csv"
+        cur_file = open(cur_full_name, "rb")
+        cur_file_bytes = cur_file.read()
+        cur_optimistic_flag = False
+        if random.random() < opt_data_proportion:
+            cur_optimistic_flag = True
+        name_to_upload = "file-" + str(cur_num + 1)
+        cur_res = client_api.upload_dataset(name_to_upload,
+                                            cur_file_bytes,
+                                            "file",
+                                            cur_optimistic_flag,
+                                            cur_token, )
+        if cur_res.status == 0:
+            list_of_data_ids.append(cur_res.data_id)
+        cur_file.close()
+
+    # print(list_of_data_ids)
+
+    # cur_time = time.time()
+    # print("Uploading datasets done")
+    # print("--- %s seconds ---" % (cur_time - prev_time))
+    # prev_time = cur_time
+
+    # Trying out retrieving datasets
+    client_api.retrieve_data_by_id(1)
