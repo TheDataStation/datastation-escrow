@@ -21,6 +21,9 @@ class RemoveDataResponse(Response):
 class StoreDataResponse(Response):
     access_type: str
 
+class RetrieveDataResponse(Response):
+    data: bytes
+
 class GetAPIResponse(Response):
     data: List[str]
 

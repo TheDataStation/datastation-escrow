@@ -218,16 +218,23 @@ class ClientAPI:
 
     # retrieve a file from the storage (for testing purposes)
 
-    def retrieve_data_by_id(self, data_id):
+    def retrieve_data_by_id(self, data_id, token):
+
+        # Perform authentication
+        user_register.authenticate_user(token)
+
         # First get the data element's info from DB
         resp = database_api.get_dataset_by_id(data_id)
         if resp.status != 1:
             return resp
-        print(resp.data[0].type)
-        print(resp.data[0].access_type)
 
-        # storage_manager_response = self.storage_manager.retrieve_data_by_id(data_id,)
-        # return storage_manager_response
+        # If there is no error, we call store_manager.retrieve_data_by_id
+
+        storage_manager_response = self.storage_manager.retrieve_data_by_id(resp.data[0].type,
+                                                                            resp.data[0].access_type,)
+        if storage_manager_response.status == 1:
+            return storage_manager_response
+        return storage_manager_response.data
 
 
 if __name__ == "__main__":

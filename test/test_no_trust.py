@@ -170,4 +170,5 @@ if __name__ == '__main__':
     # prev_time = cur_time
 
     # Trying out retrieving datasets
-    client_api.retrieve_data_by_id(1)
+    encrypted_data = client_api.retrieve_data_by_id(1, cur_token)
+    print(encrypted_data)
