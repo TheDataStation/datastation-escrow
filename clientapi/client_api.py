@@ -42,9 +42,18 @@ class ClientAPI:
     # create user
 
     @staticmethod
-    def create_user(user: User):
-        # Call the user_register to register the user in the DB
+    def create_user(user: User, user_sym_key=None, user_public_key=None):
+
+        # First part: Call the user_register to register the user in the DB
         response = user_register.create_user(user)
+
+        if response.status == 1:
+            return Response(status=response.status, message=response.message)
+
+        # Second part: register this user's symmetric key and public key
+        print(user_sym_key)
+        print(user_public_key)
+
         return Response(status=response.status, message=response.message)
 
     # log in
