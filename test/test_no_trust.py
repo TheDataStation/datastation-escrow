@@ -44,9 +44,11 @@ if __name__ == '__main__':
 
     # Adding new users
 
+    list_of_users = ["jerry"]
+
     # In no trust mode, when a user registers, he needs to upload his symmetric key and public key as well
 
-    for _ in range(1):
+    for cur_user in list_of_users:
         # Create a new symmetric key
         sym_key = cu.generate_symmetric_key()
         # print("Symmetric in the plain is:")
@@ -68,7 +70,7 @@ if __name__ == '__main__':
         # print(dec_sym_key)
 
         # TODO: Now uploading both the user's public key, and the encrypted symmetric key to the DS
-
+        client_api.create_user(User(user_name=cur_user, password="string"), cipher_sym_key, cur_public_key)
 
     # client_api.create_user(User(user_name="jerry", password="string"))
     # client_api.create_user(User(user_name="lucy", password="123456"))
