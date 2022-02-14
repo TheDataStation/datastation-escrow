@@ -1,4 +1,5 @@
 # This script loads a complete state of the data station
+import pathlib
 import sys
 import main
 import os
@@ -6,7 +7,9 @@ import shutil
 import time
 import math
 import random
+import multiprocessing
 
+from Interceptor import interceptor
 from common import utils
 from models.user import *
 from models.policy import *
@@ -32,6 +35,13 @@ if __name__ == '__main__':
 
     ds_config = utils.parse_config("data_station_config.yaml")
     app_config = utils.parse_config("app_connector_config.yaml")
+
+    # ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
+    # mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
+    # recv_end, send_end = multiprocessing.Pipe(False)
+    # interceptor_process = multiprocessing.Process(target=interceptor.main,
+    #                                               args=(ds_storage_path, mount_point, recv_end, send_end))
+    # interceptor_process.start()
 
     client_api = main.initialize_system(ds_config, app_config)
 

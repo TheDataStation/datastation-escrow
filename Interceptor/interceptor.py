@@ -12,6 +12,7 @@ from __future__ import print_function
 import os, sys
 import pathlib
 import socket
+import time
 from errno import *
 from stat import *
 import fcntl
@@ -27,6 +28,8 @@ from fuse import Fuse
 
 import threading
 from pathlib import Path
+from collections import defaultdict
+
 
 # import mock_gatekeeper
 # sys.path.append( '.' )
@@ -61,20 +64,29 @@ class Xmp(Fuse):
         Fuse.__init__(self, *args, **kw)
 
         # do stuff to set up your filesystem here, if you want
-        # import thread
-        # thread.start_new_thread(self.mythread, ())
         self.root = '/'
 
-    #    def mythread(self):
+        # self.recv_end = connection_p
+    #     self.accessible_data_paths = []
     #
-    #        """
-    #        The beauty of the FUSE python implementation is that with the python interp
-    #        running in foreground, you can have threads
-    #        """
-    #        print "mythread: started"
-    #        while 1:
-    #            time.sleep(120)
-    #            print "mythread: ticking"
+    #     self.t = threading.Thread(target=self.mythread)
+    #     self.t.start()
+    #
+    # def stop_thread(self):
+    #     self.t.join()
+    #
+    # def mythread(self):
+    #
+    #     """
+    #     The beauty of the FUSE python implementation is that with the python interp
+    #     running in foreground, you can have threads
+    #     """
+    #     # print "mythread: started"
+    #     while True:
+    #         time.sleep(1)
+    #         self.accessible_data_paths = connection_p.recv()
+    #     #     time.sleep(120)
+    #     #     print "mythread: ticking"
 
     def getattr(self, path):
         return os.lstat("." + path)
@@ -83,6 +95,7 @@ class Xmp(Fuse):
         return os.readlink("." + path)
 
     def readdir(self, path, offset):
+        # accessible_data_paths = connection_p.recv()
         # print("readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
         # print(str(path_to_access))
@@ -144,9 +157,36 @@ class Xmp(Fuse):
     #      os.utime("." + path, (ts_acc.tv_sec, ts_mod.tv_sec))
 
     def access(self, path, mode):
-        # print("I am accessing " + path)
+        mode_to_str = {0: "os.F_OK", 1: "os.X_OK", 2: "os.W_OK", 4: "os.R_OK"}
+        # if mode == os.R_OK or mode == os.W_OK:
+        # print("Testing access for " + path + " in " + mode_to_str[mode] + " mode")
+        # print("fuse context:")
+        # print(self.GetContext())
+        # print(Fuse.GetContext(self))
+        # TODO: maybe don't return error here (if accessing data that's shouldn't be accessible),
+        #  since this requires the application to catch the error
+        # access_okay = False
+        path_to_access = pathlib.Path("." + path).absolute()
+        # for acc_path in accessible_data_paths:
+        #     if path_to_access in pathlib.Path(acc_path).parents or str(path_to_access) == acc_path:
+        #         access_okay = True
+        #         break
+        # if mode != os.F_OK and not access_okay:
+        #     return -EACCES
         if not os.access("." + path, mode):
+            # if mode == os.R_OK:
+            #     print("can't read")
             return -EACCES
+        else:
+            if pathlib.Path(path_to_access).is_file():
+                if mode != os.F_OK:
+                    print("Access okay for " + str(path_to_access) + " in " + mode_to_str[mode] + " mode")
+                    print("fuse context:")
+                    print(Fuse.GetContext(self))
+                    pid = Fuse.GetContext(self)["pid"]
+                    data_accessed[pid].add(str(path_to_access))
+            # if mode == os.R_OK:
+            #     print("read okay")
 
     #    This is how we could add stub extended attribute handlers...
     #    (We can't have ones which aptly delegate requests to the underlying fs
@@ -213,6 +253,9 @@ class Xmp(Fuse):
             else:
                 self.iolock = Lock()
 
+
+            # uid, gid, pid = fuse_get_context()
+            #
             # print(sys.argv[-1])
 
             # user_id = pathlib.PurePath(args[-1]).parts[-2]
@@ -233,7 +276,7 @@ class Xmp(Fuse):
             # f.close()
 
             # print("data id accessed: ", str(data_id))
-            data_accessed.add(self.file_path)
+            # data_accessed.add(self.file_path)
 
         def read(self, length, offset):
             if self.file != None:
@@ -350,20 +393,23 @@ class Xmp(Fuse):
         return Fuse.main(self, *a, **kw)
 
 
-def main(root_dir, mount_point, accessible_data, send_end):
+def main(root_dir, mount_point, accessible_data, interceptor_conn):
     # engine.dispose()
 
     global args
     # run in foreground
-    # args = ["-s", "-f", "-o", "root="+root_dir, mount_point]
+    args = ["-f", "-o", "root="+root_dir, mount_point]
     # run in background
-    args = ["-s", "-o", "root=" + root_dir, mount_point]
+    # args = ["-o", "root=" + root_dir, mount_point]
 
     global data_accessed
-    data_accessed = set()
+    data_accessed = defaultdict(set)
 
     global accessible_data_paths
     accessible_data_paths = accessible_data
+
+    global connection_p
+    connection_p = interceptor_conn
 
     # global accessible_data_paths
     # accessible_data_paths = []
@@ -388,7 +434,8 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
 
 """ + Fuse.fusage
 
-    server = Xmp(version="%prog " + fuse.__version__,
+    server = Xmp(
+                 version="%prog " + fuse.__version__,
                  usage=usage,
                  dash_s_do='setsingle')
 
@@ -428,7 +475,8 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
     #         f.write(path + "\n")
     #     f.flush()
     #     os.fsync(f.fileno())
-    send_end.send(list(data_accessed))
+    connection_p.send(data_accessed)
+    # server.stop_thread()
 
     # host = "localhost"
     # port = 6666
