@@ -95,12 +95,13 @@ def encrypt_data_with_symmetric_key(data, key):
 
 def decrypt_data_with_symmetric_key(ciphertext, key):
     """
-    Given a ciphertext and a symmetric key, decrypt the data in-memory
+    Given a ciphertext and a symmetric key in bytes, decrypt the data in-memory
     :return:
     """
     f = Fernet(key)
     data = f.decrypt(ciphertext)
-    return from_bytes(data)
+    return data
+    # return from_bytes(data)
 
 
 def sign_data(data, private_key):
