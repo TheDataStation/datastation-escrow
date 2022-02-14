@@ -15,22 +15,16 @@ def get_odata_type(api, d_graph):
 
 # Helper function to update a policy's effect in policy_with_dependency
 def update_policy_effect(api, data_id, d_graph, policy_dict):
-    # Base case: current API does not point to other APIs
-    # Right now it means d_graph[api] == ["dir_accessible"]
-    if d_graph[api] == ["dir_accessible"]:
-        cur_key = api
-        cur_policy_info = policy_dict[cur_key]
-        if data_id not in cur_policy_info.accessible_data:
-            policy_dict[cur_key].accessible_data.append(data_id)
-    # Recursive case: current API has children
-    # We first update the policy's effect for this API, then for all its children
-    else:
-        cur_key = api
-        cur_policy_info = policy_dict[cur_key]
-        if data_id not in cur_policy_info.accessible_data:
-            policy_dict[cur_key].accessible_data.append(data_id)
-        for child_api in d_graph[api]:
-            update_policy_effect(child_api, data_id, d_graph, policy_dict)
+    cur_key = api
+    cur_policy_info = policy_dict[cur_key]
+    # If the current API can access the current data_id, we don't have to do anything
+    # Because we know all its descendants will be able to access this data_id as well
+    # So we only do something if the current API cannot access the current data_id
+    if data_id not in cur_policy_info.accessible_data:
+        policy_dict[cur_key].accessible_data.append(data_id)
+        if not d_graph[cur_key] == ["dir_accessible"]:
+            for child_api in d_graph[cur_key]:
+                update_policy_effect(child_api, data_id, d_graph, policy_dict)
 
 # upload a new policy to DB
 
