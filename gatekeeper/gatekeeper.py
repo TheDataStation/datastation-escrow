@@ -61,7 +61,26 @@ def get_accessible_data(user_id, api):
 def foo(a, b):
     print("in foo")
 
+def test_api(files):
+    # print(files)
+    for file in files:
+        # print(file)
+        if pathlib.Path(file).is_file():
+            with open(file, "r") as cur_file:
+                cur_file.readline()
+            print("read ", file)
+
+
 def call_api(api, cur_username, *args, **kwargs):
+    import glob
+    ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
+    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
+    mount_path = pathlib.Path(ds_config["storage_path"]).absolute()
+    all_files = set(glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True))
+    all_files_mounted = set()
+    for f in all_files:
+        all_files_mounted.add(f.replace("SM_storage", "SM_storage_mount/1/"+api))
+
     # TODO: add the intent-policy matching process in here
 
     # zz: create an exec env (docker)
@@ -98,6 +117,11 @@ def call_api(api, cur_username, *args, **kwargs):
     accessible_data_paths = set()
     for id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(id).data[0].access_type))
+
+    accessible_data_paths_mounted = set()
+    for f in accessible_data_paths:
+        accessible_data_paths_mounted.add(f.replace("SM_storage", "SM_storage_mount/" + str(cur_user_id) + "/" + api))
+
     # print(accessible_data_paths)
     # with open("/tmp/accessible_data_paths.txt", "w") as f:
     #     for path in accessible_data_paths:
@@ -133,16 +157,16 @@ def call_api(api, cur_username, *args, **kwargs):
     # SessionLocal().close()
     # engine.dispose()
     # from dbservice.database_api import get_db
-    recv_end, send_end = multiprocessing.Pipe(False)
+    main_conn, interceptor_conn = multiprocessing.Pipe()
     interceptor_process = multiprocessing.Process(target=interceptor.main,
-                                                  args=(ds_storage_path, mount_point, accessible_data_paths, send_end))
+                                                  args=(ds_storage_path, mount_point, accessible_data_paths, interceptor_conn))
     # interceptor_process = Process(target=foo, args=(ds_storage_path, mount_point))
     interceptor_process.start()
     # cwd = os.getcwd()
     # interceptor_thread = threading.Thread(target=interceptor.main, args=(ds_storage_path, mount_point))
     # interceptor_thread.start()
     print("starting interceptor...")
-    time.sleep(1)
+    # time.sleep(1)
     counter = 0
     while not os.path.ismount(mount_point):
         time.sleep(1)
@@ -152,6 +176,8 @@ def call_api(api, cur_username, *args, **kwargs):
             exit(1)
     print("mounted:", os.path.ismount(mount_point))
 
+    # main_conn.send(accessible_data_paths)
+
     # Getting these data elements from the DB
     # all_accessible_data = filter(lambda data: data.id in all_accessible_data_id,
     #                              database_api.get_all_datasets().data)
@@ -160,12 +186,21 @@ def call_api(api, cur_username, *args, **kwargs):
     #     print(cur_data.access_type)
 
     # Actually calling the api
+
     # TODO: need to change returns
+    print("current process id:", str(os.getpid()))
     status = None
     list_of_apis = get_registered_functions()
+    api_pid = None
     for cur_api in list_of_apis:
         if api == cur_api.__name__:
-            status = cur_api(*args, **kwargs)
+            # api_process = multiprocessing.Process(target=cur_api, args=args, kwargs=kwargs)
+            api_process = multiprocessing.Process(target=test_api, args=(accessible_data_paths_mounted,))
+            api_process.start()
+            api_pid = api_process.pid
+            print("api process id:", str(api_pid))
+            api_process.join()
+            # status = cur_api(*args, **kwargs)
 
     unmount_status = os.system("umount " + str(mount_point))
     if unmount_status != 0:
@@ -174,7 +209,9 @@ def call_api(api, cur_username, *args, **kwargs):
 
     assert os.path.ismount(mount_point) == False
     interceptor_process.join()
-    data_accessed = recv_end.recv()
+    data_accessed = main_conn.recv()
+    # print(data_accessed)
+    cur_data_accessed = data_accessed[api_pid]
     # interceptor_thread.join()
     # os.chdir(cwd)
     # engine.dispose()
@@ -205,7 +242,7 @@ def call_api(api, cur_username, *args, **kwargs):
     #         data_accessed = content.split("\n")[:-1]
         # print(content)
     data_ids_accessed = set()
-    for path in data_accessed:
+    for path in cur_data_accessed:
         data_id = record_data_ids_accessed(path, cur_user_id, api)
         if data_id != None:
             data_ids_accessed.add(data_id)
