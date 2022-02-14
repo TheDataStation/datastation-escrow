@@ -157,7 +157,7 @@ if __name__ == '__main__':
                                             cur_file_bytes,
                                             "file",
                                             cur_optimistic_flag,
-                                            cur_token, )
+                                            cur_token,)
         if cur_res.status == 0:
             list_of_data_ids.append(cur_res.data_id)
         cur_file.close()
@@ -169,6 +169,14 @@ if __name__ == '__main__':
     # print("--- %s seconds ---" % (cur_time - prev_time))
     # prev_time = cur_time
 
-    # Trying out retrieving datasets
-    encrypted_data = client_api.retrieve_data_by_id(1, cur_token)
-    print(encrypted_data)
+    # # Uncomment the next block to verify end-to-end file sharing
+    # # Trying out retrieving datasets
+    #
+    # # Let's first get a new token
+    # cur_token = client_api.login_user("lucy", "string")["access_token"]
+    # # Then get the encrypted file
+    # data_retrieved = client_api.retrieve_data_by_id(1, cur_token)
+    # # Then decrypt it using the current user's sym key
+    # cur_user_sym_key = client_api.key_manager.agents_symmetric_key[2]
+    # data_plain = cu.decrypt_data_with_symmetric_key(data_retrieved, cur_user_sym_key)
+    # print(data_plain)
