@@ -54,7 +54,7 @@ if __name__ == '__main__':
     list_of_data_ids = []
 
     for cur_name in list_of_files:
-        cur_full_name = "test_file/" + cur_name
+        cur_full_name = "test/test_file/" + cur_name
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic = False

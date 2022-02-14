@@ -12,8 +12,8 @@ from contextlib import contextmanager
 
 # global engine
 
-# def _fk_pragma_on_connect(dbapi_con, con_record):
-#     dbapi_con.execute('pragma foreign_keys=ON')
+def _fk_pragma_on_connect(dbapi_con, con_record):
+    dbapi_con.execute('pragma foreign_keys=ON')
 
 @contextmanager
 def get_db():
@@ -25,7 +25,7 @@ def get_db():
 
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    # event.listen(engine, 'connect', _fk_pragma_on_connect)
+    event.listen(engine, 'connect', _fk_pragma_on_connect)
 
     # Base = declarative_base()
     Base.metadata.create_all(engine)

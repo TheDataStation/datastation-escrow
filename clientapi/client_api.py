@@ -13,12 +13,14 @@ from dataregister import data_register
 from policybroker import policy_broker
 from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
+from verifiability.log import Log
 
 
 class ClientAPI:
 
-    def __init__(self, storageManager: StorageManager):
+    def __init__(self, storageManager: StorageManager, data_station_log: Log):
         self.storage_manager = storageManager
+        self.log = data_station_log
 
     # create user
 
@@ -74,7 +76,7 @@ class ClientAPI:
 
         # TODO: call identity_manager to compute the dataset id
 
-        data_id = random.randint(1, 100000)
+        data_id = random.randint(1, 1000000)
 
         # We first call SM to store the data
         # Note that SM needs to return access_type (how can the data element be accessed)
@@ -177,6 +179,10 @@ class ClientAPI:
 
         res = gatekeeper.call_api(api, cur_username, *args, **kwargs)
         return res
+
+    # print out the contents of the log
+    def print_log(self):
+        self.log.print_log()
 
 
 if __name__ == "__main__":
