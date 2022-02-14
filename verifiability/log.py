@@ -2,6 +2,7 @@ import pickle
 from enum import Enum
 from collections import namedtuple
 
+# TODO: reformat this log so that it fits better to the description
 
 class Log:
     """
