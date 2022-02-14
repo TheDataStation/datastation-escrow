@@ -182,8 +182,9 @@ class Xmp(Fuse):
                 if mode != os.F_OK:
                     print("Access okay for " + str(path_to_access) + " in " + mode_to_str[mode] + " mode")
                     print("fuse context:")
-                    print(Fuse.GetContext(self))
-                    pid = Fuse.GetContext(self)["pid"]
+                    fuse_context = Fuse.GetContext(self)
+                    print(fuse_context)
+                    pid = fuse_context["pid"]
                     data_accessed[pid].add(str(path_to_access))
             # if mode == os.R_OK:
             #     print("read okay")
