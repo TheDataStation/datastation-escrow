@@ -20,6 +20,7 @@ from common import utils
 # from dbservice.database import engine, SessionLocal
 import threading
 
+
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
     register_connectors(connector_name, connector_module_path)
@@ -58,8 +59,10 @@ def get_accessible_data(user_id, api):
     policy_info = policy_broker.get_user_api_info(user_id, api)
     return policy_info
 
+
 def foo(a, b):
     print("in foo")
+
 
 def test_api():
     # print(files)
@@ -81,6 +84,18 @@ def test_api():
             with open(file, "r") as cur_file:
                 cur_file.readline()
             print("read ", file)
+
+
+def call_actual_api(api_name, connector_name, connector_module_path, *args, **kwargs):
+    # print("xxxxxxxxxx")
+    # print(api_name, *args, **kwargs)
+    register_connectors(connector_name, connector_module_path)
+    list_of_apis = get_registered_functions()
+    # print("list_of_apis:", list_of_apis)
+    for cur_api in list_of_apis:
+        if api_name == cur_api.__name__:
+            # print("call", api_name)
+            status = cur_api(*args, **kwargs)
 
 
 def call_api(api, cur_username, *args, **kwargs):
@@ -141,7 +156,7 @@ def call_api(api, cur_username, *args, **kwargs):
     #     f.flush()
     #     os.fsync(f.fileno())
 
-        # f.write(str(all_accessible_data_id))
+    # f.write(str(all_accessible_data_id))
 
     # global data_ids_accessed
     # data_ids_accessed = set()
@@ -171,7 +186,8 @@ def call_api(api, cur_username, *args, **kwargs):
     # from dbservice.database_api import get_db
     main_conn, interceptor_conn = multiprocessing.Pipe()
     interceptor_process = multiprocessing.Process(target=interceptor.main,
-                                                  args=(ds_storage_path, mount_point, accessible_data_paths, interceptor_conn))
+                                                  args=(ds_storage_path, mount_point, accessible_data_paths,
+                                                        interceptor_conn))
     # interceptor_process = Process(target=foo, args=(ds_storage_path, mount_point))
     interceptor_process.start()
     # cwd = os.getcwd()
@@ -185,7 +201,7 @@ def call_api(api, cur_username, *args, **kwargs):
         counter += 1
         if counter == 10:
             print("mount time out")
-            exit(1)
+            return Response(status=1, message="mount time out")
     print("mounted:", os.path.ismount(mount_point))
 
     # main_conn.send(accessible_data_paths)
@@ -201,23 +217,34 @@ def call_api(api, cur_username, *args, **kwargs):
 
     # TODO: need to change returns
     print("current process id:", str(os.getpid()))
-    status = None
-    list_of_apis = get_registered_functions()
-    api_pid = None
-    for cur_api in list_of_apis:
-        if api == cur_api.__name__:
-            # api_process = multiprocessing.Process(target=cur_api, args=args, kwargs=kwargs)
-            api_process = multiprocessing.Process(target=test_api, args=())
-            api_process.start()
-            api_pid = api_process.pid
-            print("api process id:", str(api_pid))
-            api_process.join()
-            # status = cur_api(*args, **kwargs)
+    # status = None
+    # list_of_apis = get_registered_functions()
+    # api_pid = None
+    # for cur_api in list_of_apis:
+    #     if api == cur_api.__name__:
+    #         api_process = multiprocessing.Process(target=cur_api, args=args, kwargs=kwargs)
+    #         # api_process = multiprocessing.Process(target=test_api, args=())
+    #         api_process.start()
+    #         api_pid = api_process.pid
+    #         print("api process id:", str(api_pid))
+    #         api_process.join()
+    #         # status = cur_api(*args, **kwargs)
+    app_config = utils.parse_config("app_connector_config.yaml")
+    connector_name = app_config["connector_name"]
+    connector_module_path = app_config["connector_module_path"]
+
+    api_process = multiprocessing.Process(target=call_actual_api,
+                                          args=(api, connector_name, connector_module_path, *args),
+                                          kwargs=kwargs)
+    api_process.start()
+    api_pid = api_process.pid
+    print("api process id:", str(api_pid))
+    api_process.join()
 
     unmount_status = os.system("umount " + str(mount_point))
     if unmount_status != 0:
         print("Unmount failed")
-        return None
+        return Response(status=1, message="Unmount failed")
 
     assert os.path.ismount(mount_point) == False
     interceptor_process.join()
@@ -252,7 +279,7 @@ def call_api(api, cur_username, *args, **kwargs):
     #     content = f.read()
     #     if len(content) != 0:
     #         data_accessed = content.split("\n")[:-1]
-        # print(content)
+    # print(content)
     data_ids_accessed = set()
     for path in cur_data_accessed:
         data_id = record_data_ids_accessed(path, cur_user_id, api)
@@ -260,17 +287,18 @@ def call_api(api, cur_username, *args, **kwargs):
             data_ids_accessed.add(data_id)
         else:
             # os.remove("/tmp/data_accessed.txt")
-            return None
+            return Response(status=1, message="cannot get data id from data path")
+
     print("Data ids accessed:")
     print(data_ids_accessed)
     # os.remove("/tmp/data_accessed.txt")
 
     if set(data_ids_accessed).issubset(all_accessible_data_id):
         print("All data access legal")
-        return status
+        return Response(status=0, message="All data access legal")
     else:
         print("Accessed data elements illegally")
-        return None
+        return Response(status=1, message="Accessed data elements illegally")
 
 
 def record_data_ids_accessed(data_path, user_id, api_name):
