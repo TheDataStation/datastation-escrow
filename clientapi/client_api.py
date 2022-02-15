@@ -51,9 +51,10 @@ class ClientAPI:
             return Response(status=response.status, message=response.message)
 
         # Second part: register this user's symmetric key and public key
-        user_id = response.user_id
-        self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
-        self.key_manager.store_agent_public_key(user_id, user_public_key)
+        if self.trust_mode == "no_trust":
+            user_id = response.user_id
+            self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
+            self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         return Response(status=response.status, message=response.message)
 
