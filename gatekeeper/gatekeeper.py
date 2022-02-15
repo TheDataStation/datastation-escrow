@@ -172,6 +172,7 @@ def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
     else:
         # We should not get in here in the first place.
         print("Access to illegal data happened. Something went wrong")
+        data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))
         return None
 
 
