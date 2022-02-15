@@ -95,24 +95,33 @@ class Xmp(Fuse):
         return os.readlink("." + path)
 
     def readdir(self, path, offset):
-        # accessible_data_paths = connection_p.recv()
+        pid = Fuse.GetContext(self)["pid"]
+        in_other_process = False
+        # print(pid, main_process_id_global, os.getpid())
+        if pid not in accessible_data_dict_global.keys():
+            in_other_process = True
+        else:
+            accessible_data_paths = accessible_data_dict_global[pid]
         # print("readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
         # print(str(path_to_access))
         for e in os.listdir("." + path):
             # print(str(e))
-            for acc_path in accessible_data_paths:
-                if path_to_access in pathlib.Path(acc_path).parents or str(path_to_access) == acc_path:
-                    # print("yield")
-                    yield fuse.Direntry(e)
-                    break
-                # parts = pathlib.Path(acc_path).parts
-                # # print(parts)
-                # # TODO: prob too hacky
-                # if str(e) in parts:
-                #     # print("yield")
-                #     yield fuse.Direntry(e)
-                #     break
+            if in_other_process:
+                yield fuse.Direntry(e)
+            else:
+                for acc_path in accessible_data_paths:
+                    if path_to_access in pathlib.Path(acc_path).parents or str(path_to_access) == acc_path:
+                        # print("yield")
+                        yield fuse.Direntry(e)
+                        break
+                    # parts = pathlib.Path(acc_path).parts
+                    # # print(parts)
+                    # # TODO: prob too hacky
+                    # if str(e) in parts:
+                    #     # print("yield")
+                    #     yield fuse.Direntry(e)
+                    #     break
 
     def unlink(self, path):
         os.unlink("." + path)
@@ -185,7 +194,15 @@ class Xmp(Fuse):
                     fuse_context = Fuse.GetContext(self)
                     print(fuse_context)
                     pid = fuse_context["pid"]
-                    data_accessed[pid].add(str(path_to_access))
+
+                    if pid not in data_accessed_dict_global.keys():
+                        data_accessed_dict_global[pid] = set()
+
+                    cur_set = data_accessed_dict_global[pid]
+                    cur_set.add(str(path_to_access))
+                    data_accessed_dict_global[pid] = cur_set
+
+                    # print(data_accessed_dict_global)
             # if mode == os.R_OK:
             #     print("read okay")
 
@@ -394,7 +411,7 @@ class Xmp(Fuse):
         return Fuse.main(self, *a, **kw)
 
 
-def main(root_dir, mount_point, accessible_data, interceptor_conn):
+def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict):
     # engine.dispose()
 
     global args
@@ -403,14 +420,19 @@ def main(root_dir, mount_point, accessible_data, interceptor_conn):
     # run in background
     # args = ["-o", "root=" + root_dir, mount_point]
 
-    global data_accessed
-    data_accessed = defaultdict(set)
+    # global data_accessed
+    # data_accessed = defaultdict(set)
 
-    global accessible_data_paths
-    accessible_data_paths = accessible_data
+    # global accessible_data_paths
+    # accessible_data_paths = accessible_data
 
-    global connection_p
-    connection_p = interceptor_conn
+    # global connection_p
+    # connection_p = interceptor_conn
+
+    global accessible_data_dict_global
+    accessible_data_dict_global = accessible_data_dict
+    global data_accessed_dict_global
+    data_accessed_dict_global = data_accessed_dict
 
     # global accessible_data_paths
     # accessible_data_paths = []
@@ -476,7 +498,7 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
     #         f.write(path + "\n")
     #     f.flush()
     #     os.fsync(f.fileno())
-    connection_p.send(data_accessed)
+    # connection_p.send(data_accessed)
     # server.stop_thread()
 
     # host = "localhost"
