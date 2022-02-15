@@ -16,6 +16,7 @@ from models.user import *
 from models.response import *
 from common import utils
 
+
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
     register_connectors(connector_name, connector_module_path)
@@ -55,7 +56,62 @@ def get_accessible_data(user_id, api):
     return policy_info
 
 
-def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
+def foo(a, b):
+    print("in foo")
+
+
+def test_api():
+    # print(files)
+    # for file in files:
+    #     # print(file)
+    #     if pathlib.Path(file).is_file():
+    #         with open(file, "r") as cur_file:
+    #             cur_file.readline()
+    #         print("read ", file)
+    import glob
+    ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
+    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
+    mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
+    files = glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True)
+    # print(set(files))
+    for file in set(files):
+        # print(file)
+        if pathlib.Path(file).is_file():
+            with open(file, "r") as cur_file:
+                cur_file.readline()
+            print("read ", file)
+
+
+def call_actual_api(api_name, connector_name, connector_module_path,
+                    accessible_data_dict, accessible_data_paths, api_conn, *args, **kwargs):
+
+    api_pid = os.getpid()
+    print("api process id:", str(api_pid))
+    accessible_data_dict[api_pid] = accessible_data_paths
+
+    # print("xxxxxxxxxx")
+    # print(api_name, *args, **kwargs)
+    register_connectors(connector_name, connector_module_path)
+    list_of_apis = get_registered_functions()
+    # print("list_of_apis:", list_of_apis)
+    for cur_api in list_of_apis:
+        if api_name == cur_api.__name__:
+            # print("call", api_name)
+            result = cur_api(*args, **kwargs)
+            api_conn.send(result)
+
+
+def call_api(api, cur_username, exec_mode, data_station_log, accessible_data_dict, data_accessed_dict, *args, **kwargs):
+    # import glob
+    # ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
+    # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
+    # mount_path = pathlib.Path(ds_config["storage_path"]).absolute()
+    # all_files = set(glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True))
+    # all_files_mounted = set()
+    # for f in all_files:
+    #     all_files_mounted.add(f.replace("SM_storage", "SM_storage_mount/1/"+api))
+
+    # TODO: add the intent-policy matching process in here
 
     # zz: create an exec env (docker)
     # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
@@ -108,54 +164,154 @@ def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
     for cur_id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
 
-    ds_path = str(pathlib.Path(__file__).parent.resolve().parent)
-    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
-    ds_storage_mount_path = ds_config["mount_path"]
+    # accessible_data_paths_mounted = set()
+    # for f in accessible_data_paths:
+    #     accessible_data_paths_mounted.add(f.replace("SM_storage", "SM_storage_mount/" + str(cur_user_id) + "/" + api))
 
-    # TODO: we might not need to pass user_id and api_name to interceptor
-    mount_point = str(pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute())
-    pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
+    # print(accessible_data_paths)
+    # with open("/tmp/accessible_data_paths.txt", "w") as f:
+    #     for path in accessible_data_paths:
+    #         f.write(path + "\n")
+    #     f.flush()
+    #     os.fsync(f.fileno())
 
-    recv_end, send_end = multiprocessing.Pipe(False)
-    interceptor_process = multiprocessing.Process(target=interceptor.main,
-                                                  args=(ds_storage_path, mount_point, accessible_data_paths, send_end))
-    interceptor_process.start()
-    print("starting interceptor...")
-    time.sleep(1)
-    counter = 0
-    while not os.path.ismount(mount_point):
-        time.sleep(1)
-        counter += 1
-        if counter == 10:
-            print("mount time out")
-            exit(1)
-    print("mounted:", os.path.ismount(mount_point))
+    # f.write(str(all_accessible_data_id))
+
+    # global data_ids_accessed
+    # data_ids_accessed = set()
+    # print(pathlib.Path(__file__).parent.resolve())
+    # ds_path = str(pathlib.Path(__file__).parent.resolve().parent)
+    # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
+    # ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
+    # ds_storage_mount_path = ds_config["mount_path"]
+    #
+    # # TODO: we might not need to pass user_id and api_name to interceptor
+    # mount_point = str(pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute())
+    # pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
+
+    # interceptor_path = pathlib.Path(ds_config["interceptor_path"]).absolute()
+    # print(interceptor_path, ds_storage_path, mount_point)
+    # subprocess.call(["python", str(interceptor_path), str(ds_storage_path), str(mount_point)], shell=False)
+    # time.sleep(1)
+
+    # print("check")
+    # # from Interceptor.interceptor import real_main2
+    #
+    # interceptor_process = Process(target=f, args=("", ""))
+    # time.sleep(5)
+
+    # SessionLocal().close()
+    # engine.dispose()
+    # from dbservice.database_api import get_db
+    # main_conn, interceptor_conn = multiprocessing.Pipe()
+    # interceptor_process = multiprocessing.Process(target=interceptor.main,
+    #                                               args=(ds_storage_path, mount_point, accessible_data_paths,
+    #                                                     interceptor_conn))
+    # # interceptor_process = Process(target=foo, args=(ds_storage_path, mount_point))
+    # interceptor_process.start()
+    # # cwd = os.getcwd()
+    # # interceptor_thread = threading.Thread(target=interceptor.main, args=(ds_storage_path, mount_point))
+    # # interceptor_thread.start()
+    # print("starting interceptor...")
+    # # time.sleep(1)
+    # counter = 0
+    # while not os.path.ismount(mount_point):
+    #     time.sleep(1)
+    #     counter += 1
+    #     if counter == 10:
+    #         print("mount time out")
+    #         return Response(status=1, message="mount time out")
+    # print("mounted:", os.path.ismount(mount_point))
+
+    # main_conn.send(accessible_data_paths)
 
     # Actually calling the api
+
     # TODO: need to change returns
-    api_res = None
-    list_of_apis = get_registered_functions()
-    for cur_api in list_of_apis:
-        if api == cur_api.__name__:
-            api_res = cur_api(*args, **kwargs)
+    print("current process id:", str(os.getpid()))
+    # status = None
+    # list_of_apis = get_registered_functions()
+    # api_pid = None
+    # for cur_api in list_of_apis:
+    #     if api == cur_api.__name__:
+    #         api_process = multiprocessing.Process(target=cur_api, args=args, kwargs=kwargs)
+    #         # api_process = multiprocessing.Process(target=test_api, args=())
+    #         api_process.start()
+    #         api_pid = api_process.pid
+    #         print("api process id:", str(api_pid))
+    #         api_process.join()
+    #         # status = cur_api(*args, **kwargs)
+    app_config = utils.parse_config("app_connector_config.yaml")
+    connector_name = app_config["connector_name"]
+    connector_module_path = app_config["connector_module_path"]
 
-    unmount_status = os.system("umount " + str(mount_point))
-    if unmount_status != 0:
-        print("Unmount failed")
-        return None
+    main_conn, api_conn = multiprocessing.Pipe()
+    api_process = multiprocessing.Process(target=call_actual_api,
+                                          args=(api, connector_name, connector_module_path,
+                                                accessible_data_dict, accessible_data_paths, api_conn,
+                                                *args),
+                                          kwargs=kwargs)
+    api_process.start()
+    api_pid = api_process.pid
+    # print("api process id:", str(api_pid))
+    # signal.set()
+    # accessible_data_dict[api_pid] = accessible_data_paths
+    api_process.join()
+    api_result = main_conn.recv()
+    # signal.clear()
 
-    assert os.path.ismount(mount_point) is False
-    interceptor_process.join()
-    data_accessed = recv_end.recv()
+    # unmount_status = os.system("umount " + str(mount_point))
+    # if unmount_status != 0:
+    #     print("Unmount failed")
+    #     return Response(status=1, message="Unmount failed")
+    #
+    # assert os.path.ismount(mount_point) == False
+    # interceptor_process.join()
+    # data_accessed = main_conn.recv()
 
+    # print(data_accessed)
     data_ids_accessed = set()
-    for path in data_accessed:
-        data_id = record_data_ids_accessed(path, cur_user_id, api)
-        if data_id is not None:
-            data_ids_accessed.add(data_id)
-        else:
-            return None
+    if api_pid in data_accessed_dict.keys():
+        cur_data_accessed = data_accessed_dict[api_pid].copy()
+        del accessible_data_dict[api_pid]
+        del data_accessed_dict[api_pid]
+    # interceptor_thread.join()
+    # os.chdir(cwd)
+    # engine.dispose()
+
+    # host = "localhost"
+    # port = 6666
+    # sock = socket.socket()
+    # sock.connect((host, port))
+    # while True:
+    #     data = sock.recv(1024)
+    #     if not data:
+    #         break
+    #     print(data.decode())
+    # sock.close()
+
+    # counter = 0
+    # while not pathlib.Path("/tmp/data_accessed.txt").exists():
+    #     time.sleep(1)
+    #     counter += 1
+    #     if counter == 10:
+    #         print("error: /tmp/data_accessed.txt does not exist")
+    #         return None
+    #
+    # data_accessed = []
+    # with open("/tmp/data_accessed.txt", 'r') as f:
+    #     content = f.read()
+    #     if len(content) != 0:
+    #         data_accessed = content.split("\n")[:-1]
+    # print(content)
+        for path in cur_data_accessed:
+            data_id = record_data_ids_accessed(path, cur_user_id, api)
+            if data_id != None:
+                data_ids_accessed.add(data_id)
+            else:
+                # os.remove("/tmp/data_accessed.txt")
+                return Response(status=1, message="cannot get data id from data path")
+
     print("Data ids accessed:")
     print(data_ids_accessed)
 
@@ -163,16 +319,19 @@ def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
         print("All data access allowed by policy.")
         # log operation: logging intent_policy match
         data_station_log.log_intent_policy_match(cur_user_id, api, data_ids_accessed)
-        return api_res
+        print("api_result: ", api_result)
+        return api_result
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
         data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))
-        return None
+        return Response(status=1, message="Some access to optimistic data not allowed by policy.")
     else:
         # We should not get in here in the first place.
+        # TODO: illegal access can still happen since interceptor does not block access
+        #  (except filter out inaccessible data when list dir)
         print("Access to illegal data happened. Something went wrong")
-        return None
+        return Response(status=1, message="Access to illegal data happened. Something went wrong")
 
 
 def record_data_ids_accessed(data_path, user_id, api_name):
