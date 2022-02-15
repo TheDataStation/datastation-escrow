@@ -30,7 +30,6 @@ import threading
 from pathlib import Path
 from collections import defaultdict
 
-
 # import mock_gatekeeper
 # sys.path.append( '.' )
 # import gatekeeper.gatekeeper
@@ -67,6 +66,7 @@ class Xmp(Fuse):
         self.root = '/'
 
         # self.recv_end = connection_p
+
     #     self.accessible_data_paths = []
     #
     #     self.t = threading.Thread(target=self.mythread)
@@ -271,7 +271,6 @@ class Xmp(Fuse):
             else:
                 self.iolock = Lock()
 
-
             # uid, gid, pid = fuse_get_context()
             #
             # print(sys.argv[-1])
@@ -416,41 +415,14 @@ def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict):
 
     global args
     # run in foreground
-    args = ["-f", "-o", "root="+root_dir, mount_point]
+    args = ["-f", "-o", "root=" + root_dir, mount_point]
     # run in background
     # args = ["-o", "root=" + root_dir, mount_point]
-
-    # global data_accessed
-    # data_accessed = defaultdict(set)
-
-    # global accessible_data_paths
-    # accessible_data_paths = accessible_data
-
-    # global connection_p
-    # connection_p = interceptor_conn
 
     global accessible_data_dict_global
     accessible_data_dict_global = accessible_data_dict
     global data_accessed_dict_global
     data_accessed_dict_global = data_accessed_dict
-
-    # global accessible_data_paths
-    # accessible_data_paths = []
-    # with open("/tmp/accessible_data_paths.txt", "r") as f:
-    #     content = f.read()
-    #     if len(content) != 0:
-    #         accessible_data_paths = content.split("\n")[:-1]
-    # print("accessible data paths:")
-    # print(accessible_data_paths)
-    # os.remove("/tmp/accessible_data_paths.txt")
-
-    # host = "localhost"
-    # port = 6666
-    # sock = socket.socket()
-    # sock.bind((host, port))
-    # sock.listen(1)
-
-    # print(args)
 
     usage = """
 Userspace nullfs-alike: mirror the filesystem tree from some point on.
@@ -458,19 +430,14 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
 """ + Fuse.fusage
 
     server = Xmp(
-                 version="%prog " + fuse.__version__,
-                 usage=usage,
-                 dash_s_do='setsingle')
+        version="%prog " + fuse.__version__,
+        usage=usage,
+        dash_s_do='setsingle')
 
     server.parser.add_option(mountopt="root", metavar="PATH", default='/',
                              help="mirror filesystem from under PATH [default: %default]")
-    # server.root = "/Users/zhiruzhu/Desktop/data_station/Interceptor/test"
-    # server.fuse_args.mountpoint = "/Users/zhiruzhu/Desktop/data_station/Interceptor/test_mount/zhiru/union_all_files"
-    # server.parser.fuse_args.mountpoint = "/Users/zhiruzhu/Desktop/data_station/Interceptor/test_mount/zhiru" \
-    #                                      "/union_all_files"
 
     result = server.parse(args=args, values=server, errex=1)
-    # print(result)
 
     try:
         if server.fuse_args.mount_expected():
@@ -480,35 +447,6 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
         sys.exit(1)
 
     server.main()
-
-    # print("Data ids accessed:")
-    # print(data_ids_accessed)
-
-    # TODO: can record data paths instead of ids and move this to gatekeeper
-    # user_id = pathlib.PurePath(args[-1]).parts[-2]
-    # api_name = pathlib.PurePath(args[-1]).parts[-1]
-    # data_ids_accessed = set()
-    # for file_path in data_accessed:
-    #     data_id = gatekeeper.record_data_ids_accessed(file_path, user_id, api_name)
-    #     if data_id != None:
-    #         data_ids_accessed.add(data_id)
-
-    # with open("/tmp/data_accessed.txt", 'w') as f:
-    #     for path in data_accessed:
-    #         f.write(path + "\n")
-    #     f.flush()
-    #     os.fsync(f.fileno())
-    # connection_p.send(data_accessed)
-    # server.stop_thread()
-
-    # host = "localhost"
-    # port = 6666
-    # sock = socket.socket()
-    # sock.bind((host, port))
-    # sock.listen(1)
-    # c, addr = sock.accept()
-    # sock.send(str(data_ids_accessed).encode())
-    # c.close()
 
 
 if __name__ == '__main__':
