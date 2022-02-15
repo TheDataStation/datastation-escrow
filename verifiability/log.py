@@ -43,7 +43,7 @@ class Log:
             self.log = []
         else:
             # Initialize storage
-            # TODO: config
+            # TODO: read log file path from configuration
             pass
 
     def log_intent_definite(self, agent_id: int, api: str, list_des: [int]):

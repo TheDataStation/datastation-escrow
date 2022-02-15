@@ -32,7 +32,7 @@ def generate_private_public_key_pair(public_exponent=65537, key_size=2048):
 
 def generate_symmetric_key():
     """
-    Generates a public private key pair
+    Generates a symmetric key
     """
     sym_key = Fernet.generate_key()
     return sym_key
