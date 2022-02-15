@@ -200,17 +200,13 @@ class ClientAPI:
 
     # data users actually calling the application apis
 
-    def call_api(self, api: API, token, exec_mode, *args, **kwargs):
+    def call_api(self, api: API, token, exec_mode, accessible_data_dict, data_accessed_dict, *args, **kwargs):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        res = gatekeeper.call_api(api,
-                                  cur_username,
-                                  exec_mode,
-                                  self.log,
-                                  *args,
-                                  **kwargs,)
+        res = gatekeeper.call_api(api, cur_username, exec_mode, self.log,
+                                  accessible_data_dict, data_accessed_dict, *args, **kwargs)
         return res
 
     # print out the contents of the log
