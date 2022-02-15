@@ -1,4 +1,5 @@
 # This script loads a complete state of the data station
+import pathlib
 import sys
 import main
 import os
@@ -6,7 +7,9 @@ import shutil
 import time
 import math
 import random
+import multiprocessing
 
+from Interceptor import interceptor
 from common import utils
 from models.user import *
 from models.policy import *
@@ -32,125 +35,159 @@ if __name__ == '__main__':
     ds_config = utils.parse_config("data_station_config.yaml")
     app_config = utils.parse_config("app_connector_config.yaml")
 
-    client_api = main.initialize_system(ds_config, app_config)
+    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
+    mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
 
-    # cur_time = time.time()
-    # print("System initialization done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+    with multiprocessing.Manager() as manager:
 
-    # Adding new users
+        accessible_data_dict = manager.dict()
+        data_accessed_dict = manager.dict()
+        # signal = multiprocessing.Event()
 
-    client_api.create_user(User(user_name="jerry", password="string"))
-    client_api.create_user(User(user_name="lucy", password="123456"))
-    client_api.create_user(User(user_name="david", password="string"))
+        interceptor_process = multiprocessing.Process(target=interceptor.main,
+                                                      args=(ds_storage_path,
+                                                            mount_point,
+                                                            accessible_data_dict,
+                                                            data_accessed_dict))
+        interceptor_process.start()
+        print("starting interceptor...")
+        # time.sleep(1)
+        counter = 0
+        while not os.path.ismount(mount_point):
+            time.sleep(1)
+            counter += 1
+            if counter == 10:
+                print("mount time out")
+                exit(1)
+        print("Mounted {} to {}".format(ds_storage_path, mount_point))
 
-    cur_time = time.time()
-    print("User addition done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
-    prev_time = cur_time
+        client_api = main.initialize_system(ds_config, app_config)
 
-    # Log in a user to get a token
+        # cur_time = time.time()
+        # print("System initialization done")
+        # print("--- %s seconds ---" % (cur_time - prev_time))
+        # prev_time = cur_time
 
-    cur_token = client_api.login_user("jerry", "string")["access_token"]
+        # Adding new users
 
-    # cur_time = time.time()
-    # print("Log in done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+        client_api.create_user(User(user_name="jerry", password="string"))
+        client_api.create_user(User(user_name="lucy", password="123456"))
+        client_api.create_user(User(user_name="david", password="string"))
 
-    # Look at all available APIs and APIDependencies
+        cur_time = time.time()
+        print("User addition done")
+        print("--- %s seconds ---" % (cur_time - prev_time))
+        prev_time = cur_time
 
-    list_of_apis = client_api.get_all_apis(cur_token)
-    list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
-    print(list_of_apis)
-    print(list_of_api_dependencies)
+        # Log in a user to get a token
 
-    # cur_time = time.time()
-    # print("Looking at dependency graph done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+        cur_token = client_api.login_user("jerry", "string")["access_token"]
 
-    # Upload datasets
+        # cur_time = time.time()
+        # print("Log in done")
+        # print("--- %s seconds ---" % (cur_time - prev_time))
+        # prev_time = cur_time
 
-    # First clear SM_storage
+        # Look at all available APIs and APIDependencies
 
-    folder = 'SM_storage'
-    for filename in os.listdir(folder):
-        file_path = os.path.join(folder, filename)
-        if os.path.isfile(file_path) or os.path.islink(file_path):
-            os.unlink(file_path)
-        elif os.path.isdir(file_path):
-            shutil.rmtree(file_path)
+        list_of_apis = client_api.get_all_apis(cur_token)
+        list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+        print(list_of_apis)
+        print(list_of_api_dependencies)
 
-    num_files = test_config["num_files"]
-    opt_data_proportion = test_config["opt_data_proportion"]
-    list_of_data_ids = []
+        # cur_time = time.time()
+        # print("Looking at dependency graph done")
+        # print("--- %s seconds ---" % (cur_time - prev_time))
+        # prev_time = cur_time
 
-    for cur_num in range(num_files):
-        cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "test/test_file_full_trust/train-" + str(cur_file_index) + ".csv"
-        cur_file = open(cur_full_name, "rb")
-        cur_file_bytes = cur_file.read()
-        cur_optimistic_flag = False
-        if random.random() < opt_data_proportion:
-            cur_optimistic_flag = True
-        name_to_upload = "file-" + str(cur_num+1)
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
-                                            "file",
-                                            cur_optimistic_flag,
-                                            cur_token,)
-        if cur_res.status == 0:
-            list_of_data_ids.append(cur_res.data_id)
-        cur_file.close()
+        # Upload datasets
 
-    # print(list_of_data_ids)
+        # First clear the storage place
 
-    cur_time = time.time()
-    print("Uploading datasets done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
-    prev_time = cur_time
+        folder = 'SM_storage'
+        for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
 
-    # Upload Policies
+        num_files = test_config["num_files"]
+        opt_data_proportion = test_config["opt_data_proportion"]
+        list_of_data_ids = []
 
-    data_with_policy_proportion = test_config["data_with_policy_proportion"]
-    num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
+        for cur_num in range(num_files):
+            cur_file_index = (cur_num % 6) + 1
+            cur_full_name = "test/test_file/train-" + str(cur_file_index) + ".csv"
+            cur_file = open(cur_full_name, "rb")
+            cur_file_bytes = cur_file.read()
+            cur_optimistic_flag = False
+            if random.random() < opt_data_proportion:
+                cur_optimistic_flag = True
+            name_to_upload = "file-" + str(cur_num + 1)
+            cur_res = client_api.upload_dataset(name_to_upload,
+                                                cur_file_bytes,
+                                                "file",
+                                                cur_optimistic_flag,
+                                                cur_token, )
+            if cur_res.status == 0:
+                list_of_data_ids.append(cur_res.data_id)
+            cur_file.close()
 
-    # Right now for each dataset, we pick one API for it to create a policy
-    # TODO: change this to something configurable
+        # print(list_of_data_ids)
 
-    # Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
-    # this probability should be in workload_config
+        cur_time = time.time()
+        print("Uploading datasets done")
+        print("--- %s seconds ---" % (cur_time - prev_time))
+        prev_time = cur_time
 
-    policy_proportion = test_config["policy_proportion"]
-    policy_created = 0
+        # Upload Policies
 
-    for api_picked in list_of_apis:
-        for i in range(num_data_with_policy):
-            if random.random() < policy_proportion:
-                policy_created += 1
-                client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+        data_with_policy_proportion = test_config["data_with_policy_proportion"]
+        num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
 
-    cur_time = time.time()
-    print("Uploading policies done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
-    print("Number of policies created is: " + str(policy_created))
-    print("Expected number of policies is: " + str(math.floor(num_data_with_policy*len(list_of_apis)*policy_proportion)))
-    prev_time = cur_time
+        # Right now for each dataset, we pick one API for it to create a policy
+        # TODO: change this to something configurable
 
-    # call available APIs
-    client_api.call_api("preprocess", cur_token, "optimistic")
-    print("preprocess finished\n")
-    client_api.call_api("modeltrain", cur_token, "optimistic")
-    print("modeltrain finished\n")
-    client_api.call_api("predict", cur_token, "pessimistic", 10, 5)
-    print("predict finished\n")
+        # Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
+        # this probability should be in workload_config
 
-    cur_time = time.time()
-    print("Calling APIs done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
-    prev_time = cur_time
+        policy_proportion = test_config["policy_proportion"]
+        policy_created = 0
 
-    # take a look at the log
-    client_api.print_log()
+        for api_picked in list_of_apis:
+            for i in range(num_data_with_policy):
+                if random.random() < policy_proportion:
+                    policy_created += 1
+                    client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+
+        cur_time = time.time()
+        print("Uploading policies done")
+        print("--- %s seconds ---" % (cur_time - prev_time))
+        print("Number of policies created is: " + str(policy_created))
+        print("Expected number of policies is: " + str(
+            math.floor(num_data_with_policy * len(list_of_apis) * policy_proportion)))
+        prev_time = cur_time
+
+        # call available APIs
+        client_api.call_api("preprocess", cur_token, "optimistic", accessible_data_dict, data_accessed_dict)
+        print("preprocess finished\n")
+        client_api.call_api("modeltrain", cur_token, "optimistic", accessible_data_dict, data_accessed_dict)
+        print("modeltrain finished\n")
+        client_api.call_api("predict", cur_token, "pessimistic", accessible_data_dict, data_accessed_dict, 10, 5)
+        print("predict finished\n")
+
+        unmount_status = os.system("umount " + str(mount_point))
+        if unmount_status != 0:
+            print("Unmount failed")
+            exit(1)
+        assert os.path.ismount(mount_point) == False
+        interceptor_process.join()
+
+        cur_time = time.time()
+        print("Calling APIs done")
+        print("--- %s seconds ---" % (cur_time - prev_time))
+        prev_time = cur_time
+
+        # take a look at the log
+        client_api.print_log()

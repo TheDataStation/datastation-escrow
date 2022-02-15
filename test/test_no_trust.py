@@ -174,7 +174,7 @@ if __name__ == '__main__':
     #
     # # Let's first get a new token
     # cur_token = client_api.login_user("lucy", "string")["access_token"]
-    # # Then get the encrypted file
+    # Then get the encrypted file
     # data_retrieved = client_api.retrieve_data_by_id(1, cur_token)
     # # Then decrypt it using the current user's sym key
     # cur_user_sym_key = client_api.key_manager.agents_symmetric_key[2]
