@@ -24,7 +24,7 @@ def preprocess():
                 cur_file.readline()
             print("read ", file)
 
-    return 0
+    return "preprocess result"
 
 
 @register(depends_on=[preprocess])
@@ -32,7 +32,7 @@ def modeltrain():
     """trains the model"""
     res = preprocess()
     print("modeltrain called")
-    return 0
+    return "modeltrain result"
 
 
 @register(depends_on=[modeltrain])
@@ -42,4 +42,4 @@ def predict(accuracy: int,
     res = modeltrain()
     print("Prediction accuracy is " + str(accuracy) + " percent :(")
     print("Please try " + str(num_times) + " times more!")
-    return 0
+    return "predict result"
