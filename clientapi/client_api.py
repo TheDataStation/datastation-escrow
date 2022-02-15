@@ -172,12 +172,12 @@ class ClientAPI:
     # data users actually calling the application apis
 
     @staticmethod
-    def call_api(api: API, token, *args, **kwargs):
+    def call_api(api: API, token, accessible_data_dict, data_accessed_dict, *args, **kwargs):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        res = gatekeeper.call_api(api, cur_username, *args, **kwargs)
+        res = gatekeeper.call_api(api, cur_username, accessible_data_dict, data_accessed_dict, *args, **kwargs)
         return res
 
     # print out the contents of the log

@@ -86,7 +86,13 @@ def test_api():
             print("read ", file)
 
 
-def call_actual_api(api_name, connector_name, connector_module_path, *args, **kwargs):
+def call_actual_api(api_name, connector_name, connector_module_path,
+                    accessible_data_dict, accessible_data_paths, *args, **kwargs):
+
+    api_pid = os.getpid()
+    print("api process id:", str(api_pid))
+    accessible_data_dict[api_pid] = accessible_data_paths
+
     # print("xxxxxxxxxx")
     # print(api_name, *args, **kwargs)
     register_connectors(connector_name, connector_module_path)
@@ -98,7 +104,7 @@ def call_actual_api(api_name, connector_name, connector_module_path, *args, **kw
             status = cur_api(*args, **kwargs)
 
 
-def call_api(api, cur_username, *args, **kwargs):
+def call_api(api, cur_username, accessible_data_dict, data_accessed_dict, *args, **kwargs):
     # import glob
     # ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
     # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
@@ -161,14 +167,14 @@ def call_api(api, cur_username, *args, **kwargs):
     # global data_ids_accessed
     # data_ids_accessed = set()
     # print(pathlib.Path(__file__).parent.resolve())
-    ds_path = str(pathlib.Path(__file__).parent.resolve().parent)
-    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
-    ds_storage_mount_path = ds_config["mount_path"]
-
-    # TODO: we might not need to pass user_id and api_name to interceptor
-    mount_point = str(pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute())
-    pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
+    # ds_path = str(pathlib.Path(__file__).parent.resolve().parent)
+    # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
+    # ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
+    # ds_storage_mount_path = ds_config["mount_path"]
+    #
+    # # TODO: we might not need to pass user_id and api_name to interceptor
+    # mount_point = str(pathlib.Path(os.path.join(ds_storage_mount_path, str(cur_user_id), api)).absolute())
+    # pathlib.Path(mount_point).mkdir(parents=True, exist_ok=True)
 
     # interceptor_path = pathlib.Path(ds_config["interceptor_path"]).absolute()
     # print(interceptor_path, ds_storage_path, mount_point)
@@ -184,25 +190,25 @@ def call_api(api, cur_username, *args, **kwargs):
     # SessionLocal().close()
     # engine.dispose()
     # from dbservice.database_api import get_db
-    main_conn, interceptor_conn = multiprocessing.Pipe()
-    interceptor_process = multiprocessing.Process(target=interceptor.main,
-                                                  args=(ds_storage_path, mount_point, accessible_data_paths,
-                                                        interceptor_conn))
-    # interceptor_process = Process(target=foo, args=(ds_storage_path, mount_point))
-    interceptor_process.start()
-    # cwd = os.getcwd()
-    # interceptor_thread = threading.Thread(target=interceptor.main, args=(ds_storage_path, mount_point))
-    # interceptor_thread.start()
-    print("starting interceptor...")
-    # time.sleep(1)
-    counter = 0
-    while not os.path.ismount(mount_point):
-        time.sleep(1)
-        counter += 1
-        if counter == 10:
-            print("mount time out")
-            return Response(status=1, message="mount time out")
-    print("mounted:", os.path.ismount(mount_point))
+    # main_conn, interceptor_conn = multiprocessing.Pipe()
+    # interceptor_process = multiprocessing.Process(target=interceptor.main,
+    #                                               args=(ds_storage_path, mount_point, accessible_data_paths,
+    #                                                     interceptor_conn))
+    # # interceptor_process = Process(target=foo, args=(ds_storage_path, mount_point))
+    # interceptor_process.start()
+    # # cwd = os.getcwd()
+    # # interceptor_thread = threading.Thread(target=interceptor.main, args=(ds_storage_path, mount_point))
+    # # interceptor_thread.start()
+    # print("starting interceptor...")
+    # # time.sleep(1)
+    # counter = 0
+    # while not os.path.ismount(mount_point):
+    #     time.sleep(1)
+    #     counter += 1
+    #     if counter == 10:
+    #         print("mount time out")
+    #         return Response(status=1, message="mount time out")
+    # print("mounted:", os.path.ismount(mount_point))
 
     # main_conn.send(accessible_data_paths)
 
@@ -234,23 +240,32 @@ def call_api(api, cur_username, *args, **kwargs):
     connector_module_path = app_config["connector_module_path"]
 
     api_process = multiprocessing.Process(target=call_actual_api,
-                                          args=(api, connector_name, connector_module_path, *args),
+                                          args=(api, connector_name, connector_module_path,
+                                                accessible_data_dict, accessible_data_paths, *args),
                                           kwargs=kwargs)
     api_process.start()
     api_pid = api_process.pid
-    print("api process id:", str(api_pid))
+    # print("api process id:", str(api_pid))
+    # signal.set()
+    # accessible_data_dict[api_pid] = accessible_data_paths
     api_process.join()
+    # signal.clear()
 
-    unmount_status = os.system("umount " + str(mount_point))
-    if unmount_status != 0:
-        print("Unmount failed")
-        return Response(status=1, message="Unmount failed")
+    # unmount_status = os.system("umount " + str(mount_point))
+    # if unmount_status != 0:
+    #     print("Unmount failed")
+    #     return Response(status=1, message="Unmount failed")
+    #
+    # assert os.path.ismount(mount_point) == False
+    # interceptor_process.join()
+    # data_accessed = main_conn.recv()
 
-    assert os.path.ismount(mount_point) == False
-    interceptor_process.join()
-    data_accessed = main_conn.recv()
     # print(data_accessed)
-    cur_data_accessed = data_accessed[api_pid]
+    data_ids_accessed = set()
+    if api_pid in data_accessed_dict.keys():
+        cur_data_accessed = data_accessed_dict[api_pid].copy()
+        del accessible_data_dict[api_pid]
+        del data_accessed_dict[api_pid]
     # interceptor_thread.join()
     # os.chdir(cwd)
     # engine.dispose()
@@ -280,14 +295,13 @@ def call_api(api, cur_username, *args, **kwargs):
     #     if len(content) != 0:
     #         data_accessed = content.split("\n")[:-1]
     # print(content)
-    data_ids_accessed = set()
-    for path in cur_data_accessed:
-        data_id = record_data_ids_accessed(path, cur_user_id, api)
-        if data_id != None:
-            data_ids_accessed.add(data_id)
-        else:
-            # os.remove("/tmp/data_accessed.txt")
-            return Response(status=1, message="cannot get data id from data path")
+        for path in cur_data_accessed:
+            data_id = record_data_ids_accessed(path, cur_user_id, api)
+            if data_id != None:
+                data_ids_accessed.add(data_id)
+            else:
+                # os.remove("/tmp/data_accessed.txt")
+                return Response(status=1, message="cannot get data id from data path")
 
     print("Data ids accessed:")
     print(data_ids_accessed)
