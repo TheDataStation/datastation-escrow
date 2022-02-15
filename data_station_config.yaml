@@ -3,4 +3,4 @@ storage_path: "./SM_storage/"
 log_in_memory: True
 mount_path: "./SM_storage_mount/"
 database_url: "sqlite:///./data_station.db"
-trust_mode: "no_trust"
+trust_mode: "full_trust"
