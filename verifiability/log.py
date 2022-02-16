@@ -32,20 +32,18 @@ class Log:
                                 caller_id: int,
                                 api: str,
                                 accessed_DE: [int],
-                                trust_mode,
                                 key_manager,):
         match_content = MatchContent(status=True,
                                      api=api,
                                      accessed_DE=accessed_DE,)
         log_entry = IntentPolicyMatch(caller_id=caller_id, content=match_content)
-        self._log(log_entry, trust_mode, key_manager)
+        self._log(log_entry, key_manager)
 
     def log_intent_policy_mismatch(self,
                                    caller_id: int,
                                    api: str,
                                    accessed_DE: [int],
                                    accessible_DE_by_policy: [int],
-                                   trust_mode,
                                    key_manager,):
         mismatch_content = MismatchContent(status=False,
                                            api=api,
@@ -53,9 +51,9 @@ class Log:
                                            accessible_DE_by_policy=accessible_DE_by_policy,)
         log_entry = IntentPolicyMismatch(caller_id=caller_id,
                                          content=mismatch_content)
-        self._log(log_entry, trust_mode, key_manager)
+        self._log(log_entry, key_manager)
 
-    def _log(self, entry, trust_mode, key_manager):
+    def _log(self, entry, key_manager):
         # In memory mode: since memory is always encrypted, we just append
         if self.in_memory:
             self.log.append(entry)
@@ -90,17 +88,33 @@ class Log:
                     encrypted_entry_in_bytes = pickle.dumps(encrypted_entry)
                     log.write(encrypted_entry_in_bytes)
 
-    def read_full_log(self):
+    def read_full_log(self, key_manager):
         print("Printing contents of the log:")
         # Case 1: log is in-memory
         if self.in_memory:
             for cur_entry in self.log:
-                print(cur_entry)
+                print("Caller ID is: ")
+                print(cur_entry.caller_id)
+                print("Entry content is: ")
+                print(cur_entry.content)
         # Case 2: log is on disk
         else:
             entries = self.loadall(self.log_path)
             for cur_entry in entries:
-                print(cur_entry)
+                print("Caller ID is: ")
+                print(cur_entry.caller_id)
+                # Case 2.1: log is in plaintext
+                if not self.encrypted:
+                    print("Entry content is: ")
+                    print(cur_entry.content)
+                # Case 2.2: log is encrypted (no_trust mode)
+                else:
+                    # Get the caller's symmetric key
+                    caller_sym_key_bytes = key_manager.agents_symmetric_key[cur_entry.caller_id]
+                    caller_sym_key = cu.get_symmetric_key_from_bytes(caller_sym_key_bytes)
+                    cur_plain_content_in_bytes = caller_sym_key.decrypt(cur_entry.content)
+                    cur_content_object = pickle.loads(cur_plain_content_in_bytes)
+                    print(cur_content_object)
 
     @staticmethod
     def loadall(filename):
