@@ -8,6 +8,9 @@ class Response(BaseModel):
     status: int
     message: str
 
+class UploadUserResponse(Response):
+    user_id: int
+
 class UploadDataResponse(Response):
     data_id: int
 
@@ -17,6 +20,9 @@ class RemoveDataResponse(Response):
 
 class StoreDataResponse(Response):
     access_type: str
+
+class RetrieveDataResponse(Response):
+    data: bytes
 
 class GetAPIResponse(Response):
     data: List[str]

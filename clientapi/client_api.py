@@ -6,6 +6,7 @@ from dbservice import database_api
 from models.api import *
 from models.api_dependency import *
 from models.user import *
+from models.dataset import *
 from models.response import *
 from models.policy import *
 
@@ -16,13 +17,24 @@ from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
 import pathlib
+from crypto.key_manager import KeyManager
+from crypto import cryptoutils as cu
 
 class ClientAPI:
 
-    def __init__(self, storageManager: StorageManager, data_station_log: Log,
+    def __init__(self,
+                 storageManager: StorageManager,
+                 data_station_log: Log,
+                 keyManager: KeyManager,
+                 trust_mode: str,
                  interceptor_process, accessible_data_dict, data_accessed_dict):
+
         self.storage_manager = storageManager
         self.log = data_station_log
+        self.key_manager = keyManager
+
+        # The following field decides the trust mode for the DS
+        self.trust_mode = trust_mode
 
         self.interceptor_process = interceptor_process
         self.accessible_data_dict = accessible_data_dict
@@ -48,9 +60,20 @@ class ClientAPI:
 
     # create user
 
-    @staticmethod
-    def create_user(user: User):
+    def create_user(self, user: User, user_sym_key=None, user_public_key=None):
+
+        # First part: Call the user_register to register the user in the DB
         response = user_register.create_user(user)
+
+        if response.status == 1:
+            return Response(status=response.status, message=response.message)
+
+        # Second part: register this user's symmetric key and public key
+        if self.trust_mode == "no_trust":
+            user_id = response.user_id
+            self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
+            self.key_manager.store_agent_public_key(user_id, user_public_key)
+
         return Response(status=response.status, message=response.message)
 
     # log in
@@ -104,7 +127,7 @@ class ClientAPI:
 
         # We first call SM to store the data
         # Note that SM needs to return access_type (how can the data element be accessed)
-        # so that data_register can register thsi info
+        # so that data_register can register this info
         storage_manager_response = self.storage_manager.store(data_name,
                                                               data_id,
                                                               data_in_bytes,
@@ -205,8 +228,58 @@ class ClientAPI:
         return res
 
     # print out the contents of the log
-    def print_log(self):
-        self.log.print_log()
+
+    def read_full_log(self):
+        self.log.read_full_log()
+
+    # retrieve a file from the storage (for testing purposes)
+
+    def retrieve_data_by_id(self, data_id, token):
+
+        # Perform authentication
+        cur_username = user_register.authenticate_user(token)
+
+        # First get the data element's info from DB
+        resp = database_api.get_dataset_by_id(data_id)
+        if resp.status != 1:
+            return resp
+
+        # If there is no error, we call store_manager.retrieve_data_by_id
+
+        storage_manager_response = self.storage_manager.retrieve_data_by_id(resp.data[0].type,
+                                                                            resp.data[0].access_type,)
+        if storage_manager_response.status == 1:
+            return storage_manager_response
+
+        data_to_return = storage_manager_response.data
+
+        # There are two cases here
+        # 1) full trust mode: the data is not encrypted, we can return it directly
+        # 2) no trust mode: we need to decrypt the data, re-encrypt it using caller's symmetric key, then return
+        if self.trust_mode == "no_trust":
+            # First get caller's id
+            cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
+            # If the user doesn't exist, something is wrong
+            if cur_user.status == -1:
+                print("Something wrong with the current user")
+                return Response(status=1, message="Something wrong with the current user")
+            cur_user_id = cur_user.data[0].id
+
+            # Then get data element's owner id
+            data_owner_response = database_api.get_dataset_owner(Dataset(id=data_id,))
+            if data_owner_response.status == -1:
+                return Response(status=1, message="Error retrieving data owner.")
+            data_owner_id = data_owner_response.data[0].id
+
+            # We get the owner's symmetric key and decrypt the file
+            old_sym_key = self.key_manager.agents_symmetric_key[data_owner_id]
+            plain_data = cu.decrypt_data_with_symmetric_key(data_to_return, old_sym_key)
+
+            # We get the caller's symmetric key and encrypt the file
+            new_sym_key = self.key_manager.agents_symmetric_key[cur_user_id]
+            data_to_return = cu.encrypt_data_with_symmetric_key(plain_data, new_sym_key)
+
+        return data_to_return
 
 
 if __name__ == "__main__":

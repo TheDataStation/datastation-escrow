@@ -8,8 +8,10 @@ titanicML/sample_data/
 .idea/
 Working/
 data_station.db
+ds_log.pkl
 test_process.py
 test_main.py
+test/test_file_no_trust
 
 # C extensions
 *.so
