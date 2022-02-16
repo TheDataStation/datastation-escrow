@@ -58,7 +58,6 @@ def get_accessible_data(user_id, api):
 def call_api(api,
              cur_username,
              exec_mode,
-             trust_mode,
              data_station_log,
              key_manager,
              *args,
@@ -169,7 +168,6 @@ def call_api(api,
         data_station_log.log_intent_policy_match(cur_user_id,
                                                  api,
                                                  data_ids_accessed,
-                                                 trust_mode,
                                                  key_manager,)
         return api_res
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
@@ -179,7 +177,6 @@ def call_api(api,
                                                     api,
                                                     data_ids_accessed,
                                                     set(accessible_data_policy),
-                                                    trust_mode,
                                                     key_manager,)
         return None
     else:
@@ -190,7 +187,6 @@ def call_api(api,
                                                     api,
                                                     data_ids_accessed,
                                                     set(accessible_data_policy),
-                                                    trust_mode,
                                                     key_manager,)
         return None
 
