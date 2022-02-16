@@ -231,3 +231,5 @@ if __name__ == '__main__':
     # take a look at the log
 
     client_api.read_full_log()
+
+    client_api.shut_down(ds_config)
