@@ -100,7 +100,15 @@ def call_actual_api(api_name, connector_name, connector_module_path,
             api_conn.send(result)
 
 
-def call_api(api, cur_username, exec_mode, data_station_log, accessible_data_dict, data_accessed_dict, *args, **kwargs):
+def call_api(api,
+             cur_username,
+             exec_mode,
+             data_station_log,
+             key_manager,
+             accessible_data_dict,
+             data_accessed_dict,
+             *args,
+             **kwargs):
     # import glob
     # ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
     # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
@@ -191,22 +199,33 @@ def call_api(api, cur_username, exec_mode, data_station_log, accessible_data_dic
     if set(data_ids_accessed).issubset(set(accessible_data_policy)):
         print("All data access allowed by policy.")
         # log operation: logging intent_policy match
-        data_station_log.log_intent_policy_match(cur_user_id, api, data_ids_accessed)
+        data_station_log.log_intent_policy_match(cur_user_id,
+                                                 api,
+                                                 data_ids_accessed,
+                                                 key_manager,)
         print("api_result: ", api_result)
         return api_result
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
-        data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))
+        data_station_log.log_intent_policy_mismatch(cur_user_id,
+                                                    api,
+                                                    data_ids_accessed,
+                                                    set(accessible_data_policy),
+                                                    key_manager,)
         return Response(status=1, message="Some access to optimistic data not allowed by policy.")
     else:
         # We should not get in here in the first place.
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)
         print("Access to illegal data happened. Something went wrong")
-        data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))
+        # log operation: logging intent_policy mismatch
+        data_station_log.log_intent_policy_mismatch(cur_user_id,
+                                                    api,
+                                                    data_ids_accessed,
+                                                    set(accessible_data_policy),
+                                                    key_manager,)
         return Response(status=1, message="Access to illegal data happened. Something went wrong.")
-
 
 def record_data_ids_accessed(data_path, user_id, api_name):
     response = database_api.get_dataset_by_access_type(data_path)

@@ -223,14 +223,21 @@ class ClientAPI:
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        res = gatekeeper.call_api(api, cur_username, exec_mode, self.log,
-                                  self.accessible_data_dict, self.data_accessed_dict, *args, **kwargs)
+        res = gatekeeper.call_api(api,
+                                  cur_username,
+                                  exec_mode,
+                                  self.log,
+                                  self.key_manager,
+                                  self.accessible_data_dict,
+                                  self.data_accessed_dict,
+                                  *args,
+                                  **kwargs)
         return res
 
     # print out the contents of the log
 
     def read_full_log(self):
-        self.log.read_full_log()
+        self.log.read_full_log(self.key_manager)
 
     # retrieve a file from the storage (for testing purposes)
 

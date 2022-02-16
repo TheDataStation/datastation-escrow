@@ -4,4 +4,4 @@ log_in_memory: False
 log_path: "ds_log.pkl"
 mount_path: "./SM_storage_mount/"
 database_url: "sqlite:///./data_station.db"
-trust_mode: "full_trust"
+trust_mode: "no_trust"
