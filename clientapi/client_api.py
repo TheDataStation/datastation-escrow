@@ -208,7 +208,9 @@ class ClientAPI:
         res = gatekeeper.call_api(api,
                                   cur_username,
                                   exec_mode,
+                                  self.trust_mode,
                                   self.log,
+                                  self.key_manager,
                                   *args,
                                   **kwargs,)
         return res

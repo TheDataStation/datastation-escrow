@@ -31,6 +31,11 @@ if __name__ == '__main__':
 
     client_api = main.initialize_system(ds_config, app_config)
 
+    # Remove the code block below if testing out durability of log
+    log_path = client_api.log.log_path
+    if os.path.exists(log_path):
+        os.remove(log_path)
+
     # Save data station's public key
     ds_public_key = client_api.key_manager.ds_public_key
 
@@ -180,3 +185,49 @@ if __name__ == '__main__':
     # cur_user_sym_key = client_api.key_manager.agents_symmetric_key[2]
     # data_plain = cu.decrypt_data_with_symmetric_key(data_retrieved, cur_user_sym_key)
     # print(data_plain)
+
+    # Upload Policies
+
+    data_with_policy_proportion = test_config["data_with_policy_proportion"]
+    num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
+
+    # Right now for each dataset, we pick one API for it to create a policy
+    # TODO: change this to something configurable
+
+    # Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
+    # this probability should be in workload_config
+
+    policy_proportion = test_config["policy_proportion"]
+    policy_created = 0
+
+    for api_picked in list_of_apis:
+        for i in range(num_data_with_policy):
+            if random.random() < policy_proportion:
+                policy_created += 1
+                client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+
+    cur_time = time.time()
+    print("Uploading policies done")
+    print("--- %s seconds ---" % (cur_time - prev_time))
+    print("Number of policies created is: " + str(policy_created))
+    print("Expected number of policies is: " + str(
+        math.floor(num_data_with_policy * len(list_of_apis) * policy_proportion)))
+    prev_time = cur_time
+
+    # call available APIs
+
+    client_api.call_api("preprocess", cur_token, "optimistic")
+    print("preprocess finished\n")
+    client_api.call_api("modeltrain", cur_token, "optimistic")
+    print("modeltrain finished\n")
+    client_api.call_api("predict", cur_token, "pessimistic", 10, 5)
+    print("predict finished\n")
+
+    cur_time = time.time()
+    print("Calling APIs done")
+    print("--- %s seconds ---" % (cur_time - prev_time))
+    prev_time = cur_time
+
+    # take a look at the log
+
+    client_api.read_full_log()
