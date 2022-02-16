@@ -1,104 +1,100 @@
 import pickle
-from enum import Enum
 from collections import namedtuple
 
-# TODO: reformat this log so that it fits better to the description
+MatchContent = namedtuple("MatchContent",
+                          "status, api, accessed_DE")
+MismatchContent = namedtuple("MismatchContent",
+                             "status, api, accessed_DE, accessible_DE_by_policy")
+IntentPolicyMatch = namedtuple('IntentPolicyMatch',
+                               'caller_id, content')
+IntentPolicyMismatch = namedtuple('IntentPolicyMismatch',
+                                  'caller_id, content')
 
 class Log:
-    """
-    Definition of log entries. Each has a log_entry_type that determines the meaning of this entry. log_entry_types are
-    declared in an Enum type.
-    """
-    IntentDefiniteDES = namedtuple('IntentFiniteDES',
-                                   'log_entry_type, agent_id, api, list_DES')
-    IntentIndefiniteDES = namedtuple('IntentIndefiniteDES',
-                                     'log_entry_type, agent_id, api')
-    IntentPolicyMatch = namedtuple('IntentPolicyMatch',
-                                   'log_entry_type, agent_id, api, list_DES_accessed')
-    IntentPolicyMismatch = namedtuple('IntentPolicyMismatch',
-                                      'log_entry_type, agent_id, api, list_DES_accessed, list_DES_by_policy')
-    GrantFExecution = namedtuple('GrantFExecution',
-                                 'log_entry_type, agent_id, api')
 
-    """
-    An internal enum class to declare the log entry types
-    """
-    class LogEntryType(Enum):
-        # Indicates an intent with an a priori known list of DEs
-        INTENT_DEFINITE_DES = 1
-        # Indicates an intent with an a priori not known list of DEs
-        INTENT_INDEFINITE_DES = 2
-        # Indicates that an intent matched an existing policy
-        INTENT_POLICY_MATCH = 3
-        # Indicates that an intent did not match an existing policy
-        INTENT_POLICY_MISMATCH = 4
-        # Indicates that a function was granted permission to execute
-        GRANT_F_EXECUTION = 5
-
-    def __init__(self, in_memory=True):
+    def __init__(self, in_memory_flag, log_path, trust_mode):
         # variable to indicate whether this log is in-memory only
-        self.in_memory = in_memory
+        self.in_memory = in_memory_flag
+        # variable to indicate whether this log should be encrypted
+        if trust_mode == "full_trust":
+            self.encrypted = False
+        else:
+            self.encrypted = True
         # Option for in-memory only log
-        if in_memory:
+        if self.in_memory:
             self.log = []
         else:
             # Initialize storage
-            # TODO: read log file path from configuration
-            pass
+            self.log_path = log_path
 
-    def log_intent_definite(self, agent_id: int, api: str, list_des: [int]):
-        entry = self.IntentDefiniteDES(log_entry_type=self.LogEntryType.INTENT_DEFINITE_DES,
-                                       agent_id=agent_id,
-                                       api=api,
-                                       list_DES=list_des)
-        self._log(entry)
-
-    def log_intent_indefinite(self, agent_id: int, api: str):
-        entry = self.IntentIndefiniteDES(log_entry_type=self.LogEntryType.INTENT_INDEFINITE_DES,
-                                         agent_id=agent_id,
-                                         api=api)
-        self._log(entry)
-
-    def log_intent_policy_match(self, agent_id: int, api: str, list_des_accessed: [int]):
-        entry = self.IntentPolicyMatch(log_entry_type=self.LogEntryType.INTENT_POLICY_MATCH,
-                                       agent_id=agent_id,
-                                       api=api,
-                                       list_DES_accessed=list_des_accessed)
-        self._log(entry)
+    def log_intent_policy_match(self, caller_id: int, api: str, accessed_DE: [int]):
+        match_content = MatchContent(status=True,
+                                     api=api,
+                                     accessed_DE=accessed_DE,)
+        log_entry = IntentPolicyMatch(caller_id=caller_id, content=match_content)
+        self._log(log_entry)
 
     def log_intent_policy_mismatch(self,
-                                   agent_id: int,
+                                   caller_id: int,
                                    api: str,
-                                   list_des_accessed: [int],
-                                   list_des_by_policy: [int]):
-        entry = self.IntentPolicyMismatch(log_entry_type=self.LogEntryType.INTENT_POLICY_MISMATCH,
-                                          agent_id=agent_id,
-                                          api=api,
-                                          list_DES_accessed=list_des_accessed,
-                                          list_DES_by_policy=list_des_by_policy,)
-        self._log(entry)
-
-    def log_grant_f_execution(self, agent_id, api):
-        entry = self.GrantFExecution(log_entry_type=self.LogEntryType.GRANT_F_EXECUTION,
-                                     agent_id=agent_id,
-                                     api=api)
-        self._log(entry)
+                                   accessed_DE: [int],
+                                   accessible_DE_by_policy: [int],):
+        mismatch_content = MismatchContent(status=False,
+                                           api=api,
+                                           accessed_DE=accessed_DE,
+                                           accessible_DE_by_policy=accessible_DE_by_policy,)
+        log_entry = IntentPolicyMismatch(caller_id=caller_id,
+                                         content=mismatch_content)
+        self._log(log_entry)
 
     def _log(self, entry):
+        # In memory mode: since memory is always encrypted, we just append
         if self.in_memory:
             self.log.append(entry)
         else:
-            # obtain bytes
-            entry_bytes = pickle.dumps(entry)
-            len_entry_types = len(entry_bytes)
-            # TODO: store these bytes
-            return
+            # case 1: durable, non-encrypted log: write directly
+            # if not self.encrypted:
+                with open(self.log_path, 'ab') as log:
+                    entry_to_add = pickle.dumps(entry)
+                    log.write(entry_to_add)
+            # case 2: durable, encrypted log: need to encrypte the content part
+            # note: we still keep the caller ID field as plaintext
+            # else:
+            #     with open(self.log_path, 'ab') as log:
+            #         # Look at plaintext fields
+            #         # print(entry.caller_id)
+            #         # print(entry.content)
+            #         # Now let's try converting entry.content to bytes
+            #         plain_content_in_bytes = pickle.dumps(entry.content)
+            #         cipher_content_in_bytes = global_sym_key.encrypt(plain_content_in_bytes)
+            #         # print(cipher_content_in_bytes)
+            #         # Let create the new log entry
+            #         if type(entry).__name__ == "IntentPolicyMatch":
+            #             encrypted_entry = IntentPolicyMatch(caller_id=entry.caller_id,
+            #                                                 content=cipher_content_in_bytes,)
+            #         else:
+            #             encrypted_entry = IntentPolicyMismatch(caller_id=entry.caller_id,
+            #                                                    content=cipher_content_in_bytes,)
+            #         encrypted_entry_in_bytes = pickle.dumps(encrypted_entry)
+            #         log.write(encrypted_entry_in_bytes)
 
-    def print_log(self):
+    def read_full_log(self):
         print("Printing contents of the log:")
-        for cur_entry in self.log:
-            print(cur_entry)
+        # Case 1: log is in-memory
+        if self.in_memory:
+            for cur_entry in self.log:
+                print(cur_entry)
+        # Case 2: log is on disk
+        else:
+            entries = self.loadall(self.log_path)
+            for cur_entry in entries:
+                print(cur_entry)
 
-
-if __name__ == "__main__":
-    print("Verifiable Log")
+    @staticmethod
+    def loadall(filename):
+        with open(filename, "rb") as f:
+            while True:
+                try:
+                    yield pickle.load(f)
+                except EOFError:
+                    break

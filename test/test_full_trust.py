@@ -63,6 +63,11 @@ if __name__ == '__main__':
 
         client_api = main.initialize_system(ds_config, app_config)
 
+        # Remove the code block below if testing out durability of log
+        log_path = client_api.log.log_path
+        if os.path.exists(log_path):
+            os.remove(log_path)
+
         # cur_time = time.time()
         # print("System initialization done")
         # print("--- %s seconds ---" % (cur_time - prev_time))
@@ -190,4 +195,4 @@ if __name__ == '__main__':
         prev_time = cur_time
 
         # take a look at the log
-        client_api.print_log()
+        client_api.read_full_log()
