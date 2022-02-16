@@ -38,29 +38,6 @@ if __name__ == '__main__':
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
 
-    # with multiprocessing.Manager() as manager:
-    #
-    #     accessible_data_dict = manager.dict()
-    #     data_accessed_dict = manager.dict()
-    #     # signal = multiprocessing.Event()
-    #
-    #     interceptor_process = multiprocessing.Process(target=interceptor.main,
-    #                                                   args=(ds_storage_path,
-    #                                                         mount_point,
-    #                                                         accessible_data_dict,
-    #                                                         data_accessed_dict))
-    #     interceptor_process.start()
-    #     print("starting interceptor...")
-    #     # time.sleep(1)
-    #     counter = 0
-    #     while not os.path.ismount(mount_point):
-    #         time.sleep(1)
-    #         counter += 1
-    #         if counter == 10:
-    #             print("mount time out")
-    #             exit(1)
-    #     print("Mounted {} to {}".format(ds_storage_path, mount_point))
-
     client_api = main.initialize_system(ds_config, app_config)
 
     # cur_time = time.time()
@@ -182,12 +159,6 @@ if __name__ == '__main__':
     print("--- %s seconds ---" % (cur_time - prev_time))
     prev_time = cur_time
 
-    # unmount_status = os.system("umount " + str(mount_point))
-    # if unmount_status != 0:
-    #     print("Unmount failed")
-    #     exit(1)
-    # assert os.path.ismount(mount_point) == False
-    # interceptor_process.join()
     client_api.shut_down(ds_config)
 
     # take a look at the log
