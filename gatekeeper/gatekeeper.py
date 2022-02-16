@@ -55,7 +55,14 @@ def get_accessible_data(user_id, api):
     return policy_info
 
 
-def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
+def call_api(api,
+             cur_username,
+             exec_mode,
+             trust_mode,
+             data_station_log,
+             key_manager,
+             *args,
+             **kwargs):
 
     # zz: create an exec env (docker)
     # zz: pass the list of accessible data ids to interceptor so it can block illegal file access
@@ -159,17 +166,32 @@ def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
     if set(data_ids_accessed).issubset(set(accessible_data_policy)):
         print("All data access allowed by policy.")
         # log operation: logging intent_policy match
-        data_station_log.log_intent_policy_match(cur_user_id, api, data_ids_accessed)
+        data_station_log.log_intent_policy_match(cur_user_id,
+                                                 api,
+                                                 data_ids_accessed,
+                                                 trust_mode,
+                                                 key_manager,)
         return api_res
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
-        data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))
+        data_station_log.log_intent_policy_mismatch(cur_user_id,
+                                                    api,
+                                                    data_ids_accessed,
+                                                    set(accessible_data_policy),
+                                                    trust_mode,
+                                                    key_manager,)
         return None
     else:
         # We should not get in here in the first place.
         print("Access to illegal data happened. Something went wrong")
-        data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))
+        # log operation: logging intent_policy mismatch
+        data_station_log.log_intent_policy_mismatch(cur_user_id,
+                                                    api,
+                                                    data_ids_accessed,
+                                                    set(accessible_data_policy),
+                                                    trust_mode,
+                                                    key_manager,)
         return None
 
 

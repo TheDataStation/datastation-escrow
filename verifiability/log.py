@@ -1,5 +1,6 @@
 import pickle
 from collections import namedtuple
+from crypto import cryptoutils as cu
 
 MatchContent = namedtuple("MatchContent",
                           "status, api, accessed_DE")
@@ -27,56 +28,67 @@ class Log:
             # Initialize storage
             self.log_path = log_path
 
-    def log_intent_policy_match(self, caller_id: int, api: str, accessed_DE: [int]):
+    def log_intent_policy_match(self,
+                                caller_id: int,
+                                api: str,
+                                accessed_DE: [int],
+                                trust_mode,
+                                key_manager,):
         match_content = MatchContent(status=True,
                                      api=api,
                                      accessed_DE=accessed_DE,)
         log_entry = IntentPolicyMatch(caller_id=caller_id, content=match_content)
-        self._log(log_entry)
+        self._log(log_entry, trust_mode, key_manager)
 
     def log_intent_policy_mismatch(self,
                                    caller_id: int,
                                    api: str,
                                    accessed_DE: [int],
-                                   accessible_DE_by_policy: [int],):
+                                   accessible_DE_by_policy: [int],
+                                   trust_mode,
+                                   key_manager,):
         mismatch_content = MismatchContent(status=False,
                                            api=api,
                                            accessed_DE=accessed_DE,
                                            accessible_DE_by_policy=accessible_DE_by_policy,)
         log_entry = IntentPolicyMismatch(caller_id=caller_id,
                                          content=mismatch_content)
-        self._log(log_entry)
+        self._log(log_entry, trust_mode, key_manager)
 
-    def _log(self, entry):
+    def _log(self, entry, trust_mode, key_manager):
         # In memory mode: since memory is always encrypted, we just append
         if self.in_memory:
             self.log.append(entry)
         else:
             # case 1: durable, non-encrypted log: write directly
-            # if not self.encrypted:
+            if not self.encrypted:
                 with open(self.log_path, 'ab') as log:
                     entry_to_add = pickle.dumps(entry)
                     log.write(entry_to_add)
             # case 2: durable, encrypted log: need to encrypte the content part
             # note: we still keep the caller ID field as plaintext
-            # else:
-            #     with open(self.log_path, 'ab') as log:
-            #         # Look at plaintext fields
-            #         # print(entry.caller_id)
-            #         # print(entry.content)
-            #         # Now let's try converting entry.content to bytes
-            #         plain_content_in_bytes = pickle.dumps(entry.content)
-            #         cipher_content_in_bytes = global_sym_key.encrypt(plain_content_in_bytes)
-            #         # print(cipher_content_in_bytes)
-            #         # Let create the new log entry
-            #         if type(entry).__name__ == "IntentPolicyMatch":
-            #             encrypted_entry = IntentPolicyMatch(caller_id=entry.caller_id,
-            #                                                 content=cipher_content_in_bytes,)
-            #         else:
-            #             encrypted_entry = IntentPolicyMismatch(caller_id=entry.caller_id,
-            #                                                    content=cipher_content_in_bytes,)
-            #         encrypted_entry_in_bytes = pickle.dumps(encrypted_entry)
-            #         log.write(encrypted_entry_in_bytes)
+            else:
+                with open(self.log_path, 'ab') as log:
+                    # Look at plaintext fields
+                    # print(entry.caller_id)
+                    # print(entry.content)
+                    # Now let's try converting entry.content to bytes
+                    plain_content_in_bytes = pickle.dumps(entry.content)
+
+                    # Get the caller's symmetric key
+                    caller_sym_key_bytes = key_manager.agents_symmetric_key[entry.caller_id]
+                    caller_sym_key = cu.get_symmetric_key_from_bytes(caller_sym_key_bytes)
+                    cipher_content_in_bytes = caller_sym_key.encrypt(plain_content_in_bytes)
+                    # print(cipher_content_in_bytes)
+                    # Let create the new log entry
+                    if type(entry).__name__ == "IntentPolicyMatch":
+                        encrypted_entry = IntentPolicyMatch(caller_id=entry.caller_id,
+                                                            content=cipher_content_in_bytes,)
+                    else:
+                        encrypted_entry = IntentPolicyMismatch(caller_id=entry.caller_id,
+                                                               content=cipher_content_in_bytes,)
+                    encrypted_entry_in_bytes = pickle.dumps(encrypted_entry)
+                    log.write(encrypted_entry_in_bytes)
 
     def read_full_log(self):
         print("Printing contents of the log:")
