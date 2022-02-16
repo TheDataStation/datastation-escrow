@@ -143,18 +143,11 @@ def call_api(api, cur_username, exec_mode, data_station_log, accessible_data_dic
     #       Question: how do we know if an intent is definite or indefinite?
     #       Right now we assume that all intents are indefinite intents
 
-    # zz: create a working dir from all_accessible_data_id
-    # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
-    # zz: run api
-    # zz: record all data ids that are accessed by the api through interceptor
-    # zz: check whether access to those data ids is valid, if not we cannot release the results
-
     accessible_data_paths = set()
     for cur_id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
 
     # Actually calling the api
-    # TODO: need to change returns
     print("current process id:", str(os.getpid()))
 
     app_config = utils.parse_config("app_connector_config.yaml")
@@ -176,10 +169,12 @@ def call_api(api, cur_username, exec_mode, data_station_log, accessible_data_dic
     api_result = main_conn.recv()
     # signal.clear()
 
+    if api_pid in accessible_data_dict.keys():
+        del accessible_data_dict[api_pid]
+
     data_ids_accessed = set()
     if api_pid in data_accessed_dict.keys():
         cur_data_accessed = data_accessed_dict[api_pid].copy()
-        del accessible_data_dict[api_pid]
         del data_accessed_dict[api_pid]
 
         for path in cur_data_accessed:
