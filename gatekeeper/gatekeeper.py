@@ -95,9 +95,6 @@ def call_api(api, cur_username, exec_mode, data_station_log, *args, **kwargs):
     #       Question: how do we know if an intent is definite or indefinite?
     #       Right now we assume that all intents are indefinite intents
 
-    # log operation: logging the intent
-    data_station_log.log_intent_indefinite(cur_user_id, api)
-
     # zz: create a working dir from all_accessible_data_id
     # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
     # zz: run api

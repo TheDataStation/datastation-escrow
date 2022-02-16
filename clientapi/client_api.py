@@ -215,8 +215,8 @@ class ClientAPI:
 
     # print out the contents of the log
 
-    def print_log(self):
-        self.log.print_log()
+    def read_full_log(self):
+        self.log.read_full_log()
 
     # retrieve a file from the storage (for testing purposes)
 
