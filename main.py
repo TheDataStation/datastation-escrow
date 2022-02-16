@@ -14,19 +14,20 @@ def initialize_system(ds_config, app_config):
 
     # In this function we set up all components that need to be initialized
 
+    # get the trust mode for the data station
+    trust_mode = ds_config["trust_mode"]
+
     # set up an instance of the storage_manager
     storage_path = ds_config["storage_path"]
     storage_manager = StorageManager(storage_path)
 
     # set up an instance of the log
     log_in_memory_flag = ds_config["log_in_memory"]
-    data_station_log = Log(log_in_memory_flag)
+    log_path = ds_config["log_path"]
+    data_station_log = Log(log_in_memory_flag, log_path, trust_mode)
 
     # set up an instance of the key manager
     key_manager = KeyManager()
-
-    # get the trust mode for the data station
-    trust_mode = ds_config["trust_mode"]
 
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,
