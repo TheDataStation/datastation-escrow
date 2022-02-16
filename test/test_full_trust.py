@@ -40,6 +40,11 @@ if __name__ == '__main__':
 
     client_api = main.initialize_system(ds_config, app_config)
 
+    # Remove the code block below if testing out durability of log
+    log_path = client_api.log.log_path
+    if os.path.exists(log_path):
+        os.remove(log_path)
+
     # cur_time = time.time()
     # print("System initialization done")
     # print("--- %s seconds ---" % (cur_time - prev_time))
@@ -95,7 +100,7 @@ if __name__ == '__main__':
 
     for cur_num in range(num_files):
         cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "test/test_file/train-" + str(cur_file_index) + ".csv"
+        cur_full_name = "test/test_file_full_trust/train-" + str(cur_file_index) + ".csv"
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic_flag = False
@@ -159,7 +164,7 @@ if __name__ == '__main__':
     print("--- %s seconds ---" % (cur_time - prev_time))
     prev_time = cur_time
 
-    client_api.shut_down(ds_config)
-
     # take a look at the log
-    client_api.print_log()
+    client_api.read_full_log()
+
+    client_api.shut_down(ds_config)

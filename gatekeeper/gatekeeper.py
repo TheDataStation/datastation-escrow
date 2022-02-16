@@ -143,8 +143,11 @@ def call_api(api, cur_username, exec_mode, data_station_log, accessible_data_dic
     #       Question: how do we know if an intent is definite or indefinite?
     #       Right now we assume that all intents are indefinite intents
 
-    # log operation: logging the intent
-    data_station_log.log_intent_indefinite(cur_user_id, api)
+    # zz: create a working dir from all_accessible_data_id
+    # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
+    # zz: run api
+    # zz: record all data ids that are accessed by the api through interceptor
+    # zz: check whether access to those data ids is valid, if not we cannot release the results
 
     accessible_data_paths = set()
     for cur_id in all_accessible_data_id:
@@ -206,7 +209,8 @@ def call_api(api, cur_username, exec_mode, data_station_log, accessible_data_dic
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)
         print("Access to illegal data happened. Something went wrong")
-        return Response(status=1, message="Access to illegal data happened. Something went wrong")
+        data_station_log.log_intent_policy_mismatch(cur_user_id, api, data_ids_accessed, set(accessible_data_policy))
+        return Response(status=1, message="Access to illegal data happened. Something went wrong.")
 
 
 def record_data_ids_accessed(data_path, user_id, api_name):

@@ -30,6 +30,22 @@ def generate_private_public_key_pair(public_exponent=65537, key_size=2048):
     return private_key, public_key
 
 
+def generate_symmetric_key():
+    """
+    Generates a symmetric key
+    """
+    sym_key = Fernet.generate_key()
+    return sym_key
+
+
+def get_symmetric_key_from_bytes(key_bytes):
+    """
+    Generates a Fernet key from bytes
+    """
+    sym_key = Fernet(key_bytes)
+    return sym_key
+
+
 def encrypt_data_with_public_key(data, public_key):
     """
     Given data and a public key, it encrypts the data
@@ -79,12 +95,13 @@ def encrypt_data_with_symmetric_key(data, key):
 
 def decrypt_data_with_symmetric_key(ciphertext, key):
     """
-    Given a ciphertext and a symmetric key, decrypt the data in-memory
+    Given a ciphertext and a symmetric key in bytes, decrypt the data in-memory
     :return:
     """
     f = Fernet(key)
     data = f.decrypt(ciphertext)
-    return from_bytes(data)
+    return data
+    # return from_bytes(data)
 
 
 def sign_data(data, private_key):

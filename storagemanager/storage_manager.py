@@ -51,3 +51,17 @@ class StorageManager:
 
         # Other types of data elements are not currently supported
         return Response(status=1, message="data type not currently supported")
+
+    @staticmethod
+    def retrieve_data_by_id(data_type, data_access_type):
+        if data_type == "file":
+            f = open(data_access_type, 'rb')
+            data_retrieved = f.read()
+            f.close()
+            return RetrieveDataResponse(status=0,
+                                        message="data content retrieved successfully",
+                                        data=data_retrieved,)
+
+        # Other types of data elements are not currently supported
+        return Response(status=1, message="data type not currently supported")
+
