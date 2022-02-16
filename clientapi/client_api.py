@@ -1,4 +1,5 @@
 import random
+import os
 
 from dbservice import database_api
 
@@ -14,13 +15,18 @@ from policybroker import policy_broker
 from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
-
+import pathlib
 
 class ClientAPI:
 
-    def __init__(self, storageManager: StorageManager, data_station_log: Log):
+    def __init__(self, storageManager: StorageManager, data_station_log: Log,
+                 interceptor_process, accessible_data_dict, data_accessed_dict):
         self.storage_manager = storageManager
         self.log = data_station_log
+
+        self.interceptor_process = interceptor_process
+        self.accessible_data_dict = accessible_data_dict
+        self.data_accessed_dict = data_accessed_dict
 
         # The following code decides which data_id we should use when we upload a new data
         # right now we are just incrementing by 1
@@ -29,6 +35,16 @@ class ClientAPI:
             self.cur_data_id = resp.data[0].id + 1
         else:
             self.cur_data_id = 1
+
+    def shut_down(self, ds_config):
+        # zz: unmount and stop interceptor
+        mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
+        unmount_status = os.system("umount " + str(mount_point))
+        if unmount_status != 0:
+            print("Unmount failed")
+            exit(1)
+        assert os.path.ismount(mount_point) == False
+        self.interceptor_process.join()
 
     # create user
 
@@ -179,13 +195,13 @@ class ClientAPI:
 
     # data users actually calling the application apis
 
-    def call_api(self, api: API, token, exec_mode, accessible_data_dict, data_accessed_dict, *args, **kwargs):
+    def call_api(self, api: API, token, exec_mode, *args, **kwargs):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
         res = gatekeeper.call_api(api, cur_username, exec_mode, self.log,
-                                  accessible_data_dict, data_accessed_dict, *args, **kwargs)
+                                  self.accessible_data_dict, self.data_accessed_dict, *args, **kwargs)
         return res
 
     # print out the contents of the log
