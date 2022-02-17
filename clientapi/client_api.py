@@ -37,7 +37,7 @@ class ClientAPI:
 
         # The following field decides which user_id we should use when we upload a new user
         # Right now we are just incrementing by 1
-        user_id_resp = database_api.get_data_with_max_id()
+        user_id_resp = database_api.get_user_with_max_id()
         if user_id_resp.status == 1:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
@@ -254,7 +254,16 @@ class ClientAPI:
     # recover DB from the contents of the WAL
 
     def recover_db_from_wal(self):
+        # Step 1: restruct the DB
         self.write_ahead_log.recover_db_from_wal(self.key_manager)
+
+        # Step 2: reset self.cur_user_id from DB
+        user_id_resp = database_api.get_user_with_max_id()
+        if user_id_resp.status == 1:
+            self.cur_user_id = user_id_resp.data[0].id + 1
+        else:
+            self.cur_user_id = 1
+        # print("User ID to use after recovering DB is: "+str(self.cur_user_id))
 
     # For testing purposes: persist keys to a file
 
