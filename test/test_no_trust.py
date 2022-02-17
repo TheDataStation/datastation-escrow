@@ -15,6 +15,7 @@ from crypto import cryptoutils as cu
 
 if __name__ == '__main__':
 
+    # In the beginning we always remove the existing DB
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
@@ -255,5 +256,18 @@ if __name__ == '__main__':
     else:
         print("Starting from recovery mode")
 
-    # For testing: load the agents symmetric keys
-    # client_api.load_symmetric_keys()
+        # Recovery step 1: initialize system from data_station_config and app_connector_config
+        ds_config = utils.parse_config("data_station_config.yaml")
+        app_config = utils.parse_config("app_connector_config.yaml")
+
+        client_api = main.initialize_system(ds_config, app_config)
+
+        # Upon the initialization of client_api, all tables in DB should be empty except for API and APIDependency.
+
+        # Recovery step 2: recover the symmetric keys from file (for testing purposes)
+        client_api.load_symmetric_keys()
+        # # Test if successful
+        # client_api.read_wal()
+
+        # Recovery step 3: execute the statements in the WAL to recover the DB
+        client_api.recover_db_from_wal()
