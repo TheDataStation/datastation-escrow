@@ -1,5 +1,6 @@
 import pickle
 from collections import namedtuple
+from crypto import cryptoutils as cu
 
 WriteContent = namedtuple("WriteContent",
                           "caller_id, content")
@@ -9,9 +10,21 @@ class WAL:
     def __init__(self, wal_path):
         self.wal_path = wal_path
 
-    def log(self, caller_id, entry):
+    def log(self, caller_id, entry, key_manager):
+
+        # First convert content to bytes
+        plain_content_in_bytes = pickle.dumps(entry)
+
+        # Get the caller's symmetric key and encrypt
+        caller_sym_key_bytes = key_manager.agents_symmetric_key[caller_id]
+        caller_sym_key = cu.get_symmetric_key_from_bytes(caller_sym_key_bytes)
+        cipher_content_in_bytes = caller_sym_key.encrypt(plain_content_in_bytes)
+
+        # Create WriteContent
         write_content = WriteContent(caller_id=caller_id,
-                                     content=entry)
+                                     content=cipher_content_in_bytes)
+
+        # Write to WAL
         with open(self.wal_path, 'ab') as log:
             entry_to_add = pickle.dumps(write_content)
             log.write(entry_to_add)

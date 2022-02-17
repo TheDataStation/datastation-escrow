@@ -73,7 +73,7 @@ class Log:
                     # Now let's try converting entry.content to bytes
                     plain_content_in_bytes = pickle.dumps(entry.content)
 
-                    # Get the caller's symmetric key
+                    # Get the caller's symmetric key and encrypt
                     caller_sym_key_bytes = key_manager.agents_symmetric_key[entry.caller_id]
                     caller_sym_key = cu.get_symmetric_key_from_bytes(caller_sym_key_bytes)
                     cipher_content_in_bytes = caller_sym_key.encrypt(plain_content_in_bytes)
