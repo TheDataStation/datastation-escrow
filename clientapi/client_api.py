@@ -29,7 +29,7 @@ class ClientAPI:
                  trust_mode: str):
         self.storage_manager = storageManager
         self.log = data_station_log
-        self.write_ahead_log = write_ahead_log,
+        self.write_ahead_log = write_ahead_log
         self.key_manager = keyManager
 
         # The following field decides the trust mode for the DS
@@ -244,6 +244,11 @@ class ClientAPI:
 
     def read_full_log(self):
         self.log.read_full_log(self.key_manager)
+
+    # print out the contents of the WAL
+
+    def read_wal(self):
+        self.write_ahead_log.read_wal()
 
     # retrieve a file from the storage (for testing purposes)
 
