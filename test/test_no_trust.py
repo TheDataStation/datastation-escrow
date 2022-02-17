@@ -240,3 +240,11 @@ if __name__ == '__main__':
     # take a look at the WAL
 
     client_api.read_wal()
+
+    # For testing: save the agents' symmetric keys
+    if os.path.exists("symmetric_keys.pkl"):
+        os.remove("symmetric_keys.pkl")
+    client_api.save_symmetric_keys()
+
+    # For testing: load the agents symmetric keys
+    client_api.load_symmetric_keys()
