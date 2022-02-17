@@ -103,13 +103,13 @@ class Log:
             for cur_entry in entries:
                 print("Caller ID is: ")
                 print(cur_entry.caller_id)
+                print("Entry content is: ")
                 # Case 2.1: log is in plaintext
                 if not self.encrypted:
-                    print("Entry content is: ")
                     print(cur_entry.content)
                 # Case 2.2: log is encrypted (no_trust mode)
                 else:
-                    # Get the caller's symmetric key
+                    # Get the caller's symmetric key and decrypt
                     caller_sym_key_bytes = key_manager.agents_symmetric_key[cur_entry.caller_id]
                     caller_sym_key = cu.get_symmetric_key_from_bytes(caller_sym_key_bytes)
                     cur_plain_content_in_bytes = caller_sym_key.decrypt(cur_entry.content)

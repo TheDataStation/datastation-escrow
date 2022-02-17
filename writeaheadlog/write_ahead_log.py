@@ -29,11 +29,19 @@ class WAL:
             entry_to_add = pickle.dumps(write_content)
             log.write(entry_to_add)
 
-    def read_wal(self):
+    def read_wal(self, key_manager):
         print("Printing contents of the write ahead log:")
         entries = self.loadall(self.wal_path)
         for cur_entry in entries:
-            print(cur_entry)
+            print("Caller ID is: ")
+            print(cur_entry.caller_id)
+            print("Entry content is: ")
+            # Get the caller's symmetric key and decrypt
+            caller_sym_key_bytes = key_manager.agents_symmetric_key[cur_entry.caller_id]
+            caller_sym_key = cu.get_symmetric_key_from_bytes(caller_sym_key_bytes)
+            cur_plain_content_in_bytes = caller_sym_key.decrypt(cur_entry.content)
+            cur_content_object = pickle.loads(cur_plain_content_in_bytes)
+            print(cur_content_object)
 
     def recover_db_from_wal(self):
         entries = self.loadall(self.wal_path)
