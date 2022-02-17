@@ -36,6 +36,11 @@ if __name__ == '__main__':
     if os.path.exists(log_path):
         os.remove(log_path)
 
+    # Remove the code block below if testing out durability of wal
+    wal_path = client_api.write_ahead_log.wal_path
+    if os.path.exists(wal_path):
+        os.remove(wal_path)
+
     # Save data station's public key
     ds_public_key = client_api.key_manager.ds_public_key
 
@@ -231,3 +236,7 @@ if __name__ == '__main__':
     # take a look at the log
 
     client_api.read_full_log()
+
+    # take a look at the WAL
+
+    client_api.read_wal()

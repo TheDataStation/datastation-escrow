@@ -17,6 +17,7 @@ class WAL:
             log.write(entry_to_add)
 
     def read_wal(self):
+        print("Printing contents of the write ahead log:")
         entries = self.loadall(self.wal_path)
         for cur_entry in entries:
             print(cur_entry)

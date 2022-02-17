@@ -32,11 +32,13 @@ def create_user(user_id, user_name, password, write_ahead_log=None):
 
     # no existing username, create new user
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-    # # If in no_trust mode, we need to record this ADD_USER to wal
+    # If in no_trust mode, we need to record this ADD_USER to wal
     if write_ahead_log is not None:
-        print(user_id)
-        print(user_name)
-        print(hashed.decode())
+        wal_entry = "database_api.create_user(User(id=" + str(user_id) \
+                    + ",user_name='" + user_name \
+                    + "',password='" + hashed.decode() + \
+                    "'))"
+        write_ahead_log.log(user_id, wal_entry)
     new_user = User(id=user_id,
                     user_name=user_name,
                     password=hashed.decode(),)

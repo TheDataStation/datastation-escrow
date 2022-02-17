@@ -9,6 +9,7 @@ titanicML/sample_data/
 Working/
 data_station.db
 ds_log.pkl
+wal.pkl
 test_process.py
 test_main.py
 test/test_file_no_trust
