@@ -1,5 +1,5 @@
-import random
 import os
+import pickle
 
 from dbservice import database_api
 
@@ -17,6 +17,7 @@ from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
 import pathlib
+from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
 from crypto import cryptoutils as cu
 
@@ -25,12 +26,14 @@ class ClientAPI:
     def __init__(self,
                  storageManager: StorageManager,
                  data_station_log: Log,
+                 write_ahead_log: WAL,
                  keyManager: KeyManager,
                  trust_mode: str,
                  interceptor_process, accessible_data_dict, data_accessed_dict):
 
         self.storage_manager = storageManager
         self.log = data_station_log
+        self.write_ahead_log = write_ahead_log
         self.key_manager = keyManager
 
         # The following field decides the trust mode for the DS
@@ -45,8 +48,25 @@ class ClientAPI:
         resp = database_api.get_data_with_max_id()
         if resp.status == 1:
             self.cur_data_id = resp.data[0].id + 1
+        # The following field decides which user_id we should use when we upload a new user
+        # Right now we are just incrementing by 1
+        user_id_resp = database_api.get_data_with_max_id()
+        if user_id_resp.status == 1:
+            self.cur_user_id = user_id_resp.data[0].id + 1
+        else:
+            self.cur_user_id = 1
+        # print("Starting user id should be:")
+        # print(self.cur_user_id)
+
+        # The following field decides which data_id we should use when we upload a new data
+        # Right now we are just incrementing by 1
+        data_id_resp = database_api.get_data_with_max_id()
+        if data_id_resp.status == 1:
+            self.cur_data_id = data_id_resp.data[0].id + 1
         else:
             self.cur_data_id = 1
+        # print("Starting data id should be:")
+        # print(self.cur_data_id)
 
     def shut_down(self, ds_config):
         # zz: unmount and stop interceptor
@@ -62,17 +82,29 @@ class ClientAPI:
 
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
 
-        # First part: Call the user_register to register the user in the DB
-        response = user_register.create_user(user)
+        # First we decide which user_id to use from ClientAPI.cur_user_id field
+        user_id = self.cur_user_id
+        self.cur_user_id += 1
+
+        # Part one: register this user's symmetric key and public key
+        if self.trust_mode == "no_trust":
+            self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
+            self.key_manager.store_agent_public_key(user_id, user_public_key)
+
+        # Part two: Call the user_register to register the user in the DB
+        if self.trust_mode == "full_trust":
+            response = user_register.create_user(user_id,
+                                                 user.user_name,
+                                                 user.password,)
+        else:
+            response = user_register.create_user(user_id,
+                                                 user.user_name,
+                                                 user.password,
+                                                 self.write_ahead_log,
+                                                 self.key_manager,)
 
         if response.status == 1:
             return Response(status=response.status, message=response.message)
-
-        # Second part: register this user's symmetric key and public key
-        if self.trust_mode == "no_trust":
-            user_id = response.user_id
-            self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
-            self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         return Response(status=response.status, message=response.message)
 
@@ -239,7 +271,31 @@ class ClientAPI:
     def read_full_log(self):
         self.log.read_full_log(self.key_manager)
 
-    # retrieve a file from the storage (for testing purposes)
+    # print out the contents of the WAL
+
+    def read_wal(self):
+        self.write_ahead_log.read_wal(self.key_manager)
+
+    # recover DB from the contents of the WAL
+
+    def recover_db_from_wal(self):
+        self.write_ahead_log.recover_db_from_wal(self.key_manager)
+
+    # For testing purposes: persist keys to a file
+
+    def save_symmetric_keys(self):
+        with open("symmetric_keys.pkl", 'ab') as keys:
+            agents_symmetric_key = pickle.dumps(self.key_manager.agents_symmetric_key)
+            keys.write(agents_symmetric_key)
+
+    # For testing purposes: read keys from a file
+
+    def load_symmetric_keys(self):
+        with open("symmetric_keys.pkl", "rb") as keys:
+            agents_symmetric_key = pickle.load(keys)
+            self.key_manager.agents_symmetric_key = agents_symmetric_key
+
+    # For testing purposes: retrieve a file from the storage
 
     def retrieve_data_by_id(self, data_id, token):
 
