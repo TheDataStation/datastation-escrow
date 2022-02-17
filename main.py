@@ -2,6 +2,7 @@ import os
 import sys
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
+from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
 from gatekeeper import gatekeeper
 from clientapi.client_api import ClientAPI
@@ -26,12 +27,17 @@ def initialize_system(ds_config, app_config):
     log_path = ds_config["log_path"]
     data_station_log = Log(log_in_memory_flag, log_path, trust_mode)
 
+    # set up an instance of the write ahead log
+    wal_path = ds_config["wal_path"]
+    write_ahead_log = WAL(wal_path)
+
     # set up an instance of the key manager
     key_manager = KeyManager()
 
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,
                            data_station_log,
+                           write_ahead_log,
                            key_manager,
                            trust_mode,)
 

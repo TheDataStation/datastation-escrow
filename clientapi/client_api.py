@@ -15,6 +15,7 @@ from policybroker import policy_broker
 from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
+from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
 from crypto import cryptoutils as cu
 
@@ -23,10 +24,12 @@ class ClientAPI:
     def __init__(self,
                  storageManager: StorageManager,
                  data_station_log: Log,
+                 write_ahead_log: WAL,
                  keyManager: KeyManager,
                  trust_mode: str):
         self.storage_manager = storageManager
         self.log = data_station_log
+        self.write_ahead_log = write_ahead_log,
         self.key_manager = keyManager
 
         # The following field decides the trust mode for the DS
