@@ -1,4 +1,4 @@
-import random
+import pickle
 
 from dbservice import database_api
 
@@ -251,7 +251,21 @@ class ClientAPI:
     def read_wal(self):
         self.write_ahead_log.read_wal()
 
-    # retrieve a file from the storage (for testing purposes)
+    # For testing purposes: persist keys to a file
+
+    def save_symmetric_keys(self):
+        with open("symmetric_keys.pkl", 'ab') as keys:
+            agents_symmetric_key = pickle.dumps(self.key_manager.agents_symmetric_key)
+            keys.write(agents_symmetric_key)
+
+    # For testing purposes: read keys from a file
+
+    def load_symmetric_keys(self):
+        with open("symmetric_keys.pkl", "rb") as keys:
+            agents_symmetric_key = pickle.load(keys)
+            self.key_manager.agents_symmetric_key = agents_symmetric_key
+
+    # For testing purposes: retrieve a file from the storage
 
     def retrieve_data_by_id(self, data_id, token):
 
