@@ -1,6 +1,8 @@
 import pickle
 from collections import namedtuple
 from crypto import cryptoutils as cu
+from dbservice import database_api
+from models.user import *
 
 WriteContent = namedtuple("WriteContent",
                           "caller_id, content")
@@ -44,7 +46,17 @@ class WAL:
             print(cur_content_object)
 
     def recover_db_from_wal(self, key_manager):
-        print("WAL: starting recovery")
+        print("WAL starting recovery")
+        entries = self.loadall(self.wal_path)
+        for cur_entry in entries:
+            # Get the caller's symmetric key and decrypt
+            caller_sym_key_bytes = key_manager.agents_symmetric_key[cur_entry.caller_id]
+            caller_sym_key = cu.get_symmetric_key_from_bytes(caller_sym_key_bytes)
+            cur_plain_content_in_bytes = caller_sym_key.decrypt(cur_entry.content)
+            cur_content_object = pickle.loads(cur_plain_content_in_bytes)
+            # execute the statement
+            exec(cur_content_object)
+        print("WAL finished recovery. Check DB for correctness.")
 
     @staticmethod
     def loadall(filename):
