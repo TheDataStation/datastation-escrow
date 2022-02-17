@@ -15,6 +15,7 @@ from models.api_dependency import *
 from models.user import *
 from models.response import *
 from common import utils
+from crypto import key_manager
 
 
 def gatekeeper_setup(connector_name, connector_module_path):
@@ -83,10 +84,13 @@ def test_api():
 
 
 def call_actual_api(api_name, connector_name, connector_module_path,
-                    accessible_data_dict, accessible_data_paths, api_conn, *args, **kwargs):
+                    accessible_data_dict, accessible_data_paths,
+                    user_symmetric_key,
+                    api_conn, *args, **kwargs):
+
     api_pid = os.getpid()
     print("api process id:", str(api_pid))
-    accessible_data_dict[api_pid] = accessible_data_paths
+    accessible_data_dict[api_pid] = (accessible_data_paths, user_symmetric_key)
 
     # print("xxxxxxxxxx")
     # print(api_name, *args, **kwargs)
@@ -104,11 +108,12 @@ def call_api(api,
              cur_username,
              exec_mode,
              data_station_log,
-             key_manager,
+             key_manager: key_manager.KeyManager,
              accessible_data_dict,
              data_accessed_dict,
              *args,
              **kwargs):
+
     # import glob
     # ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
     # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
@@ -155,6 +160,13 @@ def call_api(api,
     for cur_id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
 
+    # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
+    ds_config = utils.parse_config("data_station_config.yaml")
+    trust_mode = ds_config["trust_mode"]
+    user_symmetric_key = None
+    if trust_mode == "no_trust":
+        user_symmetric_key = key_manager.get_agent_symmetric_key(cur_user_id)
+
     # Actually calling the api
     print("current process id:", str(os.getpid()))
 
@@ -165,7 +177,9 @@ def call_api(api,
     main_conn, api_conn = multiprocessing.Pipe()
     api_process = multiprocessing.Process(target=call_actual_api,
                                           args=(api, connector_name, connector_module_path,
-                                                accessible_data_dict, accessible_data_paths, api_conn,
+                                                accessible_data_dict, accessible_data_paths,
+                                                user_symmetric_key,
+                                                api_conn,
                                                 *args),
                                           kwargs=kwargs)
     api_process.start()

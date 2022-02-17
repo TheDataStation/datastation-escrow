@@ -101,7 +101,8 @@ class Xmp(Fuse):
         if pid not in accessible_data_dict_global.keys():
             in_other_process = True
         else:
-            accessible_data_paths = accessible_data_dict_global[pid]
+            accessible_data_paths, symmetric_key = accessible_data_dict_global[pid]
+
         # print("readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
         # print(str(path_to_access))
@@ -423,6 +424,8 @@ def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict):
     accessible_data_dict_global = accessible_data_dict
     global data_accessed_dict_global
     data_accessed_dict_global = data_accessed_dict
+    global symmetric_key_dict_global
+    symmetric_key_dict_global = {}
 
     usage = """
 Userspace nullfs-alike: mirror the filesystem tree from some point on.
