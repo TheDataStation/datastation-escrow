@@ -249,7 +249,7 @@ class ClientAPI:
     # print out the contents of the WAL
 
     def read_wal(self):
-        self.write_ahead_log.read_wal()
+        self.write_ahead_log.read_wal(self.key_manager)
 
     # For testing purposes: persist keys to a file
 
