@@ -15,6 +15,7 @@ from crypto import cryptoutils as cu
 
 if __name__ == '__main__':
 
+    # In the beginning we always remove the existing DB
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
@@ -24,212 +25,264 @@ if __name__ == '__main__':
     # Read in the configuration file
     test_config = parse_config(sys.argv[1])
 
-    # System initialization
+    # Get the start_mode
+    start_mode = test_config["start_mode"]
 
-    ds_config = utils.parse_config("data_station_config.yaml")
-    app_config = utils.parse_config("app_connector_config.yaml")
+    # Case 1: fresh start mode:
+    if start_mode == "fresh":
 
-    client_api = main.initialize_system(ds_config, app_config)
+        # System initialization
+        ds_config = utils.parse_config("data_station_config.yaml")
+        app_config = utils.parse_config("app_connector_config.yaml")
 
-    # Remove the code block below if testing out durability of log
-    log_path = client_api.log.log_path
-    if os.path.exists(log_path):
-        os.remove(log_path)
+        client_api = main.initialize_system(ds_config, app_config)
 
-    # Save data station's public key
-    ds_public_key = client_api.key_manager.ds_public_key
+        # Remove the code block below if testing out durability of log
+        log_path = client_api.log.log_path
+        if os.path.exists(log_path):
+            os.remove(log_path)
 
-    # print("Data Station's public key is:")
-    # print(ds_public_key)
+        # Remove the code block below if testing out durability of wal
+        wal_path = client_api.write_ahead_log.wal_path
+        if os.path.exists(wal_path):
+            os.remove(wal_path)
 
-    # cur_time = time.time()
-    # print("System initialization done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+        # Save data station's public key
+        ds_public_key = client_api.key_manager.ds_public_key
 
-    # Adding new users
+        # print("Data Station's public key is:")
+        # print(ds_public_key)
 
-    list_of_users = ["jerry", "lucy", "david"]
+        # cur_time = time.time()
+        # print("System initialization done")
+        # print("--- %s seconds ---" % (cur_time - prev_time))
+        # prev_time = cur_time
 
-    # In no trust mode, when a user registers, he needs to upload his symmetric key and public key as well
+        # Adding new users
 
-    for cur_user in list_of_users:
-        # Create a new symmetric key
-        sym_key = cu.generate_symmetric_key()
-        # print("Symmetric in the plain is:")
-        # print(sym_key)
+        list_of_users = ["jerry", "lucy", "david"]
 
-        # Create a new private/public key pair
-        cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
-        # print("User's public key is:")
-        # print(cur_public_key)
+        # In no trust mode, when a user registers, he needs to upload his symmetric key and public key as well
 
-        # Now we encrypt the symmetric key with data station's public key
-        cipher_sym_key = cu.encrypt_data_with_public_key(sym_key, ds_public_key)
-        # print("Cipher symmetric key is:")
-        # print(cipher_sym_key)
+        for cur_user in list_of_users:
+            # Create a new symmetric key
+            sym_key = cu.generate_symmetric_key()
+            # print("Symmetric in the plain is:")
+            # print(sym_key)
 
-        # Quickly check to see if everything works correctly
-        # dec_sym_key = cu.decrypt_data_with_private_key(cipher_sym_key, client_api.key_manager.ds_private_key)
-        # print("Decrypted symmetric key is:")
-        # print(dec_sym_key)
+            # Create a new private/public key pair
+            cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
+            # print("User's public key is:")
+            # print(cur_public_key)
 
-        # TODO: Now uploading both the user's public key, and the encrypted symmetric key to the DS
-        client_api.create_user(User(user_name=cur_user, password="string"), cipher_sym_key, cur_public_key)
+            # Now we encrypt the symmetric key with data station's public key
+            cipher_sym_key = cu.encrypt_data_with_public_key(sym_key, ds_public_key)
+            # print("Cipher symmetric key is:")
+            # print(cipher_sym_key)
 
-    # Taking a look at the keys that are stored
-    # print(client_api.key_manager.agents_symmetric_key)
-    # print(client_api.key_manager.agents_public_key)
+            # Quickly check to see if everything works correctly
+            # dec_sym_key = cu.decrypt_data_with_private_key(cipher_sym_key, client_api.key_manager.ds_private_key)
+            # print("Decrypted symmetric key is:")
+            # print(dec_sym_key)
 
-    # cur_time = time.time()
-    # print("User addition done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+            # TODO: Now uploading both the user's public key, and the encrypted symmetric key to the DS
+            client_api.create_user(User(user_name=cur_user, password="string"), cipher_sym_key, cur_public_key)
 
-    # Log in a user to get a token
+        # Taking a look at the keys that are stored
+        # print(client_api.key_manager.agents_symmetric_key)
+        # print(client_api.key_manager.agents_public_key)
 
-    cur_token = client_api.login_user("jerry", "string")["access_token"]
+        # cur_time = time.time()
+        # print("User addition done")
+        # print("--- %s seconds ---" % (cur_time - prev_time))
+        # prev_time = cur_time
 
-    # cur_time = time.time()
-    # print("Log in done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+        # Log in a user to get a token
 
-    # Look at all available APIs and APIDependencies
+        cur_token = client_api.login_user("jerry", "string")["access_token"]
 
-    list_of_apis = client_api.get_all_apis(cur_token)
-    list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
-    print(list_of_apis)
-    print(list_of_api_dependencies)
+        # cur_time = time.time()
+        # print("Log in done")
+        # print("--- %s seconds ---" % (cur_time - prev_time))
+        # prev_time = cur_time
 
-    # cur_time = time.time()
-    # print("Looking at dependency graph done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+        # Look at all available APIs and APIDependencies
 
-    # Upload datasets
+        list_of_apis = client_api.get_all_apis(cur_token)
+        list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+        print(list_of_apis)
+        print(list_of_api_dependencies)
 
-    # TODO: before we test uploading datasets,
-    #       we first have to create the encrypted files using the newly generated symmetric keys
+        # cur_time = time.time()
+        # print("Looking at dependency graph done")
+        # print("--- %s seconds ---" % (cur_time - prev_time))
+        # prev_time = cur_time
 
-    # First clear test_file_no_trust
+        # Upload datasets
 
-    no_trust_folder = 'test/test_file_no_trust'
-    for filename in os.listdir(no_trust_folder):
-        file_path = os.path.join(no_trust_folder, filename)
-        if os.path.isfile(file_path) or os.path.islink(file_path):
-            os.unlink(file_path)
-        elif os.path.isdir(file_path):
-            shutil.rmtree(file_path)
+        # TODO: before we test uploading datasets,
+        #       we first have to create the encrypted files using the newly generated symmetric keys
 
-    # Now we create the encrypted files
-    for cur_num in range(6):
-        cur_plain_name = "test/test_file_full_trust/train-" + str(cur_num+1) + ".csv"
-        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[1]
-        cur_plain_file = open(cur_plain_name, 'rb').read()
-        ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(cur_plain_file)
-        cur_cipher_name = "test/test_file_no_trust/train-" + str(cur_num+1) + ".csv"
-        cur_cipher_file = open(cur_cipher_name, "wb")
-        cur_cipher_file.write(ciphertext_bytes)
-        cur_cipher_file.close()
+        # First clear test_file_no_trust
 
-    # Proceeding to actually uploads the datasets
+        no_trust_folder = 'test/test_file_no_trust'
+        for filename in os.listdir(no_trust_folder):
+            file_path = os.path.join(no_trust_folder, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
 
-    # First clear SM_storage
+        # Now we create the encrypted files
+        for cur_num in range(6):
+            cur_plain_name = "test/test_file_full_trust/train-" + str(cur_num+1) + ".csv"
+            cur_user_sym_key = client_api.key_manager.agents_symmetric_key[1]
+            cur_plain_file = open(cur_plain_name, 'rb').read()
+            ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(cur_plain_file)
+            cur_cipher_name = "test/test_file_no_trust/train-" + str(cur_num+1) + ".csv"
+            cur_cipher_file = open(cur_cipher_name, "wb")
+            cur_cipher_file.write(ciphertext_bytes)
+            cur_cipher_file.close()
 
-    folder = 'SM_storage'
-    for filename in os.listdir(folder):
-        file_path = os.path.join(folder, filename)
-        if os.path.isfile(file_path) or os.path.islink(file_path):
-            os.unlink(file_path)
-        elif os.path.isdir(file_path):
-            shutil.rmtree(file_path)
+        # Proceeding to actually uploads the datasets
 
-    num_files = test_config["num_files"]
-    opt_data_proportion = test_config["opt_data_proportion"]
-    list_of_data_ids = []
+        # First clear SM_storage
 
-    for cur_num in range(num_files):
-        cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "test/test_file_no_trust/train-" + str(cur_file_index) + ".csv"
-        cur_file = open(cur_full_name, "rb")
-        cur_file_bytes = cur_file.read()
-        cur_optimistic_flag = False
-        if random.random() < opt_data_proportion:
-            cur_optimistic_flag = True
-        name_to_upload = "file-" + str(cur_num + 1)
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
-                                            "file",
-                                            cur_optimistic_flag,
-                                            cur_token,)
-        if cur_res.status == 0:
-            list_of_data_ids.append(cur_res.data_id)
-        cur_file.close()
+        folder = 'SM_storage'
+        for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
 
-    # print(list_of_data_ids)
+        num_files = test_config["num_files"]
+        opt_data_proportion = test_config["opt_data_proportion"]
+        list_of_data_ids = []
 
-    # cur_time = time.time()
-    # print("Uploading datasets done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+        for cur_num in range(num_files):
+            cur_file_index = (cur_num % 6) + 1
+            cur_full_name = "test/test_file_no_trust/train-" + str(cur_file_index) + ".csv"
+            cur_file = open(cur_full_name, "rb")
+            cur_file_bytes = cur_file.read()
+            cur_optimistic_flag = False
+            if random.random() < opt_data_proportion:
+                cur_optimistic_flag = True
+            name_to_upload = "file-" + str(cur_num + 1)
+            cur_res = client_api.upload_dataset(name_to_upload,
+                                                cur_file_bytes,
+                                                "file",
+                                                cur_optimistic_flag,
+                                                cur_token,)
+            if cur_res.status == 0:
+                list_of_data_ids.append(cur_res.data_id)
+            cur_file.close()
 
-    # # Uncomment the next block to verify end-to-end file sharing
-    # # Trying out retrieving datasets
-    #
-    # # Let's first get a new token
-    # cur_token = client_api.login_user("lucy", "string")["access_token"]
-    # Then get the encrypted file
-    # data_retrieved = client_api.retrieve_data_by_id(1, cur_token)
-    # # Then decrypt it using the current user's sym key
-    # cur_user_sym_key = client_api.key_manager.agents_symmetric_key[2]
-    # data_plain = cu.decrypt_data_with_symmetric_key(data_retrieved, cur_user_sym_key)
-    # print(data_plain)
+        # print(list_of_data_ids)
 
-    # Upload Policies
+        # cur_time = time.time()
+        # print("Uploading datasets done")
+        # print("--- %s seconds ---" % (cur_time - prev_time))
+        # prev_time = cur_time
 
-    data_with_policy_proportion = test_config["data_with_policy_proportion"]
-    num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
+        # # Uncomment the next block to verify end-to-end file sharing
+        # # Trying out retrieving datasets
+        #
+        # # Let's first get a new token
+        # cur_token = client_api.login_user("lucy", "string")["access_token"]
+        # # Then get the encrypted file
+        # data_retrieved = client_api.retrieve_data_by_id(1, cur_token)
+        # # Then decrypt it using the current user's sym key
+        # cur_user_sym_key = client_api.key_manager.agents_symmetric_key[2]
+        # data_plain = cu.decrypt_data_with_symmetric_key(data_retrieved, cur_user_sym_key)
+        # print(data_plain)
 
-    # Right now for each dataset, we pick one API for it to create a policy
-    # TODO: change this to something configurable
+        # Upload Policies
 
-    # Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
-    # this probability should be in workload_config
+        data_with_policy_proportion = test_config["data_with_policy_proportion"]
+        num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
 
-    policy_proportion = test_config["policy_proportion"]
-    policy_created = 0
+        # Right now for each dataset, we pick one API for it to create a policy
+        # TODO: change this to something configurable
 
-    for api_picked in list_of_apis:
-        for i in range(num_data_with_policy):
-            if random.random() < policy_proportion:
-                policy_created += 1
-                client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+        # Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
+        # this probability should be in workload_config
 
-    cur_time = time.time()
-    print("Uploading policies done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
-    print("Number of policies created is: " + str(policy_created))
-    print("Expected number of policies is: " + str(
-        math.floor(num_data_with_policy * len(list_of_apis) * policy_proportion)))
-    prev_time = cur_time
+        policy_proportion = test_config["policy_proportion"]
+        policy_created = 0
 
-    # call available APIs
+        for api_picked in list_of_apis:
+            for i in range(num_data_with_policy):
+                if random.random() < policy_proportion:
+                    policy_created += 1
+                    client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
 
-    client_api.call_api("preprocess", cur_token, "optimistic")
-    print("preprocess finished\n")
-    client_api.call_api("modeltrain", cur_token, "optimistic")
-    print("modeltrain finished\n")
-    client_api.call_api("predict", cur_token, "pessimistic", 10, 5)
-    print("predict finished\n")
+        cur_time = time.time()
+        print("Uploading policies done")
+        print("--- %s seconds ---" % (cur_time - prev_time))
+        print("Number of policies created is: " + str(policy_created))
+        print("Expected number of policies is: " + str(
+            math.floor(num_data_with_policy * len(list_of_apis) * policy_proportion)))
+        prev_time = cur_time
 
-    cur_time = time.time()
-    print("Calling APIs done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
-    prev_time = cur_time
+        # call available APIs
 
-    # take a look at the log
+        client_api.call_api("preprocess", cur_token, "optimistic")
+        print("preprocess finished\n")
+        client_api.call_api("modeltrain", cur_token, "optimistic")
+        print("modeltrain finished\n")
+        client_api.call_api("predict", cur_token, "pessimistic", 10, 5)
+        print("predict finished\n")
 
-    client_api.read_full_log()
+        cur_time = time.time()
+        print("Calling APIs done")
+        print("--- %s seconds ---" % (cur_time - prev_time))
+        prev_time = cur_time
 
-    client_api.shut_down(ds_config)
+        # take a look at the log
+
+        client_api.read_full_log()
+
+        # take a look at the WAL
+
+        client_api.read_wal()
+
+        # For testing: save the agents' symmetric keys
+        if os.path.exists("symmetric_keys.pkl"):
+            os.remove("symmetric_keys.pkl")
+        client_api.save_symmetric_keys()
+
+        client_api.shut_down(ds_config)
+
+    # Case 2: starting from recovery mode
+    else:
+        print("Starting from recovery mode")
+
+        # Recovery step 1: initialize system from data_station_config and app_connector_config
+        ds_config = utils.parse_config("data_station_config.yaml")
+        app_config = utils.parse_config("app_connector_config.yaml")
+
+        client_api = main.initialize_system(ds_config, app_config)
+
+        # Upon the initialization of client_api, all tables in DB should be empty except for API and APIDependency.
+
+        # Recovery step 2: recover the symmetric keys from file (for testing purposes)
+        client_api.load_symmetric_keys()
+        # # Test if successful
+        # client_api.read_wal()
+
+        # Recovery step 3: execute the statements in the WAL to recover the DB
+        client_api.recover_db_from_wal()
+
+        # To test the correctness of the recovery, we get a token and look at API and APIDependency
+
+        # Log in a user to get a token
+        cur_token = client_api.login_user("lucy", "string")["access_token"]
+
+        # Look at all available APIs and APIDependencies
+        list_of_apis = client_api.get_all_apis(cur_token)
+        list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+        print(list_of_apis)
+        print(list_of_api_dependencies)
+
+        client_api.shut_down(ds_config)
