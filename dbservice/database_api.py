@@ -59,6 +59,13 @@ def get_user_by_user_name(request):
         else:
             return response.UserResponse(status=-1, msg="internal database error", data=[])
 
+def get_user_with_max_id():
+    with get_db() as session:
+        user = user_repo.get_user_with_max_id(session)
+        if user:
+            return response.UserResponse(status=1, msg="success", data=[user])
+        else:
+            return response.UserResponse(status=-1, msg="internal database error", data=[])
 
 def get_all_users():
     with get_db() as session:
