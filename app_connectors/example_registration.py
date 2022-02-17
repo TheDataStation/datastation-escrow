@@ -21,7 +21,8 @@ def preprocess():
         # print(file)
         if pathlib.Path(file).is_file():
             with open(file, "r") as cur_file:
-                cur_file.readline()
+                content = cur_file.readline()
+                # print(content)
             print("read ", file)
 
     return "preprocess result"
