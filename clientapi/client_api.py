@@ -59,11 +59,16 @@ class ClientAPI:
 
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
 
-        # Decide which user_id to use from ClientAPI.cur_user_id field
+        # First we decide which user_id to use from ClientAPI.cur_user_id field
         user_id = self.cur_user_id
         self.cur_user_id += 1
 
-        # First part: Call the user_register to register the user in the DB
+        # Part one: register this user's symmetric key and public key
+        if self.trust_mode == "no_trust":
+            self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
+            self.key_manager.store_agent_public_key(user_id, user_public_key)
+
+        # Part two: Call the user_register to register the user in the DB
         if self.trust_mode == "full_trust":
             response = user_register.create_user(user_id,
                                                  user.user_name,
@@ -72,15 +77,11 @@ class ClientAPI:
             response = user_register.create_user(user_id,
                                                  user.user_name,
                                                  user.password,
-                                                 self.write_ahead_log)
+                                                 self.write_ahead_log,
+                                                 self.key_manager,)
 
         if response.status == 1:
             return Response(status=response.status, message=response.message)
-
-        # Second part: register this user's symmetric key and public key
-        if self.trust_mode == "no_trust":
-            self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
-            self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         return Response(status=response.status, message=response.message)
 

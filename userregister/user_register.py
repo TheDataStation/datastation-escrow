@@ -23,7 +23,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def create_user(user_id, user_name, password, write_ahead_log=None):
+def create_user(user_id, user_name, password, write_ahead_log=None, key_manager=None):
     # print(user_id)
     # check if there is an existing user
     existed_user = database_api.get_user_by_user_name(User(user_name=user_name,))
@@ -32,13 +32,16 @@ def create_user(user_id, user_name, password, write_ahead_log=None):
 
     # no existing username, create new user
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+
     # If in no_trust mode, we need to record this ADD_USER to wal
     if write_ahead_log is not None:
         wal_entry = "database_api.create_user(User(id=" + str(user_id) \
                     + ",user_name='" + user_name \
                     + "',password='" + hashed.decode() + \
                     "'))"
-        write_ahead_log.log(user_id, wal_entry)
+        # If write_ahead_log is not None, key_manager also will not be None
+        write_ahead_log.log(user_id, wal_entry, key_manager,)
+
     new_user = User(id=user_id,
                     user_name=user_name,
                     password=hashed.decode(),)
