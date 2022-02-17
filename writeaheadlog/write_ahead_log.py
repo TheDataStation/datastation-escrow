@@ -43,11 +43,8 @@ class WAL:
             cur_content_object = pickle.loads(cur_plain_content_in_bytes)
             print(cur_content_object)
 
-    def recover_db_from_wal(self):
-        entries = self.loadall(self.wal_path)
-        for cur_entry in entries:
-            print(cur_entry)
-            # exec(cur_entry)
+    def recover_db_from_wal(self, key_manager):
+        print("WAL: starting recovery")
 
     @staticmethod
     def loadall(filename):

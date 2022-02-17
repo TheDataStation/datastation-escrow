@@ -251,6 +251,11 @@ class ClientAPI:
     def read_wal(self):
         self.write_ahead_log.read_wal(self.key_manager)
 
+    # recover DB from the contents of the WAL
+
+    def recover_db_from_wal(self):
+        self.write_ahead_log.recover_db_from_wal(self.key_manager)
+
     # For testing purposes: persist keys to a file
 
     def save_symmetric_keys(self):
