@@ -35,27 +35,50 @@ class ClientAPI:
         # The following field decides the trust mode for the DS
         self.trust_mode = trust_mode
 
+        # The following field decides which user_id we should use when we upload a new user
+        # Right now we are just incrementing by 1
+        user_id_resp = database_api.get_data_with_max_id()
+        if user_id_resp.status == 1:
+            self.cur_user_id = user_id_resp.data[0].id + 1
+        else:
+            self.cur_user_id = 1
+        # print("Starting user id should be:")
+        # print(self.cur_user_id)
+
         # The following field decides which data_id we should use when we upload a new data
-        # right now we are just incrementing by 1
-        resp = database_api.get_data_with_max_id()
-        if resp.status == 1:
-            self.cur_data_id = resp.data[0].id + 1
+        # Right now we are just incrementing by 1
+        data_id_resp = database_api.get_data_with_max_id()
+        if data_id_resp.status == 1:
+            self.cur_data_id = data_id_resp.data[0].id + 1
         else:
             self.cur_data_id = 1
+        # print("Starting data id should be:")
+        # print(self.cur_data_id)
 
     # create user
 
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
 
+        # Decide which user_id to use from ClientAPI.cur_user_id field
+        user_id = self.cur_user_id
+        self.cur_user_id += 1
+
         # First part: Call the user_register to register the user in the DB
-        response = user_register.create_user(user)
+        if self.trust_mode == "full_trust":
+            response = user_register.create_user(user_id,
+                                                 user.user_name,
+                                                 user.password,)
+        else:
+            response = user_register.create_user(user_id,
+                                                 user.user_name,
+                                                 user.password,
+                                                 self.write_ahead_log)
 
         if response.status == 1:
             return Response(status=response.status, message=response.message)
 
         # Second part: register this user's symmetric key and public key
         if self.trust_mode == "no_trust":
-            user_id = response.user_id
             self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
             self.key_manager.store_agent_public_key(user_id, user_public_key)
 
