@@ -202,13 +202,20 @@ class ClientAPI:
 
     # create_policies
 
-    @staticmethod
-    def upload_policy(policy: Policy, token):
+    def upload_policy(self, policy: Policy, token):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        response = policy_broker.upload_policy(policy, cur_username)
+        if self.trust_mode == "full_trust":
+            response = policy_broker.upload_policy(policy,
+                                                   cur_username,)
+        else:
+            response = policy_broker.upload_policy(policy,
+                                                   cur_username,
+                                                   self.write_ahead_log,
+                                                   self.key_manager,)
+
         return Response(status=response.status, message=response.message)
 
     # delete_policies
