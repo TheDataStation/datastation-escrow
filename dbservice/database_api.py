@@ -1,4 +1,4 @@
-# from .database import SessionLocal, engine, Base
+from .database import engine
 from .database import Base, DATABASE_URL
 from sqlalchemy import create_engine, exc
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,9 +20,6 @@ def get_db():
     # db = SessionLocal()
     # DATABASE_URL = "postgresql://zhiruzhu:@localhost:5432/data_station"
 
-    # global engine
-    engine = create_engine(DATABASE_URL)
-
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     event.listen(engine, 'connect', _fk_pragma_on_connect)
@@ -33,15 +30,8 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
-    # except exc.SQLAlchemyError as e:
-    #     print("get db session error:", str(e))
-    #     raise e
     finally:
         db.close()
-        engine.dispose()
-        # del db
-        # del engine
-        # print("clean up complete")
 
 def create_user(request):
     with get_db() as session:
