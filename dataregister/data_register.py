@@ -7,7 +7,14 @@ from models.user import *
 from models.response import *
 
 
-def upload_data(data_id, data_name, cur_username, data_type, access_type, optimistic):
+def upload_data(data_id,
+                data_name,
+                cur_username,
+                data_type,
+                access_type,
+                optimistic,
+                write_ahead_log=None,
+                key_manager=None,):
 
     # TODO: check if there is an existing dataset
 
@@ -26,6 +33,19 @@ def upload_data(data_id, data_name, cur_username, data_type, access_type, optimi
 
     if pathlib.Path(access_type).is_file():
         access_type = str(pathlib.Path(access_type).absolute())
+
+    # If in no_trust mode, we need to record this ADD_DATA to wal
+    if write_ahead_log is not None:
+        wal_entry = "database_api.create_dataset(Dataset(id=" + str(data_id) \
+                    + ",name='" + data_name \
+                    + "',owner_id=" + str(cur_user_id) \
+                    + ",type='" + data_type \
+                    + "',access_type='" + access_type \
+                    + "',optimistic=" + str(optimistic) \
+                    + "))"
+        # If write_ahead_log is not None, key_manager also will not be None
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager,)
+
     new_dataset = Dataset(id=data_id,
                           name=data_name,
                           owner_id=cur_user_id,
@@ -38,7 +58,10 @@ def upload_data(data_id, data_name, cur_username, data_type, access_type, optimi
 
     return UploadDataResponse(status=0, message="success", data_id=data_id)
 
-def remove_data(data_name, cur_username):
+def remove_data(data_name,
+                cur_username,
+                write_ahead_log=None,
+                key_manager=None,):
 
     # Step 1: check if there is an existing dataset
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
@@ -52,12 +75,26 @@ def remove_data(data_name, cur_username):
     dataset_id = existed_dataset.data[0].id
     type_of_data = existed_dataset.data[0].type
 
+    # check if there is an existing user
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+    # If the user doesn't exist, something is wrong
+    if cur_user.status == -1:
+        return Response(status=1, message="Something wrong with the current user")
+    cur_user_id = cur_user.data[0].id
+
     # Step 2: if exists, check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(dataset_id, cur_username)
     if verify_owner_response.status == 1:
         return verify_owner_response
 
     # Step 3: actually remove the dataset
+    # If in no_trust mode, we need to record this REMOVE_DATA to wal
+    if write_ahead_log is not None:
+        wal_entry = "database_api.remove_dataset_by_name(Dataset(name='" + data_name \
+                    + "'))"
+        # If write_ahead_log is not None, key_manager also will not be None
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager,)
+
     dataset_to_remove = Dataset(name=data_name,)
     database_service_response = database_api.remove_dataset_by_name(dataset_to_remove)
     if database_service_response.status == -1:
