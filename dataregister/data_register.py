@@ -88,7 +88,7 @@ def remove_data(data_name,
         return verify_owner_response
 
     # Step 3: actually remove the dataset
-    # If in no_trust mode, we need to record this ADD_DATA to wal
+    # If in no_trust mode, we need to record this REMOVE_DATA to wal
     if write_ahead_log is not None:
         wal_entry = "database_api.remove_dataset_by_name(Dataset(name='" + data_name \
                     + "'))"
