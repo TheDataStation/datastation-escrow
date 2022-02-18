@@ -147,12 +147,22 @@ class ClientAPI:
         # Storing data is successful. We now call data_register to register this data element in DB
         access_type = storage_manager_response.access_type
 
-        data_register_response = data_register.upload_data(data_id,
-                                                           data_name,
-                                                           cur_username,
-                                                           data_type,
-                                                           access_type,
-                                                           optimistic,)
+        if self.trust_mode == "full_trust":
+            data_register_response = data_register.upload_data(data_id,
+                                                               data_name,
+                                                               cur_username,
+                                                               data_type,
+                                                               access_type,
+                                                               optimistic,)
+        else:
+            data_register_response = data_register.upload_data(data_id,
+                                                               data_name,
+                                                               cur_username,
+                                                               data_type,
+                                                               access_type,
+                                                               optimistic,
+                                                               self.write_ahead_log,
+                                                               self.key_manager,)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status,
                             message=data_register_response.message)
@@ -167,7 +177,14 @@ class ClientAPI:
         cur_username = user_register.authenticate_user(token)
 
         # First we call data_register to remove the existing dataset from the database
-        data_register_response = data_register.remove_data(data_name, cur_username)
+        if self.trust_mode == "full_trust":
+            data_register_response = data_register.remove_data(data_name,
+                                                               cur_username,)
+        else:
+            data_register_response = data_register.remove_data(data_name,
+                                                               cur_username,
+                                                               self.write_ahead_log,
+                                                               self.key_manager,)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status, message=data_register_response.message)
 
@@ -263,7 +280,15 @@ class ClientAPI:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
             self.cur_user_id = 1
-        # print("User ID to use after recovering DB is: "+str(self.cur_user_id))
+        print("User ID to use after recovering DB is: "+str(self.cur_user_id))
+
+        # Step 3: reset self.cur_data_id from DB
+        data_id_resp = database_api.get_data_with_max_id()
+        if data_id_resp.status == 1:
+            self.cur_data_id = data_id_resp.data[0].id + 1
+        else:
+            self.cur_data_id = 1
+        print("Data ID to use after recovering DB is: " + str(self.cur_data_id))
 
     # For testing purposes: persist keys to a file
 
