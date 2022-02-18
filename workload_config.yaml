@@ -3,4 +3,4 @@ data_with_policy_proportion: 0.5    # what proportion of datasets have policies 
 policy_proportion: 0.5    # for all combinations of (api, data_id), what proportion should have a policy on them
 opt_data_proportion: 0.2    # what proportion of datasets should be labeled as optimistic
 
-start_mode: "recovery"    # "fresh": no need to recover; "recovery": need to recover the DB from snapshot/WAL first
+start_mode: "fresh"    # "fresh": no need to recover; "recovery": need to recover the DB from snapshot/WAL first
