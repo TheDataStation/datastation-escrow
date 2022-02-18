@@ -3,6 +3,8 @@ from collections import namedtuple
 from crypto import cryptoutils as cu
 from dbservice import database_api
 from models.user import *
+from models.dataset import *
+from models.policy import *
 
 WriteContent = namedtuple("WriteContent",
                           "caller_id, content")

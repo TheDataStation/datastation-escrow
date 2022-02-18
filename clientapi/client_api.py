@@ -50,7 +50,7 @@ class ClientAPI:
             self.cur_data_id = resp.data[0].id + 1
         # The following field decides which user_id we should use when we upload a new user
         # Right now we are just incrementing by 1
-        user_id_resp = database_api.get_data_with_max_id()
+        user_id_resp = database_api.get_user_with_max_id()
         if user_id_resp.status == 1:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
@@ -170,12 +170,22 @@ class ClientAPI:
         # Storing data is successful. We now call data_register to register this data element in DB
         access_type = storage_manager_response.access_type
 
-        data_register_response = data_register.upload_data(data_id,
-                                                           data_name,
-                                                           cur_username,
-                                                           data_type,
-                                                           access_type,
-                                                           optimistic,)
+        if self.trust_mode == "full_trust":
+            data_register_response = data_register.upload_data(data_id,
+                                                               data_name,
+                                                               cur_username,
+                                                               data_type,
+                                                               access_type,
+                                                               optimistic,)
+        else:
+            data_register_response = data_register.upload_data(data_id,
+                                                               data_name,
+                                                               cur_username,
+                                                               data_type,
+                                                               access_type,
+                                                               optimistic,
+                                                               self.write_ahead_log,
+                                                               self.key_manager,)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status,
                             message=data_register_response.message)
@@ -190,7 +200,14 @@ class ClientAPI:
         cur_username = user_register.authenticate_user(token)
 
         # First we call data_register to remove the existing dataset from the database
-        data_register_response = data_register.remove_data(data_name, cur_username)
+        if self.trust_mode == "full_trust":
+            data_register_response = data_register.remove_data(data_name,
+                                                               cur_username,)
+        else:
+            data_register_response = data_register.remove_data(data_name,
+                                                               cur_username,
+                                                               self.write_ahead_log,
+                                                               self.key_manager,)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status, message=data_register_response.message)
 
@@ -208,24 +225,38 @@ class ClientAPI:
 
     # create_policies
 
-    @staticmethod
-    def upload_policy(policy: Policy, token):
+    def upload_policy(self, policy: Policy, token):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        response = policy_broker.upload_policy(policy, cur_username)
+        if self.trust_mode == "full_trust":
+            response = policy_broker.upload_policy(policy,
+                                                   cur_username,)
+        else:
+            response = policy_broker.upload_policy(policy,
+                                                   cur_username,
+                                                   self.write_ahead_log,
+                                                   self.key_manager,)
+
         return Response(status=response.status, message=response.message)
 
     # delete_policies
 
-    @staticmethod
-    def remove_policy(policy: Policy, token):
+    def remove_policy(self, policy: Policy, token):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        response = policy_broker.remove_policy(policy, cur_username)
+        if self.trust_mode == "full_trust":
+            response = policy_broker.remove_policy(policy,
+                                                   cur_username,)
+        else:
+            response = policy_broker.remove_policy(policy,
+                                                   cur_username,
+                                                   self.write_ahead_log,
+                                                   self.key_manager,)
+
         return Response(status=response.status, message=response.message)
 
     # list all available policies
@@ -279,7 +310,24 @@ class ClientAPI:
     # recover DB from the contents of the WAL
 
     def recover_db_from_wal(self):
+        # Step 1: restruct the DB
         self.write_ahead_log.recover_db_from_wal(self.key_manager)
+
+        # Step 2: reset self.cur_user_id from DB
+        user_id_resp = database_api.get_user_with_max_id()
+        if user_id_resp.status == 1:
+            self.cur_user_id = user_id_resp.data[0].id + 1
+        else:
+            self.cur_user_id = 1
+        print("User ID to use after recovering DB is: "+str(self.cur_user_id))
+
+        # Step 3: reset self.cur_data_id from DB
+        data_id_resp = database_api.get_data_with_max_id()
+        if data_id_resp.status == 1:
+            self.cur_data_id = data_id_resp.data[0].id + 1
+        else:
+            self.cur_data_id = 1
+        print("Data ID to use after recovering DB is: " + str(self.cur_data_id))
 
     # For testing purposes: persist keys to a file
 
