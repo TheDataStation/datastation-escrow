@@ -220,13 +220,20 @@ class ClientAPI:
 
     # delete_policies
 
-    @staticmethod
-    def remove_policy(policy: Policy, token):
+    def remove_policy(self, policy: Policy, token):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        response = policy_broker.remove_policy(policy, cur_username)
+        if self.trust_mode == "full_trust":
+            response = policy_broker.remove_policy(policy,
+                                                   cur_username,)
+        else:
+            response = policy_broker.remove_policy(policy,
+                                                   cur_username,
+                                                   self.write_ahead_log,
+                                                   self.key_manager,)
+
         return Response(status=response.status, message=response.message)
 
     # list all available policies
