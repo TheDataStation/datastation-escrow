@@ -312,6 +312,11 @@ class ClientAPI:
             self.cur_data_id = 1
         print("Data ID to use after recovering DB is: " + str(self.cur_data_id))
 
+    # recover DB from the contents of the table snapshots
+
+    def recover_db_from_snapshots(self):
+        self.check_point.recover_db_from_snapshots(self.key_manager)
+
     # For testing purposes: persist keys to a file
 
     def save_symmetric_keys(self):
