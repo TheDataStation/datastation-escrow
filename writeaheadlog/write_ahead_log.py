@@ -13,6 +13,7 @@ class WAL:
 
     def __init__(self, wal_path):
         self.wal_path = wal_path
+        self.entry_counter = 0
 
     def log(self, caller_id, entry, key_manager):
 
@@ -28,10 +29,19 @@ class WAL:
         write_content = WriteContent(caller_id=caller_id,
                                      content=cipher_content_in_bytes)
 
+        # Use counter to determine when we need to checkpoint the DB
+        # before we actually write the wal entry
+        if self.entry_counter >= 10:
+            print("Current counter is: "+str(self.entry_counter))
+            print("Time to checkpoint the database!")
+
         # Write to WAL
         with open(self.wal_path, 'ab') as log:
             entry_to_add = pickle.dumps(write_content)
             log.write(entry_to_add)
+
+        # Increment counter
+        self.entry_counter += 1
 
     def read_wal(self, key_manager):
         print("Printing contents of the write ahead log:")
