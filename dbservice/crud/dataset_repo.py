@@ -86,3 +86,24 @@ def get_data_with_max_id(db: Session):
         return dataset
     else:
         return None
+
+# The following function recovers the data table from a list of Data
+def recover_datas(db: Session, datas):
+    datas_to_add = []
+    for data in datas:
+        cur_data = Dataset(id=data.id,
+                           owner_id=data.owner_id,
+                           name=data.name,
+                           type=data.type,
+                           access_type=data.access_type,
+                           description=data.description,
+                           optimistic=data.optimistic,)
+        datas_to_add.append(cur_data)
+    try:
+        db.add_all(datas_to_add)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+
+    return "success"
