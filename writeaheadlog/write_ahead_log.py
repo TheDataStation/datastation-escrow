@@ -17,8 +17,6 @@ class WAL:
 
     def log(self, caller_id, entry, key_manager, check_point):
 
-        print(check_point.table_paths)
-
         # First convert content to bytes
         plain_content_in_bytes = pickle.dumps(entry)
 
@@ -34,8 +32,7 @@ class WAL:
         # Use counter to determine when we need to checkpoint the DB
         # before we actually write the wal entry
         if self.entry_counter >= 10:
-            print("Current counter is: "+str(self.entry_counter))
-            print("Time to checkpoint the database!")
+            check_point.check_point_all_tables(key_manager)
 
         # Write to WAL
         with open(self.wal_path, 'ab') as log:
