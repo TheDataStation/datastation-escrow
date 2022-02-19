@@ -73,7 +73,9 @@ class CheckPoint:
         user_content_plain = sym_key_to_use.decrypt(user_content_cipher)
         user_content_list = pickle.loads(user_content_plain)
 
-        print(user_content_list)
+        # print(user_content_list)
+
+        database_api.recover_users(user_content_list)
 
         # Data table
         with open(self.table_paths[1], "rb") as f:
@@ -83,7 +85,9 @@ class CheckPoint:
         data_content_plain = sym_key_to_use.decrypt(data_content_cipher)
         data_content_list = pickle.loads(data_content_plain)
 
-        print(data_content_list)
+        # print(data_content_list)
+
+        database_api.recover_datas(data_content_list)
 
         # Policy table
         with open(self.table_paths[2], "rb") as f:
@@ -93,4 +97,6 @@ class CheckPoint:
         policy_content_plain = sym_key_to_use.decrypt(policy_content_cipher)
         policy_content_list = pickle.loads(policy_content_plain)
 
-        print(policy_content_list)
+        # print(policy_content_list)
+
+        database_api.recover_policies(policy_content_list)
