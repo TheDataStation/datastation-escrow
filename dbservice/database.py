@@ -12,11 +12,11 @@ ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml")
 
 DATABASE_URL = ds_config["database_url"]
 
-# on disk global engine
-engine = create_engine(DATABASE_URL)
+# # on disk global engine
+# engine = create_engine(DATABASE_URL)
 
 # in memory global engine
-# engine = create_engine('sqlite://')
+engine = create_engine('sqlite://')
 
 Base = declarative_base()
 
