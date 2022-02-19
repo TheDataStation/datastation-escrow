@@ -15,7 +15,9 @@ class WAL:
         self.wal_path = wal_path
         self.entry_counter = 0
 
-    def log(self, caller_id, entry, key_manager):
+    def log(self, caller_id, entry, key_manager, check_point):
+
+        print(check_point.table_paths)
 
         # First convert content to bytes
         plain_content_in_bytes = pickle.dumps(entry)
