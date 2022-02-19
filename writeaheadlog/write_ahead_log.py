@@ -31,7 +31,7 @@ class WAL:
 
         # Use counter to determine when we need to checkpoint the DB
         # before we actually write the wal entry
-        if self.entry_counter >= 10:
+        if self.entry_counter == 10:
             check_point.check_point_all_tables(key_manager)
 
         # Write to WAL
