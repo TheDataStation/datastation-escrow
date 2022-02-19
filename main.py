@@ -3,6 +3,7 @@ import sys
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
+from checkpoint.check_point import CheckPoint
 from crypto.key_manager import KeyManager
 from gatekeeper import gatekeeper
 from clientapi.client_api import ClientAPI
@@ -31,6 +32,10 @@ def initialize_system(ds_config, app_config):
     wal_path = ds_config["wal_path"]
     write_ahead_log = WAL(wal_path)
 
+    # set up an instance of the checkpoint component
+    table_paths = ds_config["table_paths"]
+    check_point = CheckPoint(table_paths)
+
     # set up an instance of the key manager
     key_manager = KeyManager()
 
@@ -38,6 +43,7 @@ def initialize_system(ds_config, app_config):
     client_api = ClientAPI(storage_manager,
                            data_station_log,
                            write_ahead_log,
+                           check_point,
                            key_manager,
                            trust_mode,)
 

@@ -16,6 +16,7 @@ from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
+from checkpoint.check_point import CheckPoint
 from crypto.key_manager import KeyManager
 from crypto import cryptoutils as cu
 
@@ -25,11 +26,13 @@ class ClientAPI:
                  storageManager: StorageManager,
                  data_station_log: Log,
                  write_ahead_log: WAL,
+                 check_point: CheckPoint,
                  keyManager: KeyManager,
                  trust_mode: str):
         self.storage_manager = storageManager
         self.log = data_station_log
         self.write_ahead_log = write_ahead_log
+        self.check_point = check_point
         self.key_manager = keyManager
 
         # The following field decides the trust mode for the DS
@@ -78,7 +81,8 @@ class ClientAPI:
                                                  user.user_name,
                                                  user.password,
                                                  self.write_ahead_log,
-                                                 self.key_manager,)
+                                                 self.key_manager,
+                                                 self.check_point,)
 
         if response.status == 1:
             return Response(status=response.status, message=response.message)
@@ -162,7 +166,8 @@ class ClientAPI:
                                                                access_type,
                                                                optimistic,
                                                                self.write_ahead_log,
-                                                               self.key_manager,)
+                                                               self.key_manager,
+                                                               self.check_point,)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status,
                             message=data_register_response.message)
@@ -184,7 +189,8 @@ class ClientAPI:
             data_register_response = data_register.remove_data(data_name,
                                                                cur_username,
                                                                self.write_ahead_log,
-                                                               self.key_manager,)
+                                                               self.key_manager,
+                                                               self.check_point,)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status, message=data_register_response.message)
 
@@ -214,7 +220,8 @@ class ClientAPI:
             response = policy_broker.upload_policy(policy,
                                                    cur_username,
                                                    self.write_ahead_log,
-                                                   self.key_manager,)
+                                                   self.key_manager,
+                                                   self.check_point,)
 
         return Response(status=response.status, message=response.message)
 
@@ -232,7 +239,8 @@ class ClientAPI:
             response = policy_broker.remove_policy(policy,
                                                    cur_username,
                                                    self.write_ahead_log,
-                                                   self.key_manager,)
+                                                   self.key_manager,
+                                                   self.check_point,)
 
         return Response(status=response.status, message=response.message)
 
