@@ -10,6 +10,9 @@ Working/
 data_station.db
 ds_log.pkl
 wal.pkl
+users.pkl
+dataelements.pkl
+policies.pkl
 symmetric_keys.pkl
 test_process.py
 test_main.py

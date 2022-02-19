@@ -32,7 +32,8 @@ def update_policy_effect(api, data_id, d_graph, policy_dict):
 def upload_policy(policy: Policy,
                   cur_username,
                   write_ahead_log=None,
-                  key_manager=None,):
+                  key_manager=None,
+                  check_point=None,):
     # First check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
     if verify_owner_response.status == 1:
@@ -52,7 +53,7 @@ def upload_policy(policy: Policy,
                     + "',data_id=" + str(policy.data_id) \
                     + "))"
         # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, check_point, )
 
     response = database_api.create_policy(policy)
     return Response(status=response.status, message=response.msg)
@@ -62,7 +63,8 @@ def upload_policy(policy: Policy,
 def remove_policy(policy: Policy,
                   cur_username,
                   write_ahead_log=None,
-                  key_manager=None,):
+                  key_manager=None,
+                  check_point=None,):
     # First check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
     if verify_owner_response.status == 1:
@@ -82,7 +84,7 @@ def remove_policy(policy: Policy,
                     + "',data_id=" + str(policy.data_id) \
                     + "))"
         # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, check_point, )
 
     response = database_api.remove_policy(policy)
     return Response(status=response.status, message=response.msg)
