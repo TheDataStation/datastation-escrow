@@ -34,7 +34,8 @@ def initialize_system(ds_config, app_config):
 
     # set up an instance of the write ahead log
     wal_path = ds_config["wal_path"]
-    write_ahead_log = WAL(wal_path)
+    check_point_freq = ds_config["check_point_freq"]
+    write_ahead_log = WAL(wal_path, check_point_freq)
 
     # set up an instance of the checkpoint component
     table_paths = ds_config["table_paths"]
