@@ -20,9 +20,12 @@ def preprocess():
     for file in set(files):
         # print(file)
         if pathlib.Path(file).is_file():
+            with open(file, "w+") as cur_file:
+                cur_file.write("test")
+            print("write ", file)
             with open(file, "r") as cur_file:
                 content = cur_file.readline()
-                # print(content)
+                print("first line: ", content)
             print("read ", file)
 
     return "preprocess result"
