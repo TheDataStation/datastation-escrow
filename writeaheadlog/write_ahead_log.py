@@ -12,15 +12,16 @@ WriteContent = namedtuple("WriteContent",
 
 class WAL:
 
-    def __init__(self, wal_path):
+    def __init__(self, wal_path, check_point_freq):
         self.wal_path = wal_path
+        self.check_point_freq = check_point_freq
         self.entry_counter = 0
 
     def log(self, caller_id, entry, key_manager, check_point):
 
         # Use counter to determine when we need to checkpoint the DB
         # before we actually write the wal entry
-        if self.entry_counter >= 10:
+        if self.entry_counter >= self.check_point_freq:
             # First create the table snapshots
             check_point.check_point_all_tables(key_manager)
             # Then erase the existing WAL
