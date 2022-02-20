@@ -90,16 +90,14 @@ def call_api(api,
         accessible_data_optimistic.append(cur_optimistic_id)
 
     # Combine these two types of accessible data elements together
+    # In optimistic execution mode, we include optimistic datasets as well
     if exec_mode == "optimistic":
         all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
+    # In pessimistic execution mode, we only include data that are allowed by policies
     else:
         all_accessible_data_id = set(accessible_data_policy)
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
-
-    # TODO: change this once definite vs. indefinite can be determined
-    #       Question: how do we know if an intent is definite or indefinite?
-    #       Right now we assume that all intents are indefinite intents
 
     # zz: create a working dir from all_accessible_data_id
     # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
