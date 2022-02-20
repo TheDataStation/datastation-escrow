@@ -14,18 +14,12 @@ def get_odata_type(api, d_graph):
         first_child_api = d_graph[api][0]
         return get_odata_type(first_child_api, d_graph)
 
-# Helper function to update a policy's effect in policy_with_dependency
-def update_policy_effect(api, data_id, d_graph, policy_dict):
-    cur_key = api
-    cur_policy_info = policy_dict[cur_key]
-    # If the current API can access the current data_id, we don't have to do anything
-    # Because we know all its descendants will be able to access this data_id as well
-    # So we only do something if the current API cannot access the current data_id
-    if data_id not in cur_policy_info.accessible_data:
-        policy_dict[cur_key].accessible_data.append(data_id)
-        if not d_graph[cur_key] == ["dir_accessible"]:
-            for child_api in d_graph[cur_key]:
-                update_policy_effect(child_api, data_id, d_graph, policy_dict)
+# Helper function to get all ancestors of an api from dependency graph (including itself)
+def get_all_ancestors(api, d_graph, cur_ancestors):
+    if d_graph[api]:
+        cur_ancestors += d_graph[api]
+        for parent_api in d_graph[api]:
+            get_all_ancestors(parent_api, d_graph, cur_ancestors)
 
 # upload a new policy to DB
 
@@ -121,16 +115,12 @@ def get_all_policies():
     return list_of_policies
 
 # For gatekeeper
-# TODO: the efficiency of this function can be improved
-# TODO: Right now we are adding the effect of all policies for a user, but we only need all ancestors of current API.
-# TODO: Improve this if efficiency becomes a problem.
+
 def get_user_api_info(user_id, api):
 
-    # Initialize the variables needed
     list_of_policies = []
     list_of_dependencies = []
     dependency_graph = dict()
-    policy_with_dependency = dict()
 
     # get list of APIs from DB
     api_res = database_api.get_all_apis()
@@ -149,7 +139,14 @@ def get_user_api_info(user_id, api):
         # Fill in list of dependencies
         list_of_dependencies.append(cur_tuple)
         # Fill in dependency_graph dict
-        dependency_graph[from_api].append(to_api)
+        if to_api != "dir_accessible":
+            dependency_graph[to_api].append(from_api)
+
+    # get ancestors of the api being called
+    cur_ancestors = [api]
+    get_all_ancestors(api, dependency_graph, cur_ancestors)
+    # print("Current api's ancestors are:")
+    # print(cur_ancestors)
 
     # get list of policies for the current user
     policy_res = database_api.get_policy_for_user(user_id)
@@ -159,21 +156,15 @@ def get_user_api_info(user_id, api):
                      policy_res.data[i].data_id,)
         list_of_policies.append(cur_tuple)
 
-    # Initialize cur_policy_info from dependency_graph
-    for key in dependency_graph:
-        cur_accessible_data = []
-        cur_odata_type = get_odata_type(key, dependency_graph)
-        cur_policy_info = PolicyInfo(cur_accessible_data, cur_odata_type)
-        policy_with_dependency[key] = cur_policy_info
-
-    # From list_of_policies, fill in policy_with_dependency with policies
+    # get all accessible data for current <user_id, api>
+    accessible_data = []
     for policy in list_of_policies:
-        update_policy_effect(policy[1], policy[2], dependency_graph, policy_with_dependency)
+        if policy[1] in cur_ancestors:
+            accessible_data.append(policy[2])
+    accessible_data = list(set(accessible_data))
 
-    # Check if policy_with_dependency is correct
-    # for key, value in policy_with_dependency.items():
-    #     print(key)
-    #     print(value.accessible_data)
-    #     print(value.odata_type)
+    # # Check correctness
+    # print("accessible data from new method:")
+    # print(accessible_data)
 
-    return policy_with_dependency[api]
+    return accessible_data

@@ -52,8 +52,8 @@ def gatekeeper_setup(connector_name, connector_module_path):
 
 
 def get_accessible_data(user_id, api):
-    policy_info = policy_broker.get_user_api_info(user_id, api)
-    return policy_info
+    accessible_data = policy_broker.get_user_api_info(user_id, api)
+    return accessible_data
 
 
 def foo(a, b):
@@ -129,8 +129,7 @@ def call_api(api,
     cur_user_id = cur_user.data[0].id
 
     # look at the accessible data by policy for current (user, api)
-    policy_info = get_accessible_data(cur_user_id, api)
-    accessible_data_policy = policy_info.accessible_data
+    accessible_data_policy = get_accessible_data(cur_user_id, api)
 
     # look at all optimistic data from the DB
     optimistic_data = database_api.get_all_optimistic_datasets()
@@ -140,16 +139,20 @@ def call_api(api,
         accessible_data_optimistic.append(cur_optimistic_id)
 
     # Combine these two types of accessible data elements together
+    # In optimistic execution mode, we include optimistic datasets as well
     if exec_mode == "optimistic":
         all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
+    # In pessimistic execution mode, we only include data that are allowed by policies
     else:
         all_accessible_data_id = set(accessible_data_policy)
     print("all accessible data elements are: ")
     print(all_accessible_data_id)
 
-    # TODO: change this once definite vs. indefinite can be determined
-    #       Question: how do we know if an intent is definite or indefinite?
-    #       Right now we assume that all intents are indefinite intents
+    # zz: create a working dir from all_accessible_data_id
+    # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
+    # zz: run api
+    # zz: record all data ids that are accessed by the api through interceptor
+    # zz: check whether access to those data ids is valid, if not we cannot release the results
 
     accessible_data_paths = set()
     for cur_id in all_accessible_data_id:
