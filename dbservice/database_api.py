@@ -1,4 +1,4 @@
-# from .database import SessionLocal, engine, Base
+from .database import engine
 from .database import Base, DATABASE_URL
 from sqlalchemy import create_engine, exc
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,9 +20,6 @@ def get_db():
     # db = SessionLocal()
     # DATABASE_URL = "postgresql://zhiruzhu:@localhost:5432/data_station"
 
-    # global engine
-    engine = create_engine(DATABASE_URL)
-
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     event.listen(engine, 'connect', _fk_pragma_on_connect)
@@ -33,15 +30,8 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
-    # except exc.SQLAlchemyError as e:
-    #     print("get db session error:", str(e))
-    #     raise e
     finally:
         db.close()
-        engine.dispose()
-        # del db
-        # del engine
-        # print("clean up complete")
 
 def create_user(request):
     with get_db() as session:
@@ -74,6 +64,12 @@ def get_all_users():
             return response.UserResponse(status=1, msg="success", data=users)
         else:
             return response.UserResponse(status=-1, msg="no existing users", data=[])
+
+def recover_users(users):
+    with get_db() as session:
+        res = user_repo.recover_users(session, users)
+        if res is not None:
+            return 0
 
 def create_dataset(request):
     with get_db() as session:
@@ -147,6 +143,12 @@ def get_data_with_max_id():
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
+def recover_datas(datas):
+    with get_db() as session:
+        res = dataset_repo.recover_datas(session, datas)
+        if res is not None:
+            return 0
+
 def create_api(request):
     with get_db() as session:
         api = api_repo.create_api(session, request)
@@ -210,6 +212,12 @@ def get_policy_for_user(user_id):
             return response.PolicyResponse(status=1, msg="success", data=policies)
         else:
             return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
+
+def recover_policies(policies):
+    with get_db() as session:
+        res = policy_repo.recover_policies(session, policies)
+        if res is not None:
+            return 0
 
 def create_derived(request):
     with get_db() as session:

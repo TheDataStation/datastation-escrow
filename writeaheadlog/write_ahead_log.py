@@ -1,18 +1,34 @@
 import pickle
+import os
 from collections import namedtuple
 from crypto import cryptoutils as cu
 from dbservice import database_api
 from models.user import *
+from models.dataset import *
+from models.policy import *
 
 WriteContent = namedtuple("WriteContent",
                           "caller_id, content")
 
 class WAL:
 
-    def __init__(self, wal_path):
+    def __init__(self, wal_path, check_point_freq):
         self.wal_path = wal_path
+        self.check_point_freq = check_point_freq
+        self.entry_counter = 0
 
-    def log(self, caller_id, entry, key_manager):
+    def log(self, caller_id, entry, key_manager, check_point):
+
+        # Use counter to determine when we need to checkpoint the DB
+        # before we actually write the wal entry
+        if self.entry_counter >= self.check_point_freq:
+            # First create the table snapshots
+            check_point.check_point_all_tables(key_manager)
+            # Then erase the existing WAL
+            if os.path.exists(self.wal_path):
+                os.remove(self.wal_path)
+            # Then restart the counter
+            self.entry_counter = 0
 
         # First convert content to bytes
         plain_content_in_bytes = pickle.dumps(entry)
@@ -30,6 +46,9 @@ class WAL:
         with open(self.wal_path, 'ab') as log:
             entry_to_add = pickle.dumps(write_content)
             log.write(entry_to_add)
+
+        # Increment counter
+        self.entry_counter += 1
 
     def read_wal(self, key_manager):
         print("Printing contents of the write ahead log:")

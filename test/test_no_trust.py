@@ -268,21 +268,25 @@ if __name__ == '__main__':
 
         # Recovery step 2: recover the symmetric keys from file (for testing purposes)
         client_api.load_symmetric_keys()
-        # # Test if successful
+
+        # # Check if WAL holds the right content
         # client_api.read_wal()
 
-        # Recovery step 3: execute the statements in the WAL to recover the DB
+        # Recovery step 3: recover the tables from the snapshots
+        client_api.recover_db_from_snapshots()
+
+        # Recovery step 4: execute the statements in the WAL to recover the DB
         client_api.recover_db_from_wal()
 
-        # To test the correctness of the recovery, we get a token and look at API and APIDependency
-
-        # Log in a user to get a token
-        cur_token = client_api.login_user("lucy", "string")["access_token"]
-
-        # Look at all available APIs and APIDependencies
-        list_of_apis = client_api.get_all_apis(cur_token)
-        list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
-        print(list_of_apis)
-        print(list_of_api_dependencies)
+        # # To test the correctness of the recovery, we get a token and look at API and APIDependency
+        #
+        # # Log in a user to get a token
+        # cur_token = client_api.login_user("lucy", "string")["access_token"]
+        #
+        # # Look at all available APIs and APIDependencies
+        # list_of_apis = client_api.get_all_apis(cur_token)
+        # list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+        # print(list_of_apis)
+        # print(list_of_api_dependencies)
 
         client_api.shut_down(ds_config)
