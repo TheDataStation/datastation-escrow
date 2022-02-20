@@ -90,6 +90,8 @@ def call_actual_api(api_name, connector_name, connector_module_path,
 
     api_pid = os.getpid()
     print("api process id:", str(api_pid))
+    # set the list of accessible data for this api call,
+    # and the corresponding user's symmetric key if running in no trust mode
     accessible_data_dict[api_pid] = (accessible_data_paths, user_symmetric_key)
 
     # print("xxxxxxxxxx")
@@ -174,6 +176,7 @@ def call_api(api,
     connector_name = app_config["connector_name"]
     connector_module_path = app_config["connector_module_path"]
 
+    # start a new process for the api call
     main_conn, api_conn = multiprocessing.Pipe()
     api_process = multiprocessing.Process(target=call_actual_api,
                                           args=(api, connector_name, connector_module_path,
@@ -191,6 +194,8 @@ def call_api(api,
     api_result = main_conn.recv()
     # signal.clear()
 
+    # clean up the two dictionaries used for communication,
+    # and get the data ids accessed from the list of data paths accessed through the interceptor
     if api_pid in accessible_data_dict.keys():
         del accessible_data_dict[api_pid]
 
