@@ -51,8 +51,8 @@ def gatekeeper_setup(connector_name, connector_module_path):
 
 
 def get_accessible_data(user_id, api):
-    policy_info = policy_broker.get_user_api_info(user_id, api)
-    return policy_info
+    accessible_data = policy_broker.get_user_api_info(user_id, api)
+    return accessible_data
 
 
 def call_api(api,
@@ -79,8 +79,7 @@ def call_api(api,
     cur_user_id = cur_user.data[0].id
 
     # look at the accessible data by policy for current (user, api)
-    policy_info = get_accessible_data(cur_user_id, api)
-    accessible_data_policy = policy_info.accessible_data
+    accessible_data_policy = get_accessible_data(cur_user_id, api)
 
     # look at all optimistic data from the DB
     optimistic_data = database_api.get_all_optimistic_datasets()
