@@ -14,6 +14,7 @@ symmetric_keys.pkl
 test_process.py
 test_main.py
 test/test_file_no_trust
+test.txt
 
 # C extensions
 *.so
