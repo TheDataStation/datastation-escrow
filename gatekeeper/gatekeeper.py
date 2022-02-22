@@ -85,7 +85,7 @@ def test_api():
 def call_actual_api(api_name, connector_name, connector_module_path,
                     accessible_data_dict, accessible_data_paths, api_conn, *args, **kwargs):
     api_pid = os.getpid()
-    print("api process id:", str(api_pid))
+    # print("api process id:", str(api_pid))
     accessible_data_dict[api_pid] = accessible_data_paths
 
     # print("xxxxxxxxxx")
@@ -158,7 +158,7 @@ def call_api(api,
     for cur_id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
     # Actually calling the api
-    print("current process id:", str(os.getpid()))
+    # print("current process id:", str(os.getpid()))
 
     app_config = utils.parse_config("app_connector_config.yaml")
     connector_name = app_config["connector_name"]
@@ -205,7 +205,7 @@ def call_api(api,
                                                  api,
                                                  data_ids_accessed,
                                                  key_manager,)
-        print("api_result: ", api_result)
+        # print("api_result: ", api_result)
         return api_result
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         # print("Some access to optimistic data not allowed by policy.")
