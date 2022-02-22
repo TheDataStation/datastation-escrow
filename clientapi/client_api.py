@@ -1,3 +1,4 @@
+import os
 import pickle
 
 from dbservice import database_api
@@ -15,6 +16,7 @@ from policybroker import policy_broker
 from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
+import pathlib
 from writeaheadlog.write_ahead_log import WAL
 from checkpoint.check_point import CheckPoint
 from crypto.key_manager import KeyManager
@@ -28,7 +30,9 @@ class ClientAPI:
                  write_ahead_log: WAL,
                  check_point: CheckPoint,
                  keyManager: KeyManager,
-                 trust_mode: str):
+                 trust_mode: str,
+                 interceptor_process, accessible_data_dict, data_accessed_dict):
+
         self.storage_manager = storageManager
         self.log = data_station_log
         self.write_ahead_log = write_ahead_log
@@ -38,6 +42,15 @@ class ClientAPI:
         # The following field decides the trust mode for the DS
         self.trust_mode = trust_mode
 
+        self.interceptor_process = interceptor_process
+        self.accessible_data_dict = accessible_data_dict
+        self.data_accessed_dict = data_accessed_dict
+
+        # The following code decides which data_id we should use when we upload a new data
+        # right now we are just incrementing by 1
+        resp = database_api.get_data_with_max_id()
+        if resp.status == 1:
+            self.cur_data_id = resp.data[0].id + 1
         # The following field decides which user_id we should use when we upload a new user
         # Right now we are just incrementing by 1
         user_id_resp = database_api.get_user_with_max_id()
@@ -57,6 +70,16 @@ class ClientAPI:
             self.cur_data_id = 1
         # print("Starting data id should be:")
         # print(self.cur_data_id)
+
+    def shut_down(self, ds_config):
+        # zz: unmount and stop interceptor
+        mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
+        unmount_status = os.system("umount " + str(mount_point))
+        if unmount_status != 0:
+            print("Unmount failed")
+            exit(1)
+        assert os.path.ismount(mount_point) == False
+        self.interceptor_process.join()
 
     # create user
 
@@ -276,8 +299,10 @@ class ClientAPI:
                                   exec_mode,
                                   self.log,
                                   self.key_manager,
+                                  self.accessible_data_dict,
+                                  self.data_accessed_dict,
                                   *args,
-                                  **kwargs,)
+                                  **kwargs)
         return res
 
     # print out the contents of the log
