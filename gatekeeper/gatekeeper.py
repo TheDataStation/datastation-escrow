@@ -109,16 +109,9 @@ def call_api(api,
              data_accessed_dict,
              *args,
              **kwargs):
-    # import glob
-    # ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    # mount_path = pathlib.Path(ds_config["storage_path"]).absolute()
-    # all_files = set(glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True))
-    # all_files_mounted = set()
-    # for f in all_files:
-    #     all_files_mounted.add(f.replace("SM_storage", "SM_storage_mount"))
 
-    # TODO: add the intent-policy matching process in here
+    # Initialize an overhead list
+    overhead = []
 
     # get current user id
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
