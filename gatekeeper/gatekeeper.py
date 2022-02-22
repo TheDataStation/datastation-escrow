@@ -95,8 +95,8 @@ def call_api(api,
     # In pessimistic execution mode, we only include data that are allowed by policies
     else:
         all_accessible_data_id = set(accessible_data_policy)
-    print("all accessible data elements are: ")
-    print(all_accessible_data_id)
+    # print("all accessible data elements are: ")
+    # print(all_accessible_data_id)
 
     # zz: create a working dir from all_accessible_data_id
     # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
@@ -121,7 +121,7 @@ def call_api(api,
     interceptor_process = multiprocessing.Process(target=interceptor.main,
                                                   args=(ds_storage_path, mount_point, accessible_data_paths, send_end))
     interceptor_process.start()
-    print("starting interceptor...")
+    # print("starting interceptor...")
     time.sleep(1)
     counter = 0
     while not os.path.ismount(mount_point):
@@ -130,7 +130,7 @@ def call_api(api,
         if counter == 10:
             print("mount time out")
             exit(1)
-    print("mounted:", os.path.ismount(mount_point))
+    # print("mounted:", os.path.ismount(mount_point))
 
     # Actually calling the api
     # TODO: need to change returns
@@ -156,11 +156,11 @@ def call_api(api,
             data_ids_accessed.add(data_id)
         else:
             return None
-    print("Data ids accessed:")
-    print(data_ids_accessed)
+    # print("Data ids accessed:")
+    # print(data_ids_accessed)
 
     if set(data_ids_accessed).issubset(set(accessible_data_policy)):
-        print("All data access allowed by policy.")
+        # print("All data access allowed by policy.")
         # log operation: logging intent_policy match
         data_station_log.log_intent_policy_match(cur_user_id,
                                                  api,
@@ -168,7 +168,7 @@ def call_api(api,
                                                  key_manager,)
         return api_res
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
-        print("Some access to optimistic data not allowed by policy.")
+        # print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
         data_station_log.log_intent_policy_mismatch(cur_user_id,
                                                     api,
@@ -178,7 +178,7 @@ def call_api(api,
         return None
     else:
         # We should not get in here in the first place.
-        print("Access to illegal data happened. Something went wrong")
+        # print("Access to illegal data happened. Something went wrong")
         # log operation: logging intent_policy mismatch
         data_station_log.log_intent_policy_mismatch(cur_user_id,
                                                     api,

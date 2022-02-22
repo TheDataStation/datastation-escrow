@@ -17,12 +17,8 @@ if __name__ == '__main__':
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
-    # TODO 1: vary what's inside of the dependency graph (api and api dependencies)
-    # TODO 2: vary how we select the APIs (right now we are uniformly selecting the APIs
-    # TODO 2: we can do 1) uniform 2) those with few descendants 3) those with many descendants
-
-    # Get start time of the script
-    prev_time = time.time()
+    # # Get start time of the script
+    # prev_time = time.time()
 
     # Read in the configuration file
     test_config = parse_config(sys.argv[1])
@@ -50,10 +46,10 @@ if __name__ == '__main__':
     client_api.create_user(User(user_name="lucy", password="123456"))
     client_api.create_user(User(user_name="david", password="string"))
 
-    cur_time = time.time()
-    print("User addition done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
-    prev_time = cur_time
+    # cur_time = time.time()
+    # print("User addition done")
+    # print("--- %s seconds ---" % (cur_time - prev_time))
+    # prev_time = cur_time
 
     # Log in a user to get a token
 
@@ -64,12 +60,12 @@ if __name__ == '__main__':
     # print("--- %s seconds ---" % (cur_time - prev_time))
     # prev_time = cur_time
 
-    # Look at all available APIs and APIDependencies
+    # # Look at all available APIs and APIDependencies
 
     list_of_apis = client_api.get_all_apis(cur_token)
     list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
-    print(list_of_apis)
-    print(list_of_api_dependencies)
+    # print(list_of_apis)
+    # print(list_of_api_dependencies)
 
     # cur_time = time.time()
     # print("Looking at dependency graph done")
@@ -87,6 +83,8 @@ if __name__ == '__main__':
             os.unlink(file_path)
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
+
+    # Set up the data elements we will upload
 
     num_files = test_config["num_files"]
     opt_data_proportion = test_config["opt_data_proportion"]
@@ -112,10 +110,10 @@ if __name__ == '__main__':
 
     # print(list_of_data_ids)
 
-    cur_time = time.time()
-    print("Uploading datasets done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
-    prev_time = cur_time
+    # cur_time = time.time()
+    # print("Uploading datasets done")
+    # print("--- %s seconds ---" % (cur_time - prev_time))
+    # prev_time = cur_time
 
     # Upload Policies
 
@@ -137,27 +135,34 @@ if __name__ == '__main__':
                 policy_created += 1
                 client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
 
-    cur_time = time.time()
-    print("Uploading policies done")
-    print("--- %s seconds ---" % (cur_time - prev_time))
+    # cur_time = time.time()
+    # print("Uploading policies done")
+    # print("--- %s seconds ---" % (cur_time - prev_time))
     print("Number of policies created is: " + str(policy_created))
     print("Expected number of policies is: " + str(math.floor(num_data_with_policy*len(list_of_apis)*policy_proportion)))
-    prev_time = cur_time
+    # prev_time = cur_time
 
     # call available APIs
 
-    client_api.call_api("preprocess", cur_token, "optimistic")
-    print("preprocess finished\n")
-    client_api.call_api("modeltrain", cur_token, "optimistic")
-    print("modeltrain finished\n")
-    client_api.call_api("predict", cur_token, "pessimistic", 10, 5)
-    print("predict finished\n")
+    print("Start counting overheads for data users:")
+    prev_time = time.time()
+
+    num_calls = test_config["num_calls"]
+    for _ in range(num_calls):
+        client_api.call_api("preprocess", cur_token, "optimistic")
+
+    # client_api.call_api("preprocess", cur_token, "optimistic")
+    # print("preprocess finished\n")
+    # client_api.call_api("modeltrain", cur_token, "optimistic")
+    # print("modeltrain finished\n")
+    # client_api.call_api("predict", cur_token, "pessimistic", 10, 5)
+    # print("predict finished\n")
 
     cur_time = time.time()
     print("Calling APIs done")
     print("--- %s seconds ---" % (cur_time - prev_time))
     prev_time = cur_time
 
-    # take a look at the log
-
-    client_api.read_full_log()
+    # # take a look at the log
+    #
+    # client_api.read_full_log()
