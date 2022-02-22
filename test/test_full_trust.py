@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     list_of_apis = client_api.get_all_apis(cur_token)
     list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
-    # print(list_of_apis)
+    print(list_of_apis)
     # print(list_of_api_dependencies)
 
     # cur_time = time.time()

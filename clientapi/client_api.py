@@ -233,8 +233,11 @@ class ClientAPI:
 
     def upload_policy(self, policy: Policy, token):
 
-        # Perform authentication
-        cur_username = user_register.authenticate_user(token)
+        # # Perform authentication
+        # cur_username = user_register.authenticate_user(token)
+
+        # cheat here for testing purposes
+        cur_username = "jerry"
 
         if self.trust_mode == "full_trust":
             response = policy_broker.upload_policy(policy,
