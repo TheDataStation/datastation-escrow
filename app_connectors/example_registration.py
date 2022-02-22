@@ -8,22 +8,21 @@ from common import utils
 
 @register()
 def preprocess():
-    """preprocess all the data"""
-    print("preprocess called")
-    # print(pathlib.Path(__file__).parent.resolve())
-    # print(os.getcwd())
-    ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
-    files = glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True)
-    # print(set(files))
-    for file in set(files):
-        # print(file)
-        if pathlib.Path(file).is_file():
-            with open(file, "r") as cur_file:
-                cur_file.readline()
-            print("read ", file)
-
+    # """preprocess all the data"""
+    # print("preprocess called")
+    # # print(pathlib.Path(__file__).parent.resolve())
+    # # print(os.getcwd())
+    # ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
+    # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
+    # mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
+    # files = glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True)
+    # # print(set(files))
+    # for file in set(files):
+    #     # print(file)
+    #     if pathlib.Path(file).is_file():
+    #         with open(file, "r") as cur_file:
+    #             cur_file.readline()
+    #         print("read ", file)
     return 0
 
 
