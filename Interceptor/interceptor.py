@@ -189,10 +189,10 @@ class Xmp(Fuse):
         else:
             if pathlib.Path(path_to_access).is_file():
                 if mode != os.F_OK:
-                    print("Access okay for " + str(path_to_access) + " in " + mode_to_str[mode] + " mode")
-                    print("fuse context:")
+                    # print("Access okay for " + str(path_to_access) + " in " + mode_to_str[mode] + " mode")
+                    # print("fuse context:")
                     fuse_context = Fuse.GetContext(self)
-                    print(fuse_context)
+                    # print(fuse_context)
                     pid = fuse_context["pid"]
 
                     if pid not in data_accessed_dict_global.keys():
@@ -284,7 +284,7 @@ class Xmp(Fuse):
             #     self.file = None
             #     print("Access denied for " + self.file_path)
             #     raise IOError("Access denied for " + self.file_path)
-            print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+            # print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
             # data_id = gatekeeper.record_data_ids_accessed(self.file_path, user_id, api_name)
             # if data_id != None:
             #     data_ids_accessed.add(data_id)
@@ -301,12 +301,12 @@ class Xmp(Fuse):
                     self.iolock.acquire()
                     try:
                         self.file.seek(offset)
-                        print("I am reading " + str(self.file_path))
+                        # print("I am reading " + str(self.file_path))
                         return self.file.read(length)
                     finally:
                         self.iolock.release()
                 else:
-                    print("I am reading " + str(self.file_path))
+                    # print("I am reading " + str(self.file_path))
                     return os.pread(self.fd, length, offset)
             # else:
             #     raise IOError("Read access denied for " + self.file_path)
@@ -330,7 +330,7 @@ class Xmp(Fuse):
         def release(self, flags):
             if self.file != None:
                 self.file.close()
-                print("release " + str(self.file_path))
+                # print("release " + str(self.file_path))
 
         def _fflush(self):
             if 'w' in self.file.mode or 'a' in self.file.mode:
@@ -350,7 +350,7 @@ class Xmp(Fuse):
                 self._fflush()
                 # cf. xmp_flush() in fusexmp_fh.c
                 os.close(os.dup(self.fd))
-                print("flush " + str(self.file_path))
+                # print("flush " + str(self.file_path))
 
         def fgetattr(self):
             if self.file != None:

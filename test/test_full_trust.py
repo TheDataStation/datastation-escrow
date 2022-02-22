@@ -156,7 +156,7 @@ if __name__ == '__main__':
 
     num_calls = test_config["num_calls"]
     for _ in range(num_calls):
-        client_api.call_api("preprocess", cur_token, "optimistic")
+        client_api.call_api("f1", cur_token, "optimistic")
 
     # client_api.call_api("preprocess", cur_token, "optimistic")
     # print("preprocess finished\n")
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     print("--- %s seconds ---" % (cur_time - prev_time))
     prev_time = cur_time
 
-    # take a look at the log
-    client_api.read_full_log()
+    # # take a look at the log
+    # client_api.read_full_log()
 
     client_api.shut_down(ds_config)
