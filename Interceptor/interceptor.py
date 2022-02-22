@@ -54,6 +54,9 @@ def flag2mode(flags):
     if flags | os.O_APPEND:
         m = m.replace('w', 'a', 1)
 
+    # if 'a' in m and '+' not in m:
+    #     m += '+'
+
     return m
 
 
@@ -106,7 +109,7 @@ class Xmp(Fuse):
         else:
             accessible_data_paths, symmetric_key = accessible_data_dict_global[pid]
 
-        # print("readdir", path)
+        # print("Interceptor: readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
         # print(str(path_to_access))
         for e in os.listdir("." + path):
@@ -116,14 +119,14 @@ class Xmp(Fuse):
             else:
                 for acc_path in accessible_data_paths:
                     if path_to_access in pathlib.Path(acc_path).parents or str(path_to_access) == acc_path:
-                        # print("yield")
+                        # print("Interceptor: yield")
                         yield fuse.Direntry(e)
                         break
                     # parts = pathlib.Path(acc_path).parts
                     # # print(parts)
                     # # TODO: prob too hacky
                     # if str(e) in parts:
-                    #     # print("yield")
+                    #     # print("Interceptor: yield")
                     #     yield fuse.Direntry(e)
                     #     break
 
@@ -172,8 +175,8 @@ class Xmp(Fuse):
     def access(self, path, mode):
         # mode_to_str = {0: "os.F_OK", 1: "os.X_OK", 2: "os.W_OK", 4: "os.R_OK"}
         # if mode == os.R_OK or mode == os.W_OK:
-        # print("Testing access for " + path + " in " + mode_to_str[mode] + " mode")
-        # print("fuse context:")
+        # print("Interceptor: Testing access for " + path + " in " + mode_to_str[mode] + " mode")
+        # print("Interceptor: fuse context:")
         # print(self.GetContext())
         # print(Fuse.GetContext(self))
         # TODO: maybe don't return error here (if accessing data that's shouldn't be accessible),
@@ -188,7 +191,7 @@ class Xmp(Fuse):
         #     return -EACCES
         if not os.access("." + path, mode):
             # if mode == os.R_OK:
-            #     print("can't read")
+            #     print("Interceptor: can't read")
             return -EACCES
         # else:
         #     if pathlib.Path(path_to_access).is_file():
@@ -197,8 +200,8 @@ class Xmp(Fuse):
         #             pid = fuse_context["pid"]
         #
         #             if pid in accessible_data_dict_global.keys():
-        #                 print("Access okay for " + str(path_to_access) + " in " + str(mode) + " mode")
-        #                 print("pid:", pid)
+        #                 print("Interceptor: Access okay for " + str(path_to_access) + " in " + str(mode) + " mode")
+        #                 print("Interceptor: pid:", pid)
         #
         #             if pid not in data_accessed_dict_global.keys():
         #                 data_accessed_dict_global[pid] = set()
@@ -209,7 +212,7 @@ class Xmp(Fuse):
 
                     # print(data_accessed_dict_global)
             # if mode == os.R_OK:
-            #     print("read okay")
+            #     print("Interceptor: read okay")
 
     #    This is how we could add stub extended attribute handlers...
     #    (We can't have ones which aptly delegate requests to the underlying fs
@@ -267,7 +270,7 @@ class Xmp(Fuse):
                 #     print(dictionary["user_id"] + "is trying to open " + path + " in " + flag2mode(flags) + " mode")
 
                 # if "user_id" in os.environ.keys():
-                #     print("user_id = " + os.environ.get("user_id"))
+                #     print("Interceptor: user_id = " + os.environ.get("user_id"))
 
                 self.file_path = os.path.join(Path.cwd(), path[1:])
                 self.file = os.fdopen(os.open("." + path, flags, *mode),
@@ -287,12 +290,12 @@ class Xmp(Fuse):
                 # api_name = pathlib.PurePath(args[-1]).parts[-1]
 
                 # if mock_gatekeeper.check(user_id=user_id, api_name=api_name, file_to_access=self.file_path):
-                #     print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+                #     print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
                 # else:
                 #     self.file = None
-                #     print("Access denied for " + self.file_path)
+                #     print("Interceptor: Access denied for " + self.file_path)
                 #     raise IOError("Access denied for " + self.file_path)
-                # print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+                # print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
                 # data_id = gatekeeper.record_data_ids_accessed(self.file_path, user_id, api_name)
                 # if data_id != None:
                 #     data_ids_accessed.add(data_id)
@@ -300,7 +303,7 @@ class Xmp(Fuse):
                 # f.write(str(data_id) + '\n')
                 # f.close()
 
-                # print("data id accessed: ", str(data_id))
+                # print("Interceptor: data id accessed: ", str(data_id))
                 # data_accessed.add(self.file_path)
 
                 # zz: recording data accessed here
@@ -310,8 +313,8 @@ class Xmp(Fuse):
                 pid = fuse_context["pid"]
 
                 if pid in accessible_data_dict_global.keys():
-                    print("Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-                    print("pid:", pid)
+                    print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+                    print("Interceptor: pid:", pid)
 
                 if pid not in data_accessed_dict_global.keys():
                     data_accessed_dict_global[pid] = set()
@@ -324,7 +327,7 @@ class Xmp(Fuse):
                 self.truncate_len = 0
 
             def read(self, length, offset):
-                print("I am reading " + str(self.file_path))
+                print("Interceptor: I am reading " + str(self.file_path))
 
                 # zz: get the symmetric key for the current user who runs the api's process,
                 #  if the key is not None, then we know it's running in no trust mode.
@@ -349,7 +352,7 @@ class Xmp(Fuse):
                             if decrypted_bytes is not None:
                                 return decrypted_bytes[offset:offset + length]
                             else:
-                                print("Cannot decrypt ", self.file_path)
+                                print("Interceptor: Cannot decrypt ", self.file_path)
                                 return b''
                         else:
                             self.file.seek(offset)
@@ -368,7 +371,7 @@ class Xmp(Fuse):
                             # else:
                             return decrypted_bytes[offset:offset + length]
                         else:
-                            print("Cannot decrypt ", self.file_path)
+                            print("Interceptor: Cannot decrypt ", self.file_path)
                             return b''
                     else:
                         return os.pread(self.fd, length, offset)
@@ -376,9 +379,10 @@ class Xmp(Fuse):
                 #     raise IOError("Read access denied for " + self.file_path)
 
             def write(self, buf, offset):
-                print("I am writing " + str(self.file_path))
-                print("buf:")
-                print(buf.decode())
+                print("Interceptor: I am writing " + str(self.file_path))
+                # print("Interceptor: buf:")
+                # print(str(type(buf)))
+                # print(buf.decode())
 
                 pid = Xmp_self.GetContext()["pid"]
 
@@ -395,18 +399,18 @@ class Xmp(Fuse):
                                 ciphertext=encrypted_bytes,
                                 key=symmetric_key)
                             if decrypted_bytes == None:
-                                print("Cannot decrypt ", self.file_path)
+                                print("Interceptor: Cannot decrypt ", self.file_path)
                                 return 0
 
                             # if self.truncate:
-                            #     print("truncate")
+                            #     print("Interceptor: truncate")
                                 # decrypted_bytes = decrypted_bytes[:self.truncate_len]
                                 # self.truncate = False
 
                             new_bytes = decrypted_bytes[:offset] + buf
                             if offset + len(buf) < len(decrypted_bytes):
                                 new_bytes += decrypted_bytes[offset + len(buf):]
-                            # print("new_bytes:")
+                            # print("Interceptor: new_bytes:")
                             # print(cryptoutils.from_bytes(new_bytes))
                             # print(new_bytes.decode())
                             # new_bytes = decrypted_bytes[:offset] + buf + decrypted_bytes[offset + len(buf) : ]
@@ -415,11 +419,12 @@ class Xmp(Fuse):
                                 key=symmetric_key
                             )
                             if new_encrypted_bytes is not None:
+                                self.file.truncate(0)
                                 self.file.write(new_encrypted_bytes)
                                 return len(buf)
                             else:
-                                print("Cannot encrypt ", self.file_path)
-                                self.file.write(encrypted_bytes)
+                                print("Interceptor: Cannot encrypt ", self.file_path)
+                                # self.file.write(encrypted_bytes)
                                 return 0
                         else:
                             self.file.seek(offset)
@@ -429,40 +434,40 @@ class Xmp(Fuse):
                         self.iolock.release()
                 else:
                     if symmetric_key is not None:
-                        print("in")
+                        # print("Interceptor: in")
                         encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
-                        # print("encrypted_bytes:")
+                        # print("Interceptor: encrypted_bytes:")
                         # print(encrypted_bytes.decode())
                         decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                             ciphertext=encrypted_bytes,
                             key=symmetric_key)
                         if decrypted_bytes == None:
-                            print("Cannot decrypt ", self.file_path)
+                            print("Interceptor: Cannot decrypt ", self.file_path)
                             return 0
-                        print("decrypted_bytes:")
-                        print(decrypted_bytes)
-                        print(decrypted_bytes.decode())
+                        # print("Interceptor: decrypted_bytes:")
+                        # print(decrypted_bytes)
+                        # print(decrypted_bytes.decode())
 
                         # decrypted_bytes = bytearray(decrypted_bytes)
                         # print(decrypted_bytes.decode().split("\n")[0])
                         # if self.truncate:
-                            # print("truncate")
+                            # print("Interceptor: truncate")
                             # decrypted_bytes = decrypted_bytes[:self.truncate_len]
                         # print(decrypted_bytes.decode())
-                        # print("buf:")
+                        # print("Interceptor: buf:")
                         # print(buf)
                         new_bytes = decrypted_bytes[:offset] + buf
-                        print("decrypted_bytes[:offset]:")
-                        print(decrypted_bytes[:offset].decode())
-                        print("buf:")
+                        # print("Interceptor: decrypted_bytes[:offset]:")
+                        # print(decrypted_bytes[:offset].decode())
+                        # print("Interceptor: buf:")
                         # print(buf)
                         # print(buf[:13].decode())
-                        print(buf.decode())
+                        # print(buf.decode())
                         if offset + len(buf) < len(decrypted_bytes):
                             new_bytes += decrypted_bytes[offset + len(buf):]
-                        print("new_bytes:")
+                        # print("Interceptor: new_bytes:")
                         # print(cryptoutils.from_bytes(new_bytes))
-                        print(new_bytes.decode())
+                        # print(new_bytes.decode())
                         # print(new_bytes.decode().split("\n")[0])
 
                         new_encrypted_bytes = cryptoutils.encrypt_data_with_symmetric_key(
@@ -470,18 +475,19 @@ class Xmp(Fuse):
                             key=symmetric_key
                         )
                         if new_encrypted_bytes is not None:
+                            self.file.truncate(0)
                             os.pwrite(self.fd, new_encrypted_bytes, 0)
                             return len(buf)
                         else:
-                            print("Cannot encrypt ", self.file_path)
-                            os.pwrite(self.fd, encrypted_bytes, 0)
+                            print("Interceptor: Cannot encrypt ", self.file_path)
+                            # os.pwrite(self.fd, encrypted_bytes, 0)
                             return 0
                     else:
                         return os.pwrite(self.fd, buf, offset)
 
             def release(self, flags):
                 self.file.close()
-                print("release " + str(self.file_path))
+                print("Interceptor: release " + str(self.file_path))
 
             def _fflush(self):
                 if 'w' in self.file.mode or 'a' in self.file.mode:
@@ -493,20 +499,20 @@ class Xmp(Fuse):
                     os.fdatasync(self.fd)
                 else:
                     os.fsync(self.fd)
-                print("fsync " + str(self.file_path))
+                print("Interceptor: fsync " + str(self.file_path))
 
             def flush(self):
                 self._fflush()
                 # cf. xmp_flush() in fusexmp_fh.c
                 os.close(os.dup(self.fd))
-                print("flush " + str(self.file_path))
+                print("Interceptor: flush " + str(self.file_path))
 
             def fgetattr(self):
-                print("fgetattr " + str(self.file_path))
+                print("Interceptor: fgetattr " + str(self.file_path))
                 return os.fstat(self.fd)
 
             def ftruncate(self, trunc_len):
-                print("ftruncate " + str(self.file_path) + " with length " + str(trunc_len))
+                print("Interceptor: ftruncate " + str(self.file_path) + " with length " + str(trunc_len))
 
                 pid = Xmp_self.GetContext()["pid"]
 
@@ -515,8 +521,8 @@ class Xmp(Fuse):
                     symmetric_key = accessible_data_dict_global[pid][1]
 
                 if symmetric_key is not None:
-                    self.truncate = True
-                    self.truncate_len = trunc_len
+                    # self.truncate = True
+                    # self.truncate_len = trunc_len
                     if self.iolock:
                         self.iolock.acquire()
                         try:
@@ -525,7 +531,7 @@ class Xmp(Fuse):
                                 ciphertext=encrypted_bytes,
                                 key=symmetric_key)
                             if decrypted_bytes == None:
-                                print("Cannot decrypt ", self.file_path)
+                                print("Interceptor: Cannot decrypt ", self.file_path)
                                 return
 
                             if trunc_len > len(decrypted_bytes):
@@ -538,9 +544,11 @@ class Xmp(Fuse):
                             )
                             if new_encrypted_bytes is not None:
                                 self.file.truncate()
-                                self.file.write(new_encrypted_bytes)
+                                num_bytes_wrote = self.file.write(new_encrypted_bytes)
+                                assert num_bytes_wrote == len(new_encrypted_bytes)
+                                self.fsync(isfsyncfile=True)
                             else:
-                                print("Cannot encrypt ", self.file_path)
+                                print("Interceptor: Cannot encrypt ", self.file_path)
                                 # self.file.write(encrypted_bytes)
                         finally:
                             self.iolock.release()
@@ -550,25 +558,40 @@ class Xmp(Fuse):
                             ciphertext=encrypted_bytes,
                             key=symmetric_key)
                         if decrypted_bytes == None:
-                            print("Cannot decrypt ", self.file_path)
+                            print("Interceptor: Cannot decrypt ", self.file_path)
                             return
 
                         if trunc_len > len(decrypted_bytes):
                             new_bytes = decrypted_bytes
                         else:
                             new_bytes = decrypted_bytes[:trunc_len]
-                        print("new_bytes:")
-                        print(new_bytes)
-                        print(new_bytes.decode())
+                        # print("Interceptor: new_bytes:")
+                        # print(new_bytes)
+                        # print(new_bytes.decode())
                         new_encrypted_bytes = cryptoutils.encrypt_data_with_symmetric_key(
                             data=new_bytes,
                             key=symmetric_key
                         )
+                        # print("Interceptor: new_encrypted_bytes:")
+                        # print(new_encrypted_bytes)
+                        # print(cryptoutils.decrypt_data_with_symmetric_key(
+                        #     ciphertext=new_encrypted_bytes,
+                        #     key=symmetric_key))
                         if new_encrypted_bytes is not None:
                             self.file.truncate()
-                            os.pwrite(self.fd, new_encrypted_bytes, 0)
+                            num_bytes_wrote = os.pwrite(self.fd, new_encrypted_bytes, 0)
+                            assert num_bytes_wrote == len(new_encrypted_bytes)
+                            # num_bytes_wrote = self.file.write(new_encrypted_bytes)
+                            # print("Interceptor: num_bytes_wrote:", num_bytes_wrote)
+                            self.fsync(isfsyncfile=True)
+                            # encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
+                            # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
+                            #     ciphertext=encrypted_bytes,
+                            #     key=symmetric_key)
+                            # print("Interceptor: decrypted_bytes:")
+                            # print(decrypted_bytes.decode())
                         else:
-                            print("Cannot encrypt ", self.file_path)
+                            print("Interceptor: Cannot encrypt ", self.file_path)
                             # os.pwrite(self.fd, encrypted_bytes, 0)
                 else:
                     self.file.truncate(trunc_len)
@@ -657,7 +680,7 @@ Userspace nullfs-alike: mirror the filesystem tree from some point on.
         if server.fuse_args.mount_expected():
             os.chdir(server.root)
     except OSError:
-        print("can't enter root of underlying filesystem", file=sys.stderr)
+        print("Interceptor: can't enter root of underlying filesystem", file=sys.stderr)
         sys.exit(1)
 
     server.main()
