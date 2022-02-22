@@ -252,6 +252,8 @@ if __name__ == '__main__':
             os.remove("symmetric_keys.pkl")
         client_api.save_symmetric_keys()
 
+        client_api.shut_down(ds_config)
+
     # Case 2: starting from recovery mode
     else:
         print("Starting from recovery mode")
@@ -286,3 +288,5 @@ if __name__ == '__main__':
         # list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
         # print(list_of_apis)
         # print(list_of_api_dependencies)
+
+        client_api.shut_down(ds_config)

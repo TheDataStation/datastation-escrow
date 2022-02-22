@@ -8,6 +8,10 @@ from crypto.key_manager import KeyManager
 from gatekeeper import gatekeeper
 from clientapi.client_api import ClientAPI
 from common.utils import parse_config
+from Interceptor import interceptor
+import multiprocessing
+import pathlib
+import time
 
 def initialize_system(ds_config, app_config):
 
@@ -40,13 +44,42 @@ def initialize_system(ds_config, app_config):
     # set up an instance of the key manager
     key_manager = KeyManager()
 
+    # zz: start interceptor process
+    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
+    mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
+
+    # with multiprocessing.Manager() as :
+    manager = multiprocessing.Manager()
+
+    accessible_data_dict = manager.dict()
+    data_accessed_dict = manager.dict()
+    # signal = multiprocessing.Event()
+
+    interceptor_process = multiprocessing.Process(target=interceptor.main,
+                                                  args=(ds_storage_path,
+                                                        mount_point,
+                                                        accessible_data_dict,
+                                                        data_accessed_dict))
+    interceptor_process.start()
+    print("starting interceptor...")
+    # time.sleep(1)
+    counter = 0
+    while not os.path.ismount(mount_point):
+        time.sleep(1)
+        counter += 1
+        if counter == 10:
+            print("mount time out")
+            exit(1)
+    print("Mounted {} to {}".format(ds_storage_path, mount_point))
+
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,
                            data_station_log,
                            write_ahead_log,
                            check_point,
                            key_manager,
-                           trust_mode,)
+                           trust_mode,
+                           interceptor_process, accessible_data_dict, data_accessed_dict)
 
     # set up the application registration in the gatekeeper
     connector_name = app_config["connector_name"]
@@ -77,7 +110,6 @@ def run_system(ds_config):
         os.system("uvicorn fast_api:app --reload")
 
     return
-
 
 if __name__ == "__main__":
     print("Main")

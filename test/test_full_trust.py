@@ -1,4 +1,5 @@
 # This script loads a complete state of the data station
+import pathlib
 import sys
 import main
 import os
@@ -6,7 +7,9 @@ import shutil
 import time
 import math
 import random
+import multiprocessing
 
+from Interceptor import interceptor
 from common import utils
 from models.user import *
 from models.policy import *
@@ -27,6 +30,9 @@ if __name__ == '__main__':
 
     ds_config = utils.parse_config("data_station_config.yaml")
     app_config = utils.parse_config("app_connector_config.yaml")
+
+    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
+    mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
 
     client_api = main.initialize_system(ds_config, app_config)
 
@@ -74,7 +80,7 @@ if __name__ == '__main__':
 
     # Upload datasets
 
-    # First clear SM_storage
+    # First clear the storage place
 
     folder = 'SM_storage'
     for filename in os.listdir(folder):
@@ -98,12 +104,12 @@ if __name__ == '__main__':
         cur_optimistic_flag = False
         if random.random() < opt_data_proportion:
             cur_optimistic_flag = True
-        name_to_upload = "file-" + str(cur_num+1)
+        name_to_upload = "file-" + str(cur_num + 1)
         cur_res = client_api.upload_dataset(name_to_upload,
                                             cur_file_bytes,
                                             "file",
                                             cur_optimistic_flag,
-                                            cur_token,)
+                                            cur_token, )
         if cur_res.status == 0:
             list_of_data_ids.append(cur_res.data_id)
         cur_file.close()
@@ -139,7 +145,8 @@ if __name__ == '__main__':
     # print("Uploading policies done")
     # print("--- %s seconds ---" % (cur_time - prev_time))
     print("Number of policies created is: " + str(policy_created))
-    print("Expected number of policies is: " + str(math.floor(num_data_with_policy*len(list_of_apis)*policy_proportion)))
+    print("Expected number of policies is: " + str(
+        math.floor(num_data_with_policy * len(list_of_apis) * policy_proportion)))
     # prev_time = cur_time
 
     # call available APIs
@@ -163,6 +170,7 @@ if __name__ == '__main__':
     print("--- %s seconds ---" % (cur_time - prev_time))
     prev_time = cur_time
 
-    # # take a look at the log
-    #
-    # client_api.read_full_log()
+    # take a look at the log
+    client_api.read_full_log()
+
+    client_api.shut_down(ds_config)
