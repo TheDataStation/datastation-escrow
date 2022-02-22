@@ -89,7 +89,7 @@ def encrypt_data_with_symmetric_key(data, key):
     # Even if data is already bytes, we find our own byte representation for compatibility (pickle)
     ciphertext = None
     try:
-        data = to_bytes(data)
+        # data = to_bytes(data)
         f = Fernet(key)
         ciphertext = f.encrypt(data)
     except Exception as e:
@@ -192,13 +192,15 @@ if __name__ == "__main__":
     data = b'example data to encrypt with symmetric'
 
     f = Fernet(key)
-    ciph = f.encrypt(data)
+    # ciph = f.encrypt(data)
+    ciph = encrypt_data_with_symmetric_key(data, key)
 
     print("ciph symmetric: " + str(ciph))
 
-    decrypted_data = f.decrypt(ciph)
+    # decrypted_data = f.decrypt(ciph)
+    decrypted_data = decrypt_data_with_symmetric_key(ciph, key)
 
-    print("decrypted data symmetric: " + str(decrypted_data))
+    print("decrypted data symmetric: " + str(decrypted_data.decode()))
 
     dummy = decrypt_data_with_symmetric_key(ciphertext=ciph, key="dummy")
     print("decrypted data with dummy key:", str(dummy))
