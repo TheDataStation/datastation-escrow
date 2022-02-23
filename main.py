@@ -72,6 +72,13 @@ def initialize_system(ds_config, app_config):
             exit(1)
     print("Mounted {} to {}".format(ds_storage_path, mount_point))
 
+    # set up the application registration in the gatekeeper
+    connector_name = app_config["connector_name"]
+    connector_module_path = app_config["connector_module_path"]
+    gatekeeper_response = gatekeeper.gatekeeper_setup(connector_name, connector_module_path)
+    # if gatekeeper_response.status == 1:
+    #     print("something went wrong in gatekeeper setup")
+
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,
                            data_station_log,
@@ -81,26 +88,7 @@ def initialize_system(ds_config, app_config):
                            trust_mode,
                            interceptor_process, accessible_data_dict, data_accessed_dict)
 
-    # set up the application registration in the gatekeeper
-    connector_name = app_config["connector_name"]
-    connector_module_path = app_config["connector_module_path"]
-    gatekeeper_response = gatekeeper.gatekeeper_setup(connector_name, connector_module_path)
-    # if gatekeeper_response.status == 1:
-    #     print("something went wrong in gatekeeper setup")
-
-    # __test_registration()
-    # print(register.registered_functions)
-    # # print(register.dependencies)
-    # my_func = register.registered_functions[1]
-    # my_func(5)
-    # my_func(4)
-    # my_func(1)
-    # print(register.registered_functions)
-    # print(register.dependencies)
-    # print(get_names_registered_functions())
-    # print(get_registered_dependencies())
-
-    # return an instance of the client API?
+    # return an instance of the client API
     return client_api
 
 def run_system(ds_config):
@@ -110,6 +98,7 @@ def run_system(ds_config):
         os.system("uvicorn fast_api:app --reload")
 
     return
+
 
 if __name__ == "__main__":
     print("Main")
