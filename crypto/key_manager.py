@@ -47,6 +47,9 @@ class KeyManager:
         """
         self.agents_public_key[agent_id] = public_key
 
+    def get_agent_symmetric_key(self, agent_id):
+        return self.agents_symmetric_key[agent_id]
+
 
 if __name__ == "__main__":
     print("Data Station's Key Manager")
