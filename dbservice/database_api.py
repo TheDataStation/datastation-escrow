@@ -213,9 +213,9 @@ def get_policy_for_user(user_id):
         else:
             return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
 
-def recover_policies(policies):
+def bulk_upload_policies(policies):
     with get_db() as session:
-        res = policy_repo.recover_policies(session, policies)
+        res = policy_repo.bulk_upload_policies(session, policies)
         if res is not None:
             return 0
 

@@ -99,4 +99,4 @@ class CheckPoint:
 
         # print(policy_content_list)
 
-        database_api.recover_policies(policy_content_list)
+        database_api.bulk_upload_policies(policy_content_list)
