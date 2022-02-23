@@ -168,9 +168,14 @@ def call_api(api,
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    accessible_data_paths = set()
-    for cur_id in all_accessible_data_id:
-        accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
+    # accessible_data_paths = set()
+    # for cur_id in all_accessible_data_id:
+    #     accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
+    get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
+    if get_datasets_by_ids_res.status == -1:
+        print("get_datasets_by_ids_res database error")
+        return Response(status=1, message="get_datasets_by_ids_res database error")
+    accessible_data_paths = set([dataset.access_type for dataset in get_datasets_by_ids_res.data])
 
     # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
     ds_config = utils.parse_config("data_station_config.yaml")
@@ -223,13 +228,19 @@ def call_api(api,
         cur_data_accessed = data_accessed_dict[api_pid].copy()
         del data_accessed_dict[api_pid]
 
-        for path in cur_data_accessed:
-            data_id = record_data_ids_accessed(path, cur_user_id, api)
-            if data_id != None:
-                data_ids_accessed.add(data_id)
-            else:
-                # os.remove("/tmp/data_accessed.txt")
-                return Response(status=1, message="cannot get data id from data path")
+        get_datasets_by_paths_res = database_api.get_datasets_by_paths(cur_data_accessed)
+        if get_datasets_by_paths_res.status == -1:
+            print("get_datasets_by_paths_res database error")
+            return Response(status=1, message="get_datasets_by_paths_res database error")
+        data_ids_accessed = set([dataset.id for dataset in get_datasets_by_paths_res.data])
+
+        # for path in cur_data_accessed:
+        #     data_id = record_data_ids_accessed(path, cur_user_id, api)
+        #     if data_id != None:
+        #         data_ids_accessed.add(data_id)
+        #     else:
+        #         # os.remove("/tmp/data_accessed.txt")
+        #         return Response(status=1, message="cannot get data id from data path")
 
     # print("Data ids accessed:")
     # print(data_ids_accessed)

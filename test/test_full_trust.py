@@ -150,6 +150,7 @@ if __name__ == '__main__':
 
     # call available APIs
 
+    pathlib.Path.mkdir(pathlib.Path("./numbers/"), exist_ok=True)
     numbers_file_name = "numbers/" + app_config["connector_name"] + ".csv"
 
     print("Start counting overheads for data users:")
@@ -158,6 +159,7 @@ if __name__ == '__main__':
     num_calls = test_config["num_calls"]
     for _ in range(num_calls):
         cur_run_overhead = client_api.call_api("f1", cur_token, "optimistic")
+        # cur_run_overhead = client_api.call_api("preprocess", cur_token, "optimistic")
         with open(numbers_file_name, 'a') as f:
             writer_object = writer(f)
             writer_object.writerow(cur_run_overhead)
