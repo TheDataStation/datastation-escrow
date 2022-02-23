@@ -130,12 +130,6 @@ def call_api(api,
     # look at the accessible data by policy for current (user, api)
     accessible_data_policy = get_accessible_data(cur_user_id, api)
 
-    # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
-
     # look at all optimistic data from the DB
     optimistic_data = database_api.get_all_optimistic_datasets()
     accessible_data_optimistic = []
@@ -209,12 +203,6 @@ def call_api(api,
                 # os.remove("/tmp/data_accessed.txt")
                 return Response(status=1, message="cannot get data id from data path")
 
-    # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
-
     # print("Data ids accessed:")
     # print(data_ids_accessed)
 
@@ -246,6 +234,12 @@ def call_api(api,
                                                     set(accessible_data_policy),
                                                     key_manager,)
         response = Response(status=1, message="Access to illegal data happened. Something went wrong.")
+
+    # Record time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
 
     return response
 

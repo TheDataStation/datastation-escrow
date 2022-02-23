@@ -7,7 +7,7 @@ import shutil
 import time
 import math
 import random
-import multiprocessing
+from csv import writer
 
 from Interceptor import interceptor
 from common import utils
@@ -28,8 +28,8 @@ if __name__ == '__main__':
 
     # System initialization
 
-    ds_config = utils.parse_config("config/data_station_config.yaml")
-    app_config = utils.parse_config("config/app_connector_config.yaml")
+    ds_config = utils.parse_config("data_station_config.yaml")
+    app_config = utils.parse_config("app_connector_config.yaml")
 
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
@@ -151,13 +151,17 @@ if __name__ == '__main__':
 
     # call available APIs
 
+    numbers_file_name = "numbers/" + app_config["connector_name"] + ".csv"
+
     print("Start counting overheads for data users:")
     prev_time = time.time()
 
     num_calls = test_config["num_calls"]
     for _ in range(num_calls):
-        cur_overhead = client_api.call_api("f1", cur_token, "optimistic")
-        print(cur_overhead)
+        cur_run_overhead = client_api.call_api("f1", cur_token, "optimistic")
+        with open(numbers_file_name, 'a') as f:
+            writer_object = writer(f)
+            writer_object.writerow(cur_run_overhead)
 
     # client_api.call_api("preprocess", cur_token, "optimistic")
     # print("preprocess finished\n")
