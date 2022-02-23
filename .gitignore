@@ -7,6 +7,8 @@ SM_storage_mount/
 titanicML/sample_data/
 .idea/
 Working/
+numbers/
+plots/
 data_station.db
 ds_log.pkl
 wal.pkl
