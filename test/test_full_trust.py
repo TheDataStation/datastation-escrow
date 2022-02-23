@@ -126,20 +126,19 @@ if __name__ == '__main__':
     data_with_policy_proportion = test_config["data_with_policy_proportion"]
     num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
 
-    # Right now for each dataset, we pick one API for it to create a policy
-    # TODO: change this to something configurable
-
-    # Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
-    # this probability should be in workload_config
-
     policy_proportion = test_config["policy_proportion"]
     policy_created = 0
 
+    # Let's try to upload the policies in a bulk fashion
+    policy_array = []
     for api_picked in list_of_apis:
         for i in range(num_data_with_policy):
             if random.random() < policy_proportion:
+                # client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
                 policy_created += 1
-                client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+                cur_policy = Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i])
+                policy_array.append(cur_policy)
+    client_api.bulk_upload_policies(policy_array, cur_token)
 
     # cur_time = time.time()
     # print("Uploading policies done")

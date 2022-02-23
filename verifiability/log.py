@@ -1,4 +1,5 @@
 import pickle
+import os
 from collections import namedtuple
 from crypto import cryptoutils as cu
 
@@ -63,6 +64,8 @@ class Log:
                 with open(self.log_path, 'ab') as log:
                     entry_to_add = pickle.dumps(entry)
                     log.write(entry_to_add)
+                    log.flush()
+                    os.fsync(log)
             # case 2: durable, encrypted log: need to encrypte the content part
             # note: we still keep the caller ID field as plaintext
             else:
@@ -77,6 +80,7 @@ class Log:
                     caller_sym_key_bytes = key_manager.agents_symmetric_key[entry.caller_id]
                     caller_sym_key = cu.get_symmetric_key_from_bytes(caller_sym_key_bytes)
                     cipher_content_in_bytes = caller_sym_key.encrypt(plain_content_in_bytes)
+
                     # print(cipher_content_in_bytes)
                     # Let create the new log entry
                     if type(entry).__name__ == "IntentPolicyMatch":
