@@ -487,7 +487,7 @@ class Xmp(Fuse):
 
             def release(self, flags):
                 self.file.close()
-                print("Interceptor: release " + str(self.file_path))
+                # print("Interceptor: release " + str(self.file_path))
 
             def _fflush(self):
                 if 'w' in self.file.mode or 'a' in self.file.mode:
@@ -505,7 +505,7 @@ class Xmp(Fuse):
                 self._fflush()
                 # cf. xmp_flush() in fusexmp_fh.c
                 os.close(os.dup(self.fd))
-                print("Interceptor: flush " + str(self.file_path))
+                # print("Interceptor: flush " + str(self.file_path))
 
             def fgetattr(self):
                 print("Interceptor: fgetattr " + str(self.file_path))
