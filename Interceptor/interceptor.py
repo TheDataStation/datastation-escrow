@@ -327,7 +327,7 @@ class Xmp(Fuse):
                 self.truncate_len = 0
 
             def read(self, length, offset):
-                print("Interceptor: I am reading " + str(self.file_path))
+                # print("Interceptor: I am reading " + str(self.file_path))
 
                 # zz: get the symmetric key for the current user who runs the api's process,
                 #  if the key is not None, then we know it's running in no trust mode.
