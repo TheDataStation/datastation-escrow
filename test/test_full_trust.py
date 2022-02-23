@@ -138,6 +138,7 @@ if __name__ == '__main__':
                 policy_created += 1
                 cur_policy = Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i])
                 policy_array.append(cur_policy)
+
     client_api.bulk_upload_policies(policy_array, cur_token)
 
     # cur_time = time.time()
