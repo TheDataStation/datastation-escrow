@@ -40,7 +40,16 @@ def get_dataset_by_access_type(db: Session, access_type: str):
     else:
         return None
 
-def remove_dataset_by_name(db: Session, name: str):
+def get_datasets_by_paths(db: Session, paths):
+    # session.query(MyUserClass).filter(MyUserClass.id.in_((123,456))).all()
+    datasets = db.query(Dataset).filter(Dataset.access_type.in_(tuple(paths))).all()
+    return datasets
+
+def get_datasets_by_ids(db: Session, ids: list):
+    datasets = db.query(Dataset).filter(Dataset.id.in_(tuple(ids))).all()
+    return datasets
+
+def remove_dataset_by_name(db: Session, name):
     try:
         db.query(Dataset).filter(Dataset.name == name).delete()
         db.commit()

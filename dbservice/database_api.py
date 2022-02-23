@@ -103,6 +103,22 @@ def get_dataset_by_access_type(request):
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
+def get_datasets_by_paths(request):
+    with get_db() as session:
+        datasets = dataset_repo.get_datasets_by_paths(session, request)
+        if len(datasets) > 0:
+            return response.DatasetResponse(status=1, msg="success", data=datasets)
+        else:
+            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+
+def get_datasets_by_ids(request):
+    with get_db() as session:
+        datasets = dataset_repo.get_datasets_by_ids(session, request)
+        if len(datasets) > 0:
+            return response.DatasetResponse(status=1, msg="success", data=datasets)
+        else:
+            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+
 def remove_dataset_by_name(request):
     with get_db() as session:
         res = dataset_repo.remove_dataset_by_name(session, request.name)
