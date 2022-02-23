@@ -3,7 +3,6 @@ import pathlib
 import time
 import multiprocessing
 
-from Interceptor import interceptor
 from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_names_registered_functions,
                                                  get_registered_functions,
@@ -99,7 +98,7 @@ def call_actual_api(api_name, connector_name, connector_module_path,
             result = cur_api(*args, **kwargs)
             api_conn.send(result)
 
-
+# We add times to the following function to record the overheads
 def call_api(api,
              cur_username,
              exec_mode,
@@ -112,6 +111,7 @@ def call_api(api,
 
     # Initialize an overhead list
     overhead = []
+    prev_time = time.time()
 
     # get current user id
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
@@ -121,8 +121,20 @@ def call_api(api,
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
+    # Record time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
+
     # look at the accessible data by policy for current (user, api)
     accessible_data_policy = get_accessible_data(cur_user_id, api)
+
+    # Record time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
 
     # look at all optimistic data from the DB
     optimistic_data = database_api.get_all_optimistic_datasets()
@@ -141,17 +153,23 @@ def call_api(api,
     # print("all accessible data elements are: ")
     # print(all_accessible_data_id)
 
-    # zz: create a working dir from all_accessible_data_id
-    # zz: mount the working dir to mount point that encodes user_id and api name using interceptor
-    # zz: run api
-    # zz: record all data ids that are accessed by the api through interceptor
-    # zz: check whether access to those data ids is valid, if not we cannot release the results
+    # Record time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
 
     accessible_data_paths = set()
     for cur_id in all_accessible_data_id:
         accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
     # Actually calling the api
     # print("current process id:", str(os.getpid()))
+
+    # Record time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
 
     app_config = utils.parse_config("app_connector_config.yaml")
     connector_name = app_config["connector_name"]
@@ -166,14 +184,17 @@ def call_api(api,
     api_process.start()
     api_pid = api_process.pid
     # print("api process id:", str(api_pid))
-    # signal.set()
-    # accessible_data_dict[api_pid] = accessible_data_paths
     api_process.join()
     api_result = main_conn.recv()
-    # signal.clear()
 
     if api_pid in accessible_data_dict.keys():
         del accessible_data_dict[api_pid]
+
+    # Record time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
 
     data_ids_accessed = set()
     if api_pid in data_accessed_dict.keys():
@@ -188,6 +209,12 @@ def call_api(api,
                 # os.remove("/tmp/data_accessed.txt")
                 return Response(status=1, message="cannot get data id from data path")
 
+    # Record time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
+
     # print("Data ids accessed:")
     # print(data_ids_accessed)
 
@@ -198,8 +225,7 @@ def call_api(api,
                                                  api,
                                                  data_ids_accessed,
                                                  key_manager,)
-        # print("api_result: ", api_result)
-        return api_result
+        response = overhead
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         # print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
@@ -208,7 +234,7 @@ def call_api(api,
                                                     data_ids_accessed,
                                                     set(accessible_data_policy),
                                                     key_manager,)
-        return Response(status=1, message="Some access to optimistic data not allowed by policy.")
+        response = Response(status=1, message="Some access to optimistic data not allowed by policy.")
     else:
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)
@@ -219,7 +245,9 @@ def call_api(api,
                                                     data_ids_accessed,
                                                     set(accessible_data_policy),
                                                     key_manager,)
-        return Response(status=1, message="Access to illegal data happened. Something went wrong.")
+        response = Response(status=1, message="Access to illegal data happened. Something went wrong.")
+
+    return response
 
 def record_data_ids_accessed(data_path, user_id, api_name):
     response = database_api.get_dataset_by_access_type(data_path)
@@ -232,4 +260,4 @@ def record_data_ids_accessed(data_path, user_id, api_name):
 
 
 if __name__ == '__main__':
-    call_api("preprocess", "xxx")
+    print("Gatekeeper starting.")

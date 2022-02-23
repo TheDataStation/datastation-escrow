@@ -28,8 +28,8 @@ if __name__ == '__main__':
 
     # System initialization
 
-    ds_config = utils.parse_config("data_station_config.yaml")
-    app_config = utils.parse_config("app_connector_config.yaml")
+    ds_config = utils.parse_config("config/data_station_config.yaml")
+    app_config = utils.parse_config("config/app_connector_config.yaml")
 
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
@@ -156,7 +156,8 @@ if __name__ == '__main__':
 
     num_calls = test_config["num_calls"]
     for _ in range(num_calls):
-        client_api.call_api("f1", cur_token, "optimistic")
+        cur_overhead = client_api.call_api("f1", cur_token, "optimistic")
+        print(cur_overhead)
 
     # client_api.call_api("preprocess", cur_token, "optimistic")
     # print("preprocess finished\n")
