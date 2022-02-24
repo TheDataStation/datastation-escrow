@@ -64,8 +64,8 @@ class Log:
                 with open(self.log_path, 'ab') as log:
                     entry_to_add = pickle.dumps(entry)
                     log.write(entry_to_add)
-                    # log.flush()
-                    # os.fsync(log)
+                    log.flush()
+                    os.fsync(log)
             # case 2: durable, encrypted log: need to encrypte the content part
             # note: we still keep the caller ID field as plaintext
             else:
