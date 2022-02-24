@@ -11,8 +11,8 @@ if __name__ == '__main__':
     if os.path.exists(numbers_file_name):
         os.remove(numbers_file_name)
 
-    os.system("python -m test.test_full_trust config/workload_config_10.yaml")
-    os.system("python -m test.test_full_trust config/workload_config_100.yaml")
-    os.system("python -m test.test_full_trust config/workload_config_500.yaml")
-    os.system("python -m test.test_full_trust config/workload_config_1000.yaml")
-    os.system("python -m test.test_full_trust config/workload_config_5000.yaml")
+    os.system("python -m test.plot_one_full_trust config/workload_config_10.yaml")
+    os.system("python -m test.plot_one_full_trust config/workload_config_100.yaml")
+    os.system("python -m test.plot_one_full_trust config/workload_config_500.yaml")
+    os.system("python -m test.plot_one_full_trust config/workload_config_1000.yaml")
+    os.system("python -m test.plot_one_full_trust config/workload_config_5000.yaml")
