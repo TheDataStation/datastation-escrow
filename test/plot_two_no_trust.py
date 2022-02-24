@@ -169,28 +169,28 @@ if __name__ == '__main__':
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    # # Upload Policies
-    #
-    # data_with_policy_proportion = test_config["data_with_policy_proportion"]
-    # num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
-    #
-    # policy_proportion = test_config["policy_proportion"]
-    # policy_created = 0
-    #
-    # # Uploading the policies one by one
-    # policy_array = []
-    # for api_picked in list_of_apis:
-    #     for i in range(num_data_with_policy):
-    #         if random.random() < policy_proportion:
-    #             client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
-    #             total_db_ops += 1
-    #
-    # # Record time
-    # cur_time = time.time()
-    # cur_cost = cur_time - prev_time
-    # overhead.append(cur_cost)
-    # prev_time = cur_time
-    #
+    # Upload Policies
+
+    data_with_policy_proportion = test_config["data_with_policy_proportion"]
+    num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
+
+    policy_proportion = test_config["policy_proportion"]
+    policy_created = 0
+
+    # Uploading the policies one by one
+    policy_array = []
+    for api_picked in list_of_apis:
+        for i in range(num_data_with_policy):
+            if random.random() < policy_proportion:
+                client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+                total_db_ops += 1
+
+    # Record time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
+
     # # Write overhead to csv file
     # db_res_name = "u" + str(num_users) + "d" + str(num_files) + "full"
     # db_call_res_file = "numbers/" + db_res_name + ".csv"
