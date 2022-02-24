@@ -8,9 +8,11 @@ if __name__ == '__main__':
     numbers_file_name = "numbers/" + app_config["connector_name"] + ".csv"
 
     # For each dependency graph, we reconstruct the csv file
-    if not os.path.exists(numbers_file_name):
-        os.system("python -m test.test_full_trust config/workload_config_10.yaml")
-        os.system("python -m test.test_full_trust config/workload_config_100.yaml")
-        os.system("python -m test.test_full_trust config/workload_config_500.yaml")
-        os.system("python -m test.test_full_trust config/workload_config_1000.yaml")
-        os.system("python -m test.test_full_trust config/workload_config_5000.yaml")
+    if os.path.exists(numbers_file_name):
+        os.remove(numbers_file_name)
+
+    os.system("python -m test.test_full_trust config/workload_config_10.yaml")
+    os.system("python -m test.test_full_trust config/workload_config_100.yaml")
+    os.system("python -m test.test_full_trust config/workload_config_500.yaml")
+    os.system("python -m test.test_full_trust config/workload_config_1000.yaml")
+    os.system("python -m test.test_full_trust config/workload_config_5000.yaml")
