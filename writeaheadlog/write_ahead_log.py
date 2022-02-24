@@ -2,6 +2,7 @@ import pickle
 import os
 from collections import namedtuple
 from crypto import cryptoutils as cu
+import time
 from dbservice import database_api
 from models.user import *
 from models.dataset import *
@@ -18,6 +19,8 @@ class WAL:
         self.entry_counter = 0
 
     def log(self, caller_id, entry, key_manager, check_point):
+
+        prev_time = time.time()
 
         # Use counter to determine when we need to checkpoint the DB
         # before we actually write the wal entry
@@ -46,9 +49,13 @@ class WAL:
         with open(self.wal_path, 'ab') as log:
             entry_to_add = pickle.dumps(write_content)
             log.write(entry_to_add)
+            log.flush()
+            os.fsync(log)
 
         # Increment counter
         self.entry_counter += 1
+
+        print(time.time() - prev_time)
 
     def read_wal(self, key_manager):
         print("Printing contents of the write ahead log:")
