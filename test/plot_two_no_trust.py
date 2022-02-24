@@ -14,6 +14,7 @@ from common import utils
 from models.user import *
 from models.policy import *
 from common.utils import parse_config
+from crypto import cryptoutils as cu
 
 if __name__ == '__main__':
 
@@ -38,10 +39,17 @@ if __name__ == '__main__':
     if os.path.exists(log_path):
         os.remove(log_path)
 
+    # Remove the code block below if testing out durability of wal
+    wal_path = client_api.write_ahead_log.wal_path
+    if os.path.exists(wal_path):
+        os.remove(wal_path)
+
+    # Save data station's public key
+    ds_public_key = client_api.key_manager.ds_public_key
+
     # Initialize an overhead list
 
     overhead = []
-    prev_time = time.time()
 
     # We record the total number of DB operations performed
 
@@ -51,10 +59,31 @@ if __name__ == '__main__':
 
     num_users = test_config["num_users"]
 
+    # We generate keys outside the loop because we don't want to count its time
+
+    cipher_sym_key_list = []
+    public_key_list = []
+
+    for cur_num in range(num_users):
+        sym_key = cu.generate_symmetric_key()
+        cipher_sym_key = cu.encrypt_data_with_public_key(sym_key, ds_public_key)
+        cipher_sym_key_list.append(cipher_sym_key)
+        cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
+        public_key_list.append(cur_public_key)
+
+    # Start counting user addition time
+    prev_time = time.time()
+
     for cur_num in range(num_users):
         cur_uname = "user" + str(cur_num+1)
-        client_api.create_user(User(user_name=cur_uname, password="string"))
+        client_api.create_user(User(user_name=cur_uname, password="string"),
+                               cipher_sym_key_list[cur_num],
+                               public_key_list[cur_num], )
         total_db_ops += 1
+
+    # # Taking a look at the keys that are stored
+    # print(client_api.key_manager.agents_symmetric_key)
+    # print(client_api.key_manager.agents_public_key)
 
     # Log in a user to get a token
 
@@ -64,7 +93,6 @@ if __name__ == '__main__':
     cur_time = time.time()
     cur_cost = cur_time - prev_time
     overhead.append(cur_cost)
-    prev_time = cur_time
 
     # Look at all available APIs and APIDependencies
 
@@ -73,6 +101,32 @@ if __name__ == '__main__':
     print(list_of_apis)
 
     # Upload datasets
+
+    # First clear test_file_no_trust
+
+    no_trust_folder = 'test/test_file_no_trust'
+    for filename in os.listdir(no_trust_folder):
+        file_path = os.path.join(no_trust_folder, filename)
+        if os.path.isfile(file_path) or os.path.islink(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
+    # Now we create the encrypted files
+
+    for cur_num in range(6):
+        cur_plain_name = "test/test_file_full_trust/train-" + str(cur_num + 1) + ".csv"
+        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[1]
+        cur_plain_file = open(cur_plain_name, 'rb').read()
+        ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(cur_plain_file)
+        cur_cipher_name = "test/test_file_no_trust/train-" + str(cur_num + 1) + ".csv"
+        cur_cipher_file = open(cur_cipher_name, "wb")
+        cur_cipher_file.write(ciphertext_bytes)
+        cur_cipher_file.close()
+
+    # Proceeding to actually uploads the datasets
+
+    prev_time = time.time()
 
     # First clear the storage place
 
@@ -115,37 +169,39 @@ if __name__ == '__main__':
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    # Upload Policies
-
-    data_with_policy_proportion = test_config["data_with_policy_proportion"]
-    num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
-
-    policy_proportion = test_config["policy_proportion"]
-    policy_created = 0
-
-    # Uploading the policies one by one
-    policy_array = []
-    for api_picked in list_of_apis:
-        for i in range(num_data_with_policy):
-            if random.random() < policy_proportion:
-                client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
-                total_db_ops += 1
-
-    # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
-
-    # Write overhead to csv file
-    db_res_name = "u" + str(num_users) + "d" + str(num_files) + "full"
-    db_call_res_file = "numbers/" + db_res_name + ".csv"
-    if os.path.exists(db_call_res_file):
-        os.remove(db_call_res_file)
-    with open(db_call_res_file, 'a') as f:
-        writer_object = writer(f)
-        writer_object.writerow(overhead)
+    # # Upload Policies
+    #
+    # data_with_policy_proportion = test_config["data_with_policy_proportion"]
+    # num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
+    #
+    # policy_proportion = test_config["policy_proportion"]
+    # policy_created = 0
+    #
+    # # Uploading the policies one by one
+    # policy_array = []
+    # for api_picked in list_of_apis:
+    #     for i in range(num_data_with_policy):
+    #         if random.random() < policy_proportion:
+    #             client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+    #             total_db_ops += 1
+    #
+    # # Record time
+    # cur_time = time.time()
+    # cur_cost = cur_time - prev_time
+    # overhead.append(cur_cost)
+    # prev_time = cur_time
+    #
+    # # Write overhead to csv file
+    # db_res_name = "u" + str(num_users) + "d" + str(num_files) + "full"
+    # db_call_res_file = "numbers/" + db_res_name + ".csv"
+    # if os.path.exists(db_call_res_file):
+    #     os.remove(db_call_res_file)
+    # with open(db_call_res_file, 'a') as f:
+    #     writer_object = writer(f)
+    #     writer_object.writerow(overhead)
 
     # Before shutdown, let's look at the total number of DB ops (insertions) that we did
     print("Total number of DB insertions is: "+str(total_db_ops))
     client_api.shut_down(ds_config)
+
+    print(overhead)

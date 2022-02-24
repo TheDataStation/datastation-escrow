@@ -85,7 +85,6 @@ if __name__ == '__main__':
             # print("Decrypted symmetric key is:")
             # print(dec_sym_key)
 
-            # TODO: Now uploading both the user's public key, and the encrypted symmetric key to the DS
             client_api.create_user(User(user_name=cur_user, password="string"), cipher_sym_key, cur_public_key)
 
         # Taking a look at the keys that are stored
