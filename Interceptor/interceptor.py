@@ -312,9 +312,9 @@ class Xmp(Fuse):
                 fuse_context = Fuse.GetContext(Xmp_self)
                 pid = fuse_context["pid"]
 
-                if pid in accessible_data_dict_global.keys():
-                    print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-                    print("Interceptor: pid:", pid)
+                # if pid in accessible_data_dict_global.keys():
+                    # print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+                    # print("Interceptor: pid:", pid)
 
                 if pid not in data_accessed_dict_global.keys():
                     data_accessed_dict_global[pid] = set()
@@ -379,7 +379,7 @@ class Xmp(Fuse):
                 #     raise IOError("Read access denied for " + self.file_path)
 
             def write(self, buf, offset):
-                print("Interceptor: I am writing " + str(self.file_path))
+                # print("Interceptor: I am writing " + str(self.file_path))
                 # print("Interceptor: buf:")
                 # print(str(type(buf)))
                 # print(buf.decode())
@@ -499,7 +499,7 @@ class Xmp(Fuse):
                     os.fdatasync(self.fd)
                 else:
                     os.fsync(self.fd)
-                print("Interceptor: fsync " + str(self.file_path))
+                # print("Interceptor: fsync " + str(self.file_path))
 
             def flush(self):
                 self._fflush()
@@ -508,11 +508,11 @@ class Xmp(Fuse):
                 # print("Interceptor: flush " + str(self.file_path))
 
             def fgetattr(self):
-                print("Interceptor: fgetattr " + str(self.file_path))
+                # print("Interceptor: fgetattr " + str(self.file_path))
                 return os.fstat(self.fd)
 
             def ftruncate(self, trunc_len):
-                print("Interceptor: ftruncate " + str(self.file_path) + " with length " + str(trunc_len))
+                # print("Interceptor: ftruncate " + str(self.file_path) + " with length " + str(trunc_len))
 
                 pid = Xmp_self.GetContext()["pid"]
 

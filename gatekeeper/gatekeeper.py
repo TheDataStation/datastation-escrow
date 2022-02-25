@@ -143,6 +143,7 @@ def call_api(api,
     prev_time = cur_time
 
     # look at the accessible data by policy for current (user, api)
+    # print(cur_user_id, api)
     accessible_data_policy = get_accessible_data(cur_user_id, api)
 
     # look at all optimistic data from the DB
@@ -209,8 +210,9 @@ def call_api(api,
     api_process.start()
     api_pid = api_process.pid
     # print("api process id:", str(api_pid))
-    api_process.join()
     api_result = main_conn.recv()
+    api_process.join()
+    # api_result = main_conn.recv()
 
     # clean up the two dictionaries used for communication,
     # and get the data ids accessed from the list of data paths accessed through the interceptor
@@ -262,6 +264,7 @@ def call_api(api,
                                                     set(accessible_data_policy),
                                                     key_manager,)
         response = Response(status=1, message="Some access to optimistic data not allowed by policy.")
+        api_result = None
     else:
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)
@@ -273,6 +276,7 @@ def call_api(api,
                                                     set(accessible_data_policy),
                                                     key_manager,)
         response = Response(status=1, message="Access to illegal data happened. Something went wrong.")
+        api_result = None
 
     # Record time
     cur_time = time.time()
@@ -280,7 +284,7 @@ def call_api(api,
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    return response
+    return response, api_result
 
 def record_data_ids_accessed(data_path, user_id, api_name):
     response = database_api.get_dataset_by_access_type(data_path)
