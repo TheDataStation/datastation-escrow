@@ -29,25 +29,26 @@ def clear_dir(dir_name):
 
 if __name__ == '__main__':
 
-    num_files_list = [1, 10, 100]
-    num_functions_list = [5, 10, 15]
-    num_iters = 10
+    num_files_list = [10, 50, 100]
+    num_functions_list = [5, 10, 50, 100]
+    num_iters = 20
 
-    for num_files in num_files_list:
-        for num_functions in num_functions_list:
+    for num_functions in num_functions_list:
 
-            with open("app_connector_config.yaml", 'w') as f:
-                connector_module_path = "app_connectors/file_sharing{}.py".format(num_functions)
-                f.write("connector_name: \"file_sharing\"\nconnector_module_path: \"{}\"".format(connector_module_path))
-                f.flush()
-                os.fsync(f.fileno())
+        with open("app_connector_config.yaml", 'w') as f:
+            connector_module_path = "app_connectors/file_sharing{}.py".format(num_functions)
+            f.write("connector_name: \"file_sharing\"\nconnector_module_path: \"{}\"".format(connector_module_path))
+            f.flush()
+            os.fsync(f.fileno())
+
+        for num_files in num_files_list:
+        # for num_functions in num_functions_list:
 
             result = np.zeros((num_iters, 3))
 
             for iter_num in range(num_iters):
 
-
-                print("num_files={} num_functions={} iter_num={}".format(num_files, num_functions, iter_num))
+                print("num_functions={} num_files={} iter_num={}".format(num_files, num_functions, iter_num))
 
                 # In the beginning we always remove the existing DB
                 if os.path.exists("data_station.db"):
@@ -96,7 +97,7 @@ if __name__ == '__main__':
                 # Look at all available APIs and APIDependencies
                 list_of_apis = client_api.get_all_apis(cur_token)
                 # list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
-                print("main list_of_apis:", list_of_apis)
+                # print("main list_of_apis:", list_of_apis)
                 # print(app_config["connector_module_path"])
                 assert len(list_of_apis) == num_functions
 
@@ -187,5 +188,5 @@ if __name__ == '__main__':
 
                 client_api.shut_down(ds_config)
 
-            result_file_name = "numbers/file_sharing_{}_{}".format(num_files, num_functions)
+            result_file_name = "numbers/file_sharing_{}_{}".format(num_functions, num_files)
             np.save(result_file_name, result)
