@@ -103,6 +103,8 @@ def call_actual_api(api_name, connector_name, connector_module_path,
             # print("call", api_name)
             result = cur_api(*args, **kwargs)
             api_conn.send(result)
+            api_conn.close()
+            break
 
 # We add times to the following function to record the overheads
 def call_api(api,
