@@ -22,7 +22,6 @@ from writeaheadlog.write_ahead_log import WAL
 from checkpoint.check_point import CheckPoint
 from crypto.key_manager import KeyManager
 from crypto import cryptoutils as cu
-from dsapplicationregistration.dsar_core import register
 
 class ClientAPI:
 
@@ -91,8 +90,6 @@ class ClientAPI:
 
         assert os.path.ismount(mount_point) == False
         self.interceptor_process.join()
-
-        register = None
 
         print("shut down complete")
 
