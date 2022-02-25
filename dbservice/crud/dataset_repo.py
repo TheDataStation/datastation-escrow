@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 from ..models.dataset import Dataset
 from ..models.user import User
@@ -39,7 +40,16 @@ def get_dataset_by_access_type(db: Session, access_type: str):
     else:
         return None
 
-def remove_dataset_by_name(db: Session, name: str):
+def get_datasets_by_paths(db: Session, paths):
+    # session.query(MyUserClass).filter(MyUserClass.id.in_((123,456))).all()
+    datasets = db.query(Dataset).filter(Dataset.access_type.in_(tuple(paths))).all()
+    return datasets
+
+def get_datasets_by_ids(db: Session, ids: list):
+    datasets = db.query(Dataset).filter(Dataset.id.in_(tuple(ids))).all()
+    return datasets
+
+def remove_dataset_by_name(db: Session, name):
     try:
         db.query(Dataset).filter(Dataset.name == name).delete()
         db.commit()
@@ -77,3 +87,32 @@ def get_dataset_owner(db: Session, dataset_id: int):
             return user
     return None
 
+# The following function returns the dataset with the max ID
+def get_data_with_max_id(db: Session):
+    max_id = db.query(func.max(Dataset.id)).scalar_subquery()
+    dataset = db.query(Dataset).filter(Dataset.id == max_id).first()
+    if dataset:
+        return dataset
+    else:
+        return None
+
+# The following function recovers the data table from a list of Data
+def recover_datas(db: Session, datas):
+    datas_to_add = []
+    for data in datas:
+        cur_data = Dataset(id=data.id,
+                           owner_id=data.owner_id,
+                           name=data.name,
+                           type=data.type,
+                           access_type=data.access_type,
+                           description=data.description,
+                           optimistic=data.optimistic,)
+        datas_to_add.append(cur_data)
+    try:
+        db.add_all(datas_to_add)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+
+    return "success"

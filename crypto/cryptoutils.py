@@ -30,6 +30,22 @@ def generate_private_public_key_pair(public_exponent=65537, key_size=2048):
     return private_key, public_key
 
 
+def generate_symmetric_key():
+    """
+    Generates a symmetric key
+    """
+    sym_key = Fernet.generate_key()
+    return sym_key
+
+
+def get_symmetric_key_from_bytes(key_bytes):
+    """
+    Generates a Fernet key from bytes
+    """
+    sym_key = Fernet(key_bytes)
+    return sym_key
+
+
 def encrypt_data_with_public_key(data, public_key):
     """
     Given data and a public key, it encrypts the data
@@ -71,20 +87,33 @@ def encrypt_data_with_symmetric_key(data, key):
     :return:
     """
     # Even if data is already bytes, we find our own byte representation for compatibility (pickle)
-    data = to_bytes(data)
-    f = Fernet(key)
-    ciphertext = f.encrypt(data)
-    return ciphertext
+    ciphertext = None
+    try:
+        # data = to_bytes(data)
+        f = Fernet(key)
+        ciphertext = f.encrypt(data)
+    except Exception as e:
+        print("Encryption failed:", str(e))
+        ciphertext = None
+    finally:
+        return ciphertext
 
 
 def decrypt_data_with_symmetric_key(ciphertext, key):
     """
-    Given a ciphertext and a symmetric key, decrypt the data in-memory
+    Given a ciphertext and a symmetric key in bytes, decrypt the data in-memory
     :return:
     """
-    f = Fernet(key)
-    data = f.decrypt(ciphertext)
-    return from_bytes(data)
+    data = None
+    try:
+        f = Fernet(key)
+        data = f.decrypt(ciphertext)
+    except Exception as e:
+        print("Decryption failed:", str(e))
+        data = None
+    finally:
+        return data
+    # return from_bytes(data)
 
 
 def sign_data(data, private_key):
@@ -163,13 +192,18 @@ if __name__ == "__main__":
     data = b'example data to encrypt with symmetric'
 
     f = Fernet(key)
-    ciph = f.encrypt(data)
+    # ciph = f.encrypt(data)
+    ciph = encrypt_data_with_symmetric_key(data, key)
 
     print("ciph symmetric: " + str(ciph))
 
-    decrypted_data = f.decrypt(ciph)
+    # decrypted_data = f.decrypt(ciph)
+    decrypted_data = decrypt_data_with_symmetric_key(ciph, key)
 
-    print("decrypted data symmetric: " + str(decrypted_data))
+    print("decrypted data symmetric: " + str(decrypted_data.decode()))
+
+    dummy = decrypt_data_with_symmetric_key(ciphertext=ciph, key="dummy")
+    print("decrypted data with dummy key:", str(dummy))
 
     # testing from and to bytes
     a = [1, 2, 3, 4]
