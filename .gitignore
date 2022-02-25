@@ -7,9 +7,22 @@ SM_storage_mount/
 titanicML/sample_data/
 .idea/
 Working/
+numbers/
+plots/
 data_station.db
+ds_log.pkl
+wal.pkl
+users.pkl
+dataelements.pkl
+policies.pkl
+symmetric_keys.pkl
 test_process.py
 test_main.py
+test/test_file_no_trust
+test.txt
+test/file_sharing_plots
+test/test_file_sharing
+zhiru_chameleon_key.pem
 
 # C extensions
 *.so

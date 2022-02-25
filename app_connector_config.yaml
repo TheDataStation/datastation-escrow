@@ -1,2 +1,2 @@
-connector_name: "example_registration"
-connector_module_path: "app_connectors/example_registration.py"
+connector_name: "file_sharing"
+connector_module_path: "app_connectors/file_sharing5.py"

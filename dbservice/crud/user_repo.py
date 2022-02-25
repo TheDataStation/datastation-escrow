@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 from ..models.user import User
 
@@ -24,6 +25,15 @@ def get_user_by_user_name(db: Session, user_name: str):
     else:
         return None
 
+# The following function returns the user with the max ID
+def get_user_with_max_id(db: Session):
+    max_id = db.query(func.max(User.id)).scalar_subquery()
+    user = db.query(User).filter(User.id == max_id).first()
+    if user:
+        return user
+    else:
+        return None
+
 
 def get_all_users(db: Session):
     # users = db.query(User).limit(limit).all()
@@ -32,7 +42,8 @@ def get_all_users(db: Session):
 
 
 def create_user(db: Session, user: UserRegister):
-    db_user = User(user_name=user.user_name,
+    db_user = User(id=user.id,
+                   user_name=user.user_name,
                    password=user.password,)
     try:
         db.add(db_user)
@@ -43,3 +54,18 @@ def create_user(db: Session, user: UserRegister):
         return None
 
     return db_user
+
+# The following function recovers the user table from a list of User
+def recover_users(db: Session, users):
+    users_to_add = []
+    for user in users:
+        cur_user = User(id=user.id, user_name=user.user_name, password=user.password)
+        users_to_add.append(cur_user)
+    try:
+        db.add_all(users_to_add)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+
+    return "success"
