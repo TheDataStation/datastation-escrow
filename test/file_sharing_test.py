@@ -36,6 +36,10 @@ if __name__ == '__main__':
     for num_files in num_files_list:
         for num_functions in num_functions_list:
 
+            with open("app_connector_config.yaml", 'w') as f:
+                connector_module_path = "app_connectors/file_sharing{}.py".format(num_functions)
+                f.write("connector_name: \"file_sharing\"\nconnector_module_path: \"{}\"".format(connector_module_path))
+
             result = np.zeros((num_iters, 3))
 
             for iter_num in range(num_iters):
@@ -87,7 +91,8 @@ if __name__ == '__main__':
 
                 # Look at all available APIs and APIDependencies
                 list_of_apis = client_api.get_all_apis(cur_token)
-                list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+                # list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+                assert len(list_of_apis) == num_functions
 
                 # First clear test_file_no_trust
                 test_files_dir = "test/test_file_sharing/"
@@ -99,7 +104,7 @@ if __name__ == '__main__':
 
                 # Now we create the encrypted files
                 for cur_num in range(100):
-                    cur_user_sym_key = client_api.key_manager.get_agent_symmetric_key(client_api.cur_data_id)
+                    cur_user_sym_key = client_api.key_manager.get_agent_symmetric_key(agent_id=1)
                     # content = "test" + str(cur_num)
                     encrypted_content = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(random_bytes)
                     with open(test_files_dir + "test-" + str(cur_num + 1) + ".txt", 'wb') as f:
@@ -133,9 +138,9 @@ if __name__ == '__main__':
 
                 start_time = time.time()
 
-                sampled_apis = random.sample(list_of_apis, num_functions)
+                # sampled_apis = random.sample(list_of_apis, num_functions)
                 policies_to_upload = []
-                for api in sampled_apis:
+                for api in list_of_apis:
                     # print(api)
                     for id in list_of_data_ids:
                         policies_to_upload.append(Policy(user_id=1,
@@ -150,7 +155,7 @@ if __name__ == '__main__':
 
                 start_time = time.time()
 
-                random_api = random.choice(sampled_apis)
+                random_api = random.choice(list_of_apis)
                 res, api_result = client_api.call_api(random_api, cur_token, "pessimistic")
 
                 call_api_time = time.time() - start_time

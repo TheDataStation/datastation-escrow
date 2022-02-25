@@ -1,3 +1,13 @@
+'''
+- The ratio of the figures should be 0.65, 0.5 (a bit wider than taller)
+- The figures should not have a title because they'll have a caption in the paper
+- Instead of solid colors in bars, it's better to use patterns, so color-blind people can see the difference.
+- any form of aggregation needs error bars, and error bars on things to be compared should be computed over samples of the same size
+- The X and Y labels should be precise. You don't need to say 10KB each there, as you can explain that in the text. Similarly, the Y axis should just say what the metric is, and nothing specific to the experiment, that's what the text is for as well.
+- The font should be as similar as Latex as matplotlib allows you to do (searching on Google someone will have figured this out already).
+- The legend is important. One has to think carefully how to name things there, as we'll use that in the text as well.
+'''
+
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import defaultdict
@@ -14,7 +24,7 @@ call_api_time_by_num_functions = defaultdict(list)
 for num_files in num_files_list:
 
     for num_functions in num_functions_list:
-        result_file_name = "../numbers/file_sharing/file_sharing_{}_{}.npy".format(num_files, num_functions)
+        result_file_name = "../numbers/file_sharing_{}_{}.npy".format(num_files, num_functions)
 
         print("num_files={} num_functions={}:".format(num_files, num_functions))
 
