@@ -74,7 +74,7 @@ class ClientAPI:
 
     def shut_down(self, ds_config):
         # zz: unmount and stop interceptor
-        # print("shut down...")
+        print("shut down...")
         mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
         unmount_status = os.system("umount " + str(mount_point))
         # if unmount_status != 0:
@@ -90,7 +90,7 @@ class ClientAPI:
 
         assert os.path.ismount(mount_point) == False
         self.interceptor_process.join()
-        # print("shut down complete")
+        print("shut down complete")
 
     # create user
 
