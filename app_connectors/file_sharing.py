@@ -13,13 +13,13 @@ def f1():
     files = set(glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True))
 
     contents = {}
-    for file in set(files):
+    for file in files:
         # print(file)
         if pathlib.Path(file).is_file():
             with open(file, "rb") as cur_file:
-                content = cur_file.read().decode()
+                content = cur_file.read()
                 contents[file] = content
-            # print("read ", file)
+            print("read ", file)
     return contents
 
 @register()

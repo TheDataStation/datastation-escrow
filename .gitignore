@@ -22,6 +22,7 @@ test/test_file_no_trust
 test.txt
 test/file_sharing_plots
 test/test_file_sharing
+zhiru_chameleon_key.pem
 
 # C extensions
 *.so
