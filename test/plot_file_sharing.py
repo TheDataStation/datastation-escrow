@@ -24,7 +24,7 @@ call_api_time_by_num_functions = defaultdict(list)
 for num_files in num_files_list:
 
     for num_functions in num_functions_list:
-        result_file_name = "../numbers/file_sharing_{}_{}.npy".format(num_files, num_functions)
+        result_file_name = "../numbers/chameleon/file_sharing_{}_{}.npy".format(num_files, num_functions)
 
         print("num_files={} num_functions={}:".format(num_files, num_functions))
 

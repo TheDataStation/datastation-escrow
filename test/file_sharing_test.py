@@ -39,16 +39,20 @@ if __name__ == '__main__':
             with open("app_connector_config.yaml", 'w') as f:
                 connector_module_path = "app_connectors/file_sharing{}.py".format(num_functions)
                 f.write("connector_name: \"file_sharing\"\nconnector_module_path: \"{}\"".format(connector_module_path))
+                f.flush()
+                os.fsync(f.fileno())
 
             result = np.zeros((num_iters, 3))
 
             for iter_num in range(num_iters):
+
 
                 print("num_files={} num_functions={} iter_num={}".format(num_files, num_functions, iter_num))
 
                 # In the beginning we always remove the existing DB
                 if os.path.exists("data_station.db"):
                     os.remove("data_station.db")
+                    print("removed data_station.db")
 
                 # System initialization
                 ds_config = utils.parse_config("data_station_config.yaml")
@@ -92,6 +96,8 @@ if __name__ == '__main__':
                 # Look at all available APIs and APIDependencies
                 list_of_apis = client_api.get_all_apis(cur_token)
                 # list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
+                print("main list_of_apis:", list_of_apis)
+                # print(app_config["connector_module_path"])
                 assert len(list_of_apis) == num_functions
 
                 # First clear test_file_no_trust

@@ -76,8 +76,9 @@ def initialize_system(ds_config, app_config):
     connector_name = app_config["connector_name"]
     connector_module_path = app_config["connector_module_path"]
     gatekeeper_response = gatekeeper.gatekeeper_setup(connector_name, connector_module_path)
-    # if gatekeeper_response.status == 1:
-    #     print("something went wrong in gatekeeper setup")
+    if gatekeeper_response.status == 1:
+        print("something went wrong in gatekeeper setup")
+        exit(1)
 
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,

@@ -97,7 +97,7 @@ def call_actual_api(api_name, connector_name, connector_module_path,
     # print(api_name, *args, **kwargs)
     register_connectors(connector_name, connector_module_path)
     list_of_apis = get_registered_functions()
-    # print("list_of_apis:", list_of_apis)
+    print("list_of_apis:", list_of_apis)
     for cur_api in list_of_apis:
         if api_name == cur_api.__name__:
             # print("call", api_name)
