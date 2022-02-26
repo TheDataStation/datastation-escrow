@@ -96,33 +96,35 @@ if __name__ == '__main__':
     # Now we create the encrypted files
 
     for cur_num in range(num_users):
-        cur_train_X = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_X.npy"
-        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
-        # Load np object
-        cur_X = np.load(cur_train_X)
-        # np object to pkl bytes
-        pkl_X = pickle.dumps(cur_X)
-        # pkl bytes encrypted
-        ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(pkl_X)
-        cur_cipher_name = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_X.pkl"
-        cur_cipher_file = open(cur_cipher_name, "wb")
-        cur_cipher_file.write(ciphertext_bytes)
-        cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + "_X.npy"
-        cur_cipher_file.close()
-
-        # cur_train_y = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_y.npy"
-        # cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num + 1]
+        # cur_train_X = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_X.npy"
+        # cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
         # # Load np object
-        # cur_y = np.load(cur_train_y)
+        # cur_X = np.load(cur_train_X)
         # # np object to pkl bytes
-        # pkl_y = pickle.dumps(cur_y)
+        # pkl_X = pickle.dumps(cur_X)
+        # print(type(pkl_X))
         # # pkl bytes encrypted
-        # ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(pkl_y)
-        # cur_cipher_name = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.pkl"
+        # # ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(pkl_X)
+        # ciphertext_bytes = cu.encrypt_data_with_symmetric_key(pkl_X, cur_user_sym_key)
+        # cur_cipher_name = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_X.pkl"
         # cur_cipher_file = open(cur_cipher_name, "wb")
         # cur_cipher_file.write(ciphertext_bytes)
+        # cur_optimistic_flag = False
+        # name_to_upload = "train" + str(cur_num) + "_X.npy"
         # cur_cipher_file.close()
+
+        cur_train_y = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_y.npy"
+        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num + 1]
+        # Load np object
+        cur_y = np.load(cur_train_y)
+        # np object to pkl bytes
+        pkl_y = pickle.dumps(cur_y)
+        # pkl bytes encrypted
+        ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(pkl_y)
+        cur_cipher_name = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.pkl"
+        cur_cipher_file = open(cur_cipher_name, "wb")
+        cur_cipher_file.write(ciphertext_bytes)
+        cur_cipher_file.close()
 
     # For each user, we upload his partition of the data (2 data elements, both X and y)
     for cur_num in range(num_users):
@@ -130,31 +132,31 @@ if __name__ == '__main__':
         cur_uname = "user" + str(cur_num)
         cur_token = client_api.login_user(cur_uname, "string")["access_token"]
 
-        # Upload his partition X of the data
-        cur_train_X = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_X.pkl"
-        cur_file_X = open(cur_train_X, "rb")
-        cur_file_bytes = cur_file_X.read()
-        cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + "_X.pkl"
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
-                                            "file",
-                                            cur_optimistic_flag,
-                                            cur_token, )
-        cur_file_X.close()
-
-        # # Upload his partition y of the data
-        # cur_train_y = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.pkl"
-        # cur_file_y = open(cur_train_y, "rb")
-        # cur_file_bytes = cur_file_y.read()
+        # # Upload his partition X of the data
+        # cur_train_X = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_X.pkl"
+        # cur_file_X = open(cur_train_X, "rb")
+        # cur_file_bytes = cur_file_X.read()
         # cur_optimistic_flag = False
-        # name_to_upload = "train" + str(cur_num) + "_y.pkl"
+        # name_to_upload = "train" + str(cur_num) + "_X.pkl"
         # cur_res = client_api.upload_dataset(name_to_upload,
         #                                     cur_file_bytes,
         #                                     "file",
         #                                     cur_optimistic_flag,
         #                                     cur_token, )
-        # cur_file_y.close()
+        # cur_file_X.close()
+
+        # Upload his partition y of the data
+        cur_train_y = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.pkl"
+        cur_file_y = open(cur_train_y, "rb")
+        cur_file_bytes = cur_file_y.read()
+        cur_optimistic_flag = False
+        name_to_upload = "train" + str(cur_num) + "_y.pkl"
+        cur_res = client_api.upload_dataset(name_to_upload,
+                                            cur_file_bytes,
+                                            "file",
+                                            cur_optimistic_flag,
+                                            cur_token, )
+        cur_file_y.close()
 
         # Add a policy saying user with id==1 can call train_income_model on the datasets
         client_api.upload_policy(Policy(user_id=1, api="train_income_model", data_id=cur_num * 2 + 1), cur_token)
