@@ -164,6 +164,7 @@ class ClientAPI:
         # We first call SM to store the data
         # Note that SM needs to return access_type (how can the data element be accessed)
         # so that data_register can register this info
+
         storage_manager_response = self.storage_manager.store(data_name,
                                                               data_id,
                                                               data_in_bytes,
