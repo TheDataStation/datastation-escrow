@@ -321,7 +321,7 @@ class ClientAPI:
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        res, api_result = gatekeeper.call_api(api,
+        res = gatekeeper.call_api(api,
                                   cur_username,
                                   exec_mode,
                                   self.log,
@@ -330,7 +330,7 @@ class ClientAPI:
                                   self.data_accessed_dict,
                                   *args,
                                   **kwargs)
-        return res, api_result
+        return res
 
     # print out the contents of the log
 

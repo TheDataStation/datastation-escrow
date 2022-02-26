@@ -327,7 +327,6 @@ class Xmp(Fuse):
                 # self.truncate_len = 0
 
             def read(self, length, offset):
-                # print("Interceptor: I am reading " + str(self.file_path))
 
                 # zz: get the symmetric key for the current user who runs the api's process,
                 #  if the key is not None, then we know it's running in no trust mode.
@@ -337,7 +336,10 @@ class Xmp(Fuse):
                 symmetric_key = None
                 accessible_data_key_dict = accessible_data_dict_global[pid][1]
                 if pid in accessible_data_dict_global.keys():
-                    symmetric_key = accessible_data_key_dict[self.file_path]
+                    print("Interceptor: I am reading " + str(self.file_path))
+                    print(length)
+                    print(offset)
+                    # symmetric_key = accessible_data_key_dict[self.file_path]
 
                 # if self.file != None:
                 if self.iolock:
@@ -362,10 +364,14 @@ class Xmp(Fuse):
                         self.iolock.release()
                 else:
                     if symmetric_key is not None:
+                        # print("symmetric key is")
+                        # print(symmetric_key)
                         encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
                         decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                             ciphertext=encrypted_bytes,
                             key=symmetric_key)
+                        print("decrypted bytes are ")
+                        # print(decrypted_bytes)
                         if decrypted_bytes is not None:
                             # if offset >= len(decrypted_bytes):
                             #     return b''
