@@ -1,5 +1,6 @@
 import os
 import pickle
+import time
 
 from dbservice import database_api
 
@@ -73,13 +74,24 @@ class ClientAPI:
 
     def shut_down(self, ds_config):
         # zz: unmount and stop interceptor
+        print("shut down...")
         mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
         unmount_status = os.system("umount " + str(mount_point))
-        if unmount_status != 0:
-            print("Unmount failed")
-            exit(1)
+        # if unmount_status != 0:
+        #     print("Unmount failed")
+        #     exit(1)
+        counter = 0
+        while unmount_status != 0:
+            time.sleep(1)
+            unmount_status = os.system("umount " + str(mount_point))
+            if counter == 10:
+                print("Unmount failed")
+                exit(1)
+
         assert os.path.ismount(mount_point) == False
         self.interceptor_process.join()
+
+        print("shut down complete")
 
     # create user
 
@@ -309,7 +321,7 @@ class ClientAPI:
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        res = gatekeeper.call_api(api,
+        res, api_result = gatekeeper.call_api(api,
                                   cur_username,
                                   exec_mode,
                                   self.log,
@@ -318,7 +330,7 @@ class ClientAPI:
                                   self.data_accessed_dict,
                                   *args,
                                   **kwargs)
-        return res
+        return res, api_result
 
     # print out the contents of the log
 

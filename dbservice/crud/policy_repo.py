@@ -10,8 +10,11 @@ def create_policy(db: Session, policy: PolicyCreate):
                        data_id=policy.data_id,)
     try:
         db.add(db_policy)
+        # print("add")
         db.commit()
+        # print("commit")
         db.refresh(db_policy)
+        # print("refresh")
     except SQLAlchemyError as e:
         db.rollback()
         return None
