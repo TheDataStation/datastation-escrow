@@ -31,3 +31,4 @@ typing-extensions>=4.0.1
 uvicorn>=0.16.0
 fuse-python
 cryptography
+matplotlib

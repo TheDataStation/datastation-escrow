@@ -39,7 +39,7 @@ def gatekeeper_setup(connector_name, connector_module_path):
         api_db = API(api_name=cur_api)
         database_service_response = database_api.create_api(api_db)
         if database_service_response.status == -1:
-            return Response(status=1, message="internal database error")
+            return Response(status=1, message="database_api.create_api: internal database error")
     for cur_from_api in dependencies_to_register:
         to_api_list = dependencies_to_register[cur_from_api]
         for cur_to_api in to_api_list:
@@ -47,7 +47,7 @@ def gatekeeper_setup(connector_name, connector_module_path):
                                               to_api=cur_to_api, )
             database_service_response = database_api.create_api_dependency(api_dependency_db)
             if database_service_response.status == -1:
-                return Response(status=1, message="internal database error")
+                return Response(status=1, message="database_api.create_api_dependency: internal database error")
     return Response(status=0, message="Gatekeeper setup success")
 
 
@@ -84,14 +84,14 @@ def test_api():
 
 def call_actual_api(api_name, connector_name, connector_module_path,
                     accessible_data_dict, accessible_data_paths,
-                    user_symmetric_key,
+                    accessible_data_key_dict,
                     api_conn, *args, **kwargs):
 
     api_pid = os.getpid()
     # print("api process id:", str(api_pid))
     # set the list of accessible data for this api call,
-    # and the corresponding user's symmetric key if running in no trust mode
-    accessible_data_dict[api_pid] = (accessible_data_paths, user_symmetric_key)
+    # and the corresponding data owner's symmetric keys if running in no trust mode
+    accessible_data_dict[api_pid] = (accessible_data_paths, accessible_data_key_dict)
 
     # print("xxxxxxxxxx")
     # print(api_name, *args, **kwargs)
@@ -103,6 +103,8 @@ def call_actual_api(api_name, connector_name, connector_module_path,
             # print("call", api_name)
             result = cur_api(*args, **kwargs)
             api_conn.send(result)
+            api_conn.close()
+            break
 
 # We add times to the following function to record the overheads
 def call_api(api,
@@ -143,6 +145,7 @@ def call_api(api,
     prev_time = cur_time
 
     # look at the accessible data by policy for current (user, api)
+    # print(cur_user_id, api)
     accessible_data_policy = get_accessible_data(cur_user_id, api)
 
     # look at all optimistic data from the DB
@@ -180,9 +183,16 @@ def call_api(api,
     # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
     ds_config = utils.parse_config("data_station_config.yaml")
     trust_mode = ds_config["trust_mode"]
-    user_symmetric_key = None
+    # user_symmetric_key = None
+    accessible_data_key_dict = {}
     if trust_mode == "no_trust":
-        user_symmetric_key = key_manager.get_agent_symmetric_key(cur_user_id)
+        # get the symmetric key of each accessible data's owner,
+        # and store them in dict to pass to interceptor
+        for dataset in get_datasets_by_ids_res.data:
+            data_owner_symmetric_key = key_manager.get_agent_symmetric_key(dataset.owner_id)
+            accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
+
+        # user_symmetric_key = key_manager.get_agent_symmetric_key(cur_user_id)
 
     # Actually calling the api
     # print("current process id:", str(os.getpid()))
@@ -202,15 +212,16 @@ def call_api(api,
     api_process = multiprocessing.Process(target=call_actual_api,
                                           args=(api, connector_name, connector_module_path,
                                                 accessible_data_dict, accessible_data_paths,
-                                                user_symmetric_key,
+                                                accessible_data_key_dict,
                                                 api_conn,
                                                 *args),
                                           kwargs=kwargs)
     api_process.start()
     api_pid = api_process.pid
     # print("api process id:", str(api_pid))
-    api_process.join()
     api_result = main_conn.recv()
+    api_process.join()
+    # api_result = main_conn.recv()
 
     # clean up the two dictionaries used for communication,
     # and get the data ids accessed from the list of data paths accessed through the interceptor
@@ -262,6 +273,7 @@ def call_api(api,
                                                     set(accessible_data_policy),
                                                     key_manager,)
         response = Response(status=1, message="Some access to optimistic data not allowed by policy.")
+        api_result = None
     else:
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)
@@ -273,6 +285,7 @@ def call_api(api,
                                                     set(accessible_data_policy),
                                                     key_manager,)
         response = Response(status=1, message="Access to illegal data happened. Something went wrong.")
+        api_result = None
 
     # Record time
     cur_time = time.time()
@@ -280,7 +293,7 @@ def call_api(api,
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    return response
+    return response, api_result
 
 def record_data_ids_accessed(data_path, user_id, api_name):
     response = database_api.get_dataset_by_access_type(data_path)
