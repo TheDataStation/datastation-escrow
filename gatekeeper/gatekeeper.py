@@ -84,14 +84,14 @@ def test_api():
 
 def call_actual_api(api_name, connector_name, connector_module_path,
                     accessible_data_dict, accessible_data_paths,
-                    user_symmetric_key,
+                    accessible_data_key_dict,
                     api_conn, *args, **kwargs):
 
     api_pid = os.getpid()
     # print("api process id:", str(api_pid))
     # set the list of accessible data for this api call,
-    # and the corresponding user's symmetric key if running in no trust mode
-    accessible_data_dict[api_pid] = (accessible_data_paths, user_symmetric_key)
+    # and the corresponding data owner's symmetric keys if running in no trust mode
+    accessible_data_dict[api_pid] = (accessible_data_paths, accessible_data_key_dict)
 
     # print("xxxxxxxxxx")
     # print(api_name, *args, **kwargs)
@@ -183,9 +183,16 @@ def call_api(api,
     # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
     ds_config = utils.parse_config("data_station_config.yaml")
     trust_mode = ds_config["trust_mode"]
-    user_symmetric_key = None
+    # user_symmetric_key = None
+    accessible_data_key_dict = {}
     if trust_mode == "no_trust":
-        user_symmetric_key = key_manager.get_agent_symmetric_key(cur_user_id)
+        # get the symmetric key of each accessible data's owner,
+        # and store them in dict to pass to interceptor
+        for dataset in get_datasets_by_ids_res.data:
+            data_owner_symmetric_key = key_manager.get_agent_symmetric_key(dataset.owner_id)
+            accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
+
+        # user_symmetric_key = key_manager.get_agent_symmetric_key(cur_user_id)
 
     # Actually calling the api
     # print("current process id:", str(os.getpid()))
@@ -205,7 +212,7 @@ def call_api(api,
     api_process = multiprocessing.Process(target=call_actual_api,
                                           args=(api, connector_name, connector_module_path,
                                                 accessible_data_dict, accessible_data_paths,
-                                                user_symmetric_key,
+                                                accessible_data_key_dict,
                                                 api_conn,
                                                 *args),
                                           kwargs=kwargs)

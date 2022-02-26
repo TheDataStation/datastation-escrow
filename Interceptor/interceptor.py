@@ -107,7 +107,7 @@ class Xmp(Fuse):
         if pid not in accessible_data_dict_global.keys():
             in_other_process = True
         else:
-            accessible_data_paths, symmetric_key = accessible_data_dict_global[pid]
+            accessible_data_paths = accessible_data_dict_global[pid][0]
 
         # print("Interceptor: readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
@@ -323,8 +323,8 @@ class Xmp(Fuse):
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set
 
-                self.truncate = False
-                self.truncate_len = 0
+                # self.truncate = False
+                # self.truncate_len = 0
 
             def read(self, length, offset):
                 # print("Interceptor: I am reading " + str(self.file_path))
@@ -335,8 +335,9 @@ class Xmp(Fuse):
                 pid = Xmp_self.GetContext()["pid"]
 
                 symmetric_key = None
+                accessible_data_key_dict = accessible_data_dict_global[pid][1]
                 if pid in accessible_data_dict_global.keys():
-                    symmetric_key = accessible_data_dict_global[pid][1]
+                    symmetric_key = accessible_data_key_dict[self.file_path]
 
                 # if self.file != None:
                 if self.iolock:
@@ -387,8 +388,9 @@ class Xmp(Fuse):
                 pid = Xmp_self.GetContext()["pid"]
 
                 symmetric_key = None
+                accessible_data_key_dict = accessible_data_dict_global[pid][1]
                 if pid in accessible_data_dict_global.keys():
-                    symmetric_key = accessible_data_dict_global[pid][1]
+                    symmetric_key = accessible_data_key_dict[self.file_path]
 
                 if self.iolock:
                     self.iolock.acquire()
@@ -517,8 +519,9 @@ class Xmp(Fuse):
                 pid = Xmp_self.GetContext()["pid"]
 
                 symmetric_key = None
+                accessible_data_key_dict = accessible_data_dict_global[pid][1]
                 if pid in accessible_data_dict_global.keys():
-                    symmetric_key = accessible_data_dict_global[pid][1]
+                    symmetric_key = accessible_data_key_dict[self.file_path]
 
                 if symmetric_key is not None:
                     # self.truncate = True
@@ -658,8 +661,6 @@ def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict):
     accessible_data_dict_global = accessible_data_dict
     global data_accessed_dict_global
     data_accessed_dict_global = data_accessed_dict
-    global symmetric_key_dict_global
-    symmetric_key_dict_global = {}
 
     usage = """
 Userspace nullfs-alike: mirror the filesystem tree from some point on.
