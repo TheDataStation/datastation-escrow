@@ -55,7 +55,7 @@ class WAL:
         # Increment counter
         self.entry_counter += 1
 
-        print(time.time() - prev_time)
+        # print(time.time() - prev_time)
 
     def read_wal(self, key_manager):
         print("Printing contents of the write ahead log:")
