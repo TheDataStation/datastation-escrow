@@ -8,6 +8,7 @@ import time
 import math
 import random
 from csv import writer
+import numpy as np
 
 from Interceptor import interceptor
 from common import utils
@@ -96,6 +97,14 @@ if __name__ == '__main__':
 
     # Use token for user0
     cur_token = client_api.login_user("user0", "string")["access_token"]
-    client_api.call_api("train_income_model", cur_token, "optimistic")
+    res_model = client_api.call_api("train_income_model", cur_token, "optimistic")
+    # print("Model returned is: ")
+    # print(res_model.coef_, res_model.intercept_)
+
+    # After we get the model back, we test its accuracy
+    x_test = np.load("test/ml_file_full_trust/testing_income/test_X.npy")
+    y_test = np.load("test/ml_file_full_trust/testing_income/test_y.npy")
+    accuracy = res_model.score(x_test, y_test)
+    print("Model accuracy is "+str(accuracy))
 
     client_api.shut_down(ds_config)
