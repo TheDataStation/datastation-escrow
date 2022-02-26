@@ -20,6 +20,7 @@ test_process.py
 test_main.py
 test/test_file_no_trust
 test/test_file_sharing
+test/ml_file_full_trust
 test.txt
 
 # C extensions
