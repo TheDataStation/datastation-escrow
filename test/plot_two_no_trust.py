@@ -177,13 +177,18 @@ if __name__ == '__main__':
     policy_proportion = test_config["policy_proportion"]
     policy_created = 0
 
-    # Uploading the policies one by one
+    # Uploading the policies in a bulk fashion
     policy_array = []
     for api_picked in list_of_apis:
         for i in range(num_data_with_policy):
             if random.random() < policy_proportion:
-                client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
-                total_db_ops += 1
+                # client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+                # total_db_ops += 1
+                cur_policy = Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i])
+                policy_array.append(cur_policy)
+
+    client_api.bulk_upload_policies(policy_array, cur_token)
+    total_db_ops += 1
 
     # Record time
     cur_time = time.time()
@@ -200,8 +205,11 @@ if __name__ == '__main__':
     #     writer_object = writer(f)
     #     writer_object.writerow(overhead)
 
+    # Taking a look at the WAL
+    client_api.read_wal()
+
     # Before shutdown, let's look at the total number of DB ops (insertions) that we did
-    print("Total number of DB insertions is: "+str(total_db_ops))
+    # print("Total number of DB insertions is: "+str(total_db_ops))
     client_api.shut_down(ds_config)
 
-    print(overhead)
+    # print(overhead)

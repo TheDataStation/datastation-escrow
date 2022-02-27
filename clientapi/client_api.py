@@ -269,13 +269,19 @@ class ClientAPI:
     def bulk_upload_policies(self, policies, token):
 
         # Perform authentication
-        user_register.authenticate_user(token)
+        cur_username = user_register.authenticate_user(token)
 
+        # This code here is unpolished. Just for testing purposes.
         if self.trust_mode == "full_trust":
             response = database_api.bulk_upload_policies(policies)
             return response
         else:
-            return -1
+            response = policy_broker.bulk_upload_policies(policies,
+                                                          cur_username,
+                                                          self.write_ahead_log,
+                                                          self.key_manager,
+                                                          self.check_point,)
+            return response
 
     # delete_policies
 
