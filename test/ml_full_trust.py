@@ -98,8 +98,8 @@ if __name__ == '__main__':
     # Use token for user0
     cur_token = client_api.login_user("user0", "string")["access_token"]
     res_model = client_api.call_api("train_income_model", cur_token, "optimistic")
-    print(res_model)
-    print("Model returned is: ")
+    # print(res_model)
+    # print("Model returned is: ")
     print(res_model.coef_, res_model.intercept_)
 
     # After we get the model back, we test its accuracy

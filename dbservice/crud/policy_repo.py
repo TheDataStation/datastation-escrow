@@ -41,6 +41,8 @@ def get_policy_for_user(db: Session, user_id: str):
 
 # The following function recovers the policy table from a list of Policy
 def bulk_upload_policies(db: Session, policies):
+    # print("Bulk upload policies")
+    # print(policies)
     policies_to_add = []
     for policy in policies:
         cur_policy = Policy(user_id=policy.user_id,
