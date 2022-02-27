@@ -21,6 +21,7 @@ class Dataset(BaseModel):
     access_type: Optional[str]
     owner_id: Optional[int]
     optimistic: Optional[bool]
+    original_data_size: Optional[int]
 
     class Config:
         orm_mode = True

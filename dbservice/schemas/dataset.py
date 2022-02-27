@@ -22,3 +22,4 @@ class DatasetCreate(BaseModel):
     type: str
     access_type: str
     optimistic: bool
+    original_data_size: int
