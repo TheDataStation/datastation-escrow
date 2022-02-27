@@ -26,6 +26,7 @@ test.txt
 test/file_sharing_plots
 test/test_file_sharing
 zhiru_chameleon_key.pem
+.DS_Store
 
 # C extensions
 *.so

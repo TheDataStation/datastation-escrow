@@ -183,16 +183,15 @@ def call_api(api,
     # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
     ds_config = utils.parse_config("data_station_config.yaml")
     trust_mode = ds_config["trust_mode"]
-    # user_symmetric_key = None
-    accessible_data_key_dict = {}
+
+    accessible_data_key_dict = None
     if trust_mode == "no_trust":
         # get the symmetric key of each accessible data's owner,
         # and store them in dict to pass to interceptor
+        accessible_data_key_dict = {}
         for dataset in get_datasets_by_ids_res.data:
             data_owner_symmetric_key = key_manager.get_agent_symmetric_key(dataset.owner_id)
             accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
-
-        # user_symmetric_key = key_manager.get_agent_symmetric_key(cur_user_id)
 
     # Actually calling the api
     # print("current process id:", str(os.getpid()))
