@@ -66,7 +66,8 @@ def create_dataset(db: Session, dataset: DatasetCreate):
                          type=dataset.type,
                          access_type=dataset.access_type,
                          description=dataset.description,
-                         optimistic=dataset.optimistic,)
+                         optimistic=dataset.optimistic,
+                         original_data_size=dataset.original_data_size)
 
     try:
         db.add(db_dataset)
