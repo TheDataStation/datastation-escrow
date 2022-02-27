@@ -155,9 +155,9 @@ if __name__ == '__main__':
                         policies_to_upload.append(Policy(user_id=1,
                                                          api=api,
                                                          data_id=id))
-                # client_api.bulk_upload_policies(policies_to_upload, cur_token)
-                for policy in policies_to_upload:
-                    res = client_api.upload_policy(policy, cur_token)
+                client_api.bulk_upload_policies(policies_to_upload, cur_token)
+                # for policy in policies_to_upload:
+                #     res = client_api.upload_policy(policy, cur_token)
                     # print(res.message)
 
                 upload_policy_time = time.time() - start_time

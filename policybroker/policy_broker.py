@@ -71,7 +71,7 @@ def bulk_upload_policies(policies,
     if cur_user.status == -1:
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
-    print(cur_user_id)
+    # print(cur_user_id)
 
     # If in no_trust mode, we need to record EVERY add_policy to wal
     if write_ahead_log is not None:
