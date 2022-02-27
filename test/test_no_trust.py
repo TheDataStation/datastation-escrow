@@ -85,7 +85,6 @@ if __name__ == '__main__':
             # print("Decrypted symmetric key is:")
             # print(dec_sym_key)
 
-            # TODO: Now uploading both the user's public key, and the encrypted symmetric key to the DS
             client_api.create_user(User(user_name=cur_user, password="string"), cipher_sym_key, cur_public_key)
 
         # Taking a look at the keys that are stored
@@ -201,12 +200,6 @@ if __name__ == '__main__':
 
         data_with_policy_proportion = test_config["data_with_policy_proportion"]
         num_data_with_policy = math.floor(data_with_policy_proportion * len(list_of_data_ids))
-
-        # Right now for each dataset, we pick one API for it to create a policy
-        # TODO: change this to something configurable
-
-        # Idea: enumerate all combinations of APIs and data_ids, then choose each with a probability
-        # this probability should be in workload_config
 
         policy_proportion = test_config["policy_proportion"]
         policy_created = 0

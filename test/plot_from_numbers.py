@@ -25,5 +25,6 @@ if __name__ == '__main__':
                          "write_log",
                          "total_time", ])
 
-    if not os.path.exists(figure_name):
-        plt.savefig(figure_name)
+    if os.path.exists(figure_name):
+        os.remove(figure_name)
+    plt.savefig(figure_name)
