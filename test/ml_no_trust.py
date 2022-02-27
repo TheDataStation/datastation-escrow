@@ -113,15 +113,35 @@ if __name__ == '__main__':
         # name_to_upload = "train" + str(cur_num) + "_X.npy"
         # cur_cipher_file.close()
 
+        # # Implementation using pickle
+        #
+        # cur_train_y = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_y.npy"
+        # cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num + 1]
+        # # Load np object
+        # cur_y = np.load(cur_train_y)
+        # # np object to pkl bytes
+        # pkl_y = pickle.dumps(cur_y)
+        # # pkl bytes encrypted
+        # ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(pkl_y)
+        # cur_cipher_name = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.pkl"
+        # cur_cipher_file = open(cur_cipher_name, "wb")
+        # cur_cipher_file.write(ciphertext_bytes)
+        # cur_cipher_file.close()
+
+        # Implementation using npy
+
         cur_train_y = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_y.npy"
         cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num + 1]
-        # Load np object
-        cur_y = np.load(cur_train_y)
-        # np object to pkl bytes
-        pkl_y = pickle.dumps(cur_y)
-        # pkl bytes encrypted
-        ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(pkl_y)
-        cur_cipher_name = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.pkl"
+        with open(cur_train_y, "rb") as f:
+            plain_data = f.read()
+            ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plain_data)
+        # # Load np object
+        # cur_y = np.load(cur_train_y)
+        # # np object to pkl bytes
+        # pkl_y = pickle.dumps(cur_y)
+        # # pkl bytes encrypted
+        # ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(pkl_y)
+        cur_cipher_name = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.npy"
         cur_cipher_file = open(cur_cipher_name, "wb")
         cur_cipher_file.write(ciphertext_bytes)
         cur_cipher_file.close()
@@ -146,11 +166,12 @@ if __name__ == '__main__':
         # cur_file_X.close()
 
         # Upload his partition y of the data
-        cur_train_y = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.pkl"
+        # cur_train_y = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.pkl"
+        cur_train_y = "test/ml_file_no_trust/training_income/train" + str(cur_num) + "_y.npy"
         cur_file_y = open(cur_train_y, "rb")
         cur_file_bytes = cur_file_y.read()
         cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + "_y.pkl"
+        name_to_upload = "train" + str(cur_num) + "_y.npy"
         cur_res = client_api.upload_dataset(name_to_upload,
                                             cur_file_bytes,
                                             "file",
