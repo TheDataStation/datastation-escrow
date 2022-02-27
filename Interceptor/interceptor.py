@@ -332,6 +332,7 @@ class Xmp(Fuse):
                     self.iolock.acquire()
                     try:
                         if self.symmetric_key is not None:
+                            # print(self.symmetric_key)
                             # encrypted_bytes = self.file.read()
                             # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                             #     ciphertext=encrypted_bytes,
@@ -356,6 +357,7 @@ class Xmp(Fuse):
                         self.iolock.release()
                 else:
                     if self.symmetric_key is not None:
+                        # print(self.symmetric_key)
                         # encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
                         # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                         #     ciphertext=encrypted_bytes,

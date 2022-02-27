@@ -52,6 +52,40 @@ def upload_policy(policy: Policy,
     response = database_api.create_policy(policy)
     return Response(status=response.status, message=response.msg)
 
+# upload policies in bulk fashion
+
+def bulk_upload_policies(policies,
+                         cur_username,
+                         write_ahead_log=None,
+                         key_manager=None,
+                         check_point=None, ):
+    # First check if the dataset owner(s) is the current user
+    for policy in policies:
+        verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
+        if verify_owner_response.status == 1:
+            return verify_owner_response
+    # print("all owner check passed")
+
+    # Get caller's UID
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+    if cur_user.status == -1:
+        return Response(status=1, message="Something wrong with the current user")
+    cur_user_id = cur_user.data[0].id
+    print(cur_user_id)
+
+    # If in no_trust mode, we need to record EVERY add_policy to wal
+    if write_ahead_log is not None:
+        for policy in policies:
+            wal_entry = "database_api.create_policy(Policy(user_id=" + str(policy.user_id) \
+                        + ",api='" + policy.api \
+                        + "',data_id=" + str(policy.data_id) \
+                        + "))"
+            # If write_ahead_log is not None, key_manager also will not be None
+            write_ahead_log.log(cur_user_id, wal_entry, key_manager, check_point, )
+
+    response = database_api.bulk_upload_policies(policies)
+    return response
+
 # remove a policy from DB
 
 def remove_policy(policy: Policy,
