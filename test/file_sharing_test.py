@@ -29,8 +29,8 @@ def clear_dir(dir_name):
 
 if __name__ == '__main__':
 
-    num_files_list = [10, 50, 100]
     num_functions_list = [5, 10, 50, 100]
+    num_files_list = [10, 50, 100]
     num_iters = 20
 
     for num_functions in num_functions_list:
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
             for iter_num in range(num_iters):
 
-                print("num_functions={} num_files={} iter_num={}".format(num_files, num_functions, iter_num))
+                print("num_functions={} num_files={} iter_num={}".format(num_functions, num_files, iter_num))
 
                 # In the beginning we always remove the existing DB
                 if os.path.exists("data_station.db"):
@@ -108,6 +108,7 @@ if __name__ == '__main__':
                 # generate file content of size 10K
                 # random_bytes = np.random.bytes(10000)
                 random_bytes = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10000)).encode()
+                # random_bytes = ("test" * 10).encode()
 
                 # Now we create the encrypted files
                 for cur_num in range(100):
@@ -134,7 +135,8 @@ if __name__ == '__main__':
                                                             content,
                                                             "file",
                                                             cur_optimistic_flag,
-                                                            cur_token)
+                                                            cur_token,
+                                                            original_data_size=len(random_bytes))
                         if cur_res.status == 0:
                             list_of_data_ids.append(cur_res.data_id)
 
@@ -163,12 +165,17 @@ if __name__ == '__main__':
                 start_time = time.time()
 
                 random_api = random.choice(list_of_apis)
-                res, api_result = client_api.call_api(random_api, cur_token, "pessimistic")
+                api_result = client_api.call_api(random_api, cur_token, "pessimistic")
 
                 call_api_time = time.time() - start_time
 
                 # print("len(api_result):")
                 # print(len(api_result))
+                # for k, v in api_result.items():
+                #     print(k, v.decode())
+                #     print(len(v))
+                #     print(len(v.decode()))
+                    # print("\"" + v.decode() + "\"")
                 assert len(api_result) == num_files
 
                 result[iter_num] = [upload_dataset_time, upload_policy_time, call_api_time]
