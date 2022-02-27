@@ -210,9 +210,9 @@ class Xmp(Fuse):
         #             cur_set.add(str(path_to_access))
         #             data_accessed_dict_global[pid] = cur_set
 
-                    # print(data_accessed_dict_global)
-            # if mode == os.R_OK:
-            #     print("Interceptor: read okay")
+        # print(data_accessed_dict_global)
+        # if mode == os.R_OK:
+        #     print("Interceptor: read okay")
 
     #    This is how we could add stub extended attribute handlers...
     #    (We can't have ones which aptly delegate requests to the underlying fs
@@ -259,18 +259,11 @@ class Xmp(Fuse):
         os.chdir(self.root)
 
     # zz: define the XmpFile class inside the function to the inner class can access methods of the outer class
-    def getXmpFile(Xmp_self):
+    def get_XmpFile(Xmp_self):
 
         class XmpFile(object):
 
             def __init__(self, path, flags, *mode):
-                # currentThread = threading.current_thread()
-                # dictionary = currentThread.__dict__
-                # if "user_id" in dictionary.keys():
-                #     print(dictionary["user_id"] + "is trying to open " + path + " in " + flag2mode(flags) + " mode")
-
-                # if "user_id" in os.environ.keys():
-                #     print("Interceptor: user_id = " + os.environ.get("user_id"))
 
                 self.file_path = os.path.join(Path.cwd(), path[1:])
                 self.file = os.fdopen(os.open("." + path, flags, *mode),
@@ -282,39 +275,15 @@ class Xmp(Fuse):
                 else:
                     self.iolock = Lock()
 
-                # uid, gid, pid = fuse_get_context()
-                #
-                # print(sys.argv[-1])
-
-                # user_id = pathlib.PurePath(args[-1]).parts[-2]
-                # api_name = pathlib.PurePath(args[-1]).parts[-1]
-
-                # if mock_gatekeeper.check(user_id=user_id, api_name=api_name, file_to_access=self.file_path):
-                #     print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-                # else:
-                #     self.file = None
-                #     print("Interceptor: Access denied for " + self.file_path)
-                #     raise IOError("Access denied for " + self.file_path)
-                # print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-                # data_id = gatekeeper.record_data_ids_accessed(self.file_path, user_id, api_name)
-                # if data_id != None:
-                #     data_ids_accessed.add(data_id)
-                # f = open("/tmp/data_ids_accessed.txt", 'a+')
-                # f.write(str(data_id) + '\n')
-                # f.close()
-
-                # print("Interceptor: data id accessed: ", str(data_id))
-                # data_accessed.add(self.file_path)
-
                 # zz: recording data accessed here
-                 # TODO: in zero trust mode, should we record all access, including those illegal access with
+                # TODO: in zero trust mode, should we record all access, including those illegal access with
                 #      the wrong key?
                 fuse_context = Fuse.GetContext(Xmp_self)
                 pid = fuse_context["pid"]
 
                 # if pid in accessible_data_dict_global.keys():
-                    # print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-                    # print("Interceptor: pid:", pid)
+                #     print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+                #     print("Interceptor: pid:", pid)
 
                 if pid not in data_accessed_dict_global.keys():
                     data_accessed_dict_global[pid] = set()
@@ -323,35 +292,60 @@ class Xmp(Fuse):
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set
 
-                # self.truncate = False
-                # self.truncate_len = 0
+                self.symmetric_key = None
+                self.decrypted_bytes = None
+                # check if the file access is from the running api inside data station
+                if pid in accessible_data_dict_global.keys():
+
+                    # get the accessible_data_key_dict, if the dict is not None,
+                    #  then we know it's running in no trust mode.
+                    accessible_data_key_dict = accessible_data_dict_global[pid][1]
+
+                    if accessible_data_key_dict is not None:
+
+                        # get the symmetric key of the current file if it's accessible by the current user accessing
+                        if self.file_path in accessible_data_key_dict.keys():
+                            self.symmetric_key = accessible_data_key_dict[self.file_path]
+
+                            # Decrypt the entire file here and use it as a cache.
+                            # since multiple read/writes can happen to the file,
+                            # we don't want decrypt it for every access
+                            if self.iolock:
+                                self.iolock.acquire()
+                                try:
+                                    encrypted_bytes = self.file.read()
+                                    self.decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
+                                        ciphertext=encrypted_bytes,
+                                        key=self.symmetric_key)
+                                finally:
+                                    self.iolock.release()
+                            else:
+                                encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
+                                print(len(encrypted_bytes))
+                                self.decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
+                                    ciphertext=encrypted_bytes,
+                                    key=self.symmetric_key)
+
 
             def read(self, length, offset):
                 # print("Interceptor: I am reading " + str(self.file_path))
 
-                # zz: get the symmetric key for the current user who runs the api's process,
-                #  if the key is not None, then we know it's running in no trust mode.
-                #  So we decrypt the data first and return the chunk of data the user is actually reading
-                pid = Xmp_self.GetContext()["pid"]
-
-                symmetric_key = None
-                accessible_data_key_dict = accessible_data_dict_global[pid][1]
-                if pid in accessible_data_dict_global.keys():
-                    symmetric_key = accessible_data_key_dict[self.file_path]
-
-                # if self.file != None:
                 if self.iolock:
                     self.iolock.acquire()
                     try:
-                        if symmetric_key is not None:
-                            encrypted_bytes = self.file.read()
-                            decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
-                                ciphertext=encrypted_bytes,
-                                key=symmetric_key)
+                        if self.symmetric_key is not None:
+                            # encrypted_bytes = self.file.read()
+                            # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
+                            #     ciphertext=encrypted_bytes,
+                            #     key=symmetric_key)
                             # TODO: what happens if decryption fails? For now just return an empty byte.
-                            #  We can't return something that's larger than length (the size of buffer we are trying to read)
-                            if decrypted_bytes is not None:
-                                return decrypted_bytes[offset:offset + length]
+                            #  We can't return something that's larger than length (the size of buffer we are trying
+                            #  to read)
+                            if self.decrypted_bytes is not None:
+                                if offset >= len(self.decrypted_bytes):
+                                    return b''
+                                else:
+                                    return self.decrypted_bytes[offset:offset + length]
                             else:
                                 print("Interceptor: Cannot decrypt ", self.file_path)
                                 return b''
@@ -361,64 +355,46 @@ class Xmp(Fuse):
                     finally:
                         self.iolock.release()
                 else:
-                    if symmetric_key is not None:
-                        encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
-                        decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
-                            ciphertext=encrypted_bytes,
-                            key=symmetric_key)
-                        if decrypted_bytes is not None:
-                            # if offset >= len(decrypted_bytes):
-                            #     return b''
-                            # else:
-                            return decrypted_bytes[offset:offset + length]
+                    if self.symmetric_key is not None:
+                        # encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
+                        # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
+                        #     ciphertext=encrypted_bytes,
+                        #     key=symmetric_key)
+                        if self.decrypted_bytes is not None:
+                            # print(self.decrypted_bytes.decode())
+                            print(len(self.decrypted_bytes), offset, length)
+                            if offset >= len(self.decrypted_bytes):
+                                return b''
+                            else:
+                                return self.decrypted_bytes[offset:offset + length]
                         else:
                             print("Interceptor: Cannot decrypt ", self.file_path)
                             return b''
                     else:
                         return os.pread(self.fd, length, offset)
-                # else:
-                #     raise IOError("Read access denied for " + self.file_path)
 
             def write(self, buf, offset):
                 # print("Interceptor: I am writing " + str(self.file_path))
-                # print("Interceptor: buf:")
-                # print(str(type(buf)))
-                # print(buf.decode())
-
-                pid = Xmp_self.GetContext()["pid"]
-
-                symmetric_key = None
-                accessible_data_key_dict = accessible_data_dict_global[pid][1]
-                if pid in accessible_data_dict_global.keys():
-                    symmetric_key = accessible_data_key_dict[self.file_path]
 
                 if self.iolock:
                     self.iolock.acquire()
                     try:
-                        if symmetric_key is not None:
-                            encrypted_bytes = self.file.read()
-                            decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
-                                ciphertext=encrypted_bytes,
-                                key=symmetric_key)
-                            if decrypted_bytes == None:
+                        if self.symmetric_key is not None:
+                            # encrypted_bytes = self.file.read()
+                            # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
+                            #     ciphertext=encrypted_bytes,
+                            #     key=symmetric_key)
+                            if self.decrypted_bytes == None:
                                 print("Interceptor: Cannot decrypt ", self.file_path)
                                 return 0
 
-                            # if self.truncate:
-                            #     print("Interceptor: truncate")
-                                # decrypted_bytes = decrypted_bytes[:self.truncate_len]
-                                # self.truncate = False
+                            new_bytes = self.decrypted_bytes[:offset] + buf
+                            if offset + len(buf) < len(self.decrypted_bytes):
+                                new_bytes += self.decrypted_bytes[offset + len(buf):]
 
-                            new_bytes = decrypted_bytes[:offset] + buf
-                            if offset + len(buf) < len(decrypted_bytes):
-                                new_bytes += decrypted_bytes[offset + len(buf):]
-                            # print("Interceptor: new_bytes:")
-                            # print(cryptoutils.from_bytes(new_bytes))
-                            # print(new_bytes.decode())
-                            # new_bytes = decrypted_bytes[:offset] + buf + decrypted_bytes[offset + len(buf) : ]
                             new_encrypted_bytes = cryptoutils.encrypt_data_with_symmetric_key(
                                 data=new_bytes,
-                                key=symmetric_key
+                                key=self.symmetric_key
                             )
                             if new_encrypted_bytes is not None:
                                 self.file.truncate(0)
@@ -426,7 +402,6 @@ class Xmp(Fuse):
                                 return len(buf)
                             else:
                                 print("Interceptor: Cannot encrypt ", self.file_path)
-                                # self.file.write(encrypted_bytes)
                                 return 0
                         else:
                             self.file.seek(offset)
@@ -435,46 +410,20 @@ class Xmp(Fuse):
                     finally:
                         self.iolock.release()
                 else:
-                    if symmetric_key is not None:
-                        # print("Interceptor: in")
-                        encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
-                        # print("Interceptor: encrypted_bytes:")
-                        # print(encrypted_bytes.decode())
-                        decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
-                            ciphertext=encrypted_bytes,
-                            key=symmetric_key)
-                        if decrypted_bytes == None:
+                    if self.symmetric_key is not None:
+
+                        if self.decrypted_bytes == None:
                             print("Interceptor: Cannot decrypt ", self.file_path)
                             return 0
-                        # print("Interceptor: decrypted_bytes:")
-                        # print(decrypted_bytes)
-                        # print(decrypted_bytes.decode())
 
-                        # decrypted_bytes = bytearray(decrypted_bytes)
-                        # print(decrypted_bytes.decode().split("\n")[0])
-                        # if self.truncate:
-                            # print("Interceptor: truncate")
-                            # decrypted_bytes = decrypted_bytes[:self.truncate_len]
-                        # print(decrypted_bytes.decode())
-                        # print("Interceptor: buf:")
-                        # print(buf)
-                        new_bytes = decrypted_bytes[:offset] + buf
-                        # print("Interceptor: decrypted_bytes[:offset]:")
-                        # print(decrypted_bytes[:offset].decode())
-                        # print("Interceptor: buf:")
-                        # print(buf)
-                        # print(buf[:13].decode())
-                        # print(buf.decode())
-                        if offset + len(buf) < len(decrypted_bytes):
-                            new_bytes += decrypted_bytes[offset + len(buf):]
-                        # print("Interceptor: new_bytes:")
-                        # print(cryptoutils.from_bytes(new_bytes))
-                        # print(new_bytes.decode())
-                        # print(new_bytes.decode().split("\n")[0])
+                        new_bytes = self.decrypted_bytes[:offset] + buf
+
+                        if offset + len(buf) < len(self.decrypted_bytes):
+                            new_bytes += self.decrypted_bytes[offset + len(buf):]
 
                         new_encrypted_bytes = cryptoutils.encrypt_data_with_symmetric_key(
                             data=new_bytes,
-                            key=symmetric_key
+                            key=self.symmetric_key
                         )
                         if new_encrypted_bytes is not None:
                             self.file.truncate(0)
@@ -482,7 +431,6 @@ class Xmp(Fuse):
                             return len(buf)
                         else:
                             print("Interceptor: Cannot encrypt ", self.file_path)
-                            # os.pwrite(self.fd, encrypted_bytes, 0)
                             return 0
                     else:
                         return os.pwrite(self.fd, buf, offset)
@@ -516,34 +464,27 @@ class Xmp(Fuse):
             def ftruncate(self, trunc_len):
                 # print("Interceptor: ftruncate " + str(self.file_path) + " with length " + str(trunc_len))
 
-                pid = Xmp_self.GetContext()["pid"]
-
-                symmetric_key = None
-                accessible_data_key_dict = accessible_data_dict_global[pid][1]
-                if pid in accessible_data_dict_global.keys():
-                    symmetric_key = accessible_data_key_dict[self.file_path]
-
-                if symmetric_key is not None:
+                if self.symmetric_key is not None:
                     # self.truncate = True
                     # self.truncate_len = trunc_len
                     if self.iolock:
                         self.iolock.acquire()
                         try:
-                            encrypted_bytes = self.file.read()
-                            decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
-                                ciphertext=encrypted_bytes,
-                                key=symmetric_key)
-                            if decrypted_bytes == None:
+                            # encrypted_bytes = self.file.read()
+                            # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
+                            #     ciphertext=encrypted_bytes,
+                            #     key=symmetric_key)
+                            if self.decrypted_bytes == None:
                                 print("Interceptor: Cannot decrypt ", self.file_path)
                                 return
 
-                            if trunc_len > len(decrypted_bytes):
-                                new_bytes = decrypted_bytes
+                            if trunc_len > len(self.decrypted_bytes):
+                                new_bytes = self.decrypted_bytes
                             else:
-                                new_bytes = decrypted_bytes[:trunc_len]
+                                new_bytes = self.decrypted_bytes[:trunc_len]
                             new_encrypted_bytes = cryptoutils.encrypt_data_with_symmetric_key(
                                 data=new_bytes,
-                                key=symmetric_key
+                                key=self.symmetric_key
                             )
                             if new_encrypted_bytes is not None:
                                 self.file.truncate()
@@ -556,43 +497,31 @@ class Xmp(Fuse):
                         finally:
                             self.iolock.release()
                     else:
-                        encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
-                        decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
-                            ciphertext=encrypted_bytes,
-                            key=symmetric_key)
-                        if decrypted_bytes == None:
+                        # encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
+                        # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
+                        #     ciphertext=encrypted_bytes,
+                        #     key=symmetric_key)
+                        if self.decrypted_bytes == None:
                             print("Interceptor: Cannot decrypt ", self.file_path)
                             return
 
-                        if trunc_len > len(decrypted_bytes):
-                            new_bytes = decrypted_bytes
+                        if trunc_len > len(self.decrypted_bytes):
+                            new_bytes = self.decrypted_bytes
                         else:
-                            new_bytes = decrypted_bytes[:trunc_len]
-                        # print("Interceptor: new_bytes:")
-                        # print(new_bytes)
-                        # print(new_bytes.decode())
+                            new_bytes = self.decrypted_bytes[:trunc_len]
+
                         new_encrypted_bytes = cryptoutils.encrypt_data_with_symmetric_key(
                             data=new_bytes,
-                            key=symmetric_key
+                            key=self.symmetric_key
                         )
-                        # print("Interceptor: new_encrypted_bytes:")
-                        # print(new_encrypted_bytes)
-                        # print(cryptoutils.decrypt_data_with_symmetric_key(
-                        #     ciphertext=new_encrypted_bytes,
-                        #     key=symmetric_key))
+
                         if new_encrypted_bytes is not None:
                             self.file.truncate()
                             num_bytes_wrote = os.pwrite(self.fd, new_encrypted_bytes, 0)
                             assert num_bytes_wrote == len(new_encrypted_bytes)
-                            # num_bytes_wrote = self.file.write(new_encrypted_bytes)
-                            # print("Interceptor: num_bytes_wrote:", num_bytes_wrote)
+
                             self.fsync(isfsyncfile=True)
-                            # encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
-                            # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
-                            #     ciphertext=encrypted_bytes,
-                            #     key=symmetric_key)
-                            # print("Interceptor: decrypted_bytes:")
-                            # print(decrypted_bytes.decode())
+
                         else:
                             print("Interceptor: Cannot encrypt ", self.file_path)
                             # os.pwrite(self.fd, encrypted_bytes, 0)
@@ -643,7 +572,7 @@ class Xmp(Fuse):
 
     def main(self, *a, **kw):
 
-        self.file_class = self.getXmpFile()
+        self.file_class = self.get_XmpFile()
 
         return Fuse.main(self, *a, **kw)
 

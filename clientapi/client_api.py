@@ -164,7 +164,8 @@ class ClientAPI:
                        data_in_bytes,
                        data_type,
                        optimistic,
-                       token):
+                       token,
+                       original_data_size = None):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
@@ -192,7 +193,7 @@ class ClientAPI:
                                                                cur_username,
                                                                data_type,
                                                                access_type,
-                                                               optimistic,)
+                                                               optimistic)
         else:
             data_register_response = data_register.upload_data(data_id,
                                                                data_name,
@@ -202,7 +203,8 @@ class ClientAPI:
                                                                optimistic,
                                                                self.write_ahead_log,
                                                                self.key_manager,
-                                                               self.check_point,)
+                                                               self.check_point,
+                                                               original_data_size)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status,
                             message=data_register_response.message)

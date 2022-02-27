@@ -15,7 +15,8 @@ def upload_data(data_id,
                 optimistic,
                 write_ahead_log=None,
                 key_manager=None,
-                check_point=None,):
+                check_point=None,
+                original_data_size=None):
 
     # TODO: check if there is an existing dataset
 
@@ -52,7 +53,8 @@ def upload_data(data_id,
                           owner_id=cur_user_id,
                           type=data_type,
                           access_type=access_type,
-                          optimistic=optimistic,)
+                          optimistic=optimistic,
+                          original_data_size=original_data_size)
     database_service_response = database_api.create_dataset(new_dataset)
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
