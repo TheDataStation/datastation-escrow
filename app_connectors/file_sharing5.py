@@ -17,7 +17,7 @@ def f1():
         # print(file)
         if pathlib.Path(file).is_file():
             with open(file, "rb") as cur_file:
-                content = cur_file.read()
+                content = cur_file.read().rstrip(b'\x00')
                 contents[file] = content
             # print("read ", file)
     return contents

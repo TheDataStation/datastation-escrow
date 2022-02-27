@@ -39,6 +39,7 @@ def gatekeeper_setup(connector_name, connector_module_path):
         api_db = API(api_name=cur_api)
         database_service_response = database_api.create_api(api_db)
         if database_service_response.status == -1:
+            print("database_api.create_api: internal database error")
             return Response(status=1, message="database_api.create_api: internal database error")
     for cur_from_api in dependencies_to_register:
         to_api_list = dependencies_to_register[cur_from_api]
@@ -47,6 +48,7 @@ def gatekeeper_setup(connector_name, connector_module_path):
                                               to_api=cur_to_api, )
             database_service_response = database_api.create_api_dependency(api_dependency_db)
             if database_service_response.status == -1:
+                print("database_api.create_api_dependency: internal database error")
                 return Response(status=1, message="database_api.create_api_dependency: internal database error")
     return Response(status=0, message="Gatekeeper setup success")
 

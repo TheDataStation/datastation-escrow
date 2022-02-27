@@ -7,8 +7,6 @@
 #    See the file COPYING.
 #
 
-from __future__ import print_function
-
 import os, sys
 import pathlib
 import socket
@@ -345,7 +343,9 @@ class Xmp(Fuse):
                                 if offset >= len(self.decrypted_bytes):
                                     return b''
                                 else:
-                                    return self.decrypted_bytes[offset:offset + length]
+                                    content = self.decrypted_bytes[offset:offset + length].rstrip(b'\x00')
+                                    return content
+                                    # return self.decrypted_bytes[offset:offset + length].rstrip(b'\x00')
                             else:
                                 print("Interceptor: Cannot decrypt ", self.file_path)
                                 return b''
@@ -366,7 +366,8 @@ class Xmp(Fuse):
                             if offset >= len(self.decrypted_bytes):
                                 return b''
                             else:
-                                return self.decrypted_bytes[offset:offset + length]
+                                content = self.decrypted_bytes[offset:offset + length].rstrip(b'\x00')
+                                return content
                         else:
                             print("Interceptor: Cannot decrypt ", self.file_path)
                             return b''
