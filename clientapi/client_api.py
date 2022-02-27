@@ -177,6 +177,7 @@ class ClientAPI:
         # We first call SM to store the data
         # Note that SM needs to return access_type (how can the data element be accessed)
         # so that data_register can register this info
+
         storage_manager_response = self.storage_manager.store(data_name,
                                                               data_id,
                                                               data_in_bytes,
@@ -322,7 +323,7 @@ class ClientAPI:
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
-        res, api_result = gatekeeper.call_api(api,
+        res = gatekeeper.call_api(api,
                                   cur_username,
                                   exec_mode,
                                   self.log,
@@ -331,7 +332,7 @@ class ClientAPI:
                                   self.data_accessed_dict,
                                   *args,
                                   **kwargs)
-        return res, api_result
+        return res
 
     # print out the contents of the log
 

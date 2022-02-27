@@ -262,7 +262,7 @@ def call_api(api,
                                                  api,
                                                  data_ids_accessed,
                                                  key_manager,)
-        response = overhead
+        response = api_result
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         # print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
@@ -292,7 +292,7 @@ def call_api(api,
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    return response, api_result
+    return response
 
 def record_data_ids_accessed(data_path, user_id, api_name):
     response = database_api.get_dataset_by_access_type(data_path)
