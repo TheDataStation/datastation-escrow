@@ -344,7 +344,7 @@ class Xmp(Fuse):
                                 if offset >= len(self.decrypted_bytes):
                                     return b''
                                 else:
-                                    content = self.decrypted_bytes[offset:offset + length].rstrip(b'\x00')
+                                    content = self.decrypted_bytes[offset:offset + length]
                                     return content
                                     # return self.decrypted_bytes[offset:offset + length].rstrip(b'\x00')
                             else:
@@ -368,7 +368,7 @@ class Xmp(Fuse):
                             if offset >= len(self.decrypted_bytes):
                                 return b''
                             else:
-                                content = self.decrypted_bytes[offset:offset + length].rstrip(b'\x00')
+                                content = self.decrypted_bytes[offset:offset + length]
                                 return content
                         else:
                             print("Interceptor: Cannot decrypt ", self.file_path)
