@@ -49,4 +49,6 @@ def train_cifar_model(epochs, testloader):
     end = time.time()
     cross, acc = test(net, testloader)
 
-    print('time: {}, accuracy {}'.format(end - prev_time, acc))
+    return acc
+
+    # print('time: {}, accuracy {}'.format(end - prev_time, acc))
