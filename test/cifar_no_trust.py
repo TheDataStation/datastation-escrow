@@ -164,4 +164,6 @@ if __name__ == '__main__':
     #     result[counter] = [epoch, time_elapsed, accuracy]
     #     counter += 1
 
+    np.save("numbers/cifar_res.npy", result)
+
     client_api.shut_down(ds_config)
