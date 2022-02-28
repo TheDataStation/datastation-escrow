@@ -148,24 +148,25 @@ if __name__ == '__main__':
 
     result = np.zeros((40, 3))
     counter = 0
-    for epoch in range(1, 30):
+    for epoch in range(1, 15):
         print("epoch", epoch)
         start_time = time.time()
         accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", epoch, testloader)
         time_elapsed = time.time() - start_time
 
+        print("time={}, accuracy={}".format(time_elapsed, accuracy))
         result[counter] = [epoch, time_elapsed, accuracy]
         counter += 1
 
-    for epoch in range(30, 301, 30):
-        print("epoch", epoch)
-        start_time = time.time()
-        accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", epoch, testloader)
-        time_elapsed = time.time() - start_time
+    # for epoch in range(30, 301, 30):
+    #     print("epoch", epoch)
+    #     start_time = time.time()
+    #     accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", epoch, testloader)
+    #     time_elapsed = time.time() - start_time
+    #
+    #     result[counter] = [epoch, time_elapsed, accuracy]
+    #     counter += 1
 
-        result[counter] = [epoch, time_elapsed, accuracy]
-        counter += 1
-
-    np.save("numbers/cifar_res.npy", result)
+    np.save("numbers/cifar_res_new.npy", result)
 
     client_api.shut_down(ds_config)
