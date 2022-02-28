@@ -1,2 +1,2 @@
-connector_name: "ml_cifar"
-connector_module_path: "app_connectors/ml_cifar.py"
+connector_name: "ml_income"
+connector_module_path: "app_connectors/ml_income.py"

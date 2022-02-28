@@ -22,6 +22,7 @@ from writeaheadlog.write_ahead_log import WAL
 from checkpoint.check_point import CheckPoint
 from crypto.key_manager import KeyManager
 from crypto import cryptoutils as cu
+from dbservice.database import engine
 
 class ClientAPI:
 
@@ -90,6 +91,8 @@ class ClientAPI:
 
         assert os.path.ismount(mount_point) == False
         self.interceptor_process.join()
+
+        engine.dispose()
 
         print("shut down complete")
 

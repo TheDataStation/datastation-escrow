@@ -1,5 +1,4 @@
-from .database import engine
-from .database import Base, DATABASE_URL
+from .database import engine, Base, DATABASE_URL
 from sqlalchemy import create_engine, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
