@@ -41,7 +41,7 @@ from common import utils
 @register()
 def train_income_model():
     """train a logistic regression model on income data"""
-    print("starting train model")
+    print("starting income model")
     prev_time = time.time()
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
     ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
