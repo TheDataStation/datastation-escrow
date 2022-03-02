@@ -145,8 +145,6 @@ if __name__ == '__main__':
     # print("Uploading policies done")
     # print("--- %s seconds ---" % (cur_time - prev_time))
     print("Number of policies created is: " + str(policy_created))
-    print("Expected number of policies is: " + str(
-        math.floor(num_data_with_policy * len(list_of_apis) * policy_proportion)))
     # prev_time = cur_time
 
     # call available APIs
@@ -160,17 +158,10 @@ if __name__ == '__main__':
     num_calls = test_config["num_calls"]
     for _ in range(num_calls):
         cur_run_overhead = client_api.call_api("f1", cur_token, "optimistic")
-        # cur_run_overhead = client_api.call_api("preprocess", cur_token, "optimistic")
-        with open(numbers_file_name, 'a') as f:
-            writer_object = writer(f)
-            writer_object.writerow(cur_run_overhead)
-
-    # client_api.call_api("preprocess", cur_token, "optimistic")
-    # print("preprocess finished\n")
-    # client_api.call_api("modeltrain", cur_token, "optimistic")
-    # print("modeltrain finished\n")
-    # client_api.call_api("predict", cur_token, "pessimistic", 10, 5)
-    # print("predict finished\n")
+        print(cur_run_overhead)
+        # with open(numbers_file_name, 'a') as f:
+        #     writer_object = writer(f)
+        #     writer_object.writerow(cur_run_overhead)
 
     cur_time = time.time()
     print("Calling APIs done")
