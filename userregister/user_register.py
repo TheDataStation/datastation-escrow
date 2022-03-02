@@ -10,7 +10,7 @@ from models.response import *
 # Adding global variables to support access token generation (for authentication)
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 3
 
 # The following function handles the creation of access tokens (for LoginUser)
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
