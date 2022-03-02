@@ -22,6 +22,8 @@ test/test_file_full_trust
 test/test_file_no_trust
 test/test_file_sharing
 test/ml_file_full_trust/training
+test/ml_file_full_trust/testing_income
+test/ml_file_full_trust/training_income
 test/ml_file_no_trust
 test.txt
 test/file_sharing_plots

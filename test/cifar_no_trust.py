@@ -1,4 +1,7 @@
 import pathlib
+
+import numpy as np
+
 import main
 import os
 import shutil
@@ -143,6 +146,27 @@ if __name__ == '__main__':
     test_data = torch.load('test/ml_file_no_trust/testing/test.pt')
     testloader = DataLoader(test_data, batch_size=32)
 
-    res_model = client_api.call_api("train_cifar_model", cur_token, "optimistic", 10, testloader)
+    result = np.zeros((40, 3))
+    counter = 0
+    for epoch in range(1, 30):
+        print("epoch", epoch)
+        start_time = time.time()
+        accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", epoch, testloader)
+        time_elapsed = time.time() - start_time
+
+        print("time={}, accuracy={}".format(time_elapsed, accuracy))
+        result[counter] = [epoch, time_elapsed, accuracy]
+        counter += 1
+
+    for epoch in range(30, 151, 30):
+        print("epoch", epoch)
+        start_time = time.time()
+        accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", epoch, testloader)
+        time_elapsed = time.time() - start_time
+
+        result[counter] = [epoch, time_elapsed, accuracy]
+        counter += 1
+
+    np.save("numbers/cifar_res_new.npy", result)
 
     client_api.shut_down(ds_config)
