@@ -52,41 +52,32 @@ if __name__ == '__main__':
             shutil.rmtree(file_path)
 
     # For each user, we upload his partition of the data (2 data elements, both X and y)
+    # and the corresponding policy.
+    data_id_counter = 1
     for cur_num in range(num_users):
 
         # Log in the current user and get a token
         cur_uname = "user" + str(cur_num)
         cur_token = client_api.login_user(cur_uname, "string")["access_token"]
 
-        # Upload his partition X of the data
-        cur_train_X = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_X.npy"
-        cur_file_X = open(cur_train_X, "rb")
-        cur_file_bytes = cur_file_X.read()
-        cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + "_X.npy"
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
-                                            "file",
-                                            cur_optimistic_flag,
-                                            cur_token, )
-        cur_file_X.close()
-
-        # Upload his partition y of the data
-        cur_train_y = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_y.npy"
-        cur_file_y = open(cur_train_y, "rb")
-        cur_file_bytes = cur_file_y.read()
-        cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + "_y.npy"
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
-                                            "file",
-                                            cur_optimistic_flag,
-                                            cur_token, )
-        cur_file_y.close()
-
-        # Add a policy saying user with id==1 can call train_income_model on the datasets
-        client_api.upload_policy(Policy(user_id=1, api="train_income_model", data_id=cur_num*2+1), cur_token)
-        client_api.upload_policy(Policy(user_id=1, api="train_income_model", data_id=cur_num*2+2), cur_token)
+        # We have two types of data: X and y
+        train_type = ["X", "y"]
+        for cur_type in train_type:
+            cur_train = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_" + cur_type + ".npy"
+            cur_file = open(cur_train, "rb")
+            cur_file_bytes = cur_file.read()
+            cur_optimistic_flag = False
+            name_to_upload = "train" + str(cur_num) + "_" + cur_type + ".npy"
+            # Upload data
+            client_api.upload_dataset(name_to_upload,
+                                      cur_file_bytes,
+                                      "file",
+                                      cur_optimistic_flag,
+                                      cur_token, )
+            cur_file.close()
+            # Upload policy
+            client_api.upload_policy(Policy(user_id=1, api="train_income_model", data_id=data_id_counter), cur_token)
+            data_id_counter += 1
 
     # In here, DB construction is done. We just need to call train_income_model
 
@@ -95,7 +86,7 @@ if __name__ == '__main__':
     res_model = client_api.call_api("train_income_model", cur_token, "optimistic")
     # print(res_model)
     # print("Model returned is: ")
-    print(res_model.coef_, res_model.intercept_)
+    # print(res_model.coef_, res_model.intercept_)
 
     # After we get the model back, we test its accuracy
     x_test = np.load("test/ml_file_full_trust/testing_income/test_X.npy")

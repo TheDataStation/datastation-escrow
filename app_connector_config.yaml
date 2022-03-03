@@ -1,2 +1,2 @@
-connector_name: "block5"
-connector_module_path: "app_connectors/block5.py"
+connector_name: "ml_income"
+connector_module_path: "app_connectors/ml_income.py"
