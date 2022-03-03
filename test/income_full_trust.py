@@ -4,13 +4,8 @@ import sys
 import main
 import os
 import shutil
-import time
-import math
-import random
-from csv import writer
 import numpy as np
 
-from Interceptor import interceptor
 from common import utils
 from models.user import *
 from models.policy import *
