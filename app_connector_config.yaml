@@ -1,2 +1,2 @@
-connector_name: "ml_income"
-connector_module_path: "app_connectors/ml_income.py"
+connector_name: "income_no_trust"
+connector_module_path: "app_connectors/income_no_trust.py"
