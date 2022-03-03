@@ -105,6 +105,9 @@ if __name__ == '__main__':
     # First clear test_file_no_trust
 
     no_trust_folder = 'test/test_file_no_trust'
+    if not os.path.exists(no_trust_folder):
+        os.mkdir(no_trust_folder)
+
     for filename in os.listdir(no_trust_folder):
         file_path = os.path.join(no_trust_folder, filename)
         if os.path.isfile(file_path) or os.path.islink(file_path):
@@ -177,18 +180,18 @@ if __name__ == '__main__':
     policy_proportion = test_config["policy_proportion"]
     policy_created = 0
 
-    # Uploading the policies in a bulk fashion
-    policy_array = []
+    # Uploading the policies one by one
+    # policy_array = []
     for api_picked in list_of_apis:
         for i in range(num_data_with_policy):
             if random.random() < policy_proportion:
-                # client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
-                # total_db_ops += 1
+                client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
+                total_db_ops += 1
                 cur_policy = Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i])
-                policy_array.append(cur_policy)
+                # policy_array.append(cur_policy)
 
-    client_api.bulk_upload_policies(policy_array, cur_token)
-    total_db_ops += 1
+    # client_api.bulk_upload_policies(policy_array, cur_token)
+    # total_db_ops += 1
 
     # Record time
     cur_time = time.time()
@@ -205,11 +208,11 @@ if __name__ == '__main__':
     #     writer_object = writer(f)
     #     writer_object.writerow(overhead)
 
-    # Taking a look at the WAL
-    client_api.read_wal()
+    # # Taking a look at the WAL
+    # client_api.read_wal()
 
     # Before shutdown, let's look at the total number of DB ops (insertions) that we did
     # print("Total number of DB insertions is: "+str(total_db_ops))
     client_api.shut_down(ds_config)
 
-    # print(overhead)
+    print(overhead)
