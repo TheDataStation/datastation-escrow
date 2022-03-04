@@ -1,9 +1,7 @@
 import os.path
 import pathlib
-import numpy as np
 import pickle
 import time
-import torch
 from torch.utils.data import ConcatDataset, DataLoader
 from jinjin.model import *
 
@@ -14,8 +12,8 @@ from common import utils
 @register()
 def train_cifar_model(epochs, testloader):
     """train a neural network model on cifar data"""
-    # print("starting cifar model")
-    # prev_time = time.time()
+    print("starting cifar model")
+    prev_time = time.time()
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
     ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
@@ -40,15 +38,13 @@ def train_cifar_model(epochs, testloader):
     train_data = ConcatDataset(train_data_array)
     trainloader = DataLoader(train_data, batch_size=32, shuffle=True)
 
-    # print("data station overhead is: ")
-    # print(time.time() - prev_time)
-    # prev_time = time.time()
+    print("data station overhead is: ")
+    print(time.time() - prev_time)
+    prev_time = time.time()
 
     net = Net()
     i = train(net, trainloader, epochs=epochs)
-    # end = time.time()
+    end = time.time()
     cross, acc = test(net, testloader)
 
     return acc
-
-    # print('time: {}, accuracy {}'.format(end - prev_time, acc))

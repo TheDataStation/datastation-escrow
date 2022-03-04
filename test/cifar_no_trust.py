@@ -1,23 +1,15 @@
 import pathlib
 
-import numpy as np
-
 import main
 import os
 import shutil
-import time
-import math
-import random
-from csv import writer
 import pickle
 import torch
 from torch.utils.data import DataLoader
 
-from Interceptor import interceptor
 from common import utils
 from models.user import *
 from models.policy import *
-from common.utils import parse_config
 from crypto import cryptoutils as cu
 
 if __name__ == '__main__':
@@ -65,8 +57,6 @@ if __name__ == '__main__':
         cipher_sym_key_list.append(cipher_sym_key)
         cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
         public_key_list.append(cur_public_key)
-
-    for cur_num in range(num_users):
         cur_uname = "user" + str(cur_num)
         client_api.create_user(User(user_name=cur_uname, password="string"),
                                cipher_sym_key_list[cur_num],
@@ -78,7 +68,7 @@ if __name__ == '__main__':
 
     # First clear ml_file_no_trust/training
 
-    no_trust_folder = 'test/ml_file_no_trust/training'
+    no_trust_folder = 'test/ml_file_no_trust/training_cifar'
     for filename in os.listdir(no_trust_folder):
         file_path = os.path.join(no_trust_folder, filename)
         if os.path.isfile(file_path) or os.path.islink(file_path):
@@ -99,7 +89,7 @@ if __name__ == '__main__':
     # Now we create the encrypted files
 
     for cur_num in range(num_users):
-        cur_t_path = "test/ml_file_full_trust/training/train" + str(cur_num) + ".pt"
+        cur_t_path = "test/ml_file_full_trust/training_cifar/train" + str(cur_num) + ".pt"
         cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
         # Load torch object
         cur_torch = torch.load(cur_t_path)
@@ -108,7 +98,7 @@ if __name__ == '__main__':
         pkl_t = pickle.dumps(cur_torch)
         # pkl bytes encrypted
         ciphertext_bytes = cu.encrypt_data_with_symmetric_key(pkl_t, cur_user_sym_key)
-        cur_cipher_name = "test/ml_file_no_trust/training/train" + str(cur_num) + ".pkl"
+        cur_cipher_name = "test/ml_file_no_trust/training_cifar/train" + str(cur_num) + ".pkl"
         cur_cipher_file = open(cur_cipher_name, "wb")
         cur_cipher_file.write(ciphertext_bytes)
         cur_optimistic_flag = False
@@ -124,7 +114,7 @@ if __name__ == '__main__':
         cur_token = client_api.login_user(cur_uname, "string")["access_token"]
 
         # Upload his partition X of the data
-        cur_train_t = "test/ml_file_no_trust/training/train" + str(cur_num) + ".pkl"
+        cur_train_t = "test/ml_file_no_trust/training_cifar/train" + str(cur_num) + ".pkl"
         cur_file_t = open(cur_train_t, "rb")
         cur_file_bytes = cur_file_t.read()
         cur_optimistic_flag = False
@@ -143,30 +133,10 @@ if __name__ == '__main__':
     cur_token = client_api.login_user("user0", "string")["access_token"]
 
     # Call the NN model
-    test_data = torch.load('test/ml_file_no_trust/testing/test.pt')
+    test_data = torch.load('test/ml_file_full_trust/testing_cifar/test.pt')
     testloader = DataLoader(test_data, batch_size=32)
 
-    result = np.zeros((40, 3))
-    counter = 0
-    for epoch in range(1, 30):
-        print("epoch", epoch)
-        start_time = time.time()
-        accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", epoch, testloader)
-        time_elapsed = time.time() - start_time
-
-        print("time={}, accuracy={}".format(time_elapsed, accuracy))
-        result[counter] = [epoch, time_elapsed, accuracy]
-        counter += 1
-
-    for epoch in range(30, 151, 30):
-        print("epoch", epoch)
-        start_time = time.time()
-        accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", epoch, testloader)
-        time_elapsed = time.time() - start_time
-
-        result[counter] = [epoch, time_elapsed, accuracy]
-        counter += 1
-
-    np.save("numbers/cifar_res_new.npy", result)
+    accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", 10, testloader)
+    print("Model accuracy is: "+str(accuracy))
 
     client_api.shut_down(ds_config)
