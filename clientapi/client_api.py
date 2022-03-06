@@ -168,7 +168,7 @@ class ClientAPI:
                        data_type,
                        optimistic,
                        token,
-                       original_data_size = None):
+                       original_data_size=None):
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
