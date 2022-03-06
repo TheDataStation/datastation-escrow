@@ -5,6 +5,7 @@ __pycache__/
 SM_storage/
 SM_storage_mount/
 titanicML/sample_data/
+ddprofiler/
 .idea/
 Working/
 numbers/
