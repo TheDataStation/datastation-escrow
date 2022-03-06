@@ -136,7 +136,7 @@ if __name__ == '__main__':
     test_data = torch.load('test/ml_file_full_trust/testing_cifar/test.pt')
     testloader = DataLoader(test_data, batch_size=32)
 
-    accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", 5, testloader)
+    accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", 10, testloader)
     print("Model accuracy is: "+str(accuracy))
 
     client_api.shut_down(ds_config)

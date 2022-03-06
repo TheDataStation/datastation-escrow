@@ -8,8 +8,11 @@ from models.response import *
 
 # Helper function to get the odata_type used in policy_with_dependency
 def get_odata_type(api, d_graph):
-    first_child_api = d_graph[api][0]
-    return get_odata_type(first_child_api, d_graph)
+    if "dir_accessible" in d_graph[api]:
+        return "dir_accessible"
+    else:
+        first_child_api = d_graph[api][0]
+        return get_odata_type(first_child_api, d_graph)
 
 # Helper function to get all ancestors of an api from dependency graph (including itself)
 def get_all_ancestors(api, d_graph, cur_ancestors):
@@ -170,7 +173,8 @@ def get_user_api_info(user_id, api):
         # Fill in list of dependencies
         list_of_dependencies.append(cur_tuple)
         # Fill in dependency_graph dict
-        dependency_graph[to_api].append(from_api)
+        if to_api != "dir_accessible":
+            dependency_graph[to_api].append(from_api)
 
     # get ancestors of the api being called
     cur_ancestors = [api]

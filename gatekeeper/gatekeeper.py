@@ -21,8 +21,16 @@ def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
     register_connectors(connector_name, connector_module_path)
     # print("Check registration results:")
+    # TODO: change this part once the interceptor has been added in
+    # add dependency X -> "dir_accessible" if X does not depend on anything else
     apis_to_register = get_names_registered_functions()
     dependencies_to_register = get_registered_dependencies()
+    for cur_api in apis_to_register:
+        if cur_api not in dependencies_to_register.keys():
+            dependencies_to_register[cur_api] = ["dir_accessible"]
+    # add "dir_accessible" to list of apis
+    if "dir_accessible" not in apis_to_register:
+        apis_to_register.append("dir_accessible")
     # print(apis_to_register)
     # print(dependencies_to_register)
 

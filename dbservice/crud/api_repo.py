@@ -20,4 +20,7 @@ def get_all_apis(db: Session):
     api_name_array = []
     for api in apis:
         api_name_array.append(api.api_name)
+    # Note: we do not return the special element "dir_accessible"
+    if "dir_accessible" in api_name_array:
+        api_name_array.remove("dir_accessible")
     return api_name_array
