@@ -170,8 +170,8 @@ def call_api(api,
     #     accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
     get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
     if get_datasets_by_ids_res.status == -1:
-        print("database found no accessible data")
-        # return Response(status=1, message="database found no accessible data")
+        print("get_datasets_by_ids_res database error")
+        return Response(status=1, message="get_datasets_by_ids_res database error")
     accessible_data_paths = set([dataset.access_type for dataset in get_datasets_by_ids_res.data])
 
     # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
@@ -284,7 +284,7 @@ def call_api(api,
     cur_time = time.time()
     cur_cost = cur_time - prev_time
     overhead.append(cur_cost)
-    # print(overhead)
+    print(overhead)
 
     return response
 
