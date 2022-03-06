@@ -35,6 +35,6 @@ if __name__ == '__main__':
 
     # Use token for user0
     cur_token = client_api.login_user("user0", "string")["access_token"]
-    client_api.call_api("hello", cur_token, "pessimistic")
+    client_api.call_api("start_es", cur_token, "pessimistic")
 
     client_api.shut_down(ds_config)
