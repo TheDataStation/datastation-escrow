@@ -111,7 +111,7 @@ if __name__ == '__main__':
                 # random_bytes = ("test" * 10).encode()
 
                 # Now we create the encrypted files
-                for cur_num in range(100):
+                for cur_num in range(num_files):
                     cur_user_sym_key = client_api.key_manager.get_agent_symmetric_key(agent_id=1)
                     # content = "test" + str(cur_num)
                     encrypted_content = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(random_bytes)
