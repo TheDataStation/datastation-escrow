@@ -23,6 +23,7 @@ from checkpoint.check_point import CheckPoint
 from crypto.key_manager import KeyManager
 from crypto import cryptoutils as cu
 from dbservice.database import engine
+from dsapplicationregistration.dsar_core import clear_register
 
 class ClientAPI:
 
@@ -75,7 +76,7 @@ class ClientAPI:
 
     def shut_down(self, ds_config):
         # zz: unmount and stop interceptor
-        print("shut down...")
+        # print("shut down...")
         mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
         unmount_status = os.system("umount " + str(mount_point))
         # if unmount_status != 0:
@@ -89,10 +90,14 @@ class ClientAPI:
                 print("Unmount failed")
                 exit(1)
 
-        assert os.path.ismount(mount_point) == False
+        assert os.path.ismount(mount_point) is False
         self.interceptor_process.join()
 
+        # Clear DB
         engine.dispose()
+
+        # Clear app register
+        clear_register()
 
         print("shut down complete")
 

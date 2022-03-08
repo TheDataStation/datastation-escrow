@@ -26,6 +26,11 @@ class Register:
         else:
             return decorator_func(_f)
 
+    def clear(self):
+        self.registered_functions_names = set()
+        self.registered_functions = []
+        self.dependencies = dict()
+
 
 register = Register()
 
@@ -50,6 +55,10 @@ def get_registered_functions():
 
 def get_registered_dependencies():
     return register.dependencies
+
+
+def clear_register():
+    register.clear()
 
 
 def __test_registration():
