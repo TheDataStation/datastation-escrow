@@ -23,7 +23,6 @@ def gatekeeper_setup(connector_name, connector_module_path):
     # print("Check registration results:")
     apis_to_register = get_names_registered_functions()
     dependencies_to_register = get_registered_dependencies()
-    # print(apis_to_register)
     # print(dependencies_to_register)
 
     # now we call dbservice to register these info in the DB
@@ -284,8 +283,7 @@ def call_api(api,
     cur_time = time.time()
     cur_cost = cur_time - prev_time
     overhead.append(cur_cost)
-    print(overhead)
-
+    # print(overhead)
     return response
 
 def record_data_ids_accessed(data_path, user_id, api_name):
