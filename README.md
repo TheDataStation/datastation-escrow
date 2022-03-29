@@ -15,7 +15,7 @@ Create the needed directories
 
 ## Run an example application
 
-We run a simple machine file sharing application (logistic regression), under the near zero trust mode.
+We run a simple file sharing application, under the near zero trust mode.
 
 Set the trust mode setting to "no_trust" in data_station_config.yaml
 
