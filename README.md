@@ -1,8 +1,4 @@
-# V1test
+# Data Station
 
-Here are the files to look at:
-
-main.py: all the APIs exposed to data owners and data users (wrappers are written in here) <br />
-policy_broker.py: the PolicyBroker <br />
-gatekeeper.py: the Gatekeeper <br />
-titanicML/titanic.py: what the code for the ML application looks like <br />
+This project contains the source code for the Data Station, which is a computational and data management infrastructure 
+designed to enable the formation of data-sharing consortia. (an intermediary **data escrow**)
