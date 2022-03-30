@@ -7,8 +7,8 @@ import numpy as np
 import pickle
 
 from common import utils
-from models.user import *
-from models.policy import *
+from models.user import User
+from models.policy import Policy
 from crypto import cryptoutils as cu
 
 if __name__ == '__main__':

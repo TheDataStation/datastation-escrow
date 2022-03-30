@@ -1,9 +1,9 @@
-from common.policy_info import *
+# from common.policy_info import *
 from dbservice import database_api
 from common import common_procedure
-from models.policy import *
-from models.user import *
-from models.response import *
+from models.policy import Policy
+from models.user import User
+from models.response import Response
 
 
 # Helper function to get the odata_type used in policy_with_dependency

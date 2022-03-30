@@ -1,2 +1,2 @@
-connector_name: "income_full_trust"
-connector_module_path: "app_connectors/income_full_trust.py"
+connector_name: "file_sharing"
+connector_module_path: "app_connectors/file_sharing10.py"

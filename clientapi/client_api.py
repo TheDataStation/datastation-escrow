@@ -4,12 +4,11 @@ import time
 
 from dbservice import database_api
 
-from models.api import *
-from models.api_dependency import *
-from models.user import *
-from models.dataset import *
-from models.response import *
-from models.policy import *
+from models.api import API
+from models.user import User
+from models.dataset import Dataset
+from models.response import Response
+from models.policy import Policy
 
 from userregister import user_register
 from dataregister import data_register

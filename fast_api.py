@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 
 from clientapi.client_api import ClientAPI
-from models.api import *
-from models.api_dependency import *
-from models.response import *
-from models.policy import *
-from models.user import *
-from models.dataset import *
+# from models.api import *
+# from models.api_dependency import *
+# from models.response import *
+from models.policy import Policy
+from models.user import User
+# from models.dataset import Dataset
 from fastapi import UploadFile, File, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError

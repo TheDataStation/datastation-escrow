@@ -2,9 +2,9 @@ import pathlib
 
 from dbservice import database_api
 from common import common_procedure
-from models.dataset import *
-from models.user import *
-from models.response import *
+from models.dataset import Dataset
+from models.user import User
+from models.response import Response, UploadDataResponse, RemoveDataResponse
 
 
 def upload_data(data_id,

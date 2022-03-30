@@ -1,7 +1,7 @@
 from dbservice import database_api
-from models.dataset import *
-from models.user import *
-from models.response import *
+from models.dataset import Dataset
+from models.user import User
+from models.response import Response
 
 
 def verify_dataset_owner(dataset_id, cur_username):
