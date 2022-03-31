@@ -39,9 +39,10 @@ In step 0, Data Station is set up. In step 1, two users are created, one being t
 and one being the data user. In step 2, data provider logs in and uploads three datasets 
 to the Data Station. In step 3, data provider shares the first and the third dataset 
 with the data user by writing policies. (but not the second). In step 4, data user logs in 
-and checks all the available APIs. In the last step, data user calls the API "line_count", 
+and checks all the available APIs. In step 5, data user calls the API "line_count", 
 which prints the number of lines in all the files that he has access to. In this case,
-it is the two files that the data provider shared with him.
+it is the two files that the data provider shared with him. In the last step, the content
+of the auditable log is printed.
 
 ## Test a new application
 

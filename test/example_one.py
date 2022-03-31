@@ -74,6 +74,9 @@ if __name__ == '__main__':
     # Step 5: david calls the API line_count
     client_api.call_api("line_count", cur_token, "pessimistic")
 
+    # Step 6: checking the auditable log
+    client_api.read_full_log()
+
     # Last step: shut down the Data Station
     client_api.shut_down(ds_config)
 
