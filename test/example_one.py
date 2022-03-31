@@ -17,7 +17,7 @@ if __name__ == '__main__':
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
-    # System initialization
+    # Step 0: System initialization
 
     ds_config = utils.parse_config("data_station_config.yaml")
     app_config = utils.parse_config("app_connector_config.yaml")
