@@ -18,7 +18,7 @@ policies.pkl
 symmetric_keys.pkl
 test_process.py
 test_main.py
-#integration_tests/test_file_full_trust
+integration_tests/test_file_full_trust
 integration_tests/test_file_no_trust
 integration_tests/test_file_sharing
 integration_tests/ml_file_full_trust
