@@ -37,7 +37,7 @@ if __name__ == '__main__':
         for num_functions in num_functions_list:
 
             with open("app_connector_config.yaml", 'w') as f:
-                connector_module_path = "app_connectors/file_sharing{}.py".format(num_functions)
+                connector_module_path = "examples/file_sharing{}.py".format(num_functions)
                 f.write("connector_name: \"file_sharing\"\nconnector_module_path: \"{}\"".format(connector_module_path))
                 f.flush()
                 os.fsync(f.fileno())
