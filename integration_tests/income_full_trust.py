@@ -63,7 +63,7 @@ if __name__ == '__main__':
         # We have two types of data: X and y
         train_type = ["X", "y"]
         for cur_type in train_type:
-            cur_train = "test/ml_file_full_trust/training_income/train" + str(cur_num) + "_" + cur_type + ".npy"
+            cur_train = "integration_tests/ml_file_full_trust/training_income/train" + str(cur_num) + "_" + cur_type + ".npy"
             cur_file = open(cur_train, "rb")
             cur_file_bytes = cur_file.read()
             cur_optimistic_flag = False
@@ -89,8 +89,8 @@ if __name__ == '__main__':
     # print(res_model.coef_, res_model.intercept_)
 
     # After we get the model back, we test its accuracy
-    x_test = np.load("test/ml_file_full_trust/testing_income/test_X.npy")
-    y_test = np.load("test/ml_file_full_trust/testing_income/test_y.npy")
+    x_test = np.load("integration_tests/ml_file_full_trust/testing_income/test_X.npy")
+    y_test = np.load("integration_tests/ml_file_full_trust/testing_income/test_y.npy")
     accuracy = res_model.score(x_test, y_test)
     print("Model accuracy is "+str(accuracy))
 

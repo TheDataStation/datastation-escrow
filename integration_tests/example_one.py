@@ -47,7 +47,7 @@ if __name__ == '__main__':
     cur_token = client_api.login_user("jerry", "string")["access_token"]
     for cur_num in range(3):
         cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "test/test_file_full_trust/train-" + str(cur_file_index) + ".csv"
+        cur_full_name = "integration_tests/test_file_full_trust/train-" + str(cur_file_index) + ".csv"
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic_flag = False

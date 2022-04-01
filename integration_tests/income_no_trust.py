@@ -1,11 +1,10 @@
 import pathlib
-
+import sys
 import main
 import os
 import shutil
+import numpy as np
 import pickle
-import torch
-from torch.utils.data import DataLoader
 
 from common import utils
 from models.user import User
@@ -62,13 +61,11 @@ if __name__ == '__main__':
                                cipher_sym_key_list[cur_num],
                                public_key_list[cur_num], )
 
-    # print(client_api.key_manager.agents_symmetric_key)
-
     # Adding datasets and policies
 
-    # First clear ml_file_no_trust/training
+    # First clear ml_file_no_trust/training_income
 
-    no_trust_folder = 'test/ml_file_no_trust/training_cifar'
+    no_trust_folder = 'integration_tests/ml_file_no_trust/training_income'
     for filename in os.listdir(no_trust_folder):
         file_path = os.path.join(no_trust_folder, filename)
         if os.path.isfile(file_path) or os.path.islink(file_path):
@@ -89,54 +86,63 @@ if __name__ == '__main__':
     # Now we create the encrypted files
 
     for cur_num in range(num_users):
-        cur_t_path = "test/ml_file_full_trust/training_cifar/train" + str(cur_num) + ".pt"
-        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
-        # Load torch object
-        cur_torch = torch.load(cur_t_path)
-        # print(type(cur_torch))
-        # torch object to pkl bytes
-        pkl_t = pickle.dumps(cur_torch)
-        # pkl bytes encrypted
-        ciphertext_bytes = cu.encrypt_data_with_symmetric_key(pkl_t, cur_user_sym_key)
-        cur_cipher_name = "test/ml_file_no_trust/training_cifar/train" + str(cur_num) + ".pkl"
-        cur_cipher_file = open(cur_cipher_name, "wb")
-        cur_cipher_file.write(ciphertext_bytes)
-        cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + ".pt"
-        cur_cipher_file.close()
-
-    # Now we create the encrypted files
+        # We have two types of data: X and y
+        train_type = ["X", "y"]
+        for cur_type in train_type:
+            cur_train = "integration_tests/ml_file_full_trust/training_income/train" + str(cur_num) \
+                        + "_" + cur_type + ".npy "
+            cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
+            # Load np object
+            cur_np_obj = np.load(cur_train)
+            # np object to pkl bytes
+            cur_pkl_obj = pickle.dumps(cur_np_obj)
+            # pkl bytes encrypted
+            ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
+            cur_cipher_name = "integration_tests/ml_file_no_trust/training_income/train" \
+                              + str(cur_num) + "_" + cur_type + ".pkl"
+            cur_cipher_file = open(cur_cipher_name, "wb")
+            cur_cipher_file.write(ciphertext_bytes)
+            cur_cipher_file.close()
 
     # For each user, we upload his partition of the data (2 data elements, both X and y)
+    data_id_counter = 1
     for cur_num in range(num_users):
         # Log in the current user and get a token
         cur_uname = "user" + str(cur_num)
         cur_token = client_api.login_user(cur_uname, "string")["access_token"]
 
-        # Upload his partition X of the data
-        cur_train_t = "test/ml_file_no_trust/training_cifar/train" + str(cur_num) + ".pkl"
-        cur_file_t = open(cur_train_t, "rb")
-        cur_file_bytes = cur_file_t.read()
-        cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + ".pkl"
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
-                                            "file",
-                                            cur_optimistic_flag,
-                                            cur_token, )
-        cur_file_t.close()
+        # We have two types of data: X and y
+        train_type = ["X", "y"]
+        for cur_type in train_type:
+            cur_train = "integration_tests/ml_file_no_trust/training_income/train" \
+                        + str(cur_num) + "_" + cur_type + ".pkl"
+            cur_file = open(cur_train, "rb")
+            cur_file_bytes = cur_file.read()
+            cur_optimistic_flag = False
+            name_to_upload = "train" + str(cur_num) + "_" + cur_type + ".pkl"
+            cur_res = client_api.upload_dataset(name_to_upload,
+                                                cur_file_bytes,
+                                                "file",
+                                                cur_optimistic_flag,
+                                                cur_token, )
+            cur_file.close()
+            # Upload the policies
+            client_api.upload_policy(Policy(user_id=1, api="train_income_model", data_id=data_id_counter), cur_token)
+            data_id_counter += 1
 
-        # Add a policy saying user with id==1 can call train_cifar_model on the datasets
-        client_api.upload_policy(Policy(user_id=1, api="train_cifar_model", data_id=cur_num+1), cur_token)
+    # In here, DB construction is done. We just need to call train_income_model
 
     # Use token for user0
     cur_token = client_api.login_user("user0", "string")["access_token"]
+    res_model = client_api.call_api("train_income_model", cur_token, "optimistic")
+    # print(res_model)
+    # print("Model returned is: ")
+    # print(res_model.coef_, res_model.intercept_)
 
-    # Call the NN model
-    test_data = torch.load('test/ml_file_full_trust/testing_cifar/test.pt')
-    testloader = DataLoader(test_data, batch_size=32)
-
-    accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", 5, testloader)
-    print("Model accuracy is: "+str(accuracy))
+    # After we get the model back, we test its accuracy
+    x_test = np.load("integration_tests/ml_file_full_trust/testing_income/test_X.npy")
+    y_test = np.load("integration_tests/ml_file_full_trust/testing_income/test_y.npy")
+    accuracy = res_model.score(x_test, y_test)
+    print("Model accuracy is " + str(accuracy))
 
     client_api.shut_down(ds_config)

@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 assert len(list_of_apis) == num_functions
 
                 # First clear test_file_no_trust
-                test_files_dir = "test/test_file_sharing/"
+                test_files_dir = "integration_tests/test_file_sharing/"
                 clear_dir(test_files_dir)
 
                 # generate file content of size 10K

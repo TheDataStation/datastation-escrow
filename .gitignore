@@ -18,13 +18,13 @@ policies.pkl
 symmetric_keys.pkl
 test_process.py
 test_main.py
-test/test_file_full_trust
-test/test_file_no_trust
-test/test_file_sharing
-test/ml_file_full_trust
-test/ml_file_no_trust
+integration_tests/test_file_full_trust
+integration_tests/test_file_no_trust
+integration_tests/test_file_sharing
+integration_tests/ml_file_full_trust
+integration_tests/ml_file_no_trust
+integration_tests/file_sharing_plots
 test.txt
-test/file_sharing_plots
 zhiru_chameleon_key.pem
 .DS_Store
 
