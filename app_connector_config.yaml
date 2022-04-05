@@ -1,2 +1,2 @@
-connector_name: "cifar_no_trust"
-connector_module_path: "examples/cifar_no_trust.py"
+connector_name: "example_one"
+connector_module_path: "examples/example_one.py"

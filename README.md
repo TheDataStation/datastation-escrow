@@ -29,7 +29,7 @@ Set the content of app_connector_config.yaml as follows:
 
 Execute the script that contains the example application.
 
-    python -m test.example_one
+    python -m integration_tests.example_one
 
 ## Explanation of example one
 
