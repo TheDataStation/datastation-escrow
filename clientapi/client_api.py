@@ -196,23 +196,23 @@ class ClientAPI:
         access_type = storage_manager_response.access_type
 
         if self.trust_mode == "full_trust":
-            data_register_response = data_register.upload_data(data_id,
-                                                               data_name,
-                                                               cur_username,
-                                                               data_type,
-                                                               access_type,
-                                                               optimistic)
+            data_register_response = data_register.register_data_in_DB(data_id,
+                                                                       data_name,
+                                                                       cur_username,
+                                                                       data_type,
+                                                                       access_type,
+                                                                       optimistic)
         else:
-            data_register_response = data_register.upload_data(data_id,
-                                                               data_name,
-                                                               cur_username,
-                                                               data_type,
-                                                               access_type,
-                                                               optimistic,
-                                                               self.write_ahead_log,
-                                                               self.key_manager,
-                                                               self.check_point,
-                                                               original_data_size)
+            data_register_response = data_register.register_data_in_DB(data_id,
+                                                                       data_name,
+                                                                       cur_username,
+                                                                       data_type,
+                                                                       access_type,
+                                                                       optimistic,
+                                                                       self.write_ahead_log,
+                                                                       self.key_manager,
+                                                                       self.check_point,
+                                                                       original_data_size)
         if data_register_response.status != 0:
             return Response(status=data_register_response.status,
                             message=data_register_response.message)

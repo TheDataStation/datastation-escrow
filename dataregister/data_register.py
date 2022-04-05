@@ -7,16 +7,16 @@ from models.user import User
 from models.response import Response, UploadDataResponse, RemoveDataResponse
 
 
-def upload_data(data_id,
-                data_name,
-                cur_username,
-                data_type,
-                access_type,
-                optimistic,
-                write_ahead_log=None,
-                key_manager=None,
-                check_point=None,
-                original_data_size=None):
+def register_data_in_DB(data_id,
+                        data_name,
+                        cur_username,
+                        data_type,
+                        access_type,
+                        optimistic,
+                        write_ahead_log=None,
+                        key_manager=None,
+                        check_point=None,
+                        original_data_size=None):
 
     # TODO: check if there is an existing dataset
 
