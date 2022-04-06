@@ -9,10 +9,10 @@ from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_registered_dependencies, )
 from dbservice import database_api
 from policybroker import policy_broker
-from common.pydantic_models.api import *
-from common.pydantic_models.api_dependency import *
-from common.pydantic_models.user import *
-from common.pydantic_models.response import *
+from common.pydantic_models.api import API
+from common.pydantic_models.api_dependency import APIDependency
+from common.pydantic_models.user import User
+from common.pydantic_models.response import Response
 from common import utils
 from crypto import key_manager
 
