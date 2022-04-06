@@ -4,11 +4,11 @@ import time
 
 from dbservice import database_api
 
-from models.api import API
-from models.user import User
-from models.dataset import Dataset
-from models.response import Response
-from models.policy import Policy
+from common.pydantic_models.api import API
+from common.pydantic_models.user import User
+from common.pydantic_models.dataset import Dataset
+from common.pydantic_models.response import Response
+from common.pydantic_models.policy import Policy
 
 from userregister import user_register
 from dataregister import data_register

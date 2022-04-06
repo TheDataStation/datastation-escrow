@@ -1,6 +1,5 @@
 # This script loads a complete state of the data station
 import string
-import sys
 
 import numpy as np
 
@@ -8,13 +7,11 @@ import main
 import os
 import shutil
 import time
-import math
 import random
 
 from common import utils
-from models.user import User
-from models.policy import Policy
-from common.utils import parse_config
+from common.pydantic_models.user import User
+from common.pydantic_models.policy import Policy
 from crypto import cryptoutils as cu
 
 

@@ -7,12 +7,10 @@ import shutil
 import time
 import math
 import random
-from csv import writer
 
-from Interceptor import interceptor
 from common import utils
-from models.user import User
-from models.policy import Policy
+from common.pydantic_models.user import User
+from common.pydantic_models.policy import Policy
 from common.utils import parse_config
 
 if __name__ == '__main__':

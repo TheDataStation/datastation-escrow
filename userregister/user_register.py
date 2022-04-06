@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi import HTTPException, status
 from dbservice import database_api
-from models.user import User
-from models.response import Response, UploadUserResponse, TokenResponse
+from common.pydantic_models.user import User
+from common.pydantic_models.response import Response, UploadUserResponse, TokenResponse
 
 # Adding global variables to support access token generation (for authentication)
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"

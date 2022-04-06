@@ -8,8 +8,8 @@ import math
 import random
 
 from common import utils
-from models.user import User
-from models.policy import Policy
+from common.pydantic_models.user import User
+from common.pydantic_models.policy import Policy
 from common.utils import parse_config
 from crypto import cryptoutils as cu
 

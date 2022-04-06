@@ -1,16 +1,14 @@
 from fastapi import FastAPI
 
 from clientapi.client_api import ClientAPI
-# from models.api import *
-# from models.api_dependency import *
-# from models.response import *
-from models.policy import Policy
-from models.user import User
-# from models.dataset import Dataset
+# from pydantic_models.api import *
+# from pydantic_models.api_dependency import *
+# from pydantic_models.response import *
+from common.pydantic_models.policy import Policy
+from common.pydantic_models.user import User
+# from pydantic_models.dataset import Dataset
 from fastapi import UploadFile, File, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import jwt, JWTError
-import json
 
 import main
 

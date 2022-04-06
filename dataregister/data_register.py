@@ -2,9 +2,9 @@ import pathlib
 
 from dbservice import database_api
 from common import common_procedure
-from models.dataset import Dataset
-from models.user import User
-from models.response import Response, UploadDataResponse, RemoveDataResponse
+from common.pydantic_models.dataset import Dataset
+from common.pydantic_models.user import User
+from common.pydantic_models.response import Response, UploadDataResponse, RemoveDataResponse
 
 
 def register_data_in_DB(data_id,

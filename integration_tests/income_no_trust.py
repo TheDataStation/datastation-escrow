@@ -1,5 +1,4 @@
 import pathlib
-import sys
 import main
 import os
 import shutil
@@ -7,8 +6,8 @@ import numpy as np
 import pickle
 
 from common import utils
-from models.user import User
-from models.policy import Policy
+from common.pydantic_models.user import User
+from common.pydantic_models.policy import Policy
 from crypto import cryptoutils as cu
 
 if __name__ == '__main__':

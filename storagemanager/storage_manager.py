@@ -1,6 +1,6 @@
 # from os.path import isfile
 from os import path, remove, makedirs, removedirs
-from models.response import Response, StoreDataResponse, RetrieveDataResponse
+from common.pydantic_models.response import Response, StoreDataResponse, RetrieveDataResponse
 
 # TODO: Right now, we give SM the responsibility to determine how it wants to store different types of data
 class StorageManager:
