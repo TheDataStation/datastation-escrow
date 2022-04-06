@@ -1,4 +1,3 @@
-# from common.policy_info import *
 from dbservice import database_api
 from common import common_procedure
 from common.pydantic_models.policy import Policy
