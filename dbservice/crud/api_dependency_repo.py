@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..models.api_dependency import APIDependency
-from ..schemas.api_dependency import APIDependencyCreate
+from common.pydantic_models.api_dependency import APIDependencyCreate
 
 def create_api_dependency(db: Session, api_depend: APIDependencyCreate):
     db_api_depend = APIDependency(from_api=api_depend.from_api,

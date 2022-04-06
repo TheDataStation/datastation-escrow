@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
 
-
 class Dataset(BaseModel):
     id: Optional[int]
     name: Optional[str]
@@ -11,3 +10,13 @@ class Dataset(BaseModel):
     owner_id: Optional[int]
     optimistic: Optional[bool]
     original_data_size: Optional[int]
+
+class DatasetCreate(BaseModel):
+    id: int
+    owner_id: int  # pk user.id
+    name: str
+    description: str
+    type: str
+    access_type: str
+    optimistic: bool
+    original_data_size: int

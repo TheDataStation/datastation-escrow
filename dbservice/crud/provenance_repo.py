@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ..models.provenance import Provenance
 
-from ..schemas.provenance import ProvenanceCreate
+from common.pydantic_models.provenance import ProvenanceCreate
 
 
 def create_provenance(db: Session, provenance: ProvenanceCreate):

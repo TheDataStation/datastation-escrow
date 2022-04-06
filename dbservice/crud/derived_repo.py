@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..models.derived import Derived
-from ..schemas.derived import DerivedCreate
+# from ..schemas.derived import DerivedCreate
+from common.pydantic_models.derived import DerivedCreate
 
 
 def create_derived(db: Session, derived: DerivedCreate):

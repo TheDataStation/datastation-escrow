@@ -4,8 +4,7 @@ from sqlalchemy import func
 
 from ..models.dataset import Dataset
 from ..models.user import User
-
-from ..schemas.dataset import DatasetCreate
+from common.pydantic_models.dataset import DatasetCreate
 
 
 def get_all_datasets(db: Session):

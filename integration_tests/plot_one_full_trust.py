@@ -158,7 +158,7 @@ if __name__ == '__main__':
     num_calls = test_config["num_calls"]
     for _ in range(num_calls):
         cur_run_overhead = client_api.call_api("f1", cur_token, "optimistic")
-        print(cur_run_overhead)
+        # print(cur_run_overhead)
         # with open(numbers_file_name, 'a') as f:
         #     writer_object = writer(f)
         #     writer_object.writerow(cur_run_overhead)
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     print("--- %s seconds ---" % (cur_time - prev_time))
     prev_time = cur_time
 
-    # # take a look at the log
-    # client_api.read_full_log()
+    # take a look at the log
+    client_api.read_full_log()
 
     client_api.shut_down(ds_config)

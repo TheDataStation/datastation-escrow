@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..models.policy import Policy
-from ..schemas.policy import PolicyCreate
+from common.pydantic_models.policy import PolicyCreate
 
 def create_policy(db: Session, policy: PolicyCreate):
     db_policy = Policy(user_id=policy.user_id,
