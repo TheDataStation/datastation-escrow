@@ -13,7 +13,7 @@ import multiprocessing
 import pathlib
 import time
 
-def initialize_system(ds_config, app_config):
+def initialize_system(ds_config, app_config, need_to_recover=False):
 
     # print(ds_config)
     # print(app_config)
@@ -88,6 +88,12 @@ def initialize_system(ds_config, app_config):
                            key_manager,
                            trust_mode,
                            interceptor_process, accessible_data_dict, data_accessed_dict)
+
+    # Lastly, if we are in recover mode, we need to call
+    if need_to_recover:
+        client_api.load_symmetric_keys()
+        client_api.recover_db_from_snapshots()
+        client_api.recover_db_from_wal()
 
     # return an instance of the client API
     return client_api
