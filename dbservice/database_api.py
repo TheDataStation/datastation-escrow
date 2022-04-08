@@ -8,6 +8,7 @@ from sqlalchemy.pool import NullPool
 from .crud import user_repo, dataset_repo, api_repo, api_dependency_repo, policy_repo, derived_repo, provenance_repo
 from .responses import response
 from contextlib import contextmanager
+from dbservice.checkpoint.check_point import check_point
 
 # global engine
 
@@ -249,3 +250,15 @@ def create_provenance(request):
             return response.ProvenanceResponse(status=1, msg="success", data=[provenance])
         else:
             return response.ProvenanceResponse(status=-1, msg="fail", data=[])
+
+def set_checkpoint_table_paths(table_paths):
+    check_point.set_table_paths(table_paths)
+
+def check_point_all_tables(key_manager):
+    check_point.check_point_all_tables(key_manager)
+
+def recover_db_from_snapshots(key_manager):
+    check_point.recover_db_from_snapshots(key_manager)
+
+def clear_checkpoint_table_paths():
+    check_point.clear()

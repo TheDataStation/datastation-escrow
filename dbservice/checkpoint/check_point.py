@@ -9,7 +9,10 @@ TableContent = namedtuple("TableContent",
 
 class CheckPoint:
 
-    def __init__(self, table_paths):
+    def __init__(self):
+        self.table_paths = []
+
+    def set_table_paths(self, table_paths):
         self.table_paths = table_paths
 
     def check_point_all_tables(self, key_manager):
@@ -100,3 +103,9 @@ class CheckPoint:
         # print(policy_content_list)
 
         database_api.bulk_upload_policies(policy_content_list)
+
+    def clear(self):
+        self.table_paths = []
+
+
+check_point = CheckPoint()

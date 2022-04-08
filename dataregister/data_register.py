@@ -15,7 +15,6 @@ def register_data_in_DB(data_id,
                         optimistic,
                         write_ahead_log=None,
                         key_manager=None,
-                        check_point=None,
                         original_data_size=None):
 
     # TODO: check if there is an existing dataset
@@ -46,7 +45,7 @@ def register_data_in_DB(data_id,
                     + "',optimistic=" + str(optimistic) \
                     + "))"
         # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, check_point, )
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     new_dataset = Dataset(id=data_id,
                           name=data_name,
@@ -64,8 +63,7 @@ def register_data_in_DB(data_id,
 def remove_data(data_name,
                 cur_username,
                 write_ahead_log=None,
-                key_manager=None,
-                check_point=None,):
+                key_manager=None,):
 
     # Step 1: check if there is an existing dataset
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
@@ -97,7 +95,7 @@ def remove_data(data_name,
         wal_entry = "database_api.remove_dataset_by_name(Dataset(name='" + data_name \
                     + "'))"
         # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, check_point, )
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     dataset_to_remove = Dataset(name=data_name,)
     database_service_response = database_api.remove_dataset_by_name(dataset_to_remove)

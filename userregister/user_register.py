@@ -27,8 +27,7 @@ def create_user(user_id,
                 user_name,
                 password,
                 write_ahead_log=None,
-                key_manager=None,
-                check_point=None,):
+                key_manager=None,):
     # print(user_id)
     # check if there is an existing user
     existed_user = database_api.get_user_by_user_name(User(user_name=user_name,))
@@ -45,7 +44,7 @@ def create_user(user_id,
                     + "',password='" + hashed.decode() + \
                     "'))"
         # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(user_id, wal_entry, key_manager, check_point, )
+        write_ahead_log.log(user_id, wal_entry, key_manager, )
 
     new_user = User(id=user_id,
                     user_name=user_name,

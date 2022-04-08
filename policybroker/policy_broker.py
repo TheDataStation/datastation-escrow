@@ -22,8 +22,7 @@ def get_all_ancestors(api, d_graph, cur_ancestors):
 def upload_policy(policy: Policy,
                   cur_username,
                   write_ahead_log=None,
-                  key_manager=None,
-                  check_point=None,):
+                  key_manager=None,):
     # First check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
     if verify_owner_response.status == 1:
@@ -43,7 +42,7 @@ def upload_policy(policy: Policy,
                     + "',data_id=" + str(policy.data_id) \
                     + "))"
         # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, check_point, )
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     response = database_api.create_policy(policy)
     return Response(status=response.status, message=response.msg)
@@ -53,8 +52,7 @@ def upload_policy(policy: Policy,
 def bulk_upload_policies(policies,
                          cur_username,
                          write_ahead_log=None,
-                         key_manager=None,
-                         check_point=None, ):
+                         key_manager=None,):
     # First check if the dataset owner(s) is the current user
     for policy in policies:
         verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
@@ -77,7 +75,7 @@ def bulk_upload_policies(policies,
                         + "',data_id=" + str(policy.data_id) \
                         + "))"
             # If write_ahead_log is not None, key_manager also will not be None
-            write_ahead_log.log(cur_user_id, wal_entry, key_manager, check_point, )
+            write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     response = database_api.bulk_upload_policies(policies)
     return response
@@ -87,8 +85,7 @@ def bulk_upload_policies(policies,
 def remove_policy(policy: Policy,
                   cur_username,
                   write_ahead_log=None,
-                  key_manager=None,
-                  check_point=None,):
+                  key_manager=None,):
     # First check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
     if verify_owner_response.status == 1:
@@ -108,7 +105,7 @@ def remove_policy(policy: Policy,
                     + "',data_id=" + str(policy.data_id) \
                     + "))"
         # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, check_point, )
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     response = database_api.remove_policy(policy)
     return Response(status=response.status, message=response.msg)

@@ -18,7 +18,7 @@ class WAL:
         self.check_point_freq = check_point_freq
         self.entry_counter = 0
 
-    def log(self, caller_id, entry, key_manager, check_point):
+    def log(self, caller_id, entry, key_manager):
 
         prev_time = time.time()
 
@@ -26,7 +26,7 @@ class WAL:
         # before we actually write the wal entry
         if self.entry_counter >= self.check_point_freq:
             # First create the table snapshots
-            check_point.check_point_all_tables(key_manager)
+            database_api.check_point_all_tables(key_manager)
             # Then erase the existing WAL
             if os.path.exists(self.wal_path):
                 os.remove(self.wal_path)

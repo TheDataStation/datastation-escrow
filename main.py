@@ -1,9 +1,9 @@
 import os
 import sys
+from dbservice.database_api import set_checkpoint_table_paths, recover_db_from_snapshots
 from storagemanager.storage_manager import StorageManager
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
-from checkpoint.check_point import CheckPoint
 from crypto.key_manager import KeyManager
 from gatekeeper import gatekeeper
 from clientapi.client_api import ClientAPI
@@ -36,10 +36,6 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
     wal_path = ds_config["wal_path"]
     check_point_freq = ds_config["check_point_freq"]
     write_ahead_log = WAL(wal_path, check_point_freq)
-
-    # set up an instance of the checkpoint component
-    table_paths = ds_config["table_paths"]
-    check_point = CheckPoint(table_paths)
 
     # set up an instance of the key manager
     key_manager = KeyManager()
@@ -80,11 +76,14 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
         print("something went wrong in gatekeeper setup")
         exit(1)
 
+    # set up the table_paths in dbservice.check_point
+    table_paths = ds_config["table_paths"]
+    set_checkpoint_table_paths(table_paths)
+
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,
                            data_station_log,
                            write_ahead_log,
-                           check_point,
                            key_manager,
                            trust_mode,
                            interceptor_process, accessible_data_dict, data_accessed_dict)
@@ -92,7 +91,8 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
     # Lastly, if we are in recover mode, we need to call
     if need_to_recover:
         client_api.load_symmetric_keys()
-        client_api.recover_db_from_snapshots()
+        # client_api.recover_db_from_snapshots()
+        recover_db_from_snapshots(client_api.key_manager)
         client_api.recover_db_from_wal()
 
     # return an instance of the client API
