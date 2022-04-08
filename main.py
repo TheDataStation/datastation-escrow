@@ -91,7 +91,6 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
     # Lastly, if we are in recover mode, we need to call
     if need_to_recover:
         client_api.load_symmetric_keys()
-        # client_api.recover_db_from_snapshots()
         recover_db_from_snapshots(client_api.key_manager)
         client_api.recover_db_from_wal()
 
