@@ -9,7 +9,6 @@ import math
 import random
 from csv import writer
 
-from Interceptor import interceptor
 from common import utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
@@ -19,9 +18,6 @@ if __name__ == '__main__':
 
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
-
-    # # Get start time of the script
-    # prev_time = time.time()
 
     # Read in the configuration file
     test_config = parse_config(sys.argv[1])
@@ -41,42 +37,22 @@ if __name__ == '__main__':
     if os.path.exists(log_path):
         os.remove(log_path)
 
-    # cur_time = time.time()
-    # print("System initialization done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
-
     # Adding new users
 
     client_api.create_user(User(user_name="jerry", password="string"))
     client_api.create_user(User(user_name="lucy", password="123456"))
     client_api.create_user(User(user_name="david", password="string"))
 
-    # cur_time = time.time()
-    # print("User addition done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
-
     # Log in a user to get a token
 
     cur_token = client_api.login_user("jerry", "string")["access_token"]
 
-    # cur_time = time.time()
-    # print("Log in done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
-
-    # # Look at all available APIs and APIDependencies
+    # Look at all available APIs and APIDependencies
 
     list_of_apis = client_api.get_all_apis(cur_token)
     list_of_api_dependencies = client_api.get_all_api_dependencies(cur_token)
     print(list_of_apis)
-    # print(list_of_api_dependencies)
-
-    # cur_time = time.time()
-    # print("Looking at dependency graph done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
+    print(list_of_api_dependencies)
 
     # Upload datasets
 
@@ -114,13 +90,6 @@ if __name__ == '__main__':
             list_of_data_ids.append(cur_res.data_id)
         cur_file.close()
 
-    # print(list_of_data_ids)
-
-    # cur_time = time.time()
-    # print("Uploading datasets done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
-    # prev_time = cur_time
-
     # Upload Policies
 
     data_with_policy_proportion = test_config["data_with_policy_proportion"]
@@ -134,18 +103,13 @@ if __name__ == '__main__':
     for api_picked in list_of_apis:
         for i in range(num_data_with_policy):
             if random.random() < policy_proportion:
-                # client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
                 policy_created += 1
                 cur_policy = Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i])
                 policy_array.append(cur_policy)
 
     client_api.bulk_upload_policies(policy_array, cur_token)
 
-    # cur_time = time.time()
-    # print("Uploading policies done")
-    # print("--- %s seconds ---" % (cur_time - prev_time))
     print("Number of policies created is: " + str(policy_created))
-    # prev_time = cur_time
 
     # call available APIs
 
@@ -168,7 +132,7 @@ if __name__ == '__main__':
     print("--- %s seconds ---" % (cur_time - prev_time))
     prev_time = cur_time
 
-    # take a look at the log
-    client_api.read_full_log()
+    # # take a look at the log
+    # client_api.read_full_log()
 
     client_api.shut_down(ds_config)

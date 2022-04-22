@@ -1,2 +1,2 @@
-connector_name: "example_registration"
-connector_module_path: "examples/example_registration.py"
+connector_name: "block5"
+connector_module_path: "examples/block5.py"
