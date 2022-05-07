@@ -9,7 +9,6 @@ import math
 import random
 from csv import writer
 
-from Interceptor import interceptor
 from common import utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
