@@ -19,6 +19,9 @@ if __name__ == '__main__':
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
+    if os.path.exists("owner_overhead.txt"):
+        os.remove("owner_overhead.txt")
+
     # Read in the configuration file
     test_config = parse_config(sys.argv[1])
 
@@ -37,14 +40,22 @@ if __name__ == '__main__':
     if os.path.exists(log_path):
         os.remove(log_path)
 
-    # Initialize an overhead list
-
-    overhead = []
-    prev_time = time.time()
-
     # We record the total number of DB operations performed
 
     total_db_ops = 0
+
+    # Before we get started, let's create synthetic file to be used for this experiment
+    data_size = test_config["num_kb_size"]
+    num_chars = data_size * 1024
+
+    with open('owner_overhead.txt', 'wb') as f:
+        for i in range(num_chars):
+            f.write(b'\x01')
+
+    # Start recording the overhead: first, initialize an overhead list
+
+    overhead = []
+    prev_time = time.time()
 
     # Adding new users
 
@@ -90,9 +101,7 @@ if __name__ == '__main__':
     list_of_data_ids = []
 
     for cur_num in range(num_files):
-        cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "integration_tests/test_file_full_trust/train-" + str(cur_file_index) + ".csv"
-        cur_file = open(cur_full_name, "rb")
+        cur_file = open("owner_overhead.txt", "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic_flag = False
         if random.random() < opt_data_proportion:
@@ -137,7 +146,7 @@ if __name__ == '__main__':
     prev_time = cur_time
 
     # Write overhead to csv file
-    db_res_name = "u" + str(num_users) + "d" + str(num_files) + "full"
+    db_res_name = "u" + str(num_users) + "d" + str(num_files) + "s" + str(data_size)
     db_call_res_file = "numbers/" + db_res_name + ".csv"
     if os.path.exists(db_call_res_file):
         os.remove(db_call_res_file)
@@ -148,3 +157,5 @@ if __name__ == '__main__':
     # Before shutdown, let's look at the total number of DB ops (insertions) that we did
     print("Total number of DB insertions is: "+str(total_db_ops))
     client_api.shut_down(ds_config)
+
+    os.remove("owner_overhead.txt")
