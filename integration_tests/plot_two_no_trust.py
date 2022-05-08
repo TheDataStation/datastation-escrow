@@ -202,7 +202,7 @@ if __name__ == '__main__':
     prev_time = cur_time
 
     # Write overhead to csv file
-    db_res_name = str(data_size) + "kb"
+    db_res_name = "no_" + str(data_size) + "kb"
     db_call_res_file = "numbers/" + db_res_name + ".csv"
     if os.path.exists(db_call_res_file):
         os.remove(db_call_res_file)
