@@ -9,7 +9,6 @@ import math
 import random
 from csv import writer
 
-from Interceptor import interceptor
 from common import utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
@@ -20,6 +19,12 @@ if __name__ == '__main__':
 
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
+
+    if os.path.exists("owner_overhead.txt"):
+        os.remove("owner_overhead.txt")
+
+    if os.path.exists("owner_overhead_encrypted.txt"):
+        os.remove("owner_overhead_encrypted.txt")
 
     # Read in the configuration file
     test_config = parse_config(sys.argv[1])
@@ -47,15 +52,19 @@ if __name__ == '__main__':
     # Save data station's public key
     ds_public_key = client_api.key_manager.ds_public_key
 
-    # Initialize an overhead list
-
-    overhead = []
-
     # We record the total number of DB operations performed
 
     total_db_ops = 0
 
-    # Adding new users
+    # Before we get started, let's create synthetic file to be used for this experiment
+    data_size = test_config["num_kb_size"]
+    num_chars = data_size * 1024
+
+    with open('owner_overhead.txt', 'wb') as f:
+        for i in range(num_chars):
+            f.write(b'\x01')
+
+    # Setting up the number of new users
 
     num_users = test_config["num_users"]
 
@@ -71,7 +80,9 @@ if __name__ == '__main__':
         cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
         public_key_list.append(cur_public_key)
 
-    # Start counting user addition time
+    # Start recording the overhead: first, initialize an overhead list
+
+    overhead = []
     prev_time = time.time()
 
     for cur_num in range(num_users):
@@ -93,6 +104,7 @@ if __name__ == '__main__':
     cur_time = time.time()
     cur_cost = cur_time - prev_time
     overhead.append(cur_cost)
+    prev_time = cur_time
 
     # Look at all available APIs and APIDependencies
 
@@ -102,34 +114,27 @@ if __name__ == '__main__':
 
     # Upload datasets
 
-    # First clear test_file_no_trust
+    num_files = test_config["num_files"]
 
-    no_trust_folder = 'integration_tests/test_file_no_trust'
-    if not os.path.exists(no_trust_folder):
-        os.mkdir(no_trust_folder)
+    # We first create the encrypted files
+    # Note: in here we mock the time to encrypt num_files # of files
+    # by encrypting owner_overhead.txt num_files # of times
 
-    for filename in os.listdir(no_trust_folder):
-        file_path = os.path.join(no_trust_folder, filename)
-        if os.path.isfile(file_path) or os.path.islink(file_path):
-            os.unlink(file_path)
-        elif os.path.isdir(file_path):
-            shutil.rmtree(file_path)
-
-    # Now we create the encrypted files
-
-    for cur_num in range(6):
-        cur_plain_name = "integration_tests/test_file_full_trust/train-" + str(cur_num + 1) + ".csv"
+    for cur_num in range(num_files):
         cur_user_sym_key = client_api.key_manager.agents_symmetric_key[1]
-        cur_plain_file = open(cur_plain_name, 'rb').read()
+        cur_plain_file = open("owner_overhead.txt", 'rb').read()
         ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(cur_plain_file)
-        cur_cipher_name = "integration_tests/test_file_no_trust/train-" + str(cur_num + 1) + ".csv"
-        cur_cipher_file = open(cur_cipher_name, "wb")
+        cur_cipher_file = open("owner_overhead_encrypted.txt", "wb")
         cur_cipher_file.write(ciphertext_bytes)
         cur_cipher_file.close()
 
-    # Proceeding to actually uploads the datasets
+    # Record file encryption time
+    cur_time = time.time()
+    cur_cost = cur_time - prev_time
+    overhead.append(cur_cost)
+    prev_time = cur_time
 
-    prev_time = time.time()
+    # Proceeding to actually uploads the datasets
 
     # First clear the storage place
 
@@ -143,14 +148,11 @@ if __name__ == '__main__':
 
     # Then set up the data elements we will upload
 
-    num_files = test_config["num_files"]
     opt_data_proportion = test_config["opt_data_proportion"]
     list_of_data_ids = []
 
     for cur_num in range(num_files):
-        cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "integration_tests/test_file_full_trust/train-" + str(cur_file_index) + ".csv"
-        cur_file = open(cur_full_name, "rb")
+        cur_file = open("owner_overhead_encrypted.txt", "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic_flag = False
         if random.random() < opt_data_proportion:
@@ -199,20 +201,18 @@ if __name__ == '__main__':
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    # # Write overhead to csv file
-    # db_res_name = "u" + str(num_users) + "d" + str(num_files) + "full"
-    # db_call_res_file = "numbers/" + db_res_name + ".csv"
-    # if os.path.exists(db_call_res_file):
-    #     os.remove(db_call_res_file)
-    # with open(db_call_res_file, 'a') as f:
-    #     writer_object = writer(f)
-    #     writer_object.writerow(overhead)
-
-    # # Taking a look at the WAL
-    # client_api.read_wal()
+    # Write overhead to csv file
+    db_res_name = str(data_size) + "kb"
+    db_call_res_file = "numbers/" + db_res_name + ".csv"
+    if os.path.exists(db_call_res_file):
+        os.remove(db_call_res_file)
+    with open(db_call_res_file, 'a') as f:
+        writer_object = writer(f)
+        writer_object.writerow(overhead)
 
     # Before shutdown, let's look at the total number of DB ops (insertions) that we did
-    # print("Total number of DB insertions is: "+str(total_db_ops))
+    print("Total number of DB insertions is: " + str(total_db_ops))
     client_api.shut_down(ds_config)
 
-    print(overhead)
+    os.remove("owner_overhead.txt")
+    os.remove("owner_overhead_encrypted.txt")
