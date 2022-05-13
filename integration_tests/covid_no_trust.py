@@ -6,6 +6,7 @@ import shutil
 import PIL.Image as Image
 import numpy as np
 import pickle
+import time
 
 from common import utils
 from common.pydantic_models.user import User
@@ -97,6 +98,8 @@ if __name__ == '__main__':
     # in the beginning, we log in the first user
     cur_token = client_api.login_user(cur_username, "string")["access_token"]
 
+    cur_time = time.time()
+
     for cur_image_path in origin_image_list:
 
         # Check if currently logged-in user has reached his file upload limit.
@@ -137,6 +140,8 @@ if __name__ == '__main__':
 
         # Add a policy saying user with id==1 can call train_covid_model on the uploaded dataset
         client_api.upload_policy(Policy(user_id=1, api="train_covid_model", data_id=cur_upload_res.data_id), cur_token)
+
+    print(time.time()-cur_time)
 
     # We proceed to actually calling the model training API
 
