@@ -1,7 +1,10 @@
 import pathlib
+import glob
 import main
 import os
 import shutil
+import PIL.Image as Image
+import numpy as np
 import pickle
 
 from common import utils
@@ -79,6 +82,35 @@ if __name__ == '__main__':
             os.unlink(file_path)
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
+
+    # Now we create the encrypted files. We keep track of which users upload which files using
+    # a user counter.
+
+    cur_user_index = 1
+    cur_user_file_ctr = 0
+    origin_image_list = glob.glob("integration_tests/ml_file_full_trust/training_covid/*")
+    num_files = len(origin_image_list)
+    # Keeping track of how many files we want each user to upload
+    user_file_limit = int(num_files/num_users)+1
+
+    # TODO: once cur_user_file_ctr == user_file_limit, we log in to a different user and let them upload.
+    for cur_image_path in origin_image_list:
+        cur_image_name = cur_image_path.split("/")[-1]
+        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_user_index]
+        # Convert image to RGB, and resize it
+        cur_image = Image.open(cur_image_path).convert('RGB').resize((200, 200))
+        # Store image as np array
+        img_data = np.array(cur_image)
+        # np object to pkl bytes
+        cur_pkl_obj = pickle.dumps(img_data)
+        # pkl bytes encrypted
+        ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
+        # write encrypted bytes to file
+        cur_cipher_name = "integration_tests/ml_file_no_trust/training_covid/" \
+                          + cur_image_name + ".pkl"
+        cur_cipher_file = open(cur_cipher_name, "wb")
+        cur_cipher_file.write(ciphertext_bytes)
+        cur_cipher_file.close()
 
     # Shutting down
 

@@ -97,6 +97,7 @@ if __name__ == '__main__':
             cur_pkl_obj = pickle.dumps(cur_np_obj)
             # pkl bytes encrypted
             ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
+            # write encrypted bytes to file
             cur_cipher_name = "integration_tests/ml_file_no_trust/training_income/train" \
                               + str(cur_num) + "_" + cur_type + ".pkl"
             cur_cipher_file = open(cur_cipher_name, "wb")

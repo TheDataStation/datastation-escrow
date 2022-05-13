@@ -8,8 +8,8 @@ fastapi>=0.71.0
 h11>=0.12.0
 idna>=3.3
 joblib>=1.1.0
-numpy
-pandas
+numpy~=1.23.0.dev0+369.gf4a3e0787
+pandas~=1.3.5
 protobuf>=3.19.1
 pyasn1>=0.4.8
 pycparser>=2.21
@@ -20,7 +20,7 @@ python-multipart>=0.0.5
 pytz>=2021.3
 PyYAML>=6.0
 rsa>=4.8
-scikit-learn
+scikit-learn~=1.1.dev0
 scipy
 six>=1.16.0
 sniffio>=1.2.0
@@ -30,5 +30,7 @@ threadpoolctl>=3.0.0
 typing-extensions>=4.0.1
 uvicorn>=0.16.0
 fuse-python
-cryptography
-matplotlib
+cryptography~=36.0.1
+matplotlib~=3.5.1
+torch~=1.10.2
+Pillow~=9.0.1
