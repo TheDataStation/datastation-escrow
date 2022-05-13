@@ -37,10 +37,30 @@ if __name__ == '__main__':
     # Save data station's public key
     ds_public_key = client_api.key_manager.ds_public_key
 
+    # Adding new users
+
+    # In the proto version of the code, we upload 4 users, each holds on image
+    num_users = 4
+
+    # We generate keys outside the loop because we don't want to count its time
+
+    cipher_sym_key_list = []
+    public_key_list = []
+
+    for cur_num in range(num_users):
+        sym_key = cu.generate_symmetric_key()
+        cipher_sym_key = cu.encrypt_data_with_public_key(sym_key, ds_public_key)
+        cipher_sym_key_list.append(cipher_sym_key)
+        cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
+        public_key_list.append(cur_public_key)
+        cur_uname = "user" + str(cur_num)
+        client_api.create_user(User(user_name=cur_uname, password="string"),
+                               cipher_sym_key_list[cur_num],
+                               public_key_list[cur_num], )
+
+    # print(client_api.key_manager.agents_symmetric_key)
+
     # Shutting down
 
     client_api.shut_down(ds_config)
-
-
-
 
