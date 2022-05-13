@@ -283,7 +283,7 @@ def call_api(api,
     cur_time = time.time()
     cur_cost = cur_time - prev_time
     overhead.append(cur_cost)
-    print(overhead)
+    # print(overhead)
     return response
 
 def record_data_ids_accessed(data_path, user_id, api_name):

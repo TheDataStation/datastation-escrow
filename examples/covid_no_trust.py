@@ -9,4 +9,4 @@ from common import utils
 
 @register()
 def train_covid_model():
-    pass
+    print("starting covid model")

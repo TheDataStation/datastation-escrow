@@ -86,6 +86,7 @@ if __name__ == '__main__':
     # Now we create the encrypted files. We keep track of which users upload which files using
     # a user counter.
 
+    cur_username = "user0"
     cur_user_index = 1
     cur_user_file_ctr = 0
     origin_image_list = glob.glob("integration_tests/ml_file_full_trust/training_covid/*")
@@ -94,15 +95,19 @@ if __name__ == '__main__':
     user_file_limit = int(num_files/num_users)+1
 
     # in the beginning, we log in the first user
-    cur_token = client_api.login_user("user0", "string")["access_token"]
+    cur_token = client_api.login_user(cur_username, "string")["access_token"]
 
-    # TODO: once cur_user_file_ctr == user_file_limit, we log in to a different user and let them upload.
     for cur_image_path in origin_image_list:
+
+        # Check if currently logged-in user has reached his file upload limit.
+        # If yes, we log in a new user.
         if cur_user_file_ctr >= user_file_limit:
-            new_username = "user" + str(cur_user_index)
-            cur_token = client_api.login_user(new_username, "string")["access_token"]
+            cur_username = "user" + str(cur_user_index)
+            cur_token = client_api.login_user(cur_username, "string")["access_token"]
             cur_user_index += 1
             cur_user_file_ctr = 0
+
+        # Creating the encrypted image and save its np array to pkl.
         cur_image_name = cur_image_path.split("/")[-1]
         cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_user_index]
         # Convert image to RGB, and resize it
@@ -119,8 +124,26 @@ if __name__ == '__main__':
         cur_cipher_file = open(cur_cipher_name, "wb")
         cur_cipher_file.write(ciphertext_bytes)
         cur_cipher_file.close()
+
         # Increment cur_user_file_ctr
         cur_user_file_ctr += 1
+
+        # Upload the current encrypted file to the DS
+        cur_upload_res = client_api.upload_dataset(cur_image_name,
+                                                   ciphertext_bytes,
+                                                   "file",
+                                                   False,
+                                                   cur_token, )
+
+        # Add a policy saying user with id==1 can call train_covid_model on the uploaded dataset
+        client_api.upload_policy(Policy(user_id=1, api="train_covid_model", data_id=cur_upload_res.data_id), cur_token)
+
+    # We proceed to actually calling the model training API
+
+    # Use token for user0
+    cur_token = client_api.login_user("user0", "string")["access_token"]
+
+    client_api.call_api("train_covid_model", cur_token, "optimistic")
 
     # Shutting down
 
