@@ -93,8 +93,16 @@ if __name__ == '__main__':
     # Keeping track of how many files we want each user to upload
     user_file_limit = int(num_files/num_users)+1
 
+    # in the beginning, we log in the first user
+    cur_token = client_api.login_user("user0", "string")["access_token"]
+
     # TODO: once cur_user_file_ctr == user_file_limit, we log in to a different user and let them upload.
     for cur_image_path in origin_image_list:
+        if cur_user_file_ctr >= user_file_limit:
+            new_username = "user" + str(cur_user_index)
+            cur_token = client_api.login_user(new_username, "string")["access_token"]
+            cur_user_index += 1
+            cur_user_file_ctr = 0
         cur_image_name = cur_image_path.split("/")[-1]
         cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_user_index]
         # Convert image to RGB, and resize it
@@ -111,6 +119,8 @@ if __name__ == '__main__':
         cur_cipher_file = open(cur_cipher_name, "wb")
         cur_cipher_file.write(ciphertext_bytes)
         cur_cipher_file.close()
+        # Increment cur_user_file_ctr
+        cur_user_file_ctr += 1
 
     # Shutting down
 
