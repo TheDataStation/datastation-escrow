@@ -39,7 +39,6 @@ if __name__ == '__main__':
 
     # Save data station's public key
     ds_public_key = client_api.key_manager.ds_public_key
-    # print(ds_public_key)
 
     # Adding new users
 
@@ -138,5 +137,7 @@ if __name__ == '__main__':
 
     accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", 5, testloader)
     print("Model accuracy is: "+str(accuracy))
+
+    # Shutting down
 
     client_api.shut_down(ds_config)
