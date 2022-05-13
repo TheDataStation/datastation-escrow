@@ -104,7 +104,7 @@ if __name__ == '__main__':
         name_to_upload = "train" + str(cur_num) + ".pt"
         cur_cipher_file.close()
 
-    # Now we create the encrypted files
+    # Now we upload the encrypted files
 
     # For each user, we upload his partition of the data (2 data elements, both X and y)
     for cur_num in range(num_users):

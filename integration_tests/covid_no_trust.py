@@ -60,6 +60,26 @@ if __name__ == '__main__':
 
     # print(client_api.key_manager.agents_symmetric_key)
 
+    # First clear ml_file_no_trust/training
+
+    no_trust_folder = 'integration_tests/ml_file_no_trust/training_covid'
+    for filename in os.listdir(no_trust_folder):
+        file_path = os.path.join(no_trust_folder, filename)
+        if os.path.isfile(file_path) or os.path.islink(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
+    # Clear the storage place
+
+    folder = 'SM_storage'
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        if os.path.isfile(file_path) or os.path.islink(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
     # Shutting down
 
     client_api.shut_down(ds_config)
