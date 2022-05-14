@@ -11,8 +11,8 @@ from common import utils
 
 @register()
 def train_income_model():
-    """training_covid a logistic regression model on income data"""
-    print("starting training_covid model")
+    """train a logistic regression model on income data"""
+    print("starting train model")
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
     ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     mount_path = pathlib.Path(ds_config["mount_path"]).absolute()

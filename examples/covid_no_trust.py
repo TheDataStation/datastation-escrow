@@ -21,12 +21,13 @@ def train_covid_model():
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
     ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
-    # files = glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True)
     files = []
     DE_dir_name = os.listdir(mount_path)
     for i in range(len(DE_dir_name)):
         DE_dir_name[i] = os.path.join(str(mount_path), str(DE_dir_name[i]))
         files.append(os.path.join(str(DE_dir_name[i]), str(os.listdir(DE_dir_name[i])[0])))
+
+    # print(files)
 
     f_name_id_dict = {}
     for file in set(files):
@@ -40,7 +41,7 @@ def train_covid_model():
 
     # Start the ML code
 
-    # Read the metadata from training_covid.txt (an open file that everyone can read)
+    # Read the metadata from train.txt (an open file that everyone can read)
 
     train_size = 0.9
 
@@ -59,8 +60,6 @@ def train_covid_model():
 
     counter = 0
 
-    dec_start = time.time()
-
     for _, row in train_df.iterrows():
         cur_file_path = os.path.join(str(mount_path), f_name_id_dict.get(row["filename"]), row["filename"])
         f = open(cur_file_path, "rb")
@@ -74,7 +73,6 @@ def train_covid_model():
         else:
             train_label.append(0)
         counter += 1
-        print(counter)
 
     for _, row in valid_df.iterrows():
         cur_file_path = os.path.join(str(mount_path), f_name_id_dict.get(row["filename"]), row["filename"])

@@ -11,7 +11,7 @@ from common import utils
 
 @register()
 def train_cifar_model(epochs, testloader):
-    """training_covid a neural network model on cifar data"""
+    """train a neural network model on cifar data"""
     print("starting cifar model")
     prev_time = time.time()
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
