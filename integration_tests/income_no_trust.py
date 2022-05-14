@@ -88,7 +88,7 @@ if __name__ == '__main__':
         # We have two types of data: X and y
         train_type = ["X", "y"]
         for cur_type in train_type:
-            cur_train = "integration_tests/ml_file_full_trust/training_income/train" + str(cur_num) \
+            cur_train = "integration_tests/ml_file_full_trust/training_income/training_covid" + str(cur_num) \
                         + "_" + cur_type + ".npy "
             cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
             # Load np object
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             # pkl bytes encrypted
             ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
             # write encrypted bytes to file
-            cur_cipher_name = "integration_tests/ml_file_no_trust/training_income/train" \
+            cur_cipher_name = "integration_tests/ml_file_no_trust/training_income/training_covid" \
                               + str(cur_num) + "_" + cur_type + ".pkl"
             cur_cipher_file = open(cur_cipher_name, "wb")
             cur_cipher_file.write(ciphertext_bytes)
@@ -114,12 +114,12 @@ if __name__ == '__main__':
         # We have two types of data: X and y
         train_type = ["X", "y"]
         for cur_type in train_type:
-            cur_train = "integration_tests/ml_file_no_trust/training_income/train" \
+            cur_train = "integration_tests/ml_file_no_trust/training_income/training_covid" \
                         + str(cur_num) + "_" + cur_type + ".pkl"
             cur_file = open(cur_train, "rb")
             cur_file_bytes = cur_file.read()
             cur_optimistic_flag = False
-            name_to_upload = "train" + str(cur_num) + "_" + cur_type + ".pkl"
+            name_to_upload = "training_covid" + str(cur_num) + "_" + cur_type + ".pkl"
             cur_res = client_api.upload_dataset(name_to_upload,
                                                 cur_file_bytes,
                                                 "file",

@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # Now we create the encrypted files
 
     for cur_num in range(num_users):
-        cur_t_path = "integration_tests/ml_file_full_trust/training_cifar/train" + str(cur_num) + ".pt"
+        cur_t_path = "integration_tests/ml_file_full_trust/training_cifar/training_covid" + str(cur_num) + ".pt"
         cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
         # Load torch object
         cur_torch = torch.load(cur_t_path)
@@ -97,11 +97,11 @@ if __name__ == '__main__':
         pkl_t = pickle.dumps(cur_torch)
         # pkl bytes encrypted
         ciphertext_bytes = cu.encrypt_data_with_symmetric_key(pkl_t, cur_user_sym_key)
-        cur_cipher_name = "integration_tests/ml_file_no_trust/training_cifar/train" + str(cur_num) + ".pkl"
+        cur_cipher_name = "integration_tests/ml_file_no_trust/training_cifar/training_covid" + str(cur_num) + ".pkl"
         cur_cipher_file = open(cur_cipher_name, "wb")
         cur_cipher_file.write(ciphertext_bytes)
         cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + ".pt"
+        name_to_upload = "training_covid" + str(cur_num) + ".pt"
         cur_cipher_file.close()
 
     # Now we upload the encrypted files
@@ -113,11 +113,11 @@ if __name__ == '__main__':
         cur_token = client_api.login_user(cur_uname, "string")["access_token"]
 
         # Upload his partition X of the data
-        cur_train_t = "integration_tests/ml_file_no_trust/training_cifar/train" + str(cur_num) + ".pkl"
+        cur_train_t = "integration_tests/ml_file_no_trust/training_cifar/training_covid" + str(cur_num) + ".pkl"
         cur_file_t = open(cur_train_t, "rb")
         cur_file_bytes = cur_file_t.read()
         cur_optimistic_flag = False
-        name_to_upload = "train" + str(cur_num) + ".pkl"
+        name_to_upload = "training_covid" + str(cur_num) + ".pkl"
         cur_res = client_api.upload_dataset(name_to_upload,
                                             cur_file_bytes,
                                             "file",

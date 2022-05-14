@@ -13,7 +13,7 @@ from common import utils
 
 @register()
 def train_income_model():
-    """train a logistic regression model on income data"""
+    """training_covid a logistic regression model on income data"""
     print("starting income model")
     prev_time = time.time()
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)

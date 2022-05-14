@@ -63,11 +63,11 @@ if __name__ == '__main__':
         # We have two types of data: X and y
         train_type = ["X", "y"]
         for cur_type in train_type:
-            cur_train = "integration_tests/ml_file_full_trust/training_income/train" + str(cur_num) + "_" + cur_type + ".npy"
+            cur_train = "integration_tests/ml_file_full_trust/training_income/training_covid" + str(cur_num) + "_" + cur_type + ".npy"
             cur_file = open(cur_train, "rb")
             cur_file_bytes = cur_file.read()
             cur_optimistic_flag = False
-            name_to_upload = "train" + str(cur_num) + "_" + cur_type + ".npy"
+            name_to_upload = "training_covid" + str(cur_num) + "_" + cur_type + ".npy"
             # Upload data
             client_api.upload_dataset(name_to_upload,
                                       cur_file_bytes,
