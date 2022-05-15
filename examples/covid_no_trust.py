@@ -16,8 +16,10 @@ import glob
 from common import utils
 
 @register()
-def train_covid_model():
+def train_covid_model(test_data, test_label):
     print("starting covid model")
+    print(np.shape(test_data))
+    print(np.shape(test_label))
 
     start_time = time.time()
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
@@ -142,7 +144,7 @@ def train_covid_model():
             prev_epoch_time = cur_epoch_time
 
     callbacks = [
-        tf.keras.callbacks.ModelCheckpoint("covid_classifier_model.h5", save_best_only=True, verbose=0),
+        # tf.keras.callbacks.ModelCheckpoint("covid_classifier_model.h5", save_best_only=True, verbose=0),
         tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, verbose=1),
         # EvaluateEpochEnd(test_gen),
     ]
@@ -150,6 +152,8 @@ def train_covid_model():
     model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
+
+    prev_epoch_time = time.time()
 
     history = model.fit(train_gen,
                         validation_data=valid_gen,

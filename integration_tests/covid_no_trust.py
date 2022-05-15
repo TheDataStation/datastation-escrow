@@ -4,6 +4,7 @@ import main
 import os
 import shutil
 import PIL.Image as Image
+from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import pandas as pd
 import pickle
@@ -170,10 +171,8 @@ if __name__ == '__main__':
             test_label.append(0)
 
     test_data = np.asarray(test_data).reshape(400, 200, 200, 3)
-    print(test_data.shape)
 
-
-    # client_api.call_api("train_covid_model", cur_token, "optimistic")
+    client_api.call_api("train_covid_model", cur_token, "optimistic", test_data, test_label)
 
     # Shutting down
 
