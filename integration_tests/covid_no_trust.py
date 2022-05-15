@@ -172,6 +172,7 @@ if __name__ == '__main__':
     test_data = np.asarray(test_data).reshape(400, 200, 200, 3)
     print(test_data.shape)
 
+
     # client_api.call_api("train_covid_model", cur_token, "optimistic")
 
     # Shutting down
