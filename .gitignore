@@ -28,6 +28,8 @@ integration_tests/test_metadata
 test.txt
 zhiru_chameleon_key.pem
 .DS_Store
+covid_classifier_model.h5
+
 
 # C extensions
 *.so
