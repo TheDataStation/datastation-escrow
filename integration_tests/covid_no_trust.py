@@ -5,6 +5,7 @@ import os
 import shutil
 import PIL.Image as Image
 import numpy as np
+import pandas as pd
 import pickle
 import time
 
@@ -148,7 +149,30 @@ if __name__ == '__main__':
     # Use token for user0
     cur_token = client_api.login_user("user0", "string")["access_token"]
 
-    client_api.call_api("train_covid_model", cur_token, "optimistic")
+    # We will submit the test data for accuracy evaluation
+
+    test_df = pd.read_csv('integration_tests/test_metadata/test.txt', sep=" ", header=None)
+    test_df.columns = ['id', 'filename', 'class', 'data source']
+    test_df = test_df.drop(['id', 'data source'], axis=1)
+
+    test_data = list()
+    test_label = list()
+
+    for _, row in test_df.iterrows():
+        file_path = "integration_tests/ml_file_full_trust/testing_covid/" + row["filename"]
+        cur_image = Image.open(file_path).convert('RGB')
+        image_resized = cur_image.resize((200, 200))
+        img_data = np.array(image_resized)
+        test_data.append(img_data)
+        if row["class"] == "positive":
+            test_label.append(1)
+        else:
+            test_label.append(0)
+
+    test_data = np.asarray(test_data).reshape(400, 200, 200, 3)
+    print(test_data.shape)
+
+    # client_api.call_api("train_covid_model", cur_token, "optimistic")
 
     # Shutting down
 

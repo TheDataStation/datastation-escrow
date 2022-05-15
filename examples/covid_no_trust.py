@@ -151,4 +151,9 @@ def train_covid_model():
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
 
+    history = model.fit(train_gen,
+                        validation_data=valid_gen,
+                        epochs=1,
+                        callbacks=[callbacks])
+
     print("data station overhead is", time.time() - start_time)
