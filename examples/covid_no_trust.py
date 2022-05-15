@@ -12,14 +12,11 @@ from csv import writer
 
 
 from dsapplicationregistration import register
-import glob
 from common import utils
 
 @register()
 def train_covid_model(test_data, test_label):
     print("starting covid model")
-    print(np.shape(test_data))
-    print(np.shape(test_label))
 
     start_time = time.time()
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
@@ -93,11 +90,14 @@ def train_covid_model(test_data, test_label):
 
     train_data = np.asarray(train_data).reshape(len(train_data), 200, 200, 3)
     valid_data = np.asarray(valid_data).reshape(len(valid_data), 200, 200, 3)
+    test_data = np.asarray(test_data).reshape(len(test_data), 200, 200, 3)
 
-    # print(len(train_data))
-    # print(len(valid_data))
+    # print(np.shape(train_data))
+    # print(np.shape(valid_data))
+    # print(np.shape(test_data))
     # print(train_label)
     # print(valid_label)
+    # print(test_label)
 
     # Start the actual model training process
     train_datagen = ImageDataGenerator(rescale=1. / 255.,
@@ -112,6 +112,7 @@ def train_covid_model(test_data, test_label):
 
     train_gen = train_datagen.flow(train_data, train_label, batch_size=64)
     valid_gen = test_datagen.flow(valid_data, valid_label, batch_size=64)
+    test_gen = test_datagen.flow(test_data, test_label, batch_size=64)
 
     base_model = tf.keras.applications.ResNet50V2(weights='imagenet',
                                                   input_shape=(200, 200, 3),
@@ -132,28 +133,26 @@ def train_covid_model(test_data, test_label):
     class EvaluateEpochEnd(tf.keras.callbacks.Callback):
         def __init__(self, cur_test_data):
             self.test_data = cur_test_data
+            self.prev_epoch_time = time.time()
 
         def on_epoch_end(self, epoch, logs={}):
-            global prev_epoch_time
             scores = self.model.evaluate(self.test_data, verbose=0)
             print('\nTesting loss: {}, accuracy: {}\n'.format(scores[0], scores[1]))
             cur_epoch_time = time.time()
             with open("ml_acc.csv", 'a+') as f:
                 writer_object = writer(f)
-                writer_object.writerow([scores[0], scores[1], cur_epoch_time - prev_epoch_time])
-            prev_epoch_time = cur_epoch_time
+                writer_object.writerow([scores[0], scores[1], cur_epoch_time - self.prev_epoch_time])
+            self.prev_epoch_time = cur_epoch_time
 
     callbacks = [
         # tf.keras.callbacks.ModelCheckpoint("covid_classifier_model.h5", save_best_only=True, verbose=0),
         tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, verbose=1),
-        # EvaluateEpochEnd(test_gen),
+        EvaluateEpochEnd(test_gen),
     ]
 
     model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
-
-    prev_epoch_time = time.time()
 
     history = model.fit(train_gen,
                         validation_data=valid_gen,
