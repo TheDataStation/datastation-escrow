@@ -17,11 +17,11 @@ def register_data_in_DB(data_id,
                         key_manager=None,
                         original_data_size=None):
 
-    # TODO: check if there is an existing dataset
-
-    existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
-    if existed_dataset.status == 1:
-        return Response(status=1, message="there is a dataset using the same name")
+    # # TODO: check if there is an existing dataset
+    #
+    # existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
+    # if existed_dataset.status == 1:
+    #     return Response(status=1, message="there is a dataset using the same name")
 
     # We now call DB to register a new dataset in the database
 
