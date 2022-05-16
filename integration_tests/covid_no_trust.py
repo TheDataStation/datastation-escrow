@@ -124,11 +124,11 @@ if __name__ == '__main__':
         # pkl bytes encrypted
         ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
         # write encrypted bytes to file
-        cur_cipher_name = "integration_tests/ml_file_no_trust/training_covid/" \
-                          + cur_image_name + ".pkl"
-        cur_cipher_file = open(cur_cipher_name, "wb")
-        cur_cipher_file.write(ciphertext_bytes)
-        cur_cipher_file.close()
+        # cur_cipher_name = "integration_tests/ml_file_no_trust/training_covid/" \
+        #                   + cur_image_name + ".pkl"
+        # cur_cipher_file = open(cur_cipher_name, "wb")
+        # cur_cipher_file.write(ciphertext_bytes)
+        # cur_cipher_file.close()
 
         # Increment cur_user_file_ctr
         cur_user_file_ctr += 1
