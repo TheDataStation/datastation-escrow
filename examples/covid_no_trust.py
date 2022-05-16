@@ -154,9 +154,23 @@ def train_covid_model(test_data, test_label):
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
 
+    preprocess_overhead = time.time() - start_time
+
+    with open("ml_acc.csv", 'a+') as f:
+        writer_object = writer(f)
+        writer_object.writerow([preprocess_overhead])
+
+    print("data preprocessing overhead is", preprocess_overhead)
+
     history = model.fit(train_gen,
                         validation_data=valid_gen,
-                        epochs=1,
+                        epochs=3,
                         callbacks=[callbacks])
 
-    print("data station overhead is", time.time() - start_time)
+    total_overhead = time.time() - start_time
+
+    with open("ml_acc.csv", 'a+') as f:
+        writer_object = writer(f)
+        writer_object.writerow([total_overhead])
+
+    print("data station overhead is", total_overhead)
