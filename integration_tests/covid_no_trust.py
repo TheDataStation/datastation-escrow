@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # Adding new users
 
     # In the proto version of the code, we upload 4 users, each holds on image
-    num_users = 4
+    num_users = 8
 
     # We generate keys outside the loop because we don't want to count its time
 
