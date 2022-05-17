@@ -92,6 +92,7 @@ if __name__ == '__main__':
     cur_username = "user0"
     cur_user_index = 1
     cur_user_file_ctr = 0
+    cur_user_dict = {}
     origin_image_list = glob.glob("integration_tests/ml_file_full_trust/training_covid/*")
     num_files = len(origin_image_list)
     # Keeping track of how many files we want each user to upload
@@ -106,42 +107,52 @@ if __name__ == '__main__':
 
         # Check if currently logged-in user has reached his file upload limit.
         # If yes, we log in a new user.
+        # In addition, we upload his share of the data (as a dictionary) to the DS
         if cur_user_file_ctr >= user_file_limit:
+            # Now upload cur_user_dict to DS
+            cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_user_index]
+            cur_pkl_obj = pickle.dumps(cur_user_dict)
+            # pkl bytes encrypted
+            ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
+            # Upload the current encrypted file to the DS
+            cur_upload_res = client_api.upload_dataset(cur_username,
+                                                       ciphertext_bytes,
+                                                       "file",
+                                                       False,
+                                                       cur_token, )
+            # Add a policy saying user with id==1 can call train_covid_model on the uploaded dataset
+            client_api.upload_policy(Policy(user_id=1, api="train_covid_model", data_id=cur_upload_res.data_id),
+                                     cur_token)
+
+            # Clear some states
             cur_username = "user" + str(cur_user_index)
             cur_token = client_api.login_user(cur_username, "string")["access_token"]
             cur_user_index += 1
             cur_user_file_ctr = 0
+            cur_user_dict = {}
 
-        # Creating the encrypted image and save its np array to pkl.
+        # Increment cur_user_file_ctr
+        cur_user_file_ctr += 1
+        # Get the name of the image from full path
         cur_image_name = cur_image_path.split("/")[-1]
-        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_user_index]
         # Convert image to RGB, and resize it
         cur_image = Image.open(cur_image_path).convert('RGB').resize((200, 200))
         # Store image as np array
         img_data = np.array(cur_image)
-        # np object to pkl bytes
-        cur_pkl_obj = pickle.dumps(img_data)
-        # pkl bytes encrypted
-        ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
-        # write encrypted bytes to file
-        # cur_cipher_name = "integration_tests/ml_file_no_trust/training_covid/" \
-        #                   + cur_image_name + ".pkl"
-        # cur_cipher_file = open(cur_cipher_name, "wb")
-        # cur_cipher_file.write(ciphertext_bytes)
-        # cur_cipher_file.close()
+        # Add <name, np_array> entry to cur_user_dict
+        cur_user_dict[cur_image_name] = img_data
 
-        # Increment cur_user_file_ctr
-        cur_user_file_ctr += 1
-
-        # Upload the current encrypted file to the DS
-        cur_upload_res = client_api.upload_dataset(cur_image_name,
-                                                   ciphertext_bytes,
-                                                   "file",
-                                                   False,
-                                                   cur_token, )
-
-        # Add a policy saying user with id==1 can call train_covid_model on the uploaded dataset
-        client_api.upload_policy(Policy(user_id=1, api="train_covid_model", data_id=cur_upload_res.data_id), cur_token)
+    # At the end of the loop, make sure we upload the last user's share of data as well
+    cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_user_index]
+    cur_pkl_obj = pickle.dumps(cur_user_dict)
+    ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
+    cur_upload_res = client_api.upload_dataset(cur_username,
+                                               ciphertext_bytes,
+                                               "file",
+                                               False,
+                                               cur_token, )
+    client_api.upload_policy(Policy(user_id=1, api="train_covid_model", data_id=cur_upload_res.data_id),
+                             cur_token)
 
     print(time.time()-cur_time)
 
