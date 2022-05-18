@@ -52,10 +52,16 @@ if __name__ == '__main__':
         for i in range(num_chars):
             f.write(b'\x01')
 
-    # Start recording the overhead: first, initialize an overhead list
+    # Specifying result file destinations
+    db_res_name = "full_" + str(data_size) + "kb"
+    db_call_res_file = "numbers/" + db_res_name + ".csv"
+    if os.path.exists(db_call_res_file):
+        os.remove(db_call_res_file)
 
-    overhead = []
-    prev_time = time.time()
+    # Start recording user creation overhead: first, initialize an overhead list
+
+    user_overhead = []
+    user_time = time.time()
 
     # Adding new users
 
@@ -65,16 +71,18 @@ if __name__ == '__main__':
         cur_uname = "user" + str(cur_num+1)
         client_api.create_user(User(user_name=cur_uname, password="string"))
         total_db_ops += 1
+        new_time = time.time()
+        user_overhead.append(new_time - user_time)
+        user_time = new_time
 
     # Log in a user to get a token
 
     cur_token = client_api.login_user("user1", "string")["access_token"]
 
     # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
+    with open(db_call_res_file, 'a') as f:
+        writer_object = writer(f)
+        writer_object.writerow(user_overhead)
 
     # Look at all available APIs and APIDependencies
 
@@ -100,6 +108,11 @@ if __name__ == '__main__':
     opt_data_proportion = test_config["opt_data_proportion"]
     list_of_data_ids = []
 
+    # Start recording DE creation overhead: first, initialize an overhead list
+
+    data_overhead = []
+    data_time = time.time()
+
     for cur_num in range(num_files):
         cur_file = open("owner_overhead.txt", "rb")
         cur_file_bytes = cur_file.read()
@@ -116,12 +129,14 @@ if __name__ == '__main__':
         if cur_res.status == 0:
             list_of_data_ids.append(cur_res.data_id)
         cur_file.close()
+        new_time = time.time()
+        data_overhead.append(new_time - data_time)
+        data_time = new_time
 
     # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
+    with open(db_call_res_file, 'a') as f:
+        writer_object = writer(f)
+        writer_object.writerow(data_overhead)
 
     # Upload Policies
 
@@ -131,6 +146,11 @@ if __name__ == '__main__':
     policy_proportion = test_config["policy_proportion"]
     policy_created = 0
 
+    # Start recording policy creation overhead: first, initialize an overhead list
+
+    policy_overhead = []
+    policy_time = time.time()
+
     # Uploading the policies one by one
     policy_array = []
     for api_picked in list_of_apis:
@@ -138,21 +158,14 @@ if __name__ == '__main__':
             if random.random() < policy_proportion:
                 client_api.upload_policy(Policy(user_id=1, api=api_picked, data_id=list_of_data_ids[i]), cur_token)
                 total_db_ops += 1
+                new_time = time.time()
+                policy_overhead.append(new_time - policy_time)
+                policy_time = new_time
 
     # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
-
-    # Write overhead to csv file
-    db_res_name = "full_" + str(data_size) + "kb"
-    db_call_res_file = "numbers/" + db_res_name + ".csv"
-    if os.path.exists(db_call_res_file):
-        os.remove(db_call_res_file)
     with open(db_call_res_file, 'a') as f:
         writer_object = writer(f)
-        writer_object.writerow(overhead)
+        writer_object.writerow(policy_overhead)
 
     # Before shutdown, let's look at the total number of DB ops (insertions) that we did
     print("Total number of DB insertions is: "+str(total_db_ops))
