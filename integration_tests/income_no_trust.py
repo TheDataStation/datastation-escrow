@@ -89,7 +89,7 @@ if __name__ == '__main__':
         train_type = ["X", "y"]
         for cur_type in train_type:
             cur_train = "integration_tests/ml_file_full_trust/training_income/train" + str(cur_num) \
-                        + "_" + cur_type + ".npy "
+                        + "_" + cur_type + ".npy"
             cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
             # Load np object
             cur_np_obj = np.load(cur_train)
