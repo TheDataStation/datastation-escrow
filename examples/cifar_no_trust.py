@@ -21,7 +21,6 @@ def train_cifar_model(epochs, testloader):
     f_name_in_order = []
     for file in set(files):
         if pathlib.Path(file).is_file():
-            # print(file)
             f_name_in_order.append(file)
     f_name_in_order.sort(key=lambda x: int(x.split('/')[-2]))
     # print(f_name_in_order)
