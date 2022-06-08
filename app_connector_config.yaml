@@ -1,2 +1,2 @@
-connector_name: "owner_overhead"
-connector_module_path: "examples/owner_overhead.py"
+connector_name: "example_one"
+connector_module_path: "examples/example_one.py"

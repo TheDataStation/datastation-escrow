@@ -32,7 +32,10 @@ class ClientAPI:
                  write_ahead_log: WAL,
                  keyManager: KeyManager,
                  trust_mode: str,
-                 interceptor_process, accessible_data_dict, data_accessed_dict):
+                 interceptor_process,
+                 accessible_data_dict,
+                 data_accessed_dict,
+                 ):
 
         self.storage_manager = storageManager
         self.log = data_station_log
@@ -41,16 +44,10 @@ class ClientAPI:
 
         # The following field decides the trust mode for the DS
         self.trust_mode = trust_mode
-
         self.interceptor_process = interceptor_process
         self.accessible_data_dict = accessible_data_dict
         self.data_accessed_dict = data_accessed_dict
 
-        # The following code decides which data_id we should use when we upload a new data
-        # right now we are just incrementing by 1
-        resp = database_api.get_data_with_max_id()
-        if resp.status == 1:
-            self.cur_data_id = resp.data[0].id + 1
         # The following field decides which user_id we should use when we upload a new user
         # Right now we are just incrementing by 1
         user_id_resp = database_api.get_user_with_max_id()
@@ -72,13 +69,9 @@ class ClientAPI:
         # print(self.cur_data_id)
 
     def shut_down(self, ds_config):
-        # zz: unmount and stop interceptor
         # print("shut down...")
         mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
         unmount_status = os.system("umount " + str(mount_point))
-        # if unmount_status != 0:
-        #     print("Unmount failed")
-        #     exit(1)
         counter = 0
         while unmount_status != 0:
             time.sleep(1)
@@ -90,13 +83,9 @@ class ClientAPI:
         assert os.path.ismount(mount_point) is False
         self.interceptor_process.join()
 
-        # Clear DB
+        # Clear DB. app register, and db.checkpoint
         engine.dispose()
-
-        # Clear app register
         clear_register()
-
-        # Clear db.checkpoint
         clear_checkpoint_table_paths()
 
         print("shut down complete")
