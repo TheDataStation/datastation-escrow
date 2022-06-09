@@ -20,8 +20,6 @@ class WAL:
 
     def log(self, caller_id, entry, key_manager):
 
-        prev_time = time.time()
-
         # Use counter to determine when we need to checkpoint the DB
         # before we actually write the wal entry
         if self.entry_counter >= self.check_point_freq:
@@ -54,8 +52,6 @@ class WAL:
 
         # Increment counter
         self.entry_counter += 1
-
-        # print(time.time() - prev_time)
 
     def read_wal(self, key_manager):
         print("Printing contents of the write ahead log:")

@@ -58,6 +58,7 @@ class Log:
         # In memory mode: since memory is always encrypted, we just append
         if self.in_memory:
             self.log.append(entry)
+        # On disk mode
         else:
             # case 1: durable, non-encrypted log: write directly
             if not self.encrypted:
@@ -73,7 +74,7 @@ class Log:
                     # Look at plaintext fields
                     # print(entry.caller_id)
                     # print(entry.content)
-                    # Now let's try converting entry.content to bytes
+                    # First convert entry.content to bytes
                     plain_content_in_bytes = pickle.dumps(entry.content)
 
                     # Get the caller's symmetric key and encrypt
