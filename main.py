@@ -15,9 +15,6 @@ import time
 
 def initialize_system(ds_config, app_config, need_to_recover=False):
 
-    # print(ds_config)
-    # print(app_config)
-
     # In this function we set up all components that need to be initialized
 
     # get the trust mode for the data station
@@ -40,16 +37,14 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
     # set up an instance of the key manager
     key_manager = KeyManager()
 
-    # zz: start interceptor process
+    # start interceptor process
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
 
-    # with multiprocessing.Manager() as :
     manager = multiprocessing.Manager()
 
     accessible_data_dict = manager.dict()
     data_accessed_dict = manager.dict()
-    # signal = multiprocessing.Event()
 
     interceptor_process = multiprocessing.Process(target=interceptor.main,
                                                   args=(ds_storage_path,
@@ -58,7 +53,6 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
                                                         data_accessed_dict))
     interceptor_process.start()
     print("starting interceptor...")
-    # time.sleep(1)
     counter = 0
     while not os.path.ismount(mount_point):
         time.sleep(1)
@@ -86,7 +80,10 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
                            write_ahead_log,
                            key_manager,
                            trust_mode,
-                           interceptor_process, accessible_data_dict, data_accessed_dict)
+                           interceptor_process,
+                           accessible_data_dict,
+                           data_accessed_dict,
+                           )
 
     # Lastly, if we are in recover mode, we need to call
     if need_to_recover:
