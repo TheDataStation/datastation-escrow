@@ -110,15 +110,6 @@ def call_api(api,
              *args,
              **kwargs):
 
-    # import glob
-    # ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    # ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    # mount_path = pathlib.Path(ds_config["storage_path"]).absolute()
-    # all_files = set(glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True))
-    # all_files_mounted = set()
-    # for f in all_files:
-    #     all_files_mounted.add(f.replace("SM_storage", "SM_storage_mount"))
-
     # Initialize an overhead list
     overhead = []
     prev_time = time.time()
@@ -202,11 +193,15 @@ def call_api(api,
     # start a new process for the api call
     main_conn, api_conn = multiprocessing.Pipe()
     api_process = multiprocessing.Process(target=call_actual_api,
-                                          args=(api, connector_name, connector_module_path,
-                                                accessible_data_dict, accessible_data_paths,
+                                          args=(api,
+                                                connector_name,
+                                                connector_module_path,
+                                                accessible_data_dict,
+                                                accessible_data_paths,
                                                 accessible_data_key_dict,
                                                 api_conn,
-                                                *args),
+                                                *args,
+                                                ),
                                           kwargs=kwargs)
     api_process.start()
     api_pid = api_process.pid

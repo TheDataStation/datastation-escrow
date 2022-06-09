@@ -300,20 +300,6 @@ class ClientAPI:
     def get_all_policies():
         return policy_broker.get_all_policies()
 
-    # # upload a new API
-    #
-    # @staticmethod
-    # def upload_api(api: API):
-    #     response = database_api.create_api(api)
-    #     return Response(status=response.status, message=response.msg)
-    #
-    # # Upload a new API Dependency
-    #
-    # @staticmethod
-    # def upload_api_dependency(api_dependency: APIDependency):
-    #     response = database_api.create_api_dependency(api_dependency)
-    #     return Response(status=response.status, message=response.msg)
-
     # data users actually calling the application apis
 
     def call_api(self, api: API, token, exec_mode, *args, **kwargs):

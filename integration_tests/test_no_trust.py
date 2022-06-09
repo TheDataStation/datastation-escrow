@@ -53,11 +53,6 @@ if __name__ == '__main__':
         # print("Data Station's public key is:")
         # print(ds_public_key)
 
-        # cur_time = time.time()
-        # print("System initialization done")
-        # print("--- %s seconds ---" % (cur_time - prev_time))
-        # prev_time = cur_time
-
         # Adding new users
 
         list_of_users = ["jerry", "lucy", "david"]
@@ -91,19 +86,9 @@ if __name__ == '__main__':
         # print(client_api.key_manager.agents_symmetric_key)
         # print(client_api.key_manager.agents_public_key)
 
-        # cur_time = time.time()
-        # print("User addition done")
-        # print("--- %s seconds ---" % (cur_time - prev_time))
-        # prev_time = cur_time
-
         # Log in a user to get a token
 
         cur_token = client_api.login_user("jerry", "string")["access_token"]
-
-        # cur_time = time.time()
-        # print("Log in done")
-        # print("--- %s seconds ---" % (cur_time - prev_time))
-        # prev_time = cur_time
 
         # Look at all available APIs and APIDependencies
 
@@ -112,15 +97,7 @@ if __name__ == '__main__':
         print(list_of_apis)
         print(list_of_api_dependencies)
 
-        # cur_time = time.time()
-        # print("Looking at dependency graph done")
-        # print("--- %s seconds ---" % (cur_time - prev_time))
-        # prev_time = cur_time
-
         # Upload datasets
-
-        # TODO: before we test uploading datasets,
-        #       we first have to create the encrypted files using the newly generated symmetric keys
 
         # First clear test_file_no_trust
 
