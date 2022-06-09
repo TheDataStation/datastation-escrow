@@ -11,6 +11,9 @@ class Dataset(BaseModel):
     optimistic: Optional[bool]
     original_data_size: Optional[int]
 
+    class Config:
+        orm_mode = True
+
 class DatasetCreate(BaseModel):
     id: int
     owner_id: int  # pk user.id

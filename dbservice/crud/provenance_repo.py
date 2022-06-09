@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from ..models.provenance import Provenance
+from ..schemas.provenance import Provenance
 
 from common.pydantic_models.provenance import ProvenanceCreate
 

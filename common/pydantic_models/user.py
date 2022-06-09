@@ -6,6 +6,9 @@ class User(BaseModel):
     user_name: Optional[str]
     password: Optional[str]
 
+    class Config:
+        orm_mode = True
+
 class UserRegister(BaseModel):
     id: int
     user_name: str

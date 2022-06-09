@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from ..models.derived import Derived
+from ..schemas.derived import Derived
 from common.pydantic_models.derived import DerivedCreate
 
 

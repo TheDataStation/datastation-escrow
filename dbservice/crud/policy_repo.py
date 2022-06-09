@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from ..models.policy import Policy
+from ..schemas.policy import Policy
 from common.pydantic_models.policy import PolicyCreate
 
 def create_policy(db: Session, policy: PolicyCreate):
@@ -10,11 +10,8 @@ def create_policy(db: Session, policy: PolicyCreate):
                        data_id=policy.data_id,)
     try:
         db.add(db_policy)
-        # print("add")
         db.commit()
-        # print("commit")
         db.refresh(db_policy)
-        # print("refresh")
     except SQLAlchemyError as e:
         db.rollback()
         return None

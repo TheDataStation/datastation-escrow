@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from ..models.api import API
+from ..schemas.api import API
 from common.pydantic_models.api import APICreate
 
 def create_api(db: Session, api: APICreate):

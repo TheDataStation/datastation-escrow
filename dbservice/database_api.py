@@ -1,9 +1,6 @@
-from .database import engine, Base, DATABASE_URL
-from sqlalchemy import create_engine, exc
-from sqlalchemy.ext.declarative import declarative_base
+from .database import engine, Base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import event
-from sqlalchemy.pool import NullPool
 
 from .crud import user_repo, dataset_repo, api_repo, api_dependency_repo, policy_repo, derived_repo, provenance_repo
 from .responses import response
@@ -17,8 +14,6 @@ def _fk_pragma_on_connect(dbapi_con, con_record):
 
 @contextmanager
 def get_db():
-    # db = SessionLocal()
-    # DATABASE_URL = "postgresql://zhiruzhu:@localhost:5432/data_station"
 
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
