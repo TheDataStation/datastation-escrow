@@ -7,14 +7,14 @@ from cryptography.fernet import Fernet
 import pickle
 
 
-def to_bytes(object) -> bytes:
-    bytes = pickle.dumps(object)
-    return bytes
+def to_bytes(pk_obj) -> bytes:
+    pk_bytes = pickle.dumps(pk_obj)
+    return pk_bytes
 
 
-def from_bytes(bytes):
-    object = pickle.loads(bytes)
-    return object
+def from_bytes(pk_bytes):
+    pk_obj = pickle.loads(pk_bytes)
+    return pk_obj
 
 
 def generate_private_public_key_pair(public_exponent=65537, key_size=2048):
