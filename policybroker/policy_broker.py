@@ -4,12 +4,6 @@ from common.pydantic_models.policy import Policy
 from common.pydantic_models.user import User
 from common.pydantic_models.response import Response
 
-
-# Helper function to get the odata_type used in policy_with_dependency
-def get_odata_type(api, d_graph):
-    first_child_api = d_graph[api][0]
-    return get_odata_type(first_child_api, d_graph)
-
 # Helper function to get all ancestors of an api from dependency graph (including itself)
 def get_all_ancestors(api, d_graph, cur_ancestors):
     if d_graph[api]:
