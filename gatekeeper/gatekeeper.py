@@ -49,36 +49,16 @@ def get_accessible_data(user_id, api):
     return accessible_data
 
 
-def foo(a, b):
-    print("in foo")
-
-
-def test_api():
-    # print(files)
-    # for file in files:
-    #     # print(file)
-    #     if pathlib.Path(file).is_file():
-    #         with open(file, "r") as cur_file:
-    #             cur_file.readline()
-    #         print("read ", file)
-    import glob
-    ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
-    files = glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True)
-    # print(set(files))
-    for file in set(files):
-        # print(file)
-        if pathlib.Path(file).is_file():
-            with open(file, "r") as cur_file:
-                cur_file.readline()
-            print("read ", file)
-
-
-def call_actual_api(api_name, connector_name, connector_module_path,
-                    accessible_data_dict, accessible_data_paths,
+def call_actual_api(api_name,
+                    connector_name,
+                    connector_module_path,
+                    accessible_data_dict,
+                    accessible_data_paths,
                     accessible_data_key_dict,
-                    api_conn, *args, **kwargs):
+                    api_conn,
+                    *args,
+                    **kwargs,
+                    ):
 
     api_pid = os.getpid()
     # print("api process id:", str(api_pid))
@@ -86,7 +66,6 @@ def call_actual_api(api_name, connector_name, connector_module_path,
     # and the corresponding data owner's symmetric keys if running in no trust mode
     accessible_data_dict[api_pid] = (accessible_data_paths, accessible_data_key_dict)
 
-    # print("xxxxxxxxxx")
     # print(api_name, *args, **kwargs)
     register_connectors(connector_name, connector_module_path)
     list_of_apis = get_registered_functions()
@@ -155,9 +134,6 @@ def call_api(api,
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    # accessible_data_paths = set()
-    # for cur_id in all_accessible_data_id:
-    #     accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
     get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
     if get_datasets_by_ids_res.status == -1:
         print("get_datasets_by_ids_res database error")
@@ -176,9 +152,6 @@ def call_api(api,
         for dataset in get_datasets_by_ids_res.data:
             data_owner_symmetric_key = key_manager.get_agent_symmetric_key(dataset.owner_id)
             accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
-
-    # Actually calling the api
-    # print("current process id:", str(os.getpid()))
 
     # Record time
     cur_time = time.time()
@@ -232,14 +205,6 @@ def call_api(api,
             return Response(status=1, message="get_datasets_by_paths_res database error")
         data_ids_accessed = set([dataset.id for dataset in get_datasets_by_paths_res.data])
 
-        # for path in cur_data_accessed:
-        #     data_id = record_data_ids_accessed(path, cur_user_id, api)
-        #     if data_id != None:
-        #         data_ids_accessed.add(data_id)
-        #     else:
-        #         # os.remove("/tmp/data_accessed.txt")
-        #         return Response(status=1, message="cannot get data id from data path")
-
     # print("Data ids accessed:")
     # print(data_ids_accessed)
 
@@ -260,7 +225,6 @@ def call_api(api,
                                                     set(accessible_data_policy),
                                                     key_manager,)
         response = Response(status=1, message="Some access to optimistic data not allowed by policy.")
-        api_result = None
     else:
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)
@@ -272,7 +236,6 @@ def call_api(api,
                                                     set(accessible_data_policy),
                                                     key_manager,)
         response = Response(status=1, message="Access to illegal data happened. Something went wrong.")
-        api_result = None
 
     # Record time
     cur_time = time.time()
@@ -280,15 +243,6 @@ def call_api(api,
     overhead.append(cur_cost)
     # print(overhead)
     return response
-
-def record_data_ids_accessed(data_path, user_id, api_name):
-    response = database_api.get_dataset_by_access_type(data_path)
-    if response.status != 1:
-        print("get_dataset_by_access_type database error")
-        return None
-    else:
-        data_id = response.data[0].id
-        return data_id
 
 
 if __name__ == '__main__':
