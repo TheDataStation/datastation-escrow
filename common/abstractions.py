@@ -1,5 +1,3 @@
-
-
 class DataElement:
 
     def __init__(self):
