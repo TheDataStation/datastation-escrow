@@ -51,7 +51,7 @@ def create_user(user_id,
                     password=hashed.decode(),)
     resp = database_api.create_user(new_user)
     if resp.status == -1:
-        return Response(status=1, message="internal database error")
+        return Response(status=1, message="creating user DB error")
 
     return UploadUserResponse(status=0, message="success", user_id=resp.data[0].id)
 

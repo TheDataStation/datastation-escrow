@@ -83,7 +83,7 @@ class ClientAPI:
         assert os.path.ismount(mount_point) is False
         self.interceptor_process.join()
 
-        # Clear DB. app register, and db.checkpoint
+        # Clear DB, app register, and db.checkpoint
         engine.dispose()
         clear_register()
         clear_checkpoint_table_paths()
@@ -182,6 +182,7 @@ class ClientAPI:
             return storage_manager_response
 
         # Storing data is successful. We now call data_register to register this data element in DB
+        # Note: for file, access_type is the fullpath to the file
         access_type = storage_manager_response.access_type
 
         if self.trust_mode == "full_trust":
