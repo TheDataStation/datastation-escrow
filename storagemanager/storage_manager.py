@@ -1,4 +1,3 @@
-# from os.path import isfile
 from os import path, remove, makedirs, removedirs
 from common.pydantic_models.response import Response, StoreDataResponse, RetrieveDataResponse
 

@@ -10,7 +10,7 @@ from common.pydantic_models.response import Response, UploadUserResponse, TokenR
 # Adding global variables to support access token generation (for authentication)
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 180
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 120
 
 # The following function handles the creation of access tokens (for LoginUser)
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -62,7 +62,6 @@ def login_user(username, password):
     if existed_user.status == -1:
         return TokenResponse(status=1, token="username is wrong")
     user_data = existed_user.data[0]
-    # user = get_first_user(existed_user.data, password=True)
     if bcrypt.checkpw(password.encode(), user_data.password.encode()):
         # In here the password matches, we store the content for the token in the message
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
