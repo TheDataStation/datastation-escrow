@@ -51,7 +51,7 @@ def train_covid_model(test_data, test_label):
 
     train_size = 0.9
 
-    train_df = pd.read_csv('integration_tests/test_metadata/train.txt', sep=" ", header=None)
+    train_df = pd.read_csv('integration_tests/test_metadata/train.txt', sep="\s+", header=None)
     train_df.columns = ['patient id', 'filename', 'class', 'data source']
     train_df = train_df.drop(['patient id', 'data source'], axis=1)
 
