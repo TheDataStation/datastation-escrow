@@ -1,2 +1,2 @@
-connector_name: "covid_no_trust"
-connector_module_path: "examples/covid_no_trust.py"
+connector_name: "covid_v2"
+connector_module_path: "examples/covid_v2.py"
