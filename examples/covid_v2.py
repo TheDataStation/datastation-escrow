@@ -33,6 +33,16 @@ def covid_v2():
 
     train_df, valid_df = train_test_split(train_df, train_size=train_size, random_state=0)
 
-    print(train_df.head())
-
     # Let's try to use flow_from_dataframe, but change the content in the dataframe to be their absolute paths
+
+    # Build dictionary from file name to absolute path
+    name_path_dict = {}
+    for f in files:
+        f_name = f.split("/")[-1]
+        name_path_dict[f_name] = f
+
+    # update the df columns
+    for _, row in train_df.iterrows():
+        row['filename'] = name_path_dict[row['filename']]
+
+    # right before flow_from_dataframe
