@@ -21,6 +21,12 @@ def covid_v2():
         files.append(os.path.join(str(DE_dir_name[i]), str(os.listdir(DE_dir_name[i])[0])))
     # print(files)
 
+    # Build dictionary from file name to absolute path
+    name_path_dict = {}
+    for f in files:
+        f_name = f.split("/")[-1]
+        name_path_dict[f_name] = f
+
     # Start the ML code
 
     # Read the metadata from train.txt (an open file that everyone can read)
@@ -31,18 +37,10 @@ def covid_v2():
     train_df.columns = ['patient id', 'filename', 'class', 'data source']
     train_df = train_df.drop(['patient id', 'data source'], axis=1)
 
-    train_df, valid_df = train_test_split(train_df, train_size=train_size, random_state=0)
-
-    # Let's try to use flow_from_dataframe, but change the content in the dataframe to be their absolute paths
-
-    # Build dictionary from file name to absolute path
-    name_path_dict = {}
-    for f in files:
-        f_name = f.split("/")[-1]
-        name_path_dict[f_name] = f
-
     # update the df columns
     for _, row in train_df.iterrows():
         row['filename'] = name_path_dict[row['filename']]
 
-    # right before flow_from_dataframe
+    train_df, valid_df = train_test_split(train_df, train_size=train_size, random_state=0)
+
+    # TODO: right before flow_from_dataframe
