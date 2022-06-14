@@ -5,7 +5,7 @@ import shutil
 import numpy as np
 import pickle
 
-from common import utils
+from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
 from crypto import cryptoutils as cu

@@ -1,5 +1,5 @@
 import os
-from common.utils import parse_config
+from common.general_utils import parse_config
 
 if __name__ == '__main__':
 

@@ -12,7 +12,7 @@ from csv import writer
 
 
 from dsapplicationregistration import register
-from common import utils
+from common import general_utils
 
 @register()
 def train_covid_model(test_data, test_label):

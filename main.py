@@ -7,7 +7,7 @@ from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
 from gatekeeper import gatekeeper
 from clientapi.client_api import ClientAPI
-from common.utils import parse_config
+from common.general_utils import parse_config
 from Interceptor import interceptor
 import multiprocessing
 import pathlib

@@ -4,7 +4,7 @@ import pathlib
 
 from dsapplicationregistration import register
 import glob
-from common import utils
+from common import general_utils
 
 @register
 def line_count():

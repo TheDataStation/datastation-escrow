@@ -7,7 +7,7 @@ from integration_tests.neural_network.model import Net, train, test
 
 from dsapplicationregistration import register
 import glob
-from common import utils
+from common import general_utils
 
 @register()
 def train_cifar_model(epochs, testloader):

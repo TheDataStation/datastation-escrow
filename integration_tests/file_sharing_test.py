@@ -9,7 +9,7 @@ import shutil
 import time
 import random
 
-from common import utils
+from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
 from crypto import cryptoutils as cu

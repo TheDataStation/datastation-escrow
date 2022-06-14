@@ -10,7 +10,7 @@ import pandas as pd
 import pickle
 import time
 
-from common import utils
+from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
 from crypto import cryptoutils as cu
@@ -22,8 +22,8 @@ if __name__ == '__main__':
 
     # System initialization
 
-    ds_config = utils.parse_config("data_station_config.yaml")
-    app_config = utils.parse_config("app_connector_config.yaml")
+    ds_config = general_utils.parse_config("data_station_config.yaml")
+    app_config = general_utils.parse_config("app_connector_config.yaml")
 
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())

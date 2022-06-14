@@ -7,21 +7,13 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 
 from dsapplicationregistration import register
-from common import utils
+from common import ds_utils
 
 @register()
 def covid_v2():
     print("Start covid model version two")
 
-    ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
-    files = []
-    DE_dir_name = os.listdir(mount_path)
-    for i in range(len(DE_dir_name)):
-        DE_dir_name[i] = os.path.join(str(mount_path), str(DE_dir_name[i]))
-        files.append(os.path.join(str(DE_dir_name[i]), str(os.listdir(DE_dir_name[i])[0])))
-    # print(files)
+    files = ds_utils.get_all_files()
 
     # Build dictionary from file name to absolute path
     name_path_dict = {}

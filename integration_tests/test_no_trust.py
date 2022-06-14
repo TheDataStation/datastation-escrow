@@ -7,10 +7,10 @@ import time
 import math
 import random
 
-from common import utils
+from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
-from common.utils import parse_config
+from common.general_utils import parse_config
 from crypto import cryptoutils as cu
 
 if __name__ == '__main__':

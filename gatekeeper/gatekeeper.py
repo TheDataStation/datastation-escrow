@@ -13,7 +13,7 @@ from common.pydantic_models.api import API
 from common.pydantic_models.api_dependency import APIDependency
 from common.pydantic_models.user import User
 from common.pydantic_models.response import Response
-from common import utils
+from common import general_utils
 from crypto import key_manager
 
 
@@ -141,7 +141,7 @@ def call_api(api,
     accessible_data_paths = set([dataset.access_type for dataset in get_datasets_by_ids_res.data])
 
     # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
-    ds_config = utils.parse_config("data_station_config.yaml")
+    ds_config = general_utils.parse_config("data_station_config.yaml")
     trust_mode = ds_config["trust_mode"]
 
     accessible_data_key_dict = None
@@ -159,7 +159,7 @@ def call_api(api,
     overhead.append(cur_cost)
     prev_time = cur_time
 
-    app_config = utils.parse_config("app_connector_config.yaml")
+    app_config = general_utils.parse_config("app_connector_config.yaml")
     connector_name = app_config["connector_name"]
     connector_module_path = app_config["connector_module_path"]
 

@@ -3,7 +3,7 @@ import os
 import pathlib
 
 from dsapplicationregistration import register
-from common import utils
+from common import general_utils
 
 @register()
 def f1():
