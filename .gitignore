@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 SM_storage/
 SM_storage_mount/
-titanicML/sample_data/
 .idea/
 Working/
 numbers/
@@ -25,6 +24,7 @@ integration_tests/ml_file_full_trust
 integration_tests/ml_file_no_trust
 integration_tests/file_sharing_plots
 integration_tests/test_metadata
+integration_tests/sql_test
 test.txt
 zhiru_chameleon_key.pem
 .DS_Store
