@@ -64,6 +64,10 @@ if __name__ == '__main__':
     # Upload policy saying user0 can access company.db
     client_api.upload_policy(Policy(user_id=1, api="run_sql_query", data_id=1), cur_token)
 
+    # Run analytics on the DB
+    cur_token = client_api.login_user("user0", "string")["access_token"]
+    client_api.call_api("run_sql_query", cur_token, "optimistic")
+
     # Shut down
     client_api.shut_down(ds_config)
 
