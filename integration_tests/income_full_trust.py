@@ -6,7 +6,6 @@ import os
 import shutil
 import numpy as np
 
-from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
 from common.general_utils import parse_config
@@ -21,8 +20,8 @@ if __name__ == '__main__':
 
     # System initialization
 
-    ds_config = utils.parse_config("data_station_config.yaml")
-    app_config = utils.parse_config("app_connector_config.yaml")
+    ds_config = parse_config("data_station_config.yaml")
+    app_config = parse_config("app_connector_config.yaml")
 
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
