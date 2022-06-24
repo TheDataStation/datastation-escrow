@@ -15,6 +15,3 @@ class Dataset(Base):
     optimistic = Column(Boolean)
     owner_id = Column(Integer)
     original_data_size = Column(Integer)
-    # owner_id = Column(Integer, ForeignKey("users.id"))
-
-    # owner = relationship("User", back_populates="datasets")
