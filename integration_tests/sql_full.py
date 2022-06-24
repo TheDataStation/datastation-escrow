@@ -62,7 +62,7 @@ if __name__ == '__main__':
                               cur_token, )
 
     # Upload policy saying user0 can access company.db
-    client_api.upload_policy(Policy(user_id=1, api="run_predefined_query", data_id=1), cur_token)
+    # client_api.upload_policy(Policy(user_id=1, api="run_predefined_query", data_id=1), cur_token)
 
     # Run analytics on the DB
     cur_token = client_api.login_user("user0", "string")["access_token"]

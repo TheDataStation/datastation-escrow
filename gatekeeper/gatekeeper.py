@@ -136,8 +136,8 @@ def call_api(api,
 
     get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
     if get_datasets_by_ids_res.status == -1:
-        print("get_datasets_by_ids_res database error")
-        return Response(status=1, message="get_datasets_by_ids_res database error")
+        print("No accessible data found")
+        return Response(status=1, message="No accessible data found")
     accessible_data_paths = set([dataset.access_type for dataset in get_datasets_by_ids_res.data])
 
     # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
@@ -198,15 +198,11 @@ def call_api(api,
     if api_pid in data_accessed_dict.keys():
         cur_data_accessed = data_accessed_dict[api_pid].copy()
         del data_accessed_dict[api_pid]
-
         get_datasets_by_paths_res = database_api.get_datasets_by_paths(cur_data_accessed)
         if get_datasets_by_paths_res.status == -1:
-            print("get_datasets_by_paths_res database error")
-            return Response(status=1, message="get_datasets_by_paths_res database error")
+            print("No accessible data found")
+            return Response(status=1, message="No accessible data found")
         data_ids_accessed = set([dataset.id for dataset in get_datasets_by_paths_res.data])
-
-    # print("Data ids accessed:")
-    # print(data_ids_accessed)
 
     if set(data_ids_accessed).issubset(set(accessible_data_policy)):
         # print("All data access allowed by policy.")
