@@ -181,7 +181,6 @@ def call_api(api,
     # print("api process id:", str(api_pid))
     api_result = main_conn.recv()
     api_process.join()
-    # api_result = main_conn.recv()
 
     # clean up the two dictionaries used for communication,
     # and get the data ids accessed from the list of data paths accessed through the interceptor
@@ -203,6 +202,9 @@ def call_api(api,
             print("No accessible data found")
             return Response(status=1, message="No accessible data found")
         data_ids_accessed = set([dataset.id for dataset in get_datasets_by_paths_res.data])
+
+    # print("data id accessed are:")
+    # print(data_ids_accessed)
 
     if set(data_ids_accessed).issubset(set(accessible_data_policy)):
         # print("All data access allowed by policy.")
