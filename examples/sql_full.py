@@ -15,7 +15,7 @@ def run_custom_query(query, db_name):
     return res
 
 @register()
-def run_predefined_query():
+def predefined_on_DB():
     print("start running predefined query")
     files = ds_utils.get_all_files()
     db_name = files[0]
@@ -25,7 +25,7 @@ def run_predefined_query():
     return res
 
 @register()
-def run_user_query(user_query):
+def customized_on_DB(user_query):
     print("start running user queries")
     files = ds_utils.get_all_files()
     db_name = files[0]

@@ -62,18 +62,18 @@ if __name__ == '__main__':
                               cur_token, )
 
     # Upload policy saying user0 can access company.db
-    client_api.upload_policy(Policy(user_id=1, api="run_predefined_query", data_id=1), cur_token)
-    client_api.upload_policy(Policy(user_id=1, api="run_user_query", data_id=1), cur_token)
+    client_api.upload_policy(Policy(user_id=1, api="predefined_on_DB", data_id=1), cur_token)
+    client_api.upload_policy(Policy(user_id=1, api="customized_on_DB", data_id=1), cur_token)
 
     # Run analytics on the DB
     cur_token = client_api.login_user("user0", "string")["access_token"]
     # First run predefined query
-    res_one = client_api.call_api("run_predefined_query",
+    res_one = client_api.call_api("predefined_on_DB",
                                   cur_token,
                                   "pessimistic")
     print(res_one)
     # Then run user query
-    res_two = client_api.call_api("run_user_query",
+    res_two = client_api.call_api("customized_on_DB",
                                   cur_token,
                                   "pessimistic",
                                   "SELECT * FROM info WHERE department = 'cs'")
