@@ -64,20 +64,26 @@ if __name__ == '__main__':
     # Upload policy saying user0 can access company.db
     client_api.upload_policy(Policy(user_id=1, api="predefined_on_DB", data_id=1), cur_token)
     client_api.upload_policy(Policy(user_id=1, api="customized_on_DB", data_id=1), cur_token)
+    client_api.upload_policy(Policy(user_id=1, api="predefined_on_view", data_id=1), cur_token)
 
-    # Run analytics on the DB
+    # Run analytics
     cur_token = client_api.login_user("user0", "string")["access_token"]
-    # First run predefined query
+    # First run predefined query on DB
     res_one = client_api.call_api("predefined_on_DB",
                                   cur_token,
                                   "pessimistic")
     print(res_one)
-    # Then run user query
+    # Then run user query on DB
     res_two = client_api.call_api("customized_on_DB",
                                   cur_token,
                                   "pessimistic",
                                   "SELECT * FROM info WHERE department = 'cs'")
     print(res_two)
+    # Then run predefined query on view
+    res_three = client_api.call_api("predefined_on_view",
+                                    cur_token,
+                                    "pessimistic")
+    print(res_three)
 
     # Shut down
     client_api.shut_down(ds_config)

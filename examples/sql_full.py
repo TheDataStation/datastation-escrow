@@ -16,7 +16,7 @@ def run_custom_query(query, db_name):
 
 @register()
 def predefined_on_DB():
-    print("start running predefined query")
+    print("start running predefined query on tables")
     files = ds_utils.get_all_files()
     db_name = files[0]
     query = "SELECT department, avg(salary) FROM info, payment " \
@@ -26,8 +26,18 @@ def predefined_on_DB():
 
 @register()
 def customized_on_DB(user_query):
-    print("start running user queries")
+    print("start running user queries on tables")
     files = ds_utils.get_all_files()
     db_name = files[0]
     res = run_custom_query(user_query, db_name)
+    return res
+
+@register()
+def predefined_on_view():
+    print("start running predefined query on views")
+    files = ds_utils.get_all_files()
+    db_name = files[0]
+    query = "SELECT department, avg(salary) FROM info_no_cs, payment " \
+            "WHERE info_no_cs.employee_id = payment.employee_id GROUP BY department"
+    res = run_custom_query(query, db_name)
     return res
