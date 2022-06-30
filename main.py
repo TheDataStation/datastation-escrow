@@ -80,13 +80,16 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
     table_paths = ds_config["table_paths"]
     set_checkpoint_table_paths(table_paths)
 
+    context = manager.dict()
+
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,
                            data_station_log,
                            write_ahead_log,
                            key_manager,
                            trust_mode,
-                           interceptor_process, accessible_data_dict, data_accessed_dict)
+                           interceptor_process, accessible_data_dict, data_accessed_dict,
+                           context)
 
     # Lastly, if we are in recover mode, we need to call
     if need_to_recover:

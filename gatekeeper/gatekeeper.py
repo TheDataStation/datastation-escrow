@@ -78,7 +78,9 @@ def test_api():
 def call_actual_api(api_name, connector_name, connector_module_path,
                     accessible_data_dict, accessible_data_paths,
                     accessible_data_key_dict,
-                    api_conn, *args, **kwargs):
+                    api_conn,
+                    context,
+                    *args, **kwargs):
 
     api_pid = os.getpid()
     # print("api process id:", str(api_pid))
@@ -94,7 +96,7 @@ def call_actual_api(api_name, connector_name, connector_module_path,
     for cur_api in list_of_apis:
         if api_name == cur_api.__name__:
             # print("call", api_name)
-            result = cur_api(*args, **kwargs)
+            result = cur_api(context, *args, **kwargs)
             api_conn.send(result)
             api_conn.close()
             break
@@ -107,6 +109,7 @@ def call_api(api,
              key_manager: key_manager.KeyManager,
              accessible_data_dict,
              data_accessed_dict,
+             context,
              *args,
              **kwargs):
 
@@ -206,6 +209,7 @@ def call_api(api,
                                                 accessible_data_dict, accessible_data_paths,
                                                 accessible_data_key_dict,
                                                 api_conn,
+                                                context,
                                                 *args),
                                           kwargs=kwargs)
     api_process.start()

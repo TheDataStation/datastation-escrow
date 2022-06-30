@@ -23,9 +23,7 @@ from crypto import cryptoutils as cu
 from dbservice.database import engine
 from dsapplicationregistration.dsar_core import clear_register
 from dbservice.database_api import clear_checkpoint_table_paths
-from aggregator.aggregator import Aggregator
-from io import BytesIO
-import pandas as pd
+
 
 class ClientAPI:
 
@@ -35,7 +33,8 @@ class ClientAPI:
                  write_ahead_log: WAL,
                  keyManager: KeyManager,
                  trust_mode: str,
-                 interceptor_process, accessible_data_dict, data_accessed_dict):
+                 interceptor_process, accessible_data_dict, data_accessed_dict,
+                 context):
 
         self.storage_manager = storageManager
         self.log = data_station_log
@@ -48,6 +47,8 @@ class ClientAPI:
         self.interceptor_process = interceptor_process
         self.accessible_data_dict = accessible_data_dict
         self.data_accessed_dict = data_accessed_dict
+
+        self.context = context
 
         # The following code decides which data_id we should use when we upload a new data
         # right now we are just incrementing by 1
@@ -120,19 +121,19 @@ class ClientAPI:
         if self.trust_mode == "full_trust":
             response = user_register.create_user(user_id,
                                                  user.user_name,
-                                                 user.password,)
+                                                 user.password, )
         else:
             response = user_register.create_user(user_id,
                                                  user.user_name,
                                                  user.password,
                                                  self.write_ahead_log,
-                                                 self.key_manager,)
+                                                 self.key_manager, )
 
         if response.status == 1:
             return CreateUserResponse(status=response.status, message=response.message)
 
         self.cur_user_id += 1
-        return Response(status=response.status, message=response.message, user_id=user_id)
+        return CreateUserResponse(status=response.status, message=response.message, user_id=user_id)
 
     # log in
 
@@ -191,7 +192,7 @@ class ClientAPI:
         storage_manager_response = self.storage_manager.store(data_name,
                                                               data_id,
                                                               data_in_bytes,
-                                                              data_type,)
+                                                              data_type, )
         if storage_manager_response.status == 1:
             return storage_manager_response
 
@@ -219,94 +220,6 @@ class ClientAPI:
             return Response(status=data_register_response.status,
                             message=data_register_response.message)
 
-        return data_register_response
-
-    def upload_aggregate_dataset(self, schema,
-                       data_name,
-                       data_in_bytes,
-                       data_type,
-                       optimistic,
-                       token,
-                       original_data_size=None):
-
-        # Perform authentication
-        cur_username = user_register.authenticate_user(token)
-
-        # Decide which data_id to use from ClientAPI.cur_data_id field
-        data_id = self.cur_data_id
-
-        # inside the upload function (pass in the flag aggregate = True):
-        # 1. the aggregator will first check if its schema is compatible with the catalog (not needed in crypte)
-        # 2. retrieve the existing aggregated data from storage manager
-        # note: there is always ONLY one data element (besides the catalog) inside storage!!! Because any uploaded
-        # dataset will get combined
-        # 3. combine with the existing data (csv file)
-        # 4. remove the old data from storage
-        # 5. upload the newly combined data to storage (keep the same id, or not)
-        # 6. return data id
-
-        aggregated_data = data_in_bytes
-
-        all_data = database_api.get_all_datasets()
-        if len(all_data) != 0:
-
-            # TODO: for now assume the catalog (metadata file) is always uploaded first before data owners upload their own data
-            existing_data = database_api.get_data_with_max_id().data[0]
-            existing_data_path = existing_data.access_type
-            existing_data_bytes = self.storage_manager.retrieve_data_by_id(data_type, existing_data_path)
-
-            aggregator = Aggregator(schema)
-
-            if aggregator.check_compatible(data_in_bytes):
-
-                aggregated_data = aggregator.aggregate(existing_data_bytes, data_in_bytes)
-
-                res = self.storage_manager.remove(data_name=existing_data.name, data_id=existing_data.id, data_type=existing_data.type)
-                if res.status != 0:
-                    return Response(status=res.status,
-                                    message=res.message)
-            else:
-                # don't upload it since the schema is incompatible
-                return Response(status=1,
-                            message="incompatible schema")
-
-
-        # We first call SM to store the data
-        # Note that SM needs to return access_type (how can the data element be accessed)
-        # so that data_register can register this info
-
-        storage_manager_response = self.storage_manager.store(data_name,
-                                                              data_id,
-                                                              aggregated_data,
-                                                              data_type,)
-        if storage_manager_response.status == 1:
-            return storage_manager_response
-
-        # Storing data is successful. We now call data_register to register this data element in DB
-        access_type = storage_manager_response.access_type
-
-        if self.trust_mode == "full_trust":
-            data_register_response = data_register.register_data_in_DB(data_id,
-                                                                       data_name,
-                                                                       cur_username,
-                                                                       data_type,
-                                                                       access_type,
-                                                                       optimistic)
-        else:
-            data_register_response = data_register.register_data_in_DB(data_id,
-                                                                       data_name,
-                                                                       cur_username,
-                                                                       data_type,
-                                                                       access_type,
-                                                                       optimistic,
-                                                                       self.write_ahead_log,
-                                                                       self.key_manager,
-                                                                       original_data_size)
-        if data_register_response.status != 0:
-            return Response(status=data_register_response.status,
-                            message=data_register_response.message)
-
-        self.cur_data_id += 1
         return data_register_response
 
     # remote data element
@@ -319,12 +232,12 @@ class ClientAPI:
         # First we call data_register to remove the existing dataset from the database
         if self.trust_mode == "full_trust":
             data_register_response = data_register.remove_data(data_name,
-                                                               cur_username,)
+                                                               cur_username, )
         else:
             data_register_response = data_register.remove_data(data_name,
                                                                cur_username,
                                                                self.write_ahead_log,
-                                                               self.key_manager,)
+                                                               self.key_manager, )
         if data_register_response.status != 0:
             return Response(status=data_register_response.status, message=data_register_response.message)
 
@@ -332,7 +245,7 @@ class ClientAPI:
         # Now we remove its actual content from SM
         storage_manager_response = self.storage_manager.remove(data_name,
                                                                data_register_response.data_id,
-                                                               data_register_response.type,)
+                                                               data_register_response.type, )
 
         # If SM removal failed
         if storage_manager_response.status == 1:
@@ -349,12 +262,12 @@ class ClientAPI:
 
         if self.trust_mode == "full_trust":
             response = policy_broker.upload_policy(policy,
-                                                   cur_username,)
+                                                   cur_username, )
         else:
             response = policy_broker.upload_policy(policy,
                                                    cur_username,
                                                    self.write_ahead_log,
-                                                   self.key_manager,)
+                                                   self.key_manager, )
 
         return Response(status=response.status, message=response.message)
 
@@ -374,7 +287,7 @@ class ClientAPI:
             response = policy_broker.bulk_upload_policies(policies,
                                                           cur_username,
                                                           self.write_ahead_log,
-                                                          self.key_manager,)
+                                                          self.key_manager, )
             return response
 
     # delete_policies
@@ -386,12 +299,12 @@ class ClientAPI:
 
         if self.trust_mode == "full_trust":
             response = policy_broker.remove_policy(policy,
-                                                   cur_username,)
+                                                   cur_username, )
         else:
             response = policy_broker.remove_policy(policy,
                                                    cur_username,
                                                    self.write_ahead_log,
-                                                   self.key_manager,)
+                                                   self.key_manager, )
 
         return Response(status=response.status, message=response.message)
 
@@ -429,6 +342,7 @@ class ClientAPI:
                                   self.key_manager,
                                   self.accessible_data_dict,
                                   self.data_accessed_dict,
+                                  self.context,
                                   *args,
                                   **kwargs)
         return res
@@ -455,7 +369,7 @@ class ClientAPI:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
             self.cur_user_id = 1
-        print("User ID to use after recovering DB is: "+str(self.cur_user_id))
+        print("User ID to use after recovering DB is: " + str(self.cur_user_id))
 
         # Step 3: reset self.cur_data_id from DB
         data_id_resp = database_api.get_data_with_max_id()
@@ -494,7 +408,7 @@ class ClientAPI:
         # If there is no error, we call store_manager.retrieve_data_by_id
 
         storage_manager_response = self.storage_manager.retrieve_data_by_id(resp.data[0].type,
-                                                                            resp.data[0].access_type,)
+                                                                            resp.data[0].access_type, )
         if storage_manager_response.status == 1:
             return storage_manager_response
 
@@ -505,7 +419,7 @@ class ClientAPI:
         # 2) no trust mode: we need to decrypt the data, re-encrypt it using caller's symmetric key, then return
         if self.trust_mode == "no_trust":
             # First get caller's id
-            cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
+            cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
             # If the user doesn't exist, something is wrong
             if cur_user.status == -1:
                 print("Something wrong with the current user")
@@ -513,7 +427,7 @@ class ClientAPI:
             cur_user_id = cur_user.data[0].id
 
             # Then get data element's owner id
-            data_owner_response = database_api.get_dataset_owner(Dataset(id=data_id,))
+            data_owner_response = database_api.get_dataset_owner(Dataset(id=data_id, ))
             if data_owner_response.status == -1:
                 return Response(status=1, message="Error retrieving data owner.")
             data_owner_id = data_owner_response.data[0].id
