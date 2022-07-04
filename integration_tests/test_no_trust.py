@@ -230,8 +230,8 @@ if __name__ == '__main__':
 
         # Initialize system from data_station_config and app_connector_config
         # We pass in the flag need_to_recover=True so that db recovery will be performed
-        ds_config = utils.parse_config("data_station_config.yaml")
-        app_config = utils.parse_config("app_connector_config.yaml")
+        ds_config = general_utils.parse_config("data_station_config.yaml")
+        app_config = general_utils.parse_config("app_connector_config.yaml")
 
         client_api = main.initialize_system(ds_config, app_config, need_to_recover=True)
 

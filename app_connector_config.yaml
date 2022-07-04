@@ -1,2 +1,2 @@
-connector_name: "sql_full"
-connector_module_path: "examples/sql_full.py"
+connector_name: "income_no_trust"
+connector_module_path: "examples/income_no_trust.py"

@@ -27,14 +27,6 @@ from fuse import Fuse
 import threading
 from pathlib import Path
 from collections import defaultdict
-
-# import mock_gatekeeper
-# sys.path.append( '.' )
-# import gatekeeper.gatekeeper
-# sys.path.insert(0, str(pathlib.Path(os.getcwd())))
-# print(str(pathlib.Path(os.getcwd()).parent))
-# from gatekeeper import gatekeeper
-# from dbservice.database_api import get_db
 from crypto import cryptoutils
 
 if not hasattr(fuse, '__version__'):
@@ -377,7 +369,7 @@ class Xmp(Fuse):
                         return os.pread(self.fd, length, offset)
 
             def write(self, buf, offset):
-                # print("Interceptor: I am writing " + str(self.file_path))
+                print("Interceptor: I am writing " + str(self.file_path))
 
                 if self.iolock:
                     self.iolock.acquire()
