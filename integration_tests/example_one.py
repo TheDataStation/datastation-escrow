@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     # # Step 5: david calls the API line_count
     # client_api.call_api("line_count", cur_token, "pessimistic")
-    client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 5, 2)
+    client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 5, DE_id=[2])
 
     # # Step 6: checking the auditable log
     # client_api.read_full_log()

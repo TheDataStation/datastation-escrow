@@ -2,7 +2,6 @@ import os
 import pathlib
 import time
 import multiprocessing
-import inspect
 
 from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_names_registered_functions,
@@ -95,16 +94,10 @@ def call_api(api,
 
     data_aware_flag = False
 
-    list_of_apis = get_registered_functions()
-    for cur_api in list_of_apis:
-        if api == cur_api.__name__:
-            if "DE_id" in inspect.getfullargspec(cur_api).args:
-                data_aware_flag = True
-    print(data_aware_flag)
+    if kwargs.__contains__("DE_id"):
+        data_aware_flag = True
 
-    # Initialize an overhead list
-    overhead = []
-    prev_time = time.time()
+    print(data_aware_flag)
 
     # get current user id
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
@@ -135,12 +128,6 @@ def call_api(api,
     # print("all accessible data elements are: ")
     # print(all_accessible_data_id)
 
-    # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
-
     get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
     if get_datasets_by_ids_res.status == -1:
         err_msg = "No accessible data for " + api
@@ -160,12 +147,6 @@ def call_api(api,
         for dataset in get_datasets_by_ids_res.data:
             data_owner_symmetric_key = key_manager.get_agent_symmetric_key(dataset.owner_id)
             accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
-
-    # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
 
     app_config = general_utils.parse_config("app_connector_config.yaml")
     connector_name = app_config["connector_name"]
@@ -194,12 +175,6 @@ def call_api(api,
     # and get the data ids accessed from the list of data paths accessed through the interceptor
     if api_pid in accessible_data_dict.keys():
         del accessible_data_dict[api_pid]
-
-    # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
 
     data_ids_accessed = set()
     if api_pid in data_accessed_dict.keys():
@@ -244,11 +219,6 @@ def call_api(api,
                                                     key_manager,)
         response = Response(status=1, message="Access to illegal data happened. Something went wrong.")
 
-    # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    # print(overhead)
     return response
 
 
