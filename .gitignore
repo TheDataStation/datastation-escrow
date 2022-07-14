@@ -30,6 +30,7 @@ zhiru_chameleon_key.pem
 .DS_Store
 covid_classifier_model.h5
 ml_acc.csv
+demofile.txt
 
 # C extensions
 *.so
