@@ -2,6 +2,7 @@ import os
 import pathlib
 import time
 import multiprocessing
+import inspect
 
 from dsapplicationregistration.dsar_core import (register_connectors,
                                                  get_names_registered_functions,
@@ -89,6 +90,18 @@ def call_api(api,
              *args,
              **kwargs):
 
+    # We first determine whether this is a data-blind function or data-aware function
+    # data-aware function requires an argument called DE_id
+
+    data_aware_flag = False
+
+    list_of_apis = get_registered_functions()
+    for cur_api in list_of_apis:
+        if api == cur_api.__name__:
+            if "DE_id" in inspect.getfullargspec(cur_api).args:
+                data_aware_flag = True
+    print(data_aware_flag)
+
     # Initialize an overhead list
     overhead = []
     prev_time = time.time()
@@ -100,12 +113,6 @@ def call_api(api,
         print("Something wrong with the current user")
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
-
-    # Record time
-    cur_time = time.time()
-    cur_cost = cur_time - prev_time
-    overhead.append(cur_cost)
-    prev_time = cur_time
 
     # look at the accessible data by policy for current (user, api)
     # print(cur_user_id, api)

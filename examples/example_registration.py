@@ -13,7 +13,7 @@ def preprocess():
     # print(pathlib.Path(__file__).parent.resolve())
     # print(os.getcwd())
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
+    ds_config = general_utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
     files = glob.glob(os.path.join(str(mount_path), "**/**/**/*"), recursive=True)
     # print(set(files))

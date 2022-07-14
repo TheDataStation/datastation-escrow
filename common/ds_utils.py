@@ -11,5 +11,6 @@ def get_all_files():
     DE_dir_name = os.listdir(mount_path)
     for i in range(len(DE_dir_name)):
         DE_dir_name[i] = os.path.join(str(mount_path), str(DE_dir_name[i]))
-        files.append(os.path.join(str(DE_dir_name[i]), str(os.listdir(DE_dir_name[i])[0])))
+        if len(os.listdir(DE_dir_name[i])) > 0:
+            files.append(os.path.join(str(DE_dir_name[i]), str(os.listdir(DE_dir_name[i])[0])))
     return files
