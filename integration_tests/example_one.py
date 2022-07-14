@@ -54,13 +54,15 @@ if __name__ == '__main__':
                                             cur_token, )
 
     # Step 3: jerry creates a policy saying that david can discover how many lines his files have
-    # for two files out of the three. He creates another policy saying david can read the first line of the second file.
+    # for DE [1, 3]. He creates another policy saying david can read the first n lines of DE [2, 3]
     policy_one = Policy(user_id=2, api="line_count", data_id=1)
     client_api.upload_policy(policy_one, cur_token)
     policy_two = Policy(user_id=2, api="line_count", data_id=3)
     client_api.upload_policy(policy_two, cur_token)
     policy_three = Policy(user_id=2, api="get_first_n_lines", data_id=2)
     client_api.upload_policy(policy_three, cur_token)
+    policy_four = Policy(user_id=2, api="get_first_n_lines", data_id=3)
+    client_api.upload_policy(policy_four, cur_token)
 
     # Step 4: david logs in and looks at the available apis
     cur_token = client_api.login_user("david", "123456")["access_token"]
@@ -68,12 +70,14 @@ if __name__ == '__main__':
     print("All available APIs are:")
     print(list_of_apis)
 
-    # # Step 5: david calls the API line_count
-    # client_api.call_api("line_count", cur_token, "pessimistic")
-    client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 5, DE_id=[2])
+    # Step 5: david calls the API line_count
+    client_api.call_api("line_count", cur_token, "pessimistic")
 
-    # # Step 6: checking the auditable log
-    # client_api.read_full_log()
+    # Step 6: david calls the API get_first_n_lines
+    client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])
+
+    # Step 7: checking the auditable log
+    client_api.read_full_log()
 
     # Last step: shut down the Data Station
     client_api.shut_down(ds_config)

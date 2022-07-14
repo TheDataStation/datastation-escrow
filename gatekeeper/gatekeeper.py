@@ -93,11 +93,14 @@ def call_api(api,
     # data-aware function requires an argument called DE_id
 
     data_aware_flag = False
+    data_aware_DE = set()
 
     if kwargs.__contains__("DE_id"):
         data_aware_flag = True
+        data_aware_DE = set(kwargs["DE_id"])
 
-    print(data_aware_flag)
+    # print(data_aware_flag)
+    # print(data_aware_DE)
 
     # get current user id
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
@@ -111,6 +114,13 @@ def call_api(api,
     # print(cur_user_id, api)
     accessible_data_policy = get_accessible_data(cur_user_id, api)
 
+    # Note: In data-aware-functions, if accessible_data_policy does not include data_aware_DE,
+    # we end the execution immediately
+    if not data_aware_DE.issubset(set(accessible_data_policy)):
+        err_msg = "Attempted to access data not allowed by policies. Execution stops."
+        print(err_msg)
+        return Response(status=1, message=err_msg)
+
     # look at all optimistic data from the DB
     optimistic_data = database_api.get_all_optimistic_datasets()
     accessible_data_optimistic = []
@@ -123,8 +133,11 @@ def call_api(api,
     if exec_mode == "optimistic":
         all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
     # In pessimistic execution mode, we only include data that are allowed by policies
-    else:
+    elif not data_aware_flag:
         all_accessible_data_id = set(accessible_data_policy)
+    # Lastly, in data-aware execution, all_accessible_data_id should be data_aware_DE
+    else:
+        all_accessible_data_id = data_aware_DE
     # print("all accessible data elements are: ")
     # print(all_accessible_data_id)
 
