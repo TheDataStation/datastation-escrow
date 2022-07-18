@@ -9,6 +9,7 @@ from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
 from crypto import cryptoutils as cu
+from crypto import key_manager
 
 if __name__ == '__main__':
 
@@ -135,6 +136,8 @@ if __name__ == '__main__':
     # Use token for user0
     cur_token = client_api.login_user("user0", "string")["access_token"]
     res_model = client_api.call_api("train_income_model", cur_token, "optimistic")
+    res_model = cu.from_bytes(cu.decrypt_data_with_symmetric_key(res_model,
+                                                                 client_api.key_manager.get_agent_symmetric_key(1)))
     # print(res_model)
     # print("Model returned is: ")
     # print(res_model.coef_, res_model.intercept_)

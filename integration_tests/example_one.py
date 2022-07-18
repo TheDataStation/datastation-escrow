@@ -71,13 +71,15 @@ if __name__ == '__main__':
     print(list_of_apis)
 
     # Step 5: david calls the API line_count
-    client_api.call_api("line_count", cur_token, "pessimistic")
+    line_count_res = client_api.call_api("line_count", cur_token, "pessimistic")
+    print(line_count_res)
 
     # Step 6: david calls the API get_first_n_lines
-    client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])
+    first_line_res = client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])
+    print(first_line_res)
 
-    # # Step 7: checking the auditable log
-    # client_api.read_full_log()
+    # Step 7: checking the auditable log
+    client_api.read_full_log()
 
     # Last step: shut down the Data Station
     client_api.shut_down(ds_config)

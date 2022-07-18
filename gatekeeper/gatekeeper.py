@@ -15,7 +15,7 @@ from common.pydantic_models.user import User
 from common.pydantic_models.response import Response
 from common import general_utils
 from crypto import key_manager
-
+from crypto import cryptoutils as cu
 
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
@@ -90,7 +90,7 @@ def call_api(api,
              *args,
              **kwargs):
 
-    print(trust_mode)
+    # print(trust_mode)
 
     # We first determine whether this is a data-blind function or data-aware function
     # data-aware function requires an argument called DE_id
@@ -105,7 +105,7 @@ def call_api(api,
     # print(data_aware_flag)
     # print(data_aware_DE)
 
-    # get current user id
+    # get caller's UID
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
@@ -214,6 +214,11 @@ def call_api(api,
                                                  api,
                                                  data_ids_accessed,
                                                  key_manager,)
+        # In this case, we can return the result to caller.
+        # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
+        if trust_mode == "no_trust":
+            caller_symmetric_key = key_manager.get_agent_symmetric_key(cur_user_id)
+            api_result = cu.encrypt_data_with_symmetric_key(cu.to_bytes(api_result), caller_symmetric_key)
         response = Response(status=0, message=api_result)
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         # print("Some access to optimistic data not allowed by policy.")
