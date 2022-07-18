@@ -82,12 +82,15 @@ def call_actual_api(api_name,
 def call_api(api,
              cur_username,
              exec_mode,
+             trust_mode,
              data_station_log,
              key_manager: key_manager.KeyManager,
              accessible_data_dict,
              data_accessed_dict,
              *args,
              **kwargs):
+
+    print(trust_mode)
 
     # We first determine whether this is a data-blind function or data-aware function
     # data-aware function requires an argument called DE_id
@@ -189,6 +192,7 @@ def call_api(api,
     if api_pid in accessible_data_dict.keys():
         del accessible_data_dict[api_pid]
 
+    # Get the IDs of the DEs that are actually accessed
     data_ids_accessed = set()
     if api_pid in data_accessed_dict.keys():
         cur_data_accessed = data_accessed_dict[api_pid].copy()
@@ -210,7 +214,7 @@ def call_api(api,
                                                  api,
                                                  data_ids_accessed,
                                                  key_manager,)
-        response = api_result
+        response = Response(status=0, message=api_result)
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         # print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch

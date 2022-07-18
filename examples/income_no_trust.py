@@ -44,8 +44,8 @@ def train_income_model():
     income_model.fit(Xtrains, ytrains)
     print(time.time()-prev_time)
 
-    f = open("demofile.txt", "w")
-    f.write("Writing new content!")
-    f.close()
+    # f = open("demofile.txt", "w")
+    # f.write("Writing new content!")
+    # f.close()
 
     return income_model

@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Any
 
 # A general response type
 from typing import List
@@ -6,7 +7,7 @@ from typing import List
 
 class Response(BaseModel):
     status: int
-    message: str
+    message: Any
 
 class UploadUserResponse(Response):
     user_id: int

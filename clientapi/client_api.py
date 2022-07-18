@@ -307,16 +307,25 @@ class ClientAPI:
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
 
+        # Get caller's UID
+        cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+        if cur_user.status == -1:
+            return Response(status=1, message="Something wrong with the current user")
+        cur_user_id = cur_user.data[0].id
+        print(cur_user_id)
+
         res = gatekeeper.call_api(api,
                                   cur_username,
                                   exec_mode,
+                                  self.trust_mode,
                                   self.log,
                                   self.key_manager,
                                   self.accessible_data_dict,
                                   self.data_accessed_dict,
                                   *args,
                                   **kwargs)
-        return res
+        print(res.message)
+        return res.message
 
     # print out the contents of the log
 
