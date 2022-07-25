@@ -61,7 +61,7 @@ class ClientAPI:
         # print("Starting user id should be:")
         # print(self.cur_user_id)
 
-        # The following field decides which data_id we should use when we upload a new data
+        # The following field decides which data_id we should use when we upload a new DE
         # Right now we are just incrementing by 1
         data_id_resp = database_api.get_data_with_max_id()
         if data_id_resp.status == 1:
@@ -70,6 +70,9 @@ class ClientAPI:
             self.cur_data_id = 1
         # print("Starting data id should be:")
         # print(self.cur_data_id)
+
+        # The following fields decides which staging_data_id we should use when we upload a new staging DE
+        self.cur_staging_data_id = 1
 
     def shut_down(self, ds_config):
         # print("shut down...")
@@ -346,9 +349,29 @@ class ClientAPI:
                 caller_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_user_id)
                 api_result = cu.encrypt_data_with_symmetric_key(cu.to_bytes(api_result), caller_symmetric_key)
 
-            print(api_result)
+            # print(api_result)
 
             # Call staging storage to store the bytes
+
+            # Decide which data_id to use from ClientAPI.cur_data_id field
+            staging_data_id = self.cur_staging_data_id
+            self.cur_staging_data_id += 1
+
+            staging_storage_response = self.staging_storage.store(staging_data_id,
+                                                                  api_result)
+            if staging_storage_response.status == 1:
+                return staging_storage_response
+
+            # Storing into staging storage is successful.
+            # We now call data_register to register this staging DE in DB
+
+            if self.trust_mode == "full_trust":
+                data_register_response = data_register.register_data_in_DB(data_id,
+                                                                           data_name,
+                                                                           cur_username,
+                                                                           data_type,
+                                                                           access_type,
+                                                                           optimistic)
 
             return res.message
         else:
