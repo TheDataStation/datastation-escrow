@@ -228,6 +228,9 @@ def call_api(api,
                                                     data_ids_accessed,
                                                     set(accessible_data_policy),
                                                     key_manager,)
+        # TODO: we need to put api_result to staging storage, so that they can be released later after getting policy
+        print(api_result)
+
         response = Response(status=1, message="Some access to optimistic data not allowed by policy.")
     else:
         # TODO: illegal access can still happen since interceptor does not block access

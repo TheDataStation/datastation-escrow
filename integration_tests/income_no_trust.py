@@ -136,6 +136,7 @@ if __name__ == '__main__':
     # Use token for user0
     cur_token = client_api.login_user("user0", "string")["access_token"]
     res_model = client_api.call_api("train_income_model", cur_token, "optimistic")
+    # Decrypte the result using caller's own symmetric key
     res_model = cu.from_bytes(cu.decrypt_data_with_symmetric_key(res_model,
                                                                  client_api.key_manager.get_agent_symmetric_key(1)))
     # print(res_model)

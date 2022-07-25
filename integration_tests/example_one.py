@@ -39,6 +39,7 @@ if __name__ == '__main__':
     client_api.create_user(User(user_name="david", password="123456"))
 
     # Step 2: Jerry logs in and uploads three datasets
+    # He uploads DE1 and DE3 in sealed mode, and uploads DE2 in enclave mode.
     cur_token = client_api.login_user("jerry", "string")["access_token"]
     for cur_num in range(3):
         cur_file_index = (cur_num % 6) + 1
@@ -46,6 +47,8 @@ if __name__ == '__main__':
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic_flag = False
+        if cur_num == 1:
+            cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
         cur_res = client_api.upload_dataset(name_to_upload,
                                             cur_file_bytes,
@@ -70,8 +73,8 @@ if __name__ == '__main__':
     print("All available APIs are:")
     print(list_of_apis)
 
-    # Step 5: david calls the API line_count
-    line_count_res = client_api.call_api("line_count", cur_token, "pessimistic")
+    # Step 5: david calls the API line_count. He runs it in optimistic mode.
+    line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
     print(line_count_res)
 
     # Step 6: david calls the API get_first_n_lines
