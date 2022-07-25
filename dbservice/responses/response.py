@@ -4,7 +4,7 @@ from common.pydantic_models.dataset import Dataset
 from common.pydantic_models.api import API
 from common.pydantic_models.api_dependency import APIDependency
 from common.pydantic_models.policy import Policy
-from common.pydantic_models.derived import Derived
+from common.pydantic_models.staged import Staged
 from common.pydantic_models.provenance import Provenance
 from typing import List
 
@@ -30,8 +30,8 @@ class APIDependencyResponse(Response):
 class PolicyResponse(Response):
     data: List[Policy]
 
-class DerivedResponse(Response):
-    data: List[Derived]
+class StagedResponse(Response):
+    data: List[Staged]
 
 class ProvenanceResponse(Response):
     data: List[Provenance]

@@ -339,7 +339,8 @@ class ClientAPI:
             return api_result
         # In this case we need to put result into staging storage, so that they can be released later
         elif res.status == -1:
-            api_result = res.result
+            api_result = res.result[0]
+            data_ids_accessed = res.result[1]
             # We first convert api_result to bytes because we need to store it in staging storage
             # In full_trust mode, we convert it to bytes directly
             if self.trust_mode == "full_trust":
@@ -350,6 +351,7 @@ class ClientAPI:
                 api_result = cu.encrypt_data_with_symmetric_key(cu.to_bytes(api_result), caller_symmetric_key)
 
             # print(api_result)
+            # print(data_ids_accessed)
 
             # Call staging storage to store the bytes
 
@@ -366,13 +368,9 @@ class ClientAPI:
             # We now call data_register to register this staging DE in DB
 
             if self.trust_mode == "full_trust":
-                data_register_response = data_register.register_data_in_DB(data_id,
-                                                                           data_name,
-                                                                           cur_username,
-                                                                           data_type,
-                                                                           access_type,
-                                                                           optimistic)
-
+                data_register_response = data_register.register_staged_in_DB(staging_data_id,
+                                                                             cur_user_id,
+                                                                             api,)
             return res.message
         else:
             return res.message

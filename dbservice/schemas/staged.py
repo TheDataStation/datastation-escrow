@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey
 from ..database import Base
 
 
-class Derived(Base):
+class Staged(Base):
     __tablename__ = "Derived"
 
     id = Column(Integer, primary_key=True)

@@ -2,7 +2,7 @@ from .database import engine, Base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import event
 
-from .crud import user_repo, dataset_repo, api_repo, api_dependency_repo, policy_repo, derived_repo, provenance_repo
+from .crud import user_repo, dataset_repo, api_repo, api_dependency_repo, policy_repo, staged_repo, provenance_repo
 from .responses import response
 from contextlib import contextmanager
 from dbservice.checkpoint.check_point import check_point
@@ -230,13 +230,13 @@ def bulk_upload_policies(policies):
         if res is not None:
             return 0
 
-def create_derived(request):
+def create_staged(request):
     with get_db() as session:
-        derived = derived_repo.create_derived(session, request)
-        if derived:
-            return response.DerivedResponse(status=1, msg="success", data=[derived])
+        staged = staged_repo.create_staged(session, request)
+        if staged:
+            return response.StagedResponse(status=1, msg="success", data=[staged])
         else:
-            return response.DerivedResponse(status=-1, msg="fail", data=[])
+            return response.StagedResponse(status=-1, msg="fail", data=[])
 
 def create_provenance(request):
     with get_db() as session:

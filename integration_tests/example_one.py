@@ -70,17 +70,23 @@ if __name__ == '__main__':
 
     # Step 4: david logs in and looks at the available apis
     cur_token = client_api.login_user("david", "123456")["access_token"]
-    list_of_apis = client_api.get_all_apis(cur_token)
-    print("All available APIs are:")
-    print(list_of_apis)
+    # list_of_apis = client_api.get_all_apis(cur_token)
+    # print("All available APIs are:")
+    # print(list_of_apis)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
     line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
-    print(line_count_res)
+    # print(line_count_res)
 
-    # Step 6: david calls the API get_first_n_lines
-    first_line_res = client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])
-    print(first_line_res)
+    line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
+    # print(line_count_res)
+
+    line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
+    # print(line_count_res)
+
+    # # Step 6: david calls the API get_first_n_lines
+    # first_line_res = client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])
+    # print(first_line_res)
 
     # # Step 7: checking the auditable log
     # client_api.read_full_log()

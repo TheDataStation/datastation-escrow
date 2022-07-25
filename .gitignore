@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 SM_storage/
+Staging_storage/
 SM_storage_mount/
 .idea/
 Working/

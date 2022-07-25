@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class Derived(BaseModel):
+class Staged(BaseModel):
     id: int
     caller_id: int
     api: str
@@ -8,7 +8,7 @@ class Derived(BaseModel):
     class Config:
         orm_mode = True
 
-class DerivedCreate(BaseModel):
+class StagedCreate(BaseModel):
     id: int
     caller_id: int  # pk user.id
     api: str  # pk apis.api_name

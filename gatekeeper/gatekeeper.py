@@ -220,7 +220,7 @@ def call_api(api,
                                                     key_manager,)
         response = APIExecResponse(status=-1,
                                    message="Some access to optimistic data not allowed by policy.",
-                                   result=api_result,)
+                                   result=[api_result, data_ids_accessed],)
     else:
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)
