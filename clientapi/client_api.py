@@ -364,16 +364,22 @@ class ClientAPI:
             if staging_storage_response.status == 1:
                 return staging_storage_response
 
-            # Storing into staging storage is successful.
-            # We now call data_register to register this staging DE in DB
+            # Storing into staging storage is successful. We now call data_register to register this staging DE in DB.
+            # We need to store to both the staged table and the provenance table.
 
+            # Full_trust mode
             if self.trust_mode == "full_trust":
-                data_register_response = data_register.register_staged_in_DB(staging_data_id,
-                                                                             cur_user_id,
-                                                                             api,)
-            if data_register_response.status != 0:
-                return Response(status=data_register_response.status,
-                                message=data_register_response.message)
+                # Staged table
+                data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
+                                                                                    cur_user_id,
+                                                                                    api,)
+                # Provenance table
+            if data_register_response_staged.status != 0:
+                return Response(status=data_register_response_staged.status,
+                                message=data_register_response_staged.message)
+
+            # TODO: add in no_trust mode after provenance is done
+
             return res.message
         else:
             return res.message
@@ -423,55 +429,6 @@ class ClientAPI:
         with open("symmetric_keys.pkl", "rb") as keys:
             agents_symmetric_key = pickle.load(keys)
             self.key_manager.agents_symmetric_key = agents_symmetric_key
-
-    # For testing purposes: retrieve a file from the storage
-
-    def retrieve_data_by_id(self, data_id, token):
-
-        # Perform authentication
-        cur_username = user_register.authenticate_user(token)
-
-        # First get the data element's info from DB
-        resp = database_api.get_dataset_by_id(data_id)
-        if resp.status != 1:
-            return resp
-
-        # If there is no error, we call store_manager.retrieve_data_by_id
-
-        storage_manager_response = self.storage_manager.retrieve_data_by_id(resp.data[0].type,
-                                                                            resp.data[0].access_type,)
-        if storage_manager_response.status == 1:
-            return storage_manager_response
-
-        data_to_return = storage_manager_response.data
-
-        # There are two cases here
-        # 1) full trust mode: the data is not encrypted, we can return it directly
-        # 2) no trust mode: we need to decrypt the data, re-encrypt it using caller's symmetric key, then return
-        if self.trust_mode == "no_trust":
-            # First get caller's id
-            cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
-            # If the user doesn't exist, something is wrong
-            if cur_user.status == -1:
-                print("Something wrong with the current user")
-                return Response(status=1, message="Something wrong with the current user")
-            cur_user_id = cur_user.data[0].id
-
-            # Then get data element's owner id
-            data_owner_response = database_api.get_dataset_owner(Dataset(id=data_id,))
-            if data_owner_response.status == -1:
-                return Response(status=1, message="Error retrieving data owner.")
-            data_owner_id = data_owner_response.data[0].id
-
-            # We get the owner's symmetric key and decrypt the file
-            old_sym_key = self.key_manager.agents_symmetric_key[data_owner_id]
-            plain_data = cu.decrypt_data_with_symmetric_key(data_to_return, old_sym_key)
-
-            # We get the caller's symmetric key and encrypt the file
-            new_sym_key = self.key_manager.agents_symmetric_key[cur_user_id]
-            data_to_return = cu.encrypt_data_with_symmetric_key(plain_data, new_sym_key)
-
-        return data_to_return
 
 
 if __name__ == "__main__":

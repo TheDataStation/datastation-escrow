@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
     line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
-    # print(line_count_res)
+    print(line_count_res)
 
     line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
     # print(line_count_res)
