@@ -309,19 +309,50 @@ class ClientAPI:
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
+        # get caller's UID
+        cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+        # If the user doesn't exist, something is wrong
+        if cur_user.status == -1:
+            print("Something wrong with the current user")
+            return Response(status=1, message="Something wrong with the current user")
+        cur_user_id = cur_user.data[0].id
 
         res = gatekeeper.call_api(api,
-                                  cur_username,
+                                  cur_user_id,
                                   exec_mode,
-                                  self.trust_mode,
                                   self.log,
                                   self.key_manager,
                                   self.accessible_data_dict,
                                   self.data_accessed_dict,
                                   *args,
                                   **kwargs)
-        # print(res.message)
-        return res.message
+        # Only when the returned status is 0 can we release the result
+        if res.status == 0:
+            api_result = res.result
+            # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
+            if self.trust_mode == "no_trust":
+                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_user_id)
+                api_result = cu.encrypt_data_with_symmetric_key(cu.to_bytes(api_result), caller_symmetric_key)
+            return api_result
+        # In this case we need to put result into staging storage, so that they can be released later
+        elif res.status == -1:
+            api_result = res.result
+            # We first convert api_result to bytes because we need to store it in staging storage
+            # In full_trust mode, we convert it to bytes directly
+            if self.trust_mode == "full_trust":
+                api_result = cu.to_bytes(api_result)
+            # In no_trust mode, we encrypt it using caller's symmetric key
+            else:
+                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_user_id)
+                api_result = cu.encrypt_data_with_symmetric_key(cu.to_bytes(api_result), caller_symmetric_key)
+
+            print(api_result)
+
+            # Call staging storage to store the bytes
+
+            return res.message
+        else:
+            return res.message
 
     # print out the contents of the log
 

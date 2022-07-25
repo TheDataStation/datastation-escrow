@@ -12,7 +12,7 @@ from policybroker import policy_broker
 from common.pydantic_models.api import API
 from common.pydantic_models.api_dependency import APIDependency
 from common.pydantic_models.user import User
-from common.pydantic_models.response import Response
+from common.pydantic_models.response import Response, APIExecResponse
 from common import general_utils
 from crypto import key_manager
 from crypto import cryptoutils as cu
@@ -80,9 +80,8 @@ def call_actual_api(api_name,
 
 # We add times to the following function to record the overheads
 def call_api(api,
-             cur_username,
+             cur_user_id,
              exec_mode,
-             trust_mode,
              data_station_log,
              key_manager: key_manager.KeyManager,
              accessible_data_dict,
@@ -104,14 +103,6 @@ def call_api(api,
 
     # print(data_aware_flag)
     # print(data_aware_DE)
-
-    # get caller's UID
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
-    # If the user doesn't exist, something is wrong
-    if cur_user.status == -1:
-        print("Something wrong with the current user")
-        return Response(status=1, message="Something wrong with the current user")
-    cur_user_id = cur_user.data[0].id
 
     # look at the accessible data by policy for current (user, api)
     # print(cur_user_id, api)
@@ -215,11 +206,10 @@ def call_api(api,
                                                  data_ids_accessed,
                                                  key_manager,)
         # In this case, we can return the result to caller.
-        # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
-        if trust_mode == "no_trust":
-            caller_symmetric_key = key_manager.get_agent_symmetric_key(cur_user_id)
-            api_result = cu.encrypt_data_with_symmetric_key(cu.to_bytes(api_result), caller_symmetric_key)
-        response = Response(status=0, message=api_result)
+        response = APIExecResponse(status=0,
+                                   message="API result can be released",
+                                   result=api_result,
+                                   )
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
         # print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
@@ -228,10 +218,9 @@ def call_api(api,
                                                     data_ids_accessed,
                                                     set(accessible_data_policy),
                                                     key_manager,)
-        # TODO: we need to put api_result to staging storage, so that they can be released later after getting policy
-        print(api_result)
-
-        response = Response(status=1, message="Some access to optimistic data not allowed by policy.")
+        response = APIExecResponse(status=-1,
+                                   message="Some access to optimistic data not allowed by policy.",
+                                   result=api_result,)
     else:
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)

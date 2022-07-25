@@ -7,7 +7,11 @@ from typing import List
 
 class Response(BaseModel):
     status: int
-    message: Any
+    message: str
+
+# Response type for API execution
+class APIExecResponse(Response):
+    result: Any
 
 class UploadUserResponse(Response):
     user_id: int
