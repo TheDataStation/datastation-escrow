@@ -15,6 +15,7 @@ from dataregister import data_register
 from policybroker import policy_broker
 from gatekeeper import gatekeeper
 from storagemanager.storage_manager import StorageManager
+from stagingstorage.staging_storage import StagingStorage
 from verifiability.log import Log
 import pathlib
 from writeaheadlog.write_ahead_log import WAL
@@ -28,6 +29,7 @@ class ClientAPI:
 
     def __init__(self,
                  storageManager: StorageManager,
+                 stagingStorage: StagingStorage,
                  data_station_log: Log,
                  write_ahead_log: WAL,
                  keyManager: KeyManager,
@@ -38,6 +40,7 @@ class ClientAPI:
                  ):
 
         self.storage_manager = storageManager
+        self.staging_storage = stagingStorage
         self.log = data_station_log
         self.write_ahead_log = write_ahead_log
         self.key_manager = keyManager

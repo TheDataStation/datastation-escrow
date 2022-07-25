@@ -78,8 +78,8 @@ if __name__ == '__main__':
     first_line_res = client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])
     print(first_line_res)
 
-    # Step 7: checking the auditable log
-    client_api.read_full_log()
+    # # Step 7: checking the auditable log
+    # client_api.read_full_log()
 
     # Last step: shut down the Data Station
     client_api.shut_down(ds_config)

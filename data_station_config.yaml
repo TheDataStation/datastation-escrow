@@ -1,5 +1,6 @@
 front_end: "fastapi"
 storage_path: "./SM_storage/"
+staging_path: "./Staging_storage/"
 log_in_memory: False
 log_path: "ds_log.pkl"
 wal_path: "wal.pkl"

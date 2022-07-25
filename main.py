@@ -2,6 +2,7 @@ import os
 import sys
 from dbservice.database_api import set_checkpoint_table_paths, recover_db_from_snapshots
 from storagemanager.storage_manager import StorageManager
+from stagingstorage.staging_storage import StagingStorage
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
@@ -23,6 +24,10 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
     # set up an instance of the storage_manager
     storage_path = ds_config["storage_path"]
     storage_manager = StorageManager(storage_path)
+
+    # set up an instance of the staging_storage
+    staging_path = ds_config["staging_path"]
+    staging_storage = StagingStorage(staging_path)
 
     # set up an instance of the log
     log_in_memory_flag = ds_config["log_in_memory"]
@@ -76,6 +81,7 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
 
     # lastly, set up an instance of the client_api
     client_api = ClientAPI(storage_manager,
+                           staging_storage,
                            data_station_log,
                            write_ahead_log,
                            key_manager,
