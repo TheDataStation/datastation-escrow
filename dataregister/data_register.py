@@ -111,6 +111,13 @@ def remove_data(data_name,
 def register_staged_in_DB(data_id,
                           caller_id,
                           api):
-    print(data_id)
-    print(caller_id)
-    print(api)
+    # TODO: we will add in WAL and CP later
+
+    new_staged = Staged(id=data_id,
+                        caller_id=caller_id,
+                        api=api,)
+    database_service_response = database_api.create_staged(new_staged)
+    if database_service_response.status == -1:
+        return Response(status=1, message="internal database error")
+
+    return Response(status=0, message="success")

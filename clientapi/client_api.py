@@ -371,6 +371,9 @@ class ClientAPI:
                 data_register_response = data_register.register_staged_in_DB(staging_data_id,
                                                                              cur_user_id,
                                                                              api,)
+            if data_register_response.status != 0:
+                return Response(status=data_register_response.status,
+                                message=data_register_response.message)
             return res.message
         else:
             return res.message
