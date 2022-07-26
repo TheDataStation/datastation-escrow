@@ -87,7 +87,7 @@ class CheckPoint:
 
     def recover_db_from_snapshots(self, key_manager):
 
-        # Pick a symmetric key to encrypt the tables
+        # Pick the symmetric key used to encrypt the tables
         sym_key_to_use = cu.get_symmetric_key_from_bytes(key_manager.agents_symmetric_key[1])
 
         # We first decrypt all the tables and look at the list of objects
@@ -127,6 +127,18 @@ class CheckPoint:
         # print(policy_content_list)
 
         database_api.bulk_upload_policies(policy_content_list)
+
+        # Staged table
+        with open(self.table_paths[3], "rb") as f:
+            staged_res = pickle.load(f)
+
+        staged_content_cipher = staged_res.content
+        staged_content_plain = sym_key_to_use.decrypt(staged_content_cipher)
+        staged_content_list = pickle.loads(staged_content_plain)
+
+        # print(staged_content_list)
+
+        database_api.recover_staged(staged_content_list)
 
     def clear(self):
         self.table_paths = []

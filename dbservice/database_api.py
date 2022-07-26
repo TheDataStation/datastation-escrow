@@ -246,6 +246,12 @@ def get_all_staged():
         else:
             return response.StagedResponse(status=-1, msg="no existing staged DEs", data=[])
 
+def recover_staged(staged):
+    with get_db() as session:
+        res = staged_repo.recover_staged(session, staged)
+        if res is not None:
+            return 0
+
 def create_provenance(request):
     with get_db() as session:
         provenance = provenance_repo.create_provenance(session, request)

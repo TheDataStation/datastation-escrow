@@ -22,3 +22,18 @@ def create_staged(db: Session, staged: StagedCreate):
 def get_all_staged(db: Session):
     staged = db.query(Staged).all()
     return staged
+
+# The following function recovers the staged table from a list of Staged
+def recover_staged(db: Session, list_of_staged):
+    staged_to_add = []
+    for staged in list_of_staged:
+        cur_staged = Staged(id=staged.id, caller_id=staged.caller_id, api=staged.api)
+        staged_to_add.append(cur_staged)
+    try:
+        db.add_all(staged_to_add)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+
+    return "success"
