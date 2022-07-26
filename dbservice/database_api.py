@@ -268,6 +268,12 @@ def get_all_provenances():
         else:
             return response.ProvenanceResponse(status=-1, msg="no existing provenances", data=[])
 
+def recover_provenance(provenances):
+    with get_db() as session:
+        res = provenance_repo.recover_provenance(session, provenances)
+        if res is not None:
+            return 0
+
 def bulk_create_provenance(child_id, provenances):
     with get_db() as session:
         res = provenance_repo.bulk_create_provenance(session, child_id, provenances)

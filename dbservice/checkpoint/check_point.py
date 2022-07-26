@@ -140,6 +140,18 @@ class CheckPoint:
 
         database_api.recover_staged(staged_content_list)
 
+        # Provenance table
+        with open(self.table_paths[4], "rb") as f:
+            provenance_res = pickle.load(f)
+
+        provenance_content_cipher = provenance_res.content
+        provenance_content_plain = sym_key_to_use.decrypt(provenance_content_cipher)
+        provenance_content_list = pickle.loads(provenance_content_plain)
+
+        # print(provenance_content_list)
+
+        database_api.recover_provenance(provenance_content_list)
+
     def clear(self):
         self.table_paths = []
 

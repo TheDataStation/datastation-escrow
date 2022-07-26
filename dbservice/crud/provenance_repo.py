@@ -35,3 +35,18 @@ def bulk_create_provenance(db: Session, child_id, provenances):
 def get_all_provenances(db: Session):
     provenances = db.query(Provenance).all()
     return provenances
+
+# The following function recovers the provenance table from a list of provenances
+def recover_provenance(db: Session, provenances):
+    provenance_to_add = []
+    for provenance in provenances:
+        cur_provenance = Provenance(child_id=provenance.child_id, parent_id=provenance.parent_id)
+        provenance_to_add.append(cur_provenance)
+    try:
+        db.add_all(provenance_to_add)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+
+    return "success"
