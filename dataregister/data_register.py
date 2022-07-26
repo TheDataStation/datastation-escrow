@@ -121,3 +121,12 @@ def register_staged_in_DB(data_id,
         return Response(status=1, message="internal database error")
 
     return Response(status=0, message="success")
+
+def register_provenance_in_DB(data_id,
+                              data_ids_accessed):
+    # TODO: we will add in WAL and CP later
+    database_service_response = database_api.bulk_create_provenance(data_id, list(data_ids_accessed))
+    if database_service_response == 1:
+        return Response(status=1, message="internal database error")
+
+    return Response(status=0, message="success")

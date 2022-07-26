@@ -246,6 +246,14 @@ def create_provenance(request):
         else:
             return response.ProvenanceResponse(status=-1, msg="fail", data=[])
 
+def bulk_create_provenance(child_id, provenances):
+    with get_db() as session:
+        res = provenance_repo.bulk_create_provenance(session, child_id, provenances)
+        if res is not None:
+            return 0
+        else:
+            return 1
+
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)
 

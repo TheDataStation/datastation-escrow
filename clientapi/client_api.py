@@ -374,11 +374,13 @@ class ClientAPI:
                                                                                     cur_user_id,
                                                                                     api,)
                 # Provenance table
-            if data_register_response_staged.status != 0:
+                data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
+                                                                                            data_ids_accessed,)
+            if data_register_response_staged.status != 0 or data_register_response_provenance.status != 0:
                 return Response(status=data_register_response_staged.status,
-                                message=data_register_response_staged.message)
+                                message="internal database error")
 
-            # TODO: add in no_trust mode after provenance is done
+            # TODO: add in no_trust mode
 
             return res.message
         else:
