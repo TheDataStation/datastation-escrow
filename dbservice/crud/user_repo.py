@@ -35,7 +35,6 @@ def get_user_with_max_id(db: Session):
 
 
 def get_all_users(db: Session):
-    # users = db.query(User).limit(limit).all()
     users = db.query(User).all()
     return users
 

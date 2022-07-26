@@ -238,6 +238,14 @@ def create_staged(request):
         else:
             return response.StagedResponse(status=-1, msg="fail", data=[])
 
+def get_all_staged():
+    with get_db() as session:
+        staged = staged_repo.get_all_staged(session)
+        if len(staged):
+            return response.StagedResponse(status=1, msg="success", data=staged)
+        else:
+            return response.StagedResponse(status=-1, msg="no existing staged DEs", data=[])
+
 def create_provenance(request):
     with get_db() as session:
         provenance = provenance_repo.create_provenance(session, request)
@@ -245,6 +253,14 @@ def create_provenance(request):
             return response.ProvenanceResponse(status=1, msg="success", data=[provenance])
         else:
             return response.ProvenanceResponse(status=-1, msg="fail", data=[])
+
+def get_all_provenances():
+    with get_db() as session:
+        provenances = provenance_repo.get_all_provenances(session)
+        if len(provenances):
+            return response.ProvenanceResponse(status=1, msg="success", data=provenances)
+        else:
+            return response.ProvenanceResponse(status=-1, msg="no existing provenances", data=[])
 
 def bulk_create_provenance(child_id, provenances):
     with get_db() as session:

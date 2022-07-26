@@ -18,3 +18,7 @@ def create_staged(db: Session, staged: StagedCreate):
         db.rollback()
         return None
     return db_staged
+
+def get_all_staged(db: Session):
+    staged = db.query(Staged).all()
+    return staged

@@ -31,3 +31,7 @@ def bulk_create_provenance(db: Session, child_id, provenances):
         db.rollback()
         return None
     return "success"
+
+def get_all_provenances(db: Session):
+    provenances = db.query(Provenance).all()
+    return provenances
