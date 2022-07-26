@@ -44,6 +44,7 @@ def register_data_in_DB(data_id,
                     + ",type='" + data_type \
                     + "',access_type='" + access_type \
                     + "',optimistic=" + str(optimistic) \
+                    + "',original_data_size=" + str(original_data_size) \
                     + "))"
         # If write_ahead_log is not None, key_manager also will not be None
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
@@ -110,9 +111,18 @@ def remove_data(data_name,
 
 def register_staged_in_DB(data_id,
                           caller_id,
-                          api):
-    # TODO: we will add in WAL and CP later
+                          api,
+                          write_ahead_log=None,
+                          key_manager=None,):
+    wal_entry = "database_api.create_staged(Staged(id=" + str(data_id) \
+                + ",caller_id=" + str(caller_id) \
+                + ",api='" + api \
+                + "'))"
+    # If in no_trust mode, we have to record this entry
+    if write_ahead_log is not None:
+        write_ahead_log.log(caller_id, wal_entry, key_manager, )
 
+    # Start writing the entry to DB
     new_staged = Staged(id=data_id,
                         caller_id=caller_id,
                         api=api,)
@@ -123,8 +133,17 @@ def register_staged_in_DB(data_id,
     return Response(status=0, message="success")
 
 def register_provenance_in_DB(data_id,
-                              data_ids_accessed):
-    # TODO: we will add in WAL and CP later
+                              data_ids_accessed,
+                              cur_user_id=None,
+                              write_ahead_log=None,
+                              key_manager=None,):
+    wal_entry = "database_api.bulk_create_provenance(" + str(data_id) \
+                + ", " + str(list(data_ids_accessed)) \
+                + ")"
+    # If in no_trust mode, we have to record this entry
+    if write_ahead_log is not None:
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+
     database_service_response = database_api.bulk_create_provenance(data_id, list(data_ids_accessed))
     if database_service_response == 1:
         return Response(status=1, message="internal database error")

@@ -79,10 +79,7 @@ if __name__ == '__main__':
     print(line_count_res)
 
     line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
-    # print(line_count_res)
-
-    line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
-    # print(line_count_res)
+    print(line_count_res)
 
     # # Step 6: david calls the API get_first_n_lines
     # first_line_res = client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])

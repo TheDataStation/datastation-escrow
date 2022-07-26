@@ -376,12 +376,25 @@ class ClientAPI:
                 # Provenance table
                 data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
                                                                                             data_ids_accessed,)
+            # TODO: add in no_trust mode
+            else:
+                # Staged table
+                data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
+                                                                                    cur_user_id,
+                                                                                    api,
+                                                                                    self.write_ahead_log,
+                                                                                    self.key_manager,
+                                                                                    )
+                # Provenance table
+                data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
+                                                                                            data_ids_accessed,
+                                                                                            cur_user_id,
+                                                                                            self.write_ahead_log,
+                                                                                            self.key_manager,
+                                                                                            )
             if data_register_response_staged.status != 0 or data_register_response_provenance.status != 0:
                 return Response(status=data_register_response_staged.status,
                                 message="internal database error")
-
-            # TODO: add in no_trust mode
-
             return res.message
         else:
             return res.message
