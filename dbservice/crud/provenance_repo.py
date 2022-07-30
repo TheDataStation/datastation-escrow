@@ -36,6 +36,13 @@ def get_all_provenances(db: Session):
     provenances = db.query(Provenance).all()
     return provenances
 
+def get_parent_id_for_staged_id(db: Session, staged_id):
+    parent_ids = []
+    provenances = db.query(Provenance).filter(Provenance.child_id == staged_id).all()
+    for provenance in provenances:
+        parent_ids.append(provenance.parent_id)
+    return parent_ids
+
 # The following function recovers the provenance table from a list of provenances
 def recover_provenance(db: Session, provenances):
     provenance_to_add = []

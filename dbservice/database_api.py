@@ -238,6 +238,12 @@ def create_staged(request):
         else:
             return response.StagedResponse(status=-1, msg="fail", data=[])
 
+def get_api_for_staged_id(staged_id):
+    with get_db() as session:
+        api_name = staged_repo.get_api_for_staged_id(session, staged_id)
+        if api_name:
+            return api_name.api
+
 def get_all_staged():
     with get_db() as session:
         staged = staged_repo.get_all_staged(session)
@@ -267,6 +273,12 @@ def get_all_provenances():
             return response.ProvenanceResponse(status=1, msg="success", data=provenances)
         else:
             return response.ProvenanceResponse(status=-1, msg="no existing provenances", data=[])
+
+def get_parent_id_for_staged_id(staged_id):
+    with get_db() as session:
+        parent_ids = provenance_repo.get_parent_id_for_staged_id(session, staged_id)
+        if len(parent_ids):
+            return parent_ids
 
 def recover_provenance(provenances):
     with get_db() as session:

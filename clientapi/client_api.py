@@ -413,6 +413,15 @@ class ClientAPI:
         cur_user_id = cur_user.data[0].id
 
         # First get the API call that generated this staged DE
+        api = database_api.get_api_for_staged_id(staged_ID)
+
+        # Then get the currently accessible DEs for the <cur_user_id, api> combo
+        accessible_data_ids = policy_broker.get_user_api_info(cur_user_id, api)
+
+        # Then get the parent_ids for this staged DE (all accessed DEs used to create this DE)
+        accessed_data_ids = database_api.get_parent_id_for_staged_id(staged_ID)
+
+        # Then check if accessed_data_ids is a subset of accessible_data_ids
 
         return 0
 

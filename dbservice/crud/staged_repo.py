@@ -23,6 +23,10 @@ def get_all_staged(db: Session):
     staged = db.query(Staged).all()
     return staged
 
+def get_api_for_staged_id(db: Session, staged_id):
+    api = db.query(Staged).filter(Staged.id == staged_id).first()
+    return api
+
 # The following function recovers the staged table from a list of Staged
 def recover_staged(db: Session, list_of_staged):
     staged_to_add = []
