@@ -78,8 +78,8 @@ if __name__ == '__main__':
     line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
     print(line_count_res)
 
-    line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
-    print(line_count_res)
+    # line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
+    # print(line_count_res)
 
     # Step 6: Jerry now adds a policy to allow david to access DE 2 for line_count
     # Then david logs in again
@@ -90,11 +90,12 @@ if __name__ == '__main__':
 
     # Step 7: david tries to release the staged DE.
     release_staged_res = client_api.release_staged_DE(1, cur_token)
+    print(release_staged_res)
 
     # # Step 8: david calls the API get_first_n_lines
     # first_line_res = client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])
     # print(first_line_res)
-
+    #
     # # Step 9: checking the auditable log
     # client_api.read_full_log()
 

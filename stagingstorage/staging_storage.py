@@ -27,6 +27,9 @@ class StagingStorage:
             return Response(status=1,
                             message="staging data id=" + str(data_id) + "already exists")
 
-    # TODO: fill in this function here.
-    def release(self):
-        pass
+    def release(self, staged_id):
+        dir_path = self.get_dir_path(staged_id)
+        dst_file_path = path.join(dir_path, "data")
+        with open(dst_file_path, 'rb') as f:
+            res_bytes = f.read()
+        return res_bytes

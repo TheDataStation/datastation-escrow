@@ -422,8 +422,10 @@ class ClientAPI:
         accessed_data_ids = database_api.get_parent_id_for_staged_id(staged_ID)
 
         # Then check if accessed_data_ids is a subset of accessible_data_ids
-
-        return 0
+        # If yes, we can release the staged DE
+        if set(accessed_data_ids).issubset(set(accessible_data_ids)):
+            res = cu.from_bytes(self.staging_storage.release(staged_ID))
+            return res
 
     # print out the contents of the log
 
