@@ -26,3 +26,7 @@ class StagingStorage:
         except OSError as error:
             return Response(status=1,
                             message="staging data id=" + str(data_id) + "already exists")
+
+    # TODO: fill in this function here.
+    def release(self):
+        pass

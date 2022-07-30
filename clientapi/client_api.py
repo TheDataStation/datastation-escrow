@@ -394,10 +394,27 @@ class ClientAPI:
             if data_register_response_staged.status != 0 or data_register_response_provenance.status != 0:
                 return Response(status=data_register_response_staged.status,
                                 message="internal database error")
-            database_api.check_point_all_tables(self.key_manager)
-            return res.message
+            res_msg = "Staged data ID " + str(staging_data_id)
+            return res_msg
         else:
             return res.message
+
+    # data users gives a staged DE ID and tries to release it
+    def release_staged_DE(self, staged_ID, token):
+
+        # Perform authentication
+        cur_username = user_register.authenticate_user(token)
+        # get caller's UID
+        cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+        # If the user doesn't exist, something is wrong
+        if cur_user.status == -1:
+            print("Something wrong with the current user")
+            return Response(status=1, message="Something wrong with the current user")
+        cur_user_id = cur_user.data[0].id
+
+        # First get the API call that generated this staged DE
+
+        return 0
 
     # print out the contents of the log
 
