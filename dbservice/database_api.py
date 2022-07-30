@@ -252,6 +252,14 @@ def get_all_staged():
         else:
             return response.StagedResponse(status=-1, msg="no existing staged DEs", data=[])
 
+def get_staging_with_max_id():
+    with get_db() as session:
+        staged = staged_repo.get_staged_with_max_id(session)
+        if staged:
+            return response.StagedResponse(status=1, msg="success", data=[staged])
+        else:
+            return response.StagedResponse(status=-1, msg="internal database error", data=[])
+
 def recover_staged(staged):
     with get_db() as session:
         res = staged_repo.recover_staged(session, staged)

@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 from ..schemas.staged import Staged
 from common.pydantic_models.staged import StagedCreate
@@ -41,3 +42,12 @@ def recover_staged(db: Session, list_of_staged):
         return None
 
     return "success"
+
+# The following function returns the staged DE with the max ID
+def get_staged_with_max_id(db: Session):
+    max_id = db.query(func.max(Staged.id)).scalar_subquery()
+    staged = db.query(Staged).filter(Staged.id == max_id).first()
+    if staged:
+        return staged
+    else:
+        return None

@@ -71,8 +71,12 @@ class ClientAPI:
         # print("Starting data id should be:")
         # print(self.cur_data_id)
 
-        # The following fields decides which staging_data_id we should use when we upload a new staging DE
-        self.cur_staging_data_id = 1
+        # The following fields decides which staging_data_id we should use at a new insertion
+        staging_id_resp = database_api.get_staging_with_max_id()
+        if staging_id_resp.status == 1:
+            self.cur_staging_data_id = staging_id_resp.data[0].id + 1
+        else:
+            self.cur_staging_data_id = 1
 
     def shut_down(self, ds_config):
         # print("shut down...")
