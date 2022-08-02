@@ -23,8 +23,6 @@ total_epsilon = 1.0
 catalog_id = 0
 
 
-# cache = {}
-
 @register()
 def aggregate_data(context):
     # combines all csv files in storage (that are accessible) and returns the combined dataframe
@@ -125,31 +123,31 @@ def get_metadata(df: pd.DataFrame, name: str):
     t["row_privacy"] = True
     t["rows"] = len(df)
 
-    # df = df.convert_dtypes()
-    # print(df.dtypes)
+    df_inferred = df.convert_dtypes()
+    # print(df_inferred.dtypes)
 
-    for col in df:
+    for col in df_inferred:
         t[str(col)] = {}
         c = t[str(col)]
-        if pd.api.types.is_string_dtype(df[col]):
+        if pd.api.types.is_string_dtype(df_inferred[col]):
             c["type"] = "string"
-        elif pd.api.types.is_bool_dtype(df[col]):
+        elif pd.api.types.is_bool_dtype(df_inferred[col]):
             c["type"] = "boolean"
-        elif pd.api.types.is_datetime64_any_dtype(df[col]):
+        elif pd.api.types.is_datetime64_any_dtype(df_inferred[col]):
             c["type"] = "datetime"
-        # elif pd.api.types.is_numeric_dtype(df[col]):
+        # elif pd.api.types.is_numeric_dtype(df_inferred[col]):
         #     if (df[col].fillna(-9999) % 1  == 0).all():
         #         c["type"] = "int"
         #     else:
         #         c["type"] = "float"
-        elif pd.api.types.is_integer_dtype(df[col]) or pd.api.types.is_timedelta64_dtype(df[col]):
+        elif pd.api.types.is_integer_dtype(df_inferred[col]) or pd.api.types.is_timedelta64_dtype(df_inferred[col]):
             c["type"] = "int"
-            c["upper"] = str(df[col].max())
-            c["lower"] = str(df[col].min())
-        elif pd.api.types.is_float_dtype(df[col]):
+            c["upper"] = str(df_inferred[col].max())
+            c["lower"] = str(df_inferred[col].min())
+        elif pd.api.types.is_float_dtype(df_inferred[col]):
             c["type"] = "float"
-            c["upper"] = str(df[col].max())
-            c["lower"] = str(df[col].min())
+            c["upper"] = str(df_inferred[col].max())
+            c["lower"] = str(df_inferred[col].min())
         else:
             raise ValueError("Unknown column type for column {0}".format(col))
 
