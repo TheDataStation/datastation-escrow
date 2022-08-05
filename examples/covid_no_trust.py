@@ -20,7 +20,7 @@ def train_covid_model(test_data, test_label):
 
     start_time = time.time()
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    ds_config = utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
+    ds_config = general_utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
     files = []
     DE_dir_name = os.listdir(mount_path)
