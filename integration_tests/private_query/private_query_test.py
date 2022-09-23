@@ -269,16 +269,13 @@ if __name__ == '__main__':
 
     sql_query = "SELECT COUNT(*) AS cnt FROM PUMS.PUMS"
     print("query: ", sql_query)
-
     start_time = time.time()
-
     query_result = client_api.call_api("query_sql", cur_token, "pessimistic",
                                        sql_query=sql_query,
                                        file_to_query=list(catalog.keys())[0],
                                        epsilon=0.1)
-
     elapsed = time.time() - start_time
-    print(f"Query time: {elapsed} s")
+    print(f"query time: {elapsed} s")
 
     print("query result:")
     print(query_result)
@@ -287,19 +284,25 @@ if __name__ == '__main__':
 
     sql_query = "SELECT AVG(age) AS average_age FROM PUMS.PUMS"
     print("query: ", sql_query)
+    start_time = time.time()
     query_result = client_api.call_api("query_sql", cur_token, "pessimistic",
                                        sql_query=sql_query,
                                        file_to_query=list(catalog.keys())[0],
                                        epsilon=0.1)
+    elapsed = time.time() - start_time
+    print(f"query time: {elapsed} s")
     print("query result:")
     print(query_result)
 
     sql_query = "SELECT SUM(married) AS married_cnt FROM PUMS.PUMS"
     print("query: ", sql_query)
+    start_time = time.time()
     query_result = client_api.call_api("query_sql", cur_token, "pessimistic",
                                        sql_query=sql_query,
                                        file_to_query=list(catalog.keys())[0],
                                        epsilon=1.0)
+    elapsed = time.time() - start_time
+    print(f"query time: {elapsed} s")
     # should fail
 
     client_api.shut_down(ds_config)

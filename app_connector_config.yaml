@@ -1,2 +1,2 @@
 connector_name: "private_query"
-connector_module_path: "examples/private_query.py"
+connector_module_path: "integration_tests/private_query/private_query.py"
