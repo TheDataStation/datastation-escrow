@@ -1,16 +1,23 @@
 # Function Approval Design Doc
 
 ## Summary
-A Docker container runs in Data Station that executes the arbitrary functions that users run on it. By only exposing one or two directories and a Docker network to the container, this keeps functions from accessing anything else on the system. A Docker image and dev utils that, together, simulate the environment run in Data Station are made publicly available for developers.
 
-A Docker image is run within a Data Station instance and guarantees that the rest of the filesystem in Data Station cannot be accessed.
+### Introduction
+A Docker container runs in Data Station that executes the arbitrary functions that users run on it. By only exposing one or two directories and a Docker network to the container, this keeps functions from accessing anything else on the system. A Docker image and dev utils are made publicly available for developers; together these two simulate the environment run in Data Station.
 
 ### Terms
-- Owner: The owner of a dataset.
+- Owner: The owner of a dataset, who creates policies and uploads datasets.
 - User: The agent that runs functions within Data Station.
 - Developer: The creator(s) of the functions to be run in Data Station by User(s).
 - Docker Image vs. Container: An image is a read-only template for a Container, the actual environment that is run in.
 - Container Network: How Docker containers communicate with each other. Can also communicate with localhost.
+
+### Why Dockerize?
+Having a Docker container run functions within Data Station bounds functions within the Docker container environment, meaning the function cannot access anything outside of it.
+
+Another effect of Dockerizing the environment is it allows for better function development and a data cleaning scheme:
+- Through a Docker image that replicates Data Station behavior, it helps the developer write functions on an environment that is similar to the actual DS environment.
+- With a Docker image, a data owner can run functions locally on a similar environment as well. By letting developers send owners functions and connectors, it facilitates the process of putting the onus on the data owner to tailor their data to the function.
 
 ## Docker Image Specification
 
@@ -25,7 +32,7 @@ A container running on Data Station contains **only two ways to access it**:
 
     Thus read/write on a Data Station directory are only granted to a container through `/data`.
 
-2. A container network to send the functions to the container and communicate the outputs from the container to Data Station.
+2. A Docker network to send the functions to the container and communicate the outputs from the container to Data Station.
    
    This network has only two hosts: the container and the rest of Data Station (localhost).
 
@@ -44,11 +51,11 @@ Operations outside of the Docker container:
 Operation | Inputs | Outputs | Description
 -|-|-|-
 Start DS Docker Container (`ds_docker_init`) | (4) params: DS-compatible image, localhost directory mapping to `/data`, connectors, functions | Network connection | For Developers and Owners. Simulates exactly what happens in DS. <ul><li>Runs the Docker Container from the image selected</li><li>Maps the given host directory to `/data`.</li><li>Uploads the functions to the containers</li><li>Begins the Docker network connection to send functions/receive return values</li></ul>
-Run Function Through Container (`ds_docker_run`) | (3) params: uploaded function, function parameters, network connection | Function return value(s) | Runs the function the developer has written, in the way Data Station will call it (through the Docker network). This is a **key building block** for the connector, since it is the only interface to calling functions within the container.
+Run Function Through Container (`ds_docker_run`) | (3) params: uploaded function, function parameters, network connection | Function return value(s) | Runs the function the developer has written, in the way Data Station will call it (through the Docker network). This is a **key building block** for the connector, since it is the only interface to calling functions that are within the container.
 
 ### Docker Image
-The Docker Image published to owners and developers is exactly what is actually run inside Data Station.
-- Includes a script that sets up and **listens on the Docker network**. When a function is sent over the network from DS to the container, the container executes the function. This should be run at startup.
+The Docker Image published to owners and developers is exactly the same as the image actually run inside Data Station. It includes:
+- A script that sets up and **listens on the Docker network**. When a function is sent over the network from DS to the container, the container executes the function. This should be run at container startup.
 - `/data` directory
 - Packages / modules that are required to let the functions run.
 
