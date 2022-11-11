@@ -62,18 +62,20 @@ The Docker Image published to owners and developers is exactly the same as the i
 ## Process
 
 ### Process for Developers
+These steps all occur on a local machine (**not** Data Station).
 1. The provided Docker image is downloaded through docker hub.
 2. Functions are written to act on the data (using write / read functions provided).
 3. Connectors are written so the functions can be called outside the container.
-4. The developer runs the image through the `ds_docker_init` function and debugs accordingly.
+4. The developer runs the image through the `ds_docker_init` function and runs the connectors that then run functions. They debug accordingly.
 5. Once finished, the developer uploads the [function, container] pair to Data Station.
 
 
 ### Process for Data Owners
+These steps all occur on a local machine (**not** Data Station).
 1. The Docker image specified by the developer is downloaded through docker hub.
 2. The functions written by the developer are downloaded.
 3. The connectors written by the developer are downloaded.
-4. The Data Owner runs the image through the `ds_docker_init` function.
+4. The Data Owner runs the image through the `ds_docker_init` function and runs the connectors that then run functions.
 5. If the results are satisfactory:
    1. The Data Owner uploads their transformed data to Data Station
    2. The Data Owner creates a policy for the data and function.
@@ -92,4 +94,5 @@ The `ds_docker_init` function should follow steps [1-4] as closely as possible.
 ### Comments on the Process
 - Notice that the Docker image is always exactly the same. It is provided by the Data Station writers.
 - Only the **functions and connectors** are exchanged.
+- There is very little difference in how the data owner and the developer use the Docker image locally.
 - Functions and connectors aren't scanned for malicious code; the Data Owner is at risk when downloading and running them.
