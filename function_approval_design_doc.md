@@ -9,7 +9,7 @@ A Docker image is run within a Data Station instance and guarantees that the res
 - Owner: The owner of a dataset.
 - User: The agent that runs functions within Data Station.
 - Developer: The creator(s) of the functions to be run in Data Station by User(s).
-- Docker Image vs. Container: An image is a read-only template for a Container, the actual environment that is run.
+- Docker Image vs. Container: An image is a read-only template for a Container, the actual environment that is run in.
 - Container Network: How Docker containers communicate with each other. Can also communicate with localhost.
 
 ## Docker Image Specification
