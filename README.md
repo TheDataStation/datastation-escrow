@@ -18,7 +18,7 @@ Create the needed directories
 We run a simple file sharing application, in which one user allows another user to see the number of lines 
 in the shared files (but not the file itself).
 
-Set the trust mode setting to "no_trust" in data_station_config.yaml
+Set the trust mode setting to "full_trust" in data_station_config.yaml
 
     trust_mode: "full_trust"
 
