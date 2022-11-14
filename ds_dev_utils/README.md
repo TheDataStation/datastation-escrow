@@ -4,7 +4,6 @@ Functions to support a function developer on Data Station.
 
 ## Getting Started
 
-
 ## Installation
 
 ## Under the Hood
