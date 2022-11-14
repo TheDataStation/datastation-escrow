@@ -68,7 +68,7 @@ def query_sql(context, sql_query, file_to_query, epsilon=None):
     #     return cache[sql_query]
 
     df = pd.read_csv(file_to_query)
-    df = df.convert_dtypes()
+    # df = df.convert_dtypes()
 
     # zz: generate the metadata required by smartnoise automatically
     name = pathlib.Path(file_to_query).stem
