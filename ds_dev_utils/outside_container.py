@@ -1,6 +1,24 @@
 import docker
 import time
 
+
+def docker_cp(container, src, dst):
+    """
+    Code modified from:
+    https://stackoverflow.com/questions/46390309/how-to-copy-a-file-from-host-to-container-using-docker-py-docker-sdk
+
+    Parameters:
+     container: container to send file to
+     src: the localhosts's source file
+     dst: the container's filesystem
+    
+    Returns:
+     The error (if any) of the function put_archive
+    """
+    
+
+    # return docker.put_archive(src, dst)
+
 client = docker.from_env()
 
 # create image from dockerfile
@@ -11,7 +29,9 @@ print(image,log)
 container = client.containers.run(image, 
                                   detach=True,
                                   tty=True,
-                                  volumes={'/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/my_data': {'bind':'/mnt/data', 'mode':'rw'}},
+                                  volumes=
+                                  {'/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/my_data':
+                                   {'bind':'/mnt/data', 'mode':'rw'}},
                                   remove=True,
                                   )
 
