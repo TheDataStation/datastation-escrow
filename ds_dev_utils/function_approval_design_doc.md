@@ -39,19 +39,25 @@ A container running on Data Station contains **only two ways to access it**:
 ### Data Station Dev Utils
 These dev utils are included in the Docker image that we publish. They can probably just be Python functions for now.
 
-Operations to be called **within** the Docker container:
+Operations to be called **within** the Docker container by a function:
 
 Operation | Inputs | Outputs | Description
 -|-|-|-
 Write | (2) params: filename, content | SUCCESS, etc. | Writes only to protected filesystem (only to `/data` in the container)
 Read | (1) param: filename | Read file | Reads only to accessible data given by a policy
 
-Operations outside of the Docker container:
+Operations to be called **outside** the Docker container by the Gatekeeper:
+Operation | Inputs | Outputs | Description
+-|-|-|-
+Run Function Through Container (`docker_run`) | (1) param: (registered) function | Function return value(s) | Called by the connector, and thus is a **key building block** for the connector, since it is the only interface to calling functions that are within the container.
+
+
+Operations for Developers:
 
 Operation | Inputs | Outputs | Description
 -|-|-|-
 Start DS Docker Container (`ds_docker_init`) | (4) params: DS-compatible image, localhost directory mapping to `/data`, connectors, functions | Network connection | For Developers and Owners. Simulates exactly what happens in DS. <ul><li>Runs the Docker Container from the image selected</li><li>Maps the given host directory to `/data`.</li><li>Uploads the functions to the containers</li><li>Begins the Docker network connection to send functions/receive return values</li></ul>
-Run Function Through Container (`ds_docker_run`) | (3) params: uploaded function, function parameters, network connection | Function return value(s) | Runs the function the developer has written, in the way Data Station will call it (through the Docker network). This is a **key building block** for the connector, since it is the only interface to calling functions that are within the container.
+Run Connector (`ds_docker_run`) | (3) params: connector, function parameters, network connection | Connector return value(s) | Runs the connector the developer has written, in the way Data Station will call it (connector -calls-> function).
 
 ### Docker Image
 The Docker Image published to owners and developers is exactly the same as the image actually run inside Data Station. It includes:
