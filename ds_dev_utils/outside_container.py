@@ -69,13 +69,12 @@ def ds_docker_init(function_file, connector_file, data_dir, image):
 
     # run a container with command. It's detached so it runs in the background.
     container = client.containers.run(image, 
-                                    detach=True,
-                                    tty=True,
-                                    volumes=
-                                    {data_dir:
-                                    {'bind':'/mnt/data', 'mode':'rw'}},
-                                    remove=True,
-                                    )
+                                      detach=True,
+                                      tty=True,
+                                      volumes=
+                                      {data_dir:{'bind':'/mnt/data', 'mode':'rw'}},
+                                      remove=True,
+                                     )
 
     # copy the function file into the container
     docker_cp(container,
