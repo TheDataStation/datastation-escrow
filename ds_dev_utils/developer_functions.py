@@ -85,7 +85,7 @@ def ds_docker_init(function_file, connector_file, data_dir, image):
 
     # run setup script
     code, ret = container.exec_run("python setup.py")
-    time.sleep(3)
+    time.sleep(4)
 
     print(os.getcwd())
 
@@ -95,6 +95,12 @@ def ds_docker_init(function_file, connector_file, data_dir, image):
 
     stop_and_prune(client, container)
 
+def ds_docker_run(connector, args, kwargs):
+    """
+    
+    """
+    return
+
 
 if __name__ == "__main__":
     ds_docker_init(
@@ -103,3 +109,5 @@ if __name__ == "__main__":
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/my_data',
         "image"
     )
+
+    # use os.link()?
