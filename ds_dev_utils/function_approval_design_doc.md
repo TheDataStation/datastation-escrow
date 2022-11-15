@@ -46,7 +46,7 @@ Operation | Inputs | Outputs | Description
 Write | (2) params: filename, content | SUCCESS, etc. | Writes only to protected filesystem (only to `/data` in the container)
 Read | (1) param: filename | Read file | Reads only to accessible data given by a policy
 
-Operations to be called **outside** the Docker container by the Gatekeeper:
+Operations to be called **outside** the Docker container by the connector:
 Operation | Inputs | Outputs | Description
 -|-|-|-
 Run Function Through Container (`docker_run`) | (1) param: (registered) function | Function return value(s) | Called by the connector, and thus is a **key building block** for the connector, since it is the only interface to calling functions that are within the container.
