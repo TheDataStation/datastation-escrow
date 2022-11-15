@@ -13,7 +13,7 @@ def docker_cp(container, src, dst):
      container: container to send file to
      src: the localhosts's source file
      dst: the container's filesystem
-    
+
     Returns:
      The error (if any) of the function put_archive
     """
@@ -32,6 +32,7 @@ def docker_cp(container, src, dst):
 
     # return docker.put_archive(src, dst)
 
+
 def stop_and_prune(client, container):
     """
     Stops the given Docker container instance and removes any non-running containers
@@ -39,12 +40,13 @@ def stop_and_prune(client, container):
     Parameters:
      client: the docker client to prune
      container: container to stop
-    
+
     Returns:
      Nothing
     """
     container.stop()
     client.containers.prune()
+
 
 def ds_docker_init(function_file, connector_file, data_dir, image):
     """
@@ -65,21 +67,21 @@ def ds_docker_init(function_file, connector_file, data_dir, image):
 
     # create image from dockerfile
     image, log = client.images.build(path="./docker/images", tag="ds_docker")
-    print(image,log)
+    print(image, log)
 
     # run a container with command. It's detached so it runs in the background.
-    container = client.containers.run(image, 
+    container = client.containers.run(image,
                                       detach=True,
                                       tty=True,
-                                      volumes=
-                                      {data_dir:{'bind':'/mnt/data', 'mode':'rw'}},
+                                      volumes={data_dir: {
+                                          'bind': '/mnt/data', 'mode': 'rw'}},
                                       remove=True,
-                                     )
+                                      )
 
     # copy the function file into the container
     docker_cp(container,
-            function_file,
-            "/usr/src/ds/functions")
+              function_file,
+              "/usr/src/ds/functions")
 
     # run setup script
     code, ret = container.exec_run("python setup.py")
@@ -92,6 +94,7 @@ def ds_docker_init(function_file, connector_file, data_dir, image):
     # print(container.logs().decode("utf-8"))
 
     stop_and_prune(client, container)
+
 
 if __name__ == "__main__":
     ds_docker_init(
