@@ -2,6 +2,7 @@ import docker
 import time
 import os
 import tarfile
+import pickle
 
 
 def docker_cp(container, src, dst):
@@ -17,7 +18,9 @@ def docker_cp(container, src, dst):
     Returns:
      The error (if any) of the function put_archive
     """
+    dir_path = os.path.dirname(os.path.realpath(__file__))
 
+    # change directory to create tar file
     os.chdir(os.path.dirname(src))
     srcname = os.path.basename(src)
 
@@ -30,7 +33,7 @@ def docker_cp(container, src, dst):
     data = open(src + '.tar', 'rb').read()
     container.put_archive(dst, data)
 
-    # return docker.put_archive(src, dst)
+    os.chdir(dir_path)
 
 class ds_docker:
     def __init__(self,function_file, connector_file, data_dir, image):
@@ -48,19 +51,19 @@ class ds_docker:
 
         Returns:
         """
-        client = docker.from_env()
+        self.base_dir = os.path.dirname(os.path.realpath(__file__))
+        self.client = docker.from_env()
 
         # create image from dockerfile
-        self.image, log = client.images.build(path="./docker/images", tag="ds_docker")
+        self.image, log = self.client.images.build(path="./docker/images", tag="ds_docker")
         print(self.image, log)
 
         # run a container with command. It's detached so it runs in the background.
-        self.container = client.containers.run(self.image,
+        self.container = self.client.containers.create(self.image,
                                         detach=True,
                                         tty=True,
                                         volumes={data_dir: {
                                             'bind': '/mnt/data', 'mode': 'rw'}},
-                                        remove=True,
                                         )
 
         # copy the function file into the container
@@ -68,14 +71,12 @@ class ds_docker:
                 function_file,
                 "/usr/src/ds/functions")
 
+        self.container.start()
         # run setup script
         code, ret = self.container.exec_run("python setup.py")
-        time.sleep(4)
-
-        print(os.getcwd())
 
         # Docker prints logs as bytes
-        print(ret.decode("utf-8"))
+        print("Setup Output: \n" + ret.decode("utf-8"))
         # print(container.logs().decode("utf-8"))
 
     def stop_and_prune(self):
@@ -92,10 +93,29 @@ class ds_docker:
         self.container.stop()
         self.client.containers.prune()
 
-    def run():
+    def connector_run(self):
         """
+
         """
         return
+
+    def direct_run(self, function_name, *args, **kwargs):
+
+        # create pickle file and dump
+        filename = self.base_dir + "/functions/pickled_"+function_name
+        arg_dict = {"args":args,"kwargs":kwargs}
+        with open(filename,'wb') as pf:
+            pickle.dump(arg_dict,pf)
+
+        # send pickle file to container
+        docker_cp(self.container,
+            filename,
+            "/usr/src/ds/pickled")
+
+        # run the function
+        code, ret = self.container.exec_run("python run_function.py " + function_name)
+        print("direct run output: \n" + ret.decode("utf-8"))
+
 
 if __name__ == "__main__":
     session = ds_docker(
@@ -104,5 +124,6 @@ if __name__ == "__main__":
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/my_data',
         "image"
     )
-
+    session.direct_run("read_file", "/mnt/data/hi.txt")
+    session.stop_and_prune()
     # use os.link()?

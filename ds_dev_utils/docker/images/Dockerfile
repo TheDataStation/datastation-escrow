@@ -3,6 +3,8 @@ FROM python
 WORKDIR /usr/src/ds
 
 RUN mkdir /usr/src/ds/functions
+RUN mkdir /usr/src/ds/pickled
+RUN mkdir /usr/src/ds/connectors
 
 COPY . .
 
