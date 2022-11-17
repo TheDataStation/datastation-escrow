@@ -3,6 +3,7 @@ import time
 import os
 import tarfile
 import pickle
+import socket
 
 
 def docker_cp(container, src, dst):
@@ -36,6 +37,9 @@ def docker_cp(container, src, dst):
     os.chdir(dir_path)
 
 class ds_docker:
+    HOST = socket.gethostname()  # The server's hostname or IP address
+    PORT = 12345  # The port used by the server
+
     def __init__(self,function_file, connector_file, data_dir, image):
         """
         Initializes a docker container with mount point data_dir, with
@@ -60,8 +64,10 @@ class ds_docker:
 
         # run a container with command. It's detached so it runs in the background.
         self.container = self.client.containers.create(self.image,
+                                        "python setup.py",
                                         detach=True,
                                         tty=True,
+                                        ports={'2222/tcp': 12345},
                                         volumes={data_dir: {
                                             'bind': '/mnt/data', 'mode': 'rw'}},
                                         )
@@ -71,12 +77,20 @@ class ds_docker:
                 function_file,
                 "/usr/src/ds/functions")
 
+        print("hi")
         self.container.start()
+
+        self.network = self.client.networks.create("jail_network",
+                                    driver="bridge",
+                                    # check_duplicate=True,
+                                    )
+
+        self.network.connect(self.container)
         # run setup script
-        code, ret = self.container.exec_run("python setup.py")
+        # code, ret = self.container.exec_run("python setup.py")
 
         # Docker prints logs as bytes
-        print("Setup Output: \n" + ret.decode("utf-8"))
+        # print("Setup Output: \n" + ret.decode("utf-8"))
         # print(container.logs().decode("utf-8"))
 
     def stop_and_prune(self):
@@ -92,6 +106,11 @@ class ds_docker:
         """
         self.container.stop()
         self.client.containers.prune()
+
+
+    def network_remove(self):
+        self.network.disconnect(self.container)
+        self.network.remove()
 
     def connector_run(self):
         """
@@ -116,6 +135,18 @@ class ds_docker:
         code, ret = self.container.exec_run("python run_function.py " + function_name)
         print("direct run output: \n" + ret.decode("utf-8"))
 
+    def network_run(self, function_name, *args, **kwargs):
+
+        func_dict = {"function":function_name,"args":args,"kwargs":kwargs}
+
+        to_send = pickle.dumps(func_dict)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((self.HOST, self.PORT))
+            s.sendall(to_send)
+            data = s.recv(1024)
+
+        print(f"Received {data!r}")
+        return
 
 if __name__ == "__main__":
     session = ds_docker(
@@ -124,8 +155,12 @@ if __name__ == "__main__":
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/my_data',
         "image"
     )
-    session.direct_run("read_file", "/mnt/data/hi.txt")
-    session.stop_and_prune()
+    # session.direct_run("read_file", "/mnt/data/hi.txt")
+    # time.sleep(1)
+    session.network_run("read_file", "/mnt/data/hi.txt")
+
+    session.network_remove()
+    # session.stop_and_prune()
     # use os.link()?
 
 #jaijl_utils
