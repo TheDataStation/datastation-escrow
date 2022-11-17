@@ -25,6 +25,15 @@ def load_connectors(connector_dir):
             register_connectors(filename, file)
 
 def unpickle(function_name):
+    """
+    given a function name, finds pickled file then unpickles it
+
+    Parameters:
+     function_name: name of function to search for parameters in the pickled/ directory
+
+    Returns:
+     unpickled contents of file
+    """
     filename = "pickled/pickled_" + function_name
     with open(filename,'rb') as f:
         arg_dict = pickle.load(f)
@@ -48,13 +57,19 @@ def run_function(function_name, *args, **kwargs):
             result = cur_api(*args, **kwargs)
             return result
 
-if __name__ == "__main__":
+def main():
+    # only one argument: which function, by str name, to run
     parser = argparse.ArgumentParser(description='Run functions within container.')
     parser.add_argument('function', action='store', type=str, help='The function name to parse.')
     args = parser.parse_args()
 
+    # load connectors
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
+    # unpickle function args and run it
     arg_dict = unpickle(args.function)
     res = run_function(args.function,*arg_dict["args"], **arg_dict["kwargs"])
     print(res)
+
+if __name__ == "__main__":
+    main()
