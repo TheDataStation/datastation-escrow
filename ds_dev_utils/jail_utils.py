@@ -60,15 +60,18 @@ class ds_docker:
 
         # create image from dockerfile
         self.image, log = self.client.images.build(path="./docker/images", tag="ds_docker")
-        print(self.image, log)
+        # print(self.image, log)
 
         # run a container with command. It's detached so it runs in the background
         #  It is loaded with a setup script that starts the server.
         self.container = self.client.containers.create(self.image,
                                         "python setup.py",
                                         detach=True,
+                                        #  tty allows commands such as "docker cp" to be run
                                         tty=True,
+                                        # define ports. These are arbitrary
                                         ports={'2222/tcp': 12345},
+                                        # mount volumes
                                         volumes={data_dir: {
                                             'bind': '/mnt/data', 'mode': 'rw'}},
                                         )
@@ -152,7 +155,7 @@ class ds_docker:
 
         # run the function
         code, ret = self.container.exec_run("python run_function.py " + function_name)
-        print("direct run output: \n" + ret.decode("utf-8"))
+        print("Direct run output: \n" + ret.decode("utf-8"))
         return ret
 
     def network_run(self, function_name, *args, **kwargs):
@@ -183,7 +186,7 @@ class ds_docker:
             # receive output
             data = s.recv(1024)
 
-        print(f"Function Output: {data.decode('utf-8')}")
+        print(f"Network run output: {data.decode('utf-8')}")
         return data
 
 if __name__ == "__main__":
