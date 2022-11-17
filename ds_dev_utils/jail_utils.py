@@ -90,10 +90,6 @@ class ds_docker:
         # connect container to network
         self.network.connect(self.container)
 
-        # Docker prints logs as bytes
-        # print("Setup Output: \n" + ret.decode("utf-8"))
-        # print(container.logs().decode("utf-8"))
-
     def stop_and_prune(self):
         """
         Stops the given Docker container instance and removes any non-running containers
@@ -116,9 +112,17 @@ class ds_docker:
         self.network.disconnect(self.container)
         self.network.remove()
 
-    def connector_run(self):
+    def connector_run(self, connector_name):
         """
+        TODO: implement
+        calls a developer-written connector, which then calls the function within the
+         docker container
 
+        Parameters:
+         connector_name: name of connector to run
+
+        Returns:
+         connector return value
         """
         return
 
@@ -183,16 +187,18 @@ class ds_docker:
         return data
 
 if __name__ == "__main__":
+    # create a new ds_docker instance
     session = ds_docker(
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/functions/example_one.py',
         "connector_file",
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/my_data',
         "image"
     )
-    # session.direct_run("read_file", "/mnt/data/hi.txt")
-    # time.sleep(1)
-    session.network_run("read_file", "/mnt/data/hi.txt")
 
+    # run function
+    session.network_run("read_file", "/mnt/data/hi.txt")
+    # session.direct_run("read_file", "/mnt/data/hi.txt")
+
+    # clean up
     session.network_remove()
-    # session.stop_and_prune()
-    # use os.link()?
+    session.stop_and_prune()

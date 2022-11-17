@@ -2,7 +2,7 @@ import docker
 from jail_utils import ds_docker
 
 def docker_run(docker_connection, function_name):
-    
+
     return
 
 if __name__ == "__main__":
