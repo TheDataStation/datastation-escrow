@@ -39,11 +39,12 @@ def docker_cp(container, src, dst):
     # go back to working directory
     os.chdir(dir_path)
 
+
 class ds_docker:
     HOST = socket.gethostname()  # The server's hostname or IP address
     PORT = 12345  # The port used by the server
 
-    def __init__(self,function_file, connector_file, data_dir, dockerfile):
+    def __init__(self, function_file, connector_file, data_dir, dockerfile):
         """
         Initializes a docker container with mount point data_dir, with
         image given. Loads function file into container.
@@ -62,36 +63,40 @@ class ds_docker:
         self.client = docker.from_env()
 
         # create image from dockerfile
-        self.image, log = self.client.images.build(path=dockerfile, tag="ds_docker")
+        self.image, log = self.client.images.build(
+            path=dockerfile, tag="ds_docker")
         # print(self.image, log)
 
         # run a container with command. It's detached so it runs in the background
         #  It is loaded with a setup script that starts the server.
         self.container = self.client.containers.create(self.image,
-                                        "python setup.py",
-                                        detach=True,
-                                        #  tty allows commands such as "docker cp" to be run
-                                        tty=True,
-                                        # define ports. These are arbitrary
-                                        ports={'2222/tcp': 12345},
-                                        # mount volumes
-                                        volumes={data_dir: {
-                                            'bind': '/mnt/data', 'mode': 'rw'}},
-                                        )
+                                                       "python setup.py",
+                                                       detach=True,
+                                                       #  tty allows commands such as "docker cp" to be run
+                                                       tty=True,
+                                                       # define ports. These are arbitrary
+                                                       ports={
+                                                           '2222/tcp': 12345},
+                                                       # mount volumes
+                                                       volumes={data_dir: {
+                                                           'bind': '/mnt/data', 'mode': 'rw'}},
+                                                       )
 
         # copy the function file into the container
         docker_cp(self.container,
-                function_file,
-                "/usr/src/ds/functions")
+                  function_file,
+                  "/usr/src/ds/functions")
 
         # start the container
         self.container.start()
 
         # create container network
         self.network = self.client.networks.create("jail_network",
-                                    driver="bridge",
-                                    # check_duplicate=True,
-                                    )
+                                                   driver="bridge",
+                                                   # shut off internet access
+                                                   internal=True,
+                                                   check_duplicate=True,
+                                                   )
 
         # connect container to network
         self.network.connect(self.container)
@@ -109,7 +114,6 @@ class ds_docker:
         """
         self.container.stop()
         self.client.containers.prune()
-
 
     def network_remove(self):
         """
@@ -147,17 +151,18 @@ class ds_docker:
 
         # create pickle file and dump
         filename = self.base_dir + "/functions/pickled_"+function_name
-        arg_dict = {"args":args,"kwargs":kwargs}
-        with open(filename,'wb') as pf:
-            pickle.dump(arg_dict,pf)
+        arg_dict = {"args": args, "kwargs": kwargs}
+        with open(filename, 'wb') as pf:
+            pickle.dump(arg_dict, pf)
 
         # send pickle file to container
         docker_cp(self.container,
-            filename,
-            "/usr/src/ds/pickled")
+                  filename,
+                  "/usr/src/ds/pickled")
 
         # run the function
-        code, ret = self.container.exec_run("python run_function.py " + function_name)
+        code, ret = self.container.exec_run(
+            "python run_function.py " + function_name)
         print("Direct run output: \n" + ret.decode("utf-8"))
         return ret
 
@@ -174,7 +179,7 @@ class ds_docker:
         """
 
         # create a dictionary to pickle
-        func_dict = {"function":function_name,"args":args,"kwargs":kwargs}
+        func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
 
         # make pickle from dictionary
         to_send = pickle.dumps(func_dict)
@@ -191,6 +196,7 @@ class ds_docker:
 
         print(f"Network run output: {data.decode('utf-8')}")
         return data
+
 
 if __name__ == "__main__":
     # create a new ds_docker instance
