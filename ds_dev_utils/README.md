@@ -17,7 +17,7 @@ def parrot_text(text):
     return text
 ```
 
-Next, create a new `ds_docker` class and provide it with the inputs:
+In a new python file, `import jail_utils.py` and create a new `ds_docker` class and provide it with the inputs:
 ```python
 session = ds_docker(
     '/example/function/directory/functions.py',
