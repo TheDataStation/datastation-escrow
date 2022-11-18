@@ -19,9 +19,11 @@ def docker_cp(container, src, dst):
     Returns:
      The error (if any) of the function put_archive
     """
+    # save working directory
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    # change directory to create tar file
+    # change directory to create tar file. This is necessary since
+    # the tar file is relative
     os.chdir(os.path.dirname(src))
     srcname = os.path.basename(src)
 
@@ -34,6 +36,7 @@ def docker_cp(container, src, dst):
     data = open(src + '.tar', 'rb').read()
     container.put_archive(dst, data)
 
+    # go back to working directory
     os.chdir(dir_path)
 
 class ds_docker:
