@@ -49,9 +49,11 @@ def main():
             data = conn.recv(1024)
             if not data:
                 break
+
+            # interpret pickled data and run
             inputs = pickle.loads(data)
             ret = run_function(inputs["function"], *inputs["args"], **inputs["kwargs"])
-            # conn.sendall(bytes(inputs["function"], "utf-8"))
+            # send result back
             conn.sendall(bytes(str(ret), "utf-8"))
 
 if __name__ ==  '__main__':
