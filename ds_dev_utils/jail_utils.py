@@ -202,8 +202,8 @@ if __name__ == "__main__":
     )
 
     # run function
-    session.network_run("read_file", "/mnt/data/hi.txt")
     # session.direct_run("read_file", "/mnt/data/hi.txt")
+    session.network_run("read_file", "/mnt/data/hi.txt")
 
     # clean up
     session.network_remove()

@@ -5,10 +5,6 @@ from run_function import (load_connectors,
                             run_function)
 from dsar_core import get_registered_functions
 
-# for i in range(5):
-#     print("hi")
-#     time.sleep(1)
-
 class function_server:
     """
     a simple socket-based server that listens for a connection to receive a
