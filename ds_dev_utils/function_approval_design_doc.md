@@ -21,7 +21,7 @@ Another effect of Dockerizing the environment is it allows for better function d
 
 ## Docker Image Specification
 
-A container running on Data Station contains **only two ways to access it**: 
+A container running on Data Station contains **only two ways to access it**:
 1. A map between a localhost directory to a container directory through Docker; it is the only localhost directory the container is allowed to access.
 
     The Data Station data directory for the current user: `/DS_storage/user_id/data`
@@ -33,7 +33,7 @@ A container running on Data Station contains **only two ways to access it**:
     Thus read/write on a Data Station directory are only granted to a container through `/data`.
 
 2. A Docker network to send the functions to the container and communicate the outputs from the container to Data Station.
-   
+
    This network has only two hosts: the container and the rest of Data Station (localhost).
 
 ### Data Station Dev Utils
