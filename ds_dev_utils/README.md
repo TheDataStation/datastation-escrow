@@ -3,9 +3,21 @@
 Scripts to support a function developer on Data Station.
 
 ## Getting Started
-Write functions that act on data, then save them at some directory `/example/function/directory/functions.py`.
+Write functions that act on data, then save them at some directory, e.g. `/example/function/directory/functions.py`.
 
-Create a new `ds_docker` class and provide it with the inputs:
+At the top of the file, add
+```python
+from dsar_core import register
+```
+
+and add the `@register` decorator above each function:
+```python
+@register
+def parrot_text(text):
+    return text
+```
+
+Next, create a new `ds_docker` class and provide it with the inputs:
 ```python
 session = ds_docker(
     '/example/function/directory/functions.py',
@@ -18,7 +30,7 @@ session = ds_docker(
 Then call the function in the `functions.py` connector with:
 
 ```python
-session.network_run("read_file", "/mnt/data/hi.txt")
+session.network_run("parrot_text", "Hello there")
 ```
 
 Finally, clean up the network and containers.
