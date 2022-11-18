@@ -43,7 +43,7 @@ class ds_docker:
     HOST = socket.gethostname()  # The server's hostname or IP address
     PORT = 12345  # The port used by the server
 
-    def __init__(self,function_file, connector_file, data_dir, image):
+    def __init__(self,function_file, connector_file, data_dir, dockerfile):
         """
         Initializes a docker container with mount point data_dir, with
         image given. Loads function file into container.
@@ -62,7 +62,7 @@ class ds_docker:
         self.client = docker.from_env()
 
         # create image from dockerfile
-        self.image, log = self.client.images.build(path="./docker/images", tag="ds_docker")
+        self.image, log = self.client.images.build(path=dockerfile, tag="ds_docker")
         # print(self.image, log)
 
         # run a container with command. It's detached so it runs in the background
@@ -198,7 +198,7 @@ if __name__ == "__main__":
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_functions/example_one.py',
         "connector_file",
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_data',
-        "image"
+        "./docker/images"
     )
 
     # run function
