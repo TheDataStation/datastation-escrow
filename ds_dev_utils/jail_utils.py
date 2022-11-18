@@ -195,9 +195,9 @@ class ds_docker:
 if __name__ == "__main__":
     # create a new ds_docker instance
     session = ds_docker(
-        '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/functions/example_one.py',
+        '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_functions/example_one.py',
         "connector_file",
-        '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/my_data',
+        '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_data',
         "image"
     )
 
