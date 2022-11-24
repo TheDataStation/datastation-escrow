@@ -39,3 +39,4 @@ cryptography
 # Pillow~=9.0.1
 # keras~=2.8.0
 smartnoise-sql
+sql-metadata
