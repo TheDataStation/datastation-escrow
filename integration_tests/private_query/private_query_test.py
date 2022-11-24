@@ -65,9 +65,8 @@ if __name__ == '__main__':
         # Save data station's public key
         ds_public_key = client_api.key_manager.ds_public_key
 
-        data_path = "/Users/zhiruzhu/Desktop/data_station/DataStation/integration_tests/private_query/data/adult_age_race_sex_income.csv"
-        encrypted_path = "/Users/zhiruzhu/Desktop/data_station/DataStation/integration_tests/private_query" \
-                             "/encrypted_data/adult_age_race_sex_income_encrpypted.csv"
+        data_path = "/home/cc/DataStation/integration_tests/private_query/data/adult_age_race_sex_income.csv"
+        encrypted_path = "/home/cc/DataStation/integration_tests/private_query/encrypted_data/adult_age_race_sex_income_encrpypted.csv"
 
 
         def create_user(user_name):
