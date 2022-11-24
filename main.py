@@ -50,12 +50,14 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
 
     accessible_data_dict = manager.dict()
     data_accessed_dict = manager.dict()
+    print(os.path.dirname(os.path.realpath(__file__)))
 
     interceptor_process = multiprocessing.Process(target=interceptor.main,
                                                   args=(ds_storage_path,
                                                         mount_point,
                                                         accessible_data_dict,
                                                         data_accessed_dict))
+
     interceptor_process.start()
     print("starting interceptor...")
     counter = 0
@@ -66,6 +68,7 @@ def initialize_system(ds_config, app_config, need_to_recover=False):
             print("mount time out")
             exit(1)
     print("Mounted {} to {}".format(ds_storage_path, mount_point))
+    print(os.path.dirname(os.path.realpath(__file__)))
 
     # set up the application registration in the gatekeeper
     connector_name = app_config["connector_name"]

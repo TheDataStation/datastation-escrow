@@ -16,6 +16,7 @@ from common.pydantic_models.response import Response, APIExecResponse
 from common import general_utils
 from crypto import key_manager
 from crypto import cryptoutils as cu
+from ds_dev_utils import jail_utils
 
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
@@ -66,6 +67,23 @@ def call_actual_api(api_name,
     # and the corresponding data owner's symmetric keys if running in no trust mode
     accessible_data_dict[api_pid] = (accessible_data_paths, accessible_data_key_dict)
 
+    # # create a new ds_docker instance
+    # session = jail_utils.ds_docker(
+    #     connector_module_path,
+    #     "connector_file",
+    #     '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_data',
+    #     "./docker/images"
+    # )
+
+    # # run function
+    # # session.direct_run("read_file", "/mnt/data/hi.txt")
+    # session.network_run("read_file", "/mnt/data/hi.txt")
+
+    # # clean up
+    # session.network_remove()
+    # session.stop_and_prune()
+
+    print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
     register_connectors(connector_name, connector_module_path)
     list_of_apis = get_registered_functions()

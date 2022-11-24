@@ -76,7 +76,7 @@ class ds_docker:
                                                        tty=True,
                                                        # define ports. These are arbitrary
                                                        ports={
-                                                           '2222/tcp': 12345},
+                                                           '2222/tcp': self.PORT},
                                                        # mount volumes
                                                        volumes={data_dir: {
                                                            'bind': '/mnt/data', 'mode': 'rw'}},
