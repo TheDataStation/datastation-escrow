@@ -53,7 +53,7 @@ if __name__ == '__main__':
                "SELECT SUM(fnlwgt) FROM adult WHERE capital_gain > 0 AND income == '<=50K' AND occupation == 'Sales'"
                ]
 
-    root_dir = "/home/cc/DataStation/integration_tests/private_query/"
+    root_dir = "/home/cc/DataStation/integration_tests/private_query"
     # root_dir = "/Users/zhiruzhu/Desktop/data_station/DataStation/integration_tests/private_query"
 
     data_list = ["adult_1000", "adult_10000", "adult_100000", "adult_1000000"]
