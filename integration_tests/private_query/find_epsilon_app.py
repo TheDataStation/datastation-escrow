@@ -561,7 +561,7 @@ def find_epsilon(context,
         # print(val1, val2)
         # if idx1 > idx2:
         #     idx1, idx2 = idx2, idx1
-        print("risk group idx:", idx1, idx2)
+        # print("risk group idx:", idx1, idx2)
 
         # sample1 = sorted_original_risks[:idx1 + 1]
         # sample2 = sorted_original_risks[idx2:]
