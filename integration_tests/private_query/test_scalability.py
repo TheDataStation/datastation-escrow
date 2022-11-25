@@ -34,7 +34,7 @@ if __name__ == '__main__':
     eps_list += list(np.arange(0.01, 0.1, 0.01, dtype=float))
     eps_list += list(np.arange(0.1, 1, 0.1, dtype=float))
     eps_list += list(np.arange(1, 11, 1, dtype=float))
-    num_runs = 5
+    num_runs = 1
     q = 0.05
     test = "mw"
 
