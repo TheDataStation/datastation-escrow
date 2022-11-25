@@ -471,8 +471,8 @@ def find_epsilon(context,
 
         original_result = read_sql(sql=query_string, con=sqlite_connection)
         # res = [tuple([col for col in q_result.columns])] + [val[1:] for val in q_result.itertuples()]
-        print("original_result")
-        print(original_result)
+        # print("original_result")
+        # print(original_result)
         # print(res)
 
         if len(original_result.select_dtypes(include=np.number).columns) > 1:
@@ -522,7 +522,7 @@ def find_epsilon(context,
 
         # print(original_risks)
         elapsed = time.time() - start_time
-        print(f"time to compute original risk: {elapsed} s")
+        # print(f"time to compute original risk: {elapsed} s")
 
         # return None
 
@@ -596,7 +596,7 @@ def find_epsilon(context,
         # query_string = query_string.replace(f" {table_name} ", f" {table_name}.{table_name} ")
         query_string = re.sub(f" FROM {table_name}", f" FROM {table_name}.{table_name}", query_string, flags=re.IGNORECASE)
 
-        for eps in tqdm.tqdm(sorted_eps_to_test):
+        for eps in sorted_eps_to_test:
 
             print(f"epsilon = {eps}")
 
@@ -616,7 +616,7 @@ def find_epsilon(context,
             # print(subquery)
             # print(query)
 
-            for j in tqdm.tqdm(range(num_runs)):
+            for j in range(num_runs):
 
                 # if reject_null:
                 #     continue # this eps does not equalize risks, skip
@@ -737,8 +737,8 @@ def find_epsilon(context,
             #  If there's only a few discoveries,
             #  we should probe epsilons that are close (10 to 9.9)
 
-        print(f"total time to compute new risk: {compute_risk_time} s")
-        print(f"total time to test equal distribution: {test_equal_distrbution_time} s")
+        # print(f"total time to compute new risk: {compute_risk_time} s")
+        # print(f"total time to test equal distribution: {test_equal_distrbution_time} s")
 
         sqlite_connection.close()
 
