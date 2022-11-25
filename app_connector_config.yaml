@@ -1,2 +1,2 @@
-connector_name: "private_query"
-connector_module_path: "integration_tests/private_query/private_query.py"
+connector_name: "find_epsilon_app"
+connector_module_path: "integration_tests/private_query/find_epsilon_app.py"

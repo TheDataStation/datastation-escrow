@@ -40,3 +40,6 @@ cryptography
 # keras~=2.8.0
 smartnoise-sql
 sql-metadata
+tqdm
+matplotlib
+statsmodels
