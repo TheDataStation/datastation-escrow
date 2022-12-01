@@ -6,7 +6,7 @@ from stagingstorage.staging_storage import StagingStorage
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
-from gatekeeper import gatekeeper
+from gatekeeper.gatekeeper import Gatekeeper
 from clientapi.client_api import ClientAPI
 from common.general_utils import parse_config
 from dbservice import database_api
@@ -74,14 +74,14 @@ class DataStation:
 
         manager = multiprocessing.Manager()
 
-        accessible_data_dict = manager.dict()
-        data_accessed_dict = manager.dict()
+        self.accessible_data_dict = manager.dict()
+        self.data_accessed_dict = manager.dict()
 
         self.interceptor_process = multiprocessing.Process(target=interceptor.main,
                                                     args=(ds_storage_path,
                                                             mount_point,
-                                                            accessible_data_dict,
-                                                            data_accessed_dict))
+                                                            self.accessible_data_dict,
+                                                            self.data_accessed_dict))
 
         self.interceptor_process.start()
         print("starting interceptor...")
@@ -95,23 +95,30 @@ class DataStation:
         print("Mounted {} to {}".format(ds_storage_path, mount_point))
         print(os.path.dirname(os.path.realpath(__file__)))
 
+        # set up an instance of the key manager
+        self.key_manager = KeyManager()
+
         # set up the application registration in the gatekeeper
-        connector_name = app_config["connector_name"]
-        connector_module_path = app_config["connector_module_path"]
-        gatekeeper_response = gatekeeper.gatekeeper_setup(connector_name, connector_module_path)
-        if gatekeeper_response.status == 1:
-            print("something went wrong in gatekeeper setup")
-            exit(1)
+        self.connector_name = app_config["connector_name"]
+        self.connector_module_path = app_config["connector_module_path"]
+        self.gatekeeper = Gatekeeper(
+                            self.data_station_log,
+                            self.write_ahead_log,
+                            self.key_manager,
+                            trust_mode,
+                            self.accessible_data_dict,
+                            self.data_accessed_dict,
+                            self.connector_name,
+                            self.connector_module_path
+                            )
 
         # set up the table_paths in dbservice.check_point
         table_paths = self.config.table_paths
         set_checkpoint_table_paths(table_paths)
 
-        # set up an instance of the key manager
-        # self.key_manager = KeyManager()
 
-        # lastly, set up an instance of the client_api
-        # client_api = ClientAPI(storage_manager,
+        # lastly, set up an instance of the gatekeeper
+        # self.gatekeeper = Gatekeeper(storage_manager,
         #                     staging_storage,
         #                     data_station_log,
         #                     write_ahead_log,
@@ -123,10 +130,10 @@ class DataStation:
         #                     )
 
         # Lastly, if we are in recover mode, we need to call
-        # if need_to_recover:
-        #     client_api.load_symmetric_keys()
-        #     recover_db_from_snapshots(client_api.key_manager)
-        #     client_api.recover_db_from_wal()
+        if need_to_recover:
+            self.load_symmetric_keys()
+            recover_db_from_snapshots(self.key_manager)
+            self.recover_db_from_wal()
 
         # The following field decides which data_id we should use when we upload a new DE
         # Right now we are just incrementing by 1
@@ -145,3 +152,37 @@ class DataStation:
         else:
             self.cur_staging_data_id = 1
 
+
+    def recover_db_from_wal(self):
+        # Step 1: restruct the DB
+        self.write_ahead_log.recover_db_from_wal(self.key_manager)
+
+        # Step 2: reset self.cur_user_id from DB
+        user_id_resp = database_api.get_user_with_max_id()
+        if user_id_resp.status == 1:
+            self.cur_user_id = user_id_resp.data[0].id + 1
+        else:
+            self.cur_user_id = 1
+        print("User ID to use after recovering DB is: "+str(self.cur_user_id))
+
+        # Step 3: reset self.cur_data_id from DB
+        data_id_resp = database_api.get_data_with_max_id()
+        if data_id_resp.status == 1:
+            self.cur_data_id = data_id_resp.data[0].id + 1
+        else:
+            self.cur_data_id = 1
+        print("Data ID to use after recovering DB is: " + str(self.cur_data_id))
+
+    # For testing purposes: persist keys to a file
+
+    def save_symmetric_keys(self):
+        with open("symmetric_keys.pkl", 'ab') as keys:
+            agents_symmetric_key = pickle.dumps(self.key_manager.agents_symmetric_key)
+            keys.write(agents_symmetric_key)
+
+    # For testing purposes: read keys from a file
+
+    def load_symmetric_keys(self):
+        with open("symmetric_keys.pkl", "rb") as keys:
+            agents_symmetric_key = pickle.load(keys)
+            self.key_manager.agents_symmetric_key = agents_symmetric_key
