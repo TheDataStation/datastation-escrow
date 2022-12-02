@@ -71,7 +71,7 @@ class DataStation:
         self.config = DSConfig(ds_config)
 
         # set up trust mode
-        trust_mode = self.config.trust_mode
+        self.trust_mode = self.config.trust_mode
 
         # set up an instance of the storage_manager
         storage_path = self.config.storage_path
@@ -84,7 +84,7 @@ class DataStation:
         # set up an instance of the log
         log_in_memory_flag = self.config.log_in_memory_flag
         log_path = self.config.log_path
-        self.data_station_log = Log(log_in_memory_flag, log_path, trust_mode)
+        self.data_station_log = Log(log_in_memory_flag, log_path, self.trust_mode)
 
         # set up an instance of the write ahead log
         wal_path = self.config.wal_path
@@ -128,7 +128,7 @@ class DataStation:
                             self.data_station_log,
                             self.write_ahead_log,
                             self.key_manager,
-                            trust_mode,
+                            self.trust_mode,
                             self.accessible_data_dict,
                             self.data_accessed_dict,
                             self.connector_name,
@@ -174,6 +174,12 @@ class DataStation:
             self.cur_staging_data_id = staging_id_resp.data[0].id + 1
         else:
             self.cur_staging_data_id = 1
+
+        user_id_resp = database_api.get_user_with_max_id()
+        if user_id_resp.status == 1:
+            self.cur_user_id = user_id_resp.data[0].id + 1
+        else:
+            self.cur_user_id = 1
 
 
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
@@ -223,7 +229,6 @@ class DataStation:
                        data_in_bytes,
                        data_type,
                        optimistic,
-                       token,
                        original_data_size=None):
 
         # Decide which data_id to use from ClientAPI.cur_data_id field
@@ -424,6 +429,39 @@ class DataStation:
         else:
             return res.message
 
+    # data users gives a staged DE ID and tries to release it
+    def release_staged_DE(self, username, staged_ID):
+        # get caller's UID
+        cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
+        # If the user doesn't exist, something is wrong
+        if cur_user.status == -1:
+            print("Something wrong with the current user")
+            return Response(status=1, message="Something wrong with the current user")
+        cur_user_id = cur_user.data[0].id
+
+        # First get the API call that generated this staged DE
+        api = database_api.get_api_for_staged_id(staged_ID)
+
+        # Then get the currently accessible DEs for the <cur_user_id, api> combo
+        accessible_data_ids = policy_broker.get_user_api_info(cur_user_id, api)
+
+        # Then get the parent_ids for this staged DE (all accessed DEs used to create this DE)
+        accessed_data_ids = database_api.get_parent_id_for_staged_id(staged_ID)
+
+        # Then check if accessed_data_ids is a subset of accessible_data_ids
+        # If yes, we can release the staged DE
+        if set(accessed_data_ids).issubset(set(accessible_data_ids)):
+            res = cu.from_bytes(self.staging_storage.release(staged_ID))
+            return res
+
+
+    def print_full_log(self):
+        self.data_station_log.read_full_log(self.key_manager)
+
+    # print out the contents of the WAL
+
+    def print_wal(self):
+        self.write_ahead_log.read_wal(self.key_manager)
 
     def recover_db_from_wal(self):
         # Step 1: restruct the DB
@@ -460,8 +498,9 @@ class DataStation:
             self.key_manager.agents_symmetric_key = agents_symmetric_key
 
     def shut_down(self):
-        # print("shut down...")
+        # print("shutting down...")
         mount_point = self.config.mount_point
+        # print(mount_point)
         unmount_status = os.system("umount " + str(mount_point))
         counter = 0
         while unmount_status != 0:
