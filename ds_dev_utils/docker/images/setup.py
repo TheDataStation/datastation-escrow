@@ -3,7 +3,7 @@ import socket
 import pickle
 from run_function import (load_connectors,
                             run_function)
-from dsar_core import get_registered_functions
+from dsapplicationregistration.dsar_core import get_registered_functions
 
 class function_server:
     """

@@ -271,9 +271,9 @@ class Xmp(Fuse):
                 fuse_context = Fuse.GetContext(Xmp_self)
                 pid = fuse_context["pid"]
 
-                # if pid in accessible_data_dict_global.keys():
-                #     print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
-                #     print("Interceptor: pid:", pid)
+                if pid in accessible_data_dict_global.keys():
+                    print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
+                    print("Interceptor: pid:", pid)
 
                 if pid not in data_accessed_dict_global.keys():
                     data_accessed_dict_global[pid] = set()
@@ -318,7 +318,7 @@ class Xmp(Fuse):
 
 
             def read(self, length, offset):
-                # print("Interceptor: I am reading " + str(self.file_path))
+                print("Interceptor: I am reading " + str(self.file_path))
 
                 if self.iolock:
                     self.iolock.acquire()

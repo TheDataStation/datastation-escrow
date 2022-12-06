@@ -21,6 +21,7 @@ from ds_dev_utils import jail_utils
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
+from ds_dev_utils.jail_utils import ds_docker
 
 
 class Gatekeeper:
@@ -265,6 +266,53 @@ def get_accessible_data(user_id, api):
     accessible_data = policy_broker.get_user_api_info(user_id, api)
     return accessible_data
 
+def call_actual_api_(api_name,
+                    connector_name,
+                    connector_module_path,
+                    accessible_data_dict,
+                    accessible_data_paths,
+                    accessible_data_key_dict,
+                    api_conn,
+                    *args,
+                    **kwargs,
+                    ):
+
+    api_pid = os.getpid()
+    # print("api process id:", str(api_pid))
+    # set the list of accessible data for this api call,
+    # and the corresponding data owner's symmetric keys if running in no trust mode
+    accessible_data_dict[api_pid] = (accessible_data_paths, accessible_data_key_dict)
+
+    print(os.path.dirname(os.path.realpath(__file__)))
+    # print(api_name, *args, **kwargs)
+    register_connectors(connector_name, connector_module_path)
+    list_of_apis = get_registered_functions()
+    # print("list_of_apis:", list_of_apis)
+    time.sleep(1)
+    session = ds_docker(
+    '/Users/christopherzhu/Documents/chidata/DataStation/examples/example_one.py',
+    "connector_file",
+    '/Users/christopherzhu/Documents/chidata/DataStation/SM_storage_mount',
+    "/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/docker/images"
+    )
+
+    # run function
+    # session.direct_run("read_file", "/mnt/data/hi.txt")
+    for cur_api in list_of_apis:
+        if api_name == cur_api.__name__:
+            print("call", api_name)
+            ret = session.network_run(api_name, *args, **kwargs)
+
+
+            # result = cur_api(*args, **kwargs)
+            api_conn.send(ret)
+            api_conn.close()
+            break
+
+    # clean up
+    session.network_remove()
+    session.stop_and_prune()
+
 
 def call_actual_api(api_name,
                     connector_name,
@@ -282,22 +330,6 @@ def call_actual_api(api_name,
     # set the list of accessible data for this api call,
     # and the corresponding data owner's symmetric keys if running in no trust mode
     accessible_data_dict[api_pid] = (accessible_data_paths, accessible_data_key_dict)
-
-    # # create a new ds_docker instance
-    # session = jail_utils.ds_docker(
-    #     connector_module_path,
-    #     "connector_file",
-    #     '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_data',
-    #     "./docker/images"
-    # )
-
-    # # run function
-    # # session.direct_run("read_file", "/mnt/data/hi.txt")
-    # session.network_run("read_file", "/mnt/data/hi.txt")
-
-    # # clean up
-    # session.network_remove()
-    # session.stop_and_prune()
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
@@ -429,11 +461,11 @@ def call_api(api,
             return Response(status=1, message=err_msg)
         data_ids_accessed = set([dataset.id for dataset in get_datasets_by_paths_res.data])
 
-    # print("data id accessed are:")
-    # print(data_ids_accessed)
+    print("data id accessed are:")
+    print(data_ids_accessed)
 
     if set(data_ids_accessed).issubset(set(accessible_data_policy)):
-        # print("All data access allowed by policy.")
+        print("All data access allowed by policy.")
         # log operation: logging intent_policy match
         data_station_log.log_intent_policy_match(cur_user_id,
                                                  api,
@@ -445,7 +477,7 @@ def call_api(api,
                                    result=api_result,
                                    )
     elif set(data_ids_accessed).issubset(all_accessible_data_id):
-        # print("Some access to optimistic data not allowed by policy.")
+        print("Some access to optimistic data not allowed by policy.")
         # log operation: logging intent_policy mismatch
         data_station_log.log_intent_policy_mismatch(cur_user_id,
                                                     api,
@@ -458,7 +490,7 @@ def call_api(api,
     else:
         # TODO: illegal access can still happen since interceptor does not block access
         #  (except filter out inaccessible data when list dir)
-        # print("Access to illegal data happened. Something went wrong")
+        print("Access to illegal data happened. Something went wrong")
         # log operation: logging intent_policy mismatch
         data_station_log.log_intent_policy_mismatch(cur_user_id,
                                                     api,

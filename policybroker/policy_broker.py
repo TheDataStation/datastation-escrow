@@ -164,6 +164,7 @@ def get_user_api_info(user_id, api):
 
     # get ancestors of the api being called
     cur_ancestors = [api]
+    print(api, dependency_graph, cur_ancestors)
     get_all_ancestors(api, dependency_graph, cur_ancestors)
     # print("Current api's ancestors are:")
     # print(cur_ancestors)

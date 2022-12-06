@@ -1,4 +1,4 @@
-from dsar_core import (register_connectors,
+from dsapplicationregistration.dsar_core import (register_connectors,
                         get_names_registered_functions,
                         get_registered_functions,
                         get_registered_dependencies, )

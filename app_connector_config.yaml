@@ -1,2 +1,2 @@
 connector_name: "example_one"
-connector_module_path: "examples/example_one.py"
+connector_module_path: "examples/docker_example.py"
