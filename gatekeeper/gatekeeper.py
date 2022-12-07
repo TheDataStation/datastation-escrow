@@ -26,16 +26,16 @@ from ds_dev_utils.jail_utils import ds_docker
 
 class Gatekeeper:
     def __init__(self,
-                data_station_log: Log,
-                write_ahead_log: WAL,
-                key_manager: KeyManager,
-                trust_mode: str,
-                accessible_data_dict,
-                data_accessed_dict,
-                connector_name,
-                connector_module_path,
-                mount_dir,
-                ):
+                 data_station_log: Log,
+                 write_ahead_log: WAL,
+                 key_manager: KeyManager,
+                 trust_mode: str,
+                 accessible_data_dict,
+                 data_accessed_dict,
+                 connector_name,
+                 connector_module_path,
+                 mount_dir,
+                 ):
 
         # save variables
         self.data_station_log = data_station_log
@@ -62,34 +62,37 @@ class Gatekeeper:
             database_service_response = database_api.create_api(api_db)
             if database_service_response.status == -1:
                 print("database_api.create_api: internal database error")
-                raise RuntimeError("database_api.create_api: internal database error")
+                raise RuntimeError(
+                    "database_api.create_api: internal database error")
         for cur_from_api in dependencies_to_register:
             to_api_list = dependencies_to_register[cur_from_api]
             for cur_to_api in to_api_list:
                 api_dependency_db = APIDependency(from_api=cur_from_api,
-                                                to_api=cur_to_api, )
-                database_service_response = database_api.create_api_dependency(api_dependency_db)
+                                                  to_api=cur_to_api, )
+                database_service_response = database_api.create_api_dependency(
+                    api_dependency_db)
                 if database_service_response.status == -1:
                     print("database_api.create_api_dependency: internal database error")
-                    raise RuntimeError("database_api.create_api_dependency: internal database error")
+                    raise RuntimeError(
+                        "database_api.create_api_dependency: internal database error")
         print("Gatekeeper setup success")
 
     def get_accessible_data(self, user_id, api):
         accessible_data = policy_broker.get_user_api_info(user_id, api)
         return accessible_data
 
-
     # We add times to the following function to record the overheads
+
     def call_api(self,
-                api,
-                cur_user_id,
-                exec_mode,
-                # data_station_log,
-                # key_manager: key_manager.KeyManager,
-                # accessible_data_dict,
-                # data_accessed_dict,
-                *args,
-                **kwargs):
+                 api,
+                 cur_user_id,
+                 exec_mode,
+                 # data_station_log,
+                 # key_manager: key_manager.KeyManager,
+                 # accessible_data_dict,
+                 # data_accessed_dict,
+                 *args,
+                 **kwargs):
 
         # print(trust_mode)
 
@@ -127,7 +130,8 @@ class Gatekeeper:
         # Combine these two types of accessible data elements together
         # In optimistic execution mode, we include optimistic datasets as well
         if exec_mode == "optimistic":
-            all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
+            all_accessible_data_id = set(
+                accessible_data_policy + accessible_data_optimistic)
         # In pessimistic execution mode, we only include data that are allowed by policies
         elif not data_aware_flag:
             all_accessible_data_id = set(accessible_data_policy)
@@ -137,12 +141,14 @@ class Gatekeeper:
         # print("all accessible data elements are: ")
         # print(all_accessible_data_id)
 
-        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
+        get_datasets_by_ids_res = database_api.get_datasets_by_ids(
+            all_accessible_data_id)
         if get_datasets_by_ids_res.status == -1:
             err_msg = "No accessible data for " + api
             print(err_msg)
             return Response(status=1, message=err_msg)
-        accessible_data_paths = set([dataset.access_type for dataset in get_datasets_by_ids_res.data])
+        accessible_data_paths = set(
+            [dataset.access_type for dataset in get_datasets_by_ids_res.data])
 
         # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
         trust_mode = self.trust_mode
@@ -153,13 +159,14 @@ class Gatekeeper:
             # and store them in dict to pass to interceptor
             accessible_data_key_dict = {}
             for dataset in get_datasets_by_ids_res.data:
-                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(dataset.owner_id)
+                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(
+                    dataset.owner_id)
                 accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
 
         # start a new process for the api call
         main_conn, api_conn = multiprocessing.Pipe()
         api_process = multiprocessing.Process(target=call_actual_api,
-                                            args=(api,
+                                              args=(api,
                                                     self.connector_name,
                                                     self.connector_module_path,
                                                     self.accessible_data_dict,
@@ -169,7 +176,7 @@ class Gatekeeper:
                                                     api_conn,
                                                     *args,
                                                     ),
-                                            kwargs=kwargs)
+                                              kwargs=kwargs)
         api_process.start()
         api_pid = api_process.pid
         api_pid = 10561
@@ -188,12 +195,14 @@ class Gatekeeper:
         if api_pid in self.data_accessed_dict.keys():
             cur_data_accessed = self.data_accessed_dict[api_pid].copy()
             del self.data_accessed_dict[api_pid]
-            get_datasets_by_paths_res = database_api.get_datasets_by_paths(cur_data_accessed)
+            get_datasets_by_paths_res = database_api.get_datasets_by_paths(
+                cur_data_accessed)
             if get_datasets_by_paths_res.status == -1:
                 err_msg = "No accessible data for " + api
                 print(err_msg)
                 return Response(status=1, message=err_msg)
-            data_ids_accessed = set([dataset.id for dataset in get_datasets_by_paths_res.data])
+            data_ids_accessed = set(
+                [dataset.id for dataset in get_datasets_by_paths_res.data])
 
         # print("data id accessed are:")
         # print(data_ids_accessed)
@@ -202,38 +211,40 @@ class Gatekeeper:
             # print("All data access allowed by policy.")
             # log operation: logging intent_policy match
             self.data_station_log.log_intent_policy_match(cur_user_id,
-                                                    api,
-                                                    data_ids_accessed,
-                                                    self.key_manager,)
+                                                          api,
+                                                          data_ids_accessed,
+                                                          self.key_manager,)
             # In this case, we can return the result to caller.
             response = APIExecResponse(status=0,
-                                    message="API result can be released",
-                                    result=api_result,
-                                    )
+                                       message="API result can be released",
+                                       result=api_result,
+                                       )
         elif set(data_ids_accessed).issubset(all_accessible_data_id):
             # print("Some access to optimistic data not allowed by policy.")
             # log operation: logging intent_policy mismatch
             self.data_station_log.log_intent_policy_mismatch(cur_user_id,
-                                                        api,
-                                                        data_ids_accessed,
-                                                        set(accessible_data_policy),
-                                                        self.key_manager,)
+                                                             api,
+                                                             data_ids_accessed,
+                                                             set(accessible_data_policy),
+                                                             self.key_manager,)
             response = APIExecResponse(status=-1,
-                                    message="Some access to optimistic data not allowed by policy.",
-                                    result=[api_result, data_ids_accessed],)
+                                       message="Some access to optimistic data not allowed by policy.",
+                                       result=[api_result, data_ids_accessed],)
         else:
             # TODO: illegal access can still happen since interceptor does not block access
             #  (except filter out inaccessible data when list dir)
             # print("Access to illegal data happened. Something went wrong")
             # log operation: logging intent_policy mismatch
             self.data_station_log.log_intent_policy_mismatch(cur_user_id,
-                                                        api,
-                                                        data_ids_accessed,
-                                                        set(accessible_data_policy),
-                                                        self.key_manager,)
-            response = Response(status=1, message="Access to illegal data happened. Something went wrong.")
+                                                             api,
+                                                             data_ids_accessed,
+                                                             set(accessible_data_policy),
+                                                             self.key_manager,)
+            response = Response(
+                status=1, message="Access to illegal data happened. Something went wrong.")
 
         return response
+
 
 def gatekeeper_setup(connector_name, connector_module_path):
     # print("Start setting up the gatekeeper")
@@ -255,7 +266,8 @@ def gatekeeper_setup(connector_name, connector_module_path):
         for cur_to_api in to_api_list:
             api_dependency_db = APIDependency(from_api=cur_from_api,
                                               to_api=cur_to_api, )
-            database_service_response = database_api.create_api_dependency(api_dependency_db)
+            database_service_response = database_api.create_api_dependency(
+                api_dependency_db)
             if database_service_response.status == -1:
                 print("database_api.create_api_dependency: internal database error")
                 return Response(status=1, message="database_api.create_api_dependency: internal database error")
@@ -265,6 +277,7 @@ def gatekeeper_setup(connector_name, connector_module_path):
 def get_accessible_data(user_id, api):
     accessible_data = policy_broker.get_user_api_info(user_id, api)
     return accessible_data
+
 
 def call_actual_api(api_name,
                     connector_name,
@@ -283,7 +296,8 @@ def call_actual_api(api_name,
     # print("api process id:", str(api_pid))
     # set the list of accessible data for this api call,
     # and the corresponding data owner's symmetric keys if running in no trust mode
-    accessible_data_dict[api_pid] = (accessible_data_paths, accessible_data_key_dict)
+    accessible_data_dict[api_pid] = (
+        accessible_data_paths, accessible_data_key_dict)
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
@@ -292,10 +306,10 @@ def call_actual_api(api_name,
     # print("list_of_apis:", list_of_apis)
     time.sleep(1)
     session = ds_docker(
-    '/Users/christopherzhu/Documents/chidata/DataStation/examples/example_one.py',
-    "connector_file",
-    mount_dir,
-    "/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/docker/images"
+        '/Users/christopherzhu/Documents/chidata/DataStation/examples/example_one.py',
+        "connector_file",
+        mount_dir,
+        "/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/docker/images"
     )
 
     print(session.container.top())
@@ -318,21 +332,22 @@ def call_actual_api(api_name,
 
 
 def call_actual_api_(api_name,
-                    connector_name,
-                    connector_module_path,
-                    accessible_data_dict,
-                    accessible_data_paths,
-                    accessible_data_key_dict,
-                    api_conn,
-                    *args,
-                    **kwargs,
-                    ):
+                     connector_name,
+                     connector_module_path,
+                     accessible_data_dict,
+                     accessible_data_paths,
+                     accessible_data_key_dict,
+                     api_conn,
+                     *args,
+                     **kwargs,
+                     ):
 
     api_pid = os.getpid()
     # print("api process id:", str(api_pid))
     # set the list of accessible data for this api call,
     # and the corresponding data owner's symmetric keys if running in no trust mode
-    accessible_data_dict[api_pid] = (accessible_data_paths, accessible_data_key_dict)
+    accessible_data_dict[api_pid] = (
+        accessible_data_paths, accessible_data_key_dict)
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
@@ -348,6 +363,8 @@ def call_actual_api_(api_name,
             break
 
 # We add times to the following function to record the overheads
+
+
 def call_api(api,
              cur_user_id,
              exec_mode,
@@ -394,7 +411,8 @@ def call_api(api,
     # Combine these two types of accessible data elements together
     # In optimistic execution mode, we include optimistic datasets as well
     if exec_mode == "optimistic":
-        all_accessible_data_id = set(accessible_data_policy + accessible_data_optimistic)
+        all_accessible_data_id = set(
+            accessible_data_policy + accessible_data_optimistic)
     # In pessimistic execution mode, we only include data that are allowed by policies
     elif not data_aware_flag:
         all_accessible_data_id = set(accessible_data_policy)
@@ -404,12 +422,14 @@ def call_api(api,
     # print("all accessible data elements are: ")
     # print(all_accessible_data_id)
 
-    get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
+    get_datasets_by_ids_res = database_api.get_datasets_by_ids(
+        all_accessible_data_id)
     if get_datasets_by_ids_res.status == -1:
         err_msg = "No accessible data for " + api
         print(err_msg)
         return Response(status=1, message=err_msg)
-    accessible_data_paths = set([dataset.access_type for dataset in get_datasets_by_ids_res.data])
+    accessible_data_paths = set(
+        [dataset.access_type for dataset in get_datasets_by_ids_res.data])
 
     # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
     ds_config = general_utils.parse_config("data_station_config.yaml")
@@ -421,7 +441,8 @@ def call_api(api,
         # and store them in dict to pass to interceptor
         accessible_data_key_dict = {}
         for dataset in get_datasets_by_ids_res.data:
-            data_owner_symmetric_key = key_manager.get_agent_symmetric_key(dataset.owner_id)
+            data_owner_symmetric_key = key_manager.get_agent_symmetric_key(
+                dataset.owner_id)
             accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
 
     app_config = general_utils.parse_config("app_connector_config.yaml")
@@ -460,12 +481,14 @@ def call_api(api,
     if api_pid in data_accessed_dict.keys():
         cur_data_accessed = data_accessed_dict[api_pid].copy()
         del data_accessed_dict[api_pid]
-        get_datasets_by_paths_res = database_api.get_datasets_by_paths(cur_data_accessed)
+        get_datasets_by_paths_res = database_api.get_datasets_by_paths(
+            cur_data_accessed)
         if get_datasets_by_paths_res.status == -1:
             err_msg = "No accessible data for " + api
             print(err_msg)
             return Response(status=1, message=err_msg)
-        data_ids_accessed = set([dataset.id for dataset in get_datasets_by_paths_res.data])
+        data_ids_accessed = set(
+            [dataset.id for dataset in get_datasets_by_paths_res.data])
 
     print("data id accessed are:")
     print(data_ids_accessed)
@@ -503,7 +526,8 @@ def call_api(api,
                                                     data_ids_accessed,
                                                     set(accessible_data_policy),
                                                     key_manager,)
-        response = Response(status=1, message="Access to illegal data happened. Something went wrong.")
+        response = Response(
+            status=1, message="Access to illegal data happened. Something went wrong.")
 
     return response
 
