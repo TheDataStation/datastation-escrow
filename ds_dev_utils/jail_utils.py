@@ -77,6 +77,10 @@ class ds_docker:
                                                        # define ports. These are arbitrary
                                                        ports={
                                                            '2222/tcp': self.PORT},
+                                                       # read only for security
+                                                    #    read_only = True,
+                                                       # run as user
+                                                    #    user="docker_user",
                                                        # mount volumes
                                                        volumes={data_dir: {
                                                            'bind': '/mnt/data', 'mode': 'rw'}},

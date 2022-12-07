@@ -279,6 +279,8 @@ class Xmp(Fuse):
                     data_accessed_dict_global[pid] = set()
 
                 print("Got pid number: ", pid)
+                print("Got uid number: ", fuse_context["uid"])
+                print("Got gid number: ", fuse_context["gid"])
                 cur_set = data_accessed_dict_global[pid]
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set

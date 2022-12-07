@@ -132,7 +132,8 @@ class DataStation:
                             self.accessible_data_dict,
                             self.data_accessed_dict,
                             self.connector_name,
-                            self.connector_module_path
+                            self.connector_module_path,
+                            mount_point
                             )
 
         # set up the table_paths in dbservice.check_point

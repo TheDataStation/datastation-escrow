@@ -32,9 +32,10 @@ class Gatekeeper:
                 trust_mode: str,
                 accessible_data_dict,
                 data_accessed_dict,
-
                 connector_name,
-                connector_module_path):
+                connector_module_path,
+                mount_dir,
+                ):
 
         # save variables
         self.data_station_log = data_station_log
@@ -46,6 +47,7 @@ class Gatekeeper:
         self.data_accessed_dict = data_accessed_dict
         self.connector_name = connector_name
         self.connector_module_path = connector_module_path
+        self.mount_dir = mount_dir
 
         # print("Start setting up the gatekeeper")
         register_connectors(connector_name, connector_module_path)
@@ -143,8 +145,7 @@ class Gatekeeper:
         accessible_data_paths = set([dataset.access_type for dataset in get_datasets_by_ids_res.data])
 
         # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
-        ds_config = general_utils.parse_config("data_station_config.yaml")
-        trust_mode = ds_config["trust_mode"]
+        trust_mode = self.trust_mode
 
         accessible_data_key_dict = None
         if trust_mode == "no_trust":
@@ -155,19 +156,16 @@ class Gatekeeper:
                 data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(dataset.owner_id)
                 accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
 
-        app_config = general_utils.parse_config("app_connector_config.yaml")
-        connector_name = app_config["connector_name"]
-        connector_module_path = app_config["connector_module_path"]
-
         # start a new process for the api call
         main_conn, api_conn = multiprocessing.Pipe()
         api_process = multiprocessing.Process(target=call_actual_api,
                                             args=(api,
-                                                    connector_name,
-                                                    connector_module_path,
+                                                    self.connector_name,
+                                                    self.connector_module_path,
                                                     self.accessible_data_dict,
                                                     accessible_data_paths,
                                                     accessible_data_key_dict,
+                                                    self.mount_dir,
                                                     api_conn,
                                                     *args,
                                                     ),
@@ -274,6 +272,7 @@ def call_actual_api(api_name,
                     accessible_data_dict,
                     accessible_data_paths,
                     accessible_data_key_dict,
+                    mount_dir,
                     api_conn,
                     *args,
                     **kwargs,
@@ -295,7 +294,7 @@ def call_actual_api(api_name,
     session = ds_docker(
     '/Users/christopherzhu/Documents/chidata/DataStation/examples/example_one.py',
     "connector_file",
-    '/Users/christopherzhu/Documents/chidata/DataStation/SM_storage_mount',
+    mount_dir,
     "/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/docker/images"
     )
 
@@ -307,7 +306,6 @@ def call_actual_api(api_name,
         if api_name == cur_api.__name__:
             print("call", api_name)
             ret = session.network_run(api_name, *args, **kwargs)
-
 
             # result = cur_api(*args, **kwargs)
             api_conn.send(ret)
@@ -439,6 +437,7 @@ def call_api(api,
                                                 accessible_data_dict,
                                                 accessible_data_paths,
                                                 accessible_data_key_dict,
+                                                '/Users/christopherzhu/Documents/chidata/DataStation/SM_storage_mount',
                                                 api_conn,
                                                 *args,
                                                 ),
