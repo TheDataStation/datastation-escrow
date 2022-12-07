@@ -36,6 +36,9 @@ class Gatekeeper:
                  connector_module_path,
                  mount_dir,
                  ):
+        """
+        Initializes the gatekeeper.
+        """
 
         # save variables
         self.data_station_log = data_station_log
@@ -93,6 +96,19 @@ class Gatekeeper:
                  # data_accessed_dict,
                  *args,
                  **kwargs):
+        """
+        Calls the API specified, ensuring that
+          - data is only exposed to the API if permitted
+          - data accessed by API is allowed
+
+        Parameters:
+         api: api to call
+         cur_user_id: the user id to decide what data is exposed
+         exec_mode: optimistic or pessimistic
+
+        Returns:
+         Response based on what happens
+        """
 
         # print(trust_mode)
 
@@ -290,7 +306,23 @@ def call_actual_api(api_name,
                     *args,
                     **kwargs,
                     ):
+    """
+    The thread that runs the API on the Docker container
+    TODO: do not hard code API pid
 
+    Parameters:
+     api_name: name of API to run on Docker container
+     connector_name: name of connector
+     connector_module_path: path to connector module
+     accessible_data_dict: dictionary of data that API is allowed to access, fed to Interceptor
+     accessible_data_paths: paths associated with data dict
+     accessible_data_key_dict:
+     mount_dir: directory of filesystem mount for Interceptor
+     api_conn: variables to be passed from parent to child thread, including API result
+
+    Returns:
+     None
+    """
     api_pid = os.getpid()
     api_pid = 10561
     # print("api process id:", str(api_pid))
