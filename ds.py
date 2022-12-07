@@ -31,36 +31,41 @@ from dsapplicationregistration.dsar_core import clear_register
 from userregister import user_register
 
 
-class DSConfig:
-    def __init__(self, ds_config):
-        # get the trust mode for the data station
-        self.trust_mode = ds_config["trust_mode"]
-
-        # get storage path for data
-        self.storage_path = ds_config["storage_path"]
-
-        # staging path
-        self.staging_path = ds_config["staging_path"]
-
-        # log arguments
-        self.log_in_memory_flag = ds_config["log_in_memory"]
-        self.log_path = ds_config["log_path"]
-
-        # wal arguments
-        self.wal_path = ds_config["wal_path"]
-        self.check_point_freq = ds_config["check_point_freq"]
-
-        # the table_paths in dbservice.check_point
-        self.table_paths = ds_config["table_paths"]
-
-        # interceptor paths
-        self.ds_storage_path = str(pathlib.Path(
-            ds_config["storage_path"]).absolute())
-        self.mount_point = str(pathlib.Path(
-            ds_config["mount_path"]).absolute())
 
 
 class DataStation:
+
+    class DSConfig:
+        def __init__(self, ds_config):
+            """
+            Class that stores DS config variables at the time they were given
+            """
+            # get the trust mode for the data station
+            self.trust_mode = ds_config["trust_mode"]
+
+            # get storage path for data
+            self.storage_path = ds_config["storage_path"]
+
+            # staging path
+            self.staging_path = ds_config["staging_path"]
+
+            # log arguments
+            self.log_in_memory_flag = ds_config["log_in_memory"]
+            self.log_path = ds_config["log_path"]
+
+            # wal arguments
+            self.wal_path = ds_config["wal_path"]
+            self.check_point_freq = ds_config["check_point_freq"]
+
+            # the table_paths in dbservice.check_point
+            self.table_paths = ds_config["table_paths"]
+
+            # interceptor paths
+            self.ds_storage_path = str(pathlib.Path(
+                ds_config["storage_path"]).absolute())
+            self.mount_point = str(pathlib.Path(
+                ds_config["mount_path"]).absolute())
+
     def __init__(self, ds_config, app_config, need_to_recover=False):
         """
         The general class that creates and initializes a Data Station.
@@ -71,7 +76,7 @@ class DataStation:
          need_to_recover: bool that specifies if needs to recover from previous database
         """
         # parse config file
-        self.config = DSConfig(ds_config)
+        self.config = self.DSConfig(ds_config)
 
         # set up trust mode
         self.trust_mode = self.config.trust_mode

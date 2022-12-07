@@ -37,7 +37,7 @@ class Gatekeeper:
                  mount_dir,
                  ):
         """
-        Initializes the gatekeeper.
+        The general class for the gatekeeper, which brokers access to data.
         """
 
         # save variables
