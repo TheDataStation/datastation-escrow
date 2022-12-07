@@ -30,6 +30,7 @@ from Interceptor import interceptor
 from dsapplicationregistration.dsar_core import clear_register
 from userregister import user_register
 
+
 class DSConfig:
     def __init__(self, ds_config):
         # get the trust mode for the data station
@@ -53,8 +54,10 @@ class DSConfig:
         self.table_paths = ds_config["table_paths"]
 
         # interceptor paths
-        self.ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
-        self.mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
+        self.ds_storage_path = str(pathlib.Path(
+            ds_config["storage_path"]).absolute())
+        self.mount_point = str(pathlib.Path(
+            ds_config["mount_path"]).absolute())
 
 
 class DataStation:
@@ -84,7 +87,8 @@ class DataStation:
         # set up an instance of the log
         log_in_memory_flag = self.config.log_in_memory_flag
         log_path = self.config.log_path
-        self.data_station_log = Log(log_in_memory_flag, log_path, self.trust_mode)
+        self.data_station_log = Log(
+            log_in_memory_flag, log_path, self.trust_mode)
 
         # set up an instance of the write ahead log
         wal_path = self.config.wal_path
@@ -101,10 +105,10 @@ class DataStation:
         self.data_accessed_dict = manager.dict()
 
         self.interceptor_process = multiprocessing.Process(target=interceptor.main,
-                                                    args=(ds_storage_path,
-                                                            mount_point,
-                                                            self.accessible_data_dict,
-                                                            self.data_accessed_dict))
+                                                           args=(ds_storage_path,
+                                                                 mount_point,
+                                                                 self.accessible_data_dict,
+                                                                 self.data_accessed_dict))
 
         self.interceptor_process.start()
         print("starting interceptor...")
@@ -125,21 +129,20 @@ class DataStation:
         self.connector_name = app_config["connector_name"]
         self.connector_module_path = app_config["connector_module_path"]
         self.gatekeeper = Gatekeeper(
-                            self.data_station_log,
-                            self.write_ahead_log,
-                            self.key_manager,
-                            self.trust_mode,
-                            self.accessible_data_dict,
-                            self.data_accessed_dict,
-                            self.connector_name,
-                            self.connector_module_path,
-                            mount_point
-                            )
+            self.data_station_log,
+            self.write_ahead_log,
+            self.key_manager,
+            self.trust_mode,
+            self.accessible_data_dict,
+            self.data_accessed_dict,
+            self.connector_name,
+            self.connector_module_path,
+            mount_point
+        )
 
         # set up the table_paths in dbservice.check_point
         table_paths = self.config.table_paths
         set_checkpoint_table_paths(table_paths)
-
 
         # lastly, set up an instance of the gatekeeper
         # self.gatekeeper = Gatekeeper(storage_manager,
@@ -182,7 +185,6 @@ class DataStation:
         else:
             self.cur_user_id = 1
 
-
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
 
         # First we decide which user_id to use from ClientAPI.cur_user_id field
@@ -211,18 +213,15 @@ class DataStation:
 
         return Response(status=response.status, message=response.message)
 
-
     @staticmethod
     def get_all_apis():
         # Call policy_broker directly
         return policy_broker.get_all_apis()
 
-
     @staticmethod
     def get_all_api_dependencies():
         # Call policy_broker directly
         return policy_broker.get_all_dependencies()
-
 
     def upload_dataset(self,
                        username,
@@ -274,7 +273,6 @@ class DataStation:
 
         return data_register_response
 
-
     def remove_dataset(self, username, data_name):
 
         # First we call data_register to remove the existing dataset from the database
@@ -301,7 +299,6 @@ class DataStation:
 
         return Response(status=data_register_response.status, message=data_register_response.message)
 
-
     def upload_policy(self, username, policy: Policy):
         if self.trust_mode == "full_trust":
             response = policy_broker.upload_policy(policy,
@@ -313,7 +310,6 @@ class DataStation:
                                                    self.key_manager,)
 
         return Response(status=response.status, message=response.message)
-
 
     def bulk_upload_policies(self, username, policies):
         # This code here is unpolished. Just for testing purposes.
@@ -327,7 +323,6 @@ class DataStation:
                                                           self.key_manager,)
             return response
 
-
     def remove_policy(self, username, policy: Policy):
         if self.trust_mode == "full_trust":
             response = policy_broker.remove_policy(policy,
@@ -340,15 +335,14 @@ class DataStation:
 
         return Response(status=response.status, message=response.message)
 
-
     @staticmethod
     def get_all_policies():
         return policy_broker.get_all_policies()
 
-
     def call_api(self, username, api: API, exec_mode, *args, **kwargs):
         # get caller's UID
-        cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
+        cur_user = database_api.get_user_by_user_name(
+            User(user_name=username, ))
         # If the user doesn't exist, something is wrong
         if cur_user.status == -1:
             print("Something wrong with the current user")
@@ -356,17 +350,19 @@ class DataStation:
         cur_user_id = cur_user.data[0].id
 
         res = self.gatekeeper.call_api(api,
-                                  cur_user_id,
-                                  exec_mode,
-                                  *args,
-                                  **kwargs)
+                                       cur_user_id,
+                                       exec_mode,
+                                       *args,
+                                       **kwargs)
         # Only when the returned status is 0 can we release the result
         if res.status == 0:
             api_result = res.result
             # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
             if self.trust_mode == "no_trust":
-                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_user_id)
-                api_result = cu.encrypt_data_with_symmetric_key(cu.to_bytes(api_result), caller_symmetric_key)
+                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
+                    cur_user_id)
+                api_result = cu.encrypt_data_with_symmetric_key(
+                    cu.to_bytes(api_result), caller_symmetric_key)
             return api_result
         # In this case we need to put result into staging storage, so that they can be released later
         elif res.status == -1:
@@ -378,8 +374,10 @@ class DataStation:
                 api_result = cu.to_bytes(api_result)
             # In no_trust mode, we encrypt it using caller's symmetric key
             else:
-                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_user_id)
-                api_result = cu.encrypt_data_with_symmetric_key(cu.to_bytes(api_result), caller_symmetric_key)
+                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
+                    cur_user_id)
+                api_result = cu.encrypt_data_with_symmetric_key(
+                    cu.to_bytes(api_result), caller_symmetric_key)
 
             # print(api_result)
             # print(data_ids_accessed)
@@ -433,7 +431,8 @@ class DataStation:
     # data users gives a staged DE ID and tries to release it
     def release_staged_DE(self, username, staged_ID):
         # get caller's UID
-        cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
+        cur_user = database_api.get_user_by_user_name(
+            User(user_name=username, ))
         # If the user doesn't exist, something is wrong
         if cur_user.status == -1:
             print("Something wrong with the current user")
@@ -454,7 +453,6 @@ class DataStation:
         if set(accessed_data_ids).issubset(set(accessible_data_ids)):
             res = cu.from_bytes(self.staging_storage.release(staged_ID))
             return res
-
 
     def print_full_log(self):
         self.data_station_log.read_full_log(self.key_manager)
@@ -488,7 +486,8 @@ class DataStation:
 
     def save_symmetric_keys(self):
         with open("symmetric_keys.pkl", 'ab') as keys:
-            agents_symmetric_key = pickle.dumps(self.key_manager.agents_symmetric_key)
+            agents_symmetric_key = pickle.dumps(
+                self.key_manager.agents_symmetric_key)
             keys.write(agents_symmetric_key)
 
     # For testing purposes: read keys from a file
