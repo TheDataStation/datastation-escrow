@@ -219,11 +219,30 @@ class DataStation:
 
     @staticmethod
     def get_all_apis():
+        """
+        Gets all APIs from the policy broker
+
+        Parameters:
+         Nothing
+
+        Returns:
+         all apis
+        """
         # Call policy_broker directly
         return policy_broker.get_all_apis()
 
     @staticmethod
     def get_all_api_dependencies():
+        """
+        Gets all API dependencies from the policy broker
+
+        Parameters:
+         Nothing
+
+        Returns:
+         all dependencies
+        """
+
         # Call policy_broker directly
         return policy_broker.get_all_dependencies()
 
@@ -234,7 +253,19 @@ class DataStation:
                        data_type,
                        optimistic,
                        original_data_size=None):
+        """
+        Uploads a dataset to DS, tied to a specific user
 
+        Parameters:
+         username: the unique username identifying which user owns the dataset
+         data_name: name of the data
+         data_in_bytes: size of data to be uploaded
+         data_type: TODO: what types of data are able to be uploaded?
+         optimistic: flag to be included in optimistic data discovery
+
+        Returns:
+         Response of data register
+        """
         # Decide which data_id to use from ClientAPI.cur_data_id field
         data_id = self.cur_data_id
         self.cur_data_id += 1
@@ -278,6 +309,16 @@ class DataStation:
         return data_register_response
 
     def remove_dataset(self, username, data_name):
+        """
+        Removes a dataset from DS
+
+        Parameters:
+         username: the unique username identifying which user owns the dataset
+         data_name: name of the data
+
+        Returns:
+         Response of data register
+        """
 
         # First we call data_register to remove the existing dataset from the database
         if self.trust_mode == "full_trust":
@@ -304,6 +345,17 @@ class DataStation:
         return Response(status=data_register_response.status, message=data_register_response.message)
 
     def upload_policy(self, username, policy: Policy):
+        """
+        Uploads a policy written by the given user to DS
+
+        Parameters:
+         username: the unique username identifying which user wrote the policy
+         policy: policy to upload
+
+        Returns:
+         Response of policy broker
+        """
+
         if self.trust_mode == "full_trust":
             response = policy_broker.upload_policy(policy,
                                                    username,)
@@ -316,6 +368,9 @@ class DataStation:
         return Response(status=response.status, message=response.message)
 
     def bulk_upload_policies(self, username, policies):
+        """
+        For testing purposes.
+        """
         # This code here is unpolished. Just for testing purposes.
         if self.trust_mode == "full_trust":
             response = database_api.bulk_upload_policies(policies)
@@ -328,6 +383,17 @@ class DataStation:
             return response
 
     def remove_policy(self, username, policy: Policy):
+        """
+        Removes a policy from DS
+
+        Parameters:
+         username: the unique username identifying which user wrote the policy
+         policy: policy to remove
+
+        Returns:
+         Response of policy broker
+        """
+
         if self.trust_mode == "full_trust":
             response = policy_broker.remove_policy(policy,
                                                    username,)
@@ -341,9 +407,31 @@ class DataStation:
 
     @staticmethod
     def get_all_policies():
+        """
+        Gets all a policies from DS
+
+        Parameters:
+
+        Returns:
+         ALL policies from policy broker
+        """
+
         return policy_broker.get_all_policies()
 
     def call_api(self, username, api: API, exec_mode, *args, **kwargs):
+        """
+        Calls an API as the given user
+
+        Parameters:
+         username: the unique username identifying which user is calling the api
+         api: api to call
+         exec_mode: optimistic or pessimistic
+         *args, **kwargs: arguments to the API call
+
+        Returns:
+         Response of data register
+        """
+
         # get caller's UID
         cur_user = database_api.get_user_by_user_name(
             User(user_name=username, ))
@@ -434,6 +522,20 @@ class DataStation:
 
     # data users gives a staged DE ID and tries to release it
     def release_staged_DE(self, username, staged_ID):
+        """
+        Releases the staged data element. This function is run after call_api, on optimistic mode
+         to release any staged data elements that aren't allowed to be shared.
+
+        Parameters:
+         username: the unique username identifying which user is calling the api
+         api: api to call
+         exec_mode: optimistic or pessimistic
+         *args, **kwargs: arguments to the API call
+
+        Returns:
+         released data
+        """
+
         # get caller's UID
         cur_user = database_api.get_user_by_user_name(
             User(user_name=username, ))
@@ -467,7 +569,17 @@ class DataStation:
         self.write_ahead_log.read_wal(self.key_manager)
 
     def recover_db_from_wal(self):
-        # Step 1: restruct the DB
+        """
+        Recovers the database from the WAL
+
+        Parameters:
+         Nothing
+
+        Returns:
+         Nothing
+        """
+
+        # Step 1: reconstruct the DB
         self.write_ahead_log.recover_db_from_wal(self.key_manager)
 
         # Step 2: reset self.cur_user_id from DB
@@ -489,6 +601,10 @@ class DataStation:
     # For testing purposes: persist keys to a file
 
     def save_symmetric_keys(self):
+        """
+        For testing purposes
+        """
+
         with open("symmetric_keys.pkl", 'ab') as keys:
             agents_symmetric_key = pickle.dumps(
                 self.key_manager.agents_symmetric_key)
@@ -497,11 +613,19 @@ class DataStation:
     # For testing purposes: read keys from a file
 
     def load_symmetric_keys(self):
+        """
+        For testing purposes
+        """
         with open("symmetric_keys.pkl", "rb") as keys:
             agents_symmetric_key = pickle.load(keys)
             self.key_manager.agents_symmetric_key = agents_symmetric_key
 
     def shut_down(self):
+        """
+        Shuts down the DS system. Unmounts the interceptor and stops the process, clears
+         the DB, app register, and db.checkpoint
+        """
+
         # print("shutting down...")
         mount_point = self.config.mount_point
         # print(mount_point)
