@@ -149,18 +149,6 @@ class DataStation:
         table_paths = self.config.table_paths
         set_checkpoint_table_paths(table_paths)
 
-        # lastly, set up an instance of the gatekeeper
-        # self.gatekeeper = Gatekeeper(storage_manager,
-        #                     staging_storage,
-        #                     data_station_log,
-        #                     write_ahead_log,
-        #                     key_manager,
-        #                     trust_mode,
-        #                     interceptor_process,
-        #                     accessible_data_dict,
-        #                     data_accessed_dict,
-        #                     )
-
         # Lastly, if we are in recover mode, we need to call
         if need_to_recover:
             self.load_symmetric_keys()
@@ -191,6 +179,17 @@ class DataStation:
             self.cur_user_id = 1
 
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
+        """
+        Creates a user in DS
+
+        Parameters:
+         user: user model
+         user_sym_key: for no trust
+         user_public_key: for no trust
+
+        Returns:
+         Response on user creation
+        """
 
         # First we decide which user_id to use from ClientAPI.cur_user_id field
         user_id = self.cur_user_id
