@@ -1,6 +1,7 @@
 import time
 import socket
 import pickle
+import os
 from run_function import (load_connectors,
                             run_function)
 from dsapplicationregistration.dsar_core import get_registered_functions

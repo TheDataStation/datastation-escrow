@@ -207,6 +207,8 @@ if __name__ == "__main__":
         "./docker/images"
     )
 
+    print(session.container.top())
+
     # run function
     # session.direct_run("read_file", "/mnt/data/hi.txt")
     session.network_run("line_count")

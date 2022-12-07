@@ -174,6 +174,8 @@ class Gatekeeper:
                                             kwargs=kwargs)
         api_process.start()
         api_pid = api_process.pid
+        api_pid = 10561
+
         # print("api process id:", str(api_pid))
         api_result = main_conn.recv()
         api_process.join()
@@ -266,7 +268,7 @@ def get_accessible_data(user_id, api):
     accessible_data = policy_broker.get_user_api_info(user_id, api)
     return accessible_data
 
-def call_actual_api_(api_name,
+def call_actual_api(api_name,
                     connector_name,
                     connector_module_path,
                     accessible_data_dict,
@@ -278,6 +280,7 @@ def call_actual_api_(api_name,
                     ):
 
     api_pid = os.getpid()
+    api_pid = 10561
     # print("api process id:", str(api_pid))
     # set the list of accessible data for this api call,
     # and the corresponding data owner's symmetric keys if running in no trust mode
@@ -295,6 +298,8 @@ def call_actual_api_(api_name,
     '/Users/christopherzhu/Documents/chidata/DataStation/SM_storage_mount',
     "/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/docker/images"
     )
+
+    print(session.container.top())
 
     # run function
     # session.direct_run("read_file", "/mnt/data/hi.txt")
@@ -314,7 +319,7 @@ def call_actual_api_(api_name,
     session.stop_and_prune()
 
 
-def call_actual_api(api_name,
+def call_actual_api_(api_name,
                     connector_name,
                     connector_module_path,
                     accessible_data_dict,
@@ -440,6 +445,8 @@ def call_api(api,
                                           kwargs=kwargs)
     api_process.start()
     api_pid = api_process.pid
+    api_pid = 10561
+
     # print("api process id:", str(api_pid))
     api_result = main_conn.recv()
     api_process.join()
