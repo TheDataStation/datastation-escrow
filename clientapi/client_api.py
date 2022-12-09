@@ -28,7 +28,7 @@ from dbservice.database_api import clear_checkpoint_table_paths
 class ClientAPI:
     """
     validates the login credentials of the user, then if the user is authorized
-     the computation is passed to the gatekeeper
+     the computation is passed to the ds class
     """
 
     def __init__(self,
