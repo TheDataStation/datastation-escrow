@@ -37,6 +37,7 @@ if __name__ == '__main__':
     num_runs = 1
     q = 0.05
     test = "mw"
+    num_parallel_processes = 10
 
     # query_string = "SELECT COUNT(*) FROM adult WHERE income == '>50K' AND education_num == 13 AND age == 25"
     # query_string = "SELECT marital_status, COUNT(*) FROM adult WHERE race == 'Asian-Pac-Islander' AND age >= 30 AND
@@ -196,6 +197,7 @@ if __name__ == '__main__':
         print("data:", data)
 
         time_list = []
+        time_exclude_insert_db_list = []
         res_eps_list = []
 
         for i in range(num_runs_experiment):
@@ -203,6 +205,7 @@ if __name__ == '__main__':
             print("i:", i)
 
             times = []
+            times_exclude_insert_db = []
             res_eps = []
 
             for sql_query in queries:
@@ -218,27 +221,43 @@ if __name__ == '__main__':
                                           eps_list,
                                           num_runs,
                                           q,
-                                          test)
+                                          test,
+                                          num_parallel_processes)
                 elapsed = time.time() - start_time
                 print(f"time: {elapsed} s")
                 times.append(elapsed)
 
                 if res is not None:
-                    best_eps, dp_result = res
+                    best_eps, dp_result, insert_db_time = res
                     print("best eps:", best_eps)
                     res_eps.append(best_eps)
+                    times_exclude_insert_db.append(elapsed - insert_db_time*2)
                 else:
                     print("can't find epsilon")
                     res_eps.append(None)
 
             time_list.append(times)
+            time_exclude_insert_db_list.append(times_exclude_insert_db)
             res_eps_list.append(res_eps)
 
-        with open(f"{data}_time.log", "w") as f:
+            with open(f"{data}_time.log", "a") as f:
+                f.write(str(times)[1:-1] + "\n")
+
+            with open(f"{data}_time_exclude_insert_db.log", "a") as f:
+                f.write(str(times_exclude_insert_db)[1:-1] + "\n")
+
+            with open(f"{data}_eps.log", "a") as f:
+                f.write(str(eps)[1:-1] + "\n")
+
+        with open(f"{data}_time_full.log", "w") as f:
             for times in time_list:
                 f.write(str(times)[1:-1] + "\n")
 
-        with open(f"{data}_eps.log", "w") as f:
+        with open(f"{data}_time_exclude_insert_db_full.log", "w") as f:
+            for times in time_exclude_insert_db_list:
+                f.write(str(times)[1:-1] + "\n")
+
+        with open(f"{data}_eps_full.log", "w") as f:
             for eps in res_eps_list:
                 f.write(str(eps)[1:-1] + "\n")
 
