@@ -21,7 +21,8 @@ import matplotlib.pyplot as plt
 from statsmodels.stats.multitest import fdrcorrection
 from sql_metadata import Parser
 from sklearn import preprocessing
-import multiprocessing as mp
+# import multiprocessing as mp
+import pathos.multiprocessing as mp
 from collections import defaultdict
 
 

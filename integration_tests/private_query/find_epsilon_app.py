@@ -23,7 +23,8 @@ from sql_metadata import Parser
 from dsapplicationregistration import register
 from common import utils
 from sklearn import preprocessing
-import multiprocessing as mp
+# import multiprocessing as mp
+import pathos.multiprocessing as mp
 from collections import defaultdict
 
 
@@ -433,7 +434,7 @@ def compute_original_risks(df, query_string, idx_to_compute, table_name, row_num
         # insert_db_time = time.time() - start_time
         # print(f"time to insert to db: {insert_db_time} s")
 
-        for i in tqdm.tqdm(idx_to_compute):
+        for i in idx_to_compute:
 
             if i == -1:
                 original_risks.append(None)
