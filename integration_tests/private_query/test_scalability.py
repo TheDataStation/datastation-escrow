@@ -247,7 +247,7 @@ if __name__ == '__main__':
                 f.write(str(times_exclude_insert_db)[1:-1] + "\n")
 
             with open(f"{data}_eps.log", "a") as f:
-                f.write(str(eps)[1:-1] + "\n")
+                f.write(str(res_eps)[1:-1] + "\n")
 
         with open(f"{data}_time_full.log", "w") as f:
             for times in time_list:
@@ -258,7 +258,7 @@ if __name__ == '__main__':
                 f.write(str(times)[1:-1] + "\n")
 
         with open(f"{data}_eps_full.log", "w") as f:
-            for eps in res_eps_list:
-                f.write(str(eps)[1:-1] + "\n")
+            for res_eps in res_eps_list:
+                f.write(str(res_eps)[1:-1] + "\n")
 
         client_api.shut_down(ds_config)
