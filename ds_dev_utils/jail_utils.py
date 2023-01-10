@@ -196,9 +196,9 @@ class DSDocker:
             s.sendall(to_send)
 
             # receive output
-            data = s.recv(1024)
+            data = pickle.loads(s.recv(1024))
 
-        print(f"Network run output: {data.decode('utf-8')}")
+        print(f"Network run output: {data}")
         return data
 
 

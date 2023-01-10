@@ -51,7 +51,10 @@ def main():
             inputs = pickle.loads(data)
             ret = run_function(inputs["function"], *inputs["args"], **inputs["kwargs"])
             # send result back
-            conn.sendall(bytes(str(ret), "utf-8"))
+            to_send_back = pickle.dumps(ret)
+            conn.sendall(to_send_back)
+
+            # conn.sendall(bytes(str(ret), "utf-8"))
 
 if __name__ ==  '__main__':
     main()
