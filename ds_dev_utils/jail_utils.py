@@ -40,7 +40,7 @@ def docker_cp(container, src, dst):
     os.chdir(dir_path)
 
 
-class ds_docker:
+class DSDocker:
     HOST = socket.gethostname()  # The server's hostname or IP address
     PORT = 12345  # The port used by the server
 
@@ -204,7 +204,7 @@ class ds_docker:
 
 if __name__ == "__main__":
     # create a new ds_docker instance
-    session = ds_docker(
+    session = DSDocker(
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_functions/example_one.py',
         "connector_file",
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_data',

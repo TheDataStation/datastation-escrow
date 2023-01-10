@@ -21,7 +21,7 @@ from ds_dev_utils import jail_utils
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
-from ds_dev_utils.jail_utils import ds_docker
+from ds_dev_utils.jail_utils import DSDocker
 
 
 class Gatekeeper:
@@ -195,7 +195,7 @@ class Gatekeeper:
                                               kwargs=kwargs)
         api_process.start()
         api_pid = api_process.pid
-        api_pid = 10561
+        api_pid = 85243
 
         # print("api process id:", str(api_pid))
         api_result = main_conn.recv()
@@ -337,11 +337,17 @@ def call_actual_api(api_name,
     list_of_apis = get_registered_functions()
     # print("list_of_apis:", list_of_apis)
     time.sleep(1)
-    session = ds_docker(
-        '/Users/christopherzhu/Documents/chidata/DataStation/examples/example_one.py',
+    print("connector name / module path: ", connector_name, connector_module_path)
+    print("accessed path: " + os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,)
+    session = DSDocker(
+        # TODO: this is sus, maybe we want to have a variable storing DS path
+        os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,
+        # '/Users/christopherzhu/Documents/chidata/DataStation/examples/example_one.py',
         "connector_file",
         mount_dir,
-        "/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/docker/images"
+        os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images",
+
+        # "/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/docker/images"
     )
 
     print(session.container.top())
@@ -497,7 +503,7 @@ def call_api(api,
                                           kwargs=kwargs)
     api_process.start()
     api_pid = api_process.pid
-    api_pid = 10561
+    api_pid = 85243
 
     # print("api process id:", str(api_pid))
     api_result = main_conn.recv()
