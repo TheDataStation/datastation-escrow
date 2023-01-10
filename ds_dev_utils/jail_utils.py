@@ -41,7 +41,7 @@ def docker_cp(container, src, dst):
 
 
 class DSDocker:
-    HOST = socket.gethostname()  # The server's hostname or IP address
+    HOST = socket.gethostbyname("")  # The server's hostname or IP address
     PORT = 12345  # The port used by the server
 
     def __init__(self, function_file, connector_file, data_dir, dockerfile):

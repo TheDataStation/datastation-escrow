@@ -195,7 +195,7 @@ class Gatekeeper:
                                               kwargs=kwargs)
         api_process.start()
         api_pid = api_process.pid
-        api_pid = 85243
+        api_pid = 63452
 
         # print("api process id:", str(api_pid))
         api_result = main_conn.recv()
@@ -324,7 +324,7 @@ def call_actual_api(api_name,
      None
     """
     api_pid = os.getpid()
-    api_pid = 10561
+    api_pid = 63452
     # print("api process id:", str(api_pid))
     # set the list of accessible data for this api call,
     # and the corresponding data owner's symmetric keys if running in no trust mode
@@ -343,12 +343,9 @@ def call_actual_api(api_name,
         # TODO: this is sus, maybe we want to have a variable storing DS path
         #  Also we probably want to specify the image ourselves
         os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,
-        # '/Users/christopherzhu/Documents/chidata/DataStation/examples/example_one.py',
         "connector_file",
         mount_dir,
         os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images",
-
-        # "/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/docker/images"
     )
 
     print(session.container.top())
@@ -504,7 +501,7 @@ def call_api(api,
                                           kwargs=kwargs)
     api_process.start()
     api_pid = api_process.pid
-    api_pid = 85243
+    api_pid = 63452
 
     # print("api process id:", str(api_pid))
     api_result = main_conn.recv()

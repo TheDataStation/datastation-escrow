@@ -23,10 +23,8 @@ if __name__ == '__main__':
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
 
     ds = DataStation(ds_config, app_config)
-    # client_api = main.initialize_system(ds_config, app_config)
 
     log_path = ds.data_station_log.log_path
-    # log_path = client_api.log.log_path
     if os.path.exists(log_path):
         os.remove(log_path)
 
@@ -41,13 +39,10 @@ if __name__ == '__main__':
 
     # Step 1: We create two new users of the Data Station: jerry and david
     ds.create_user(User(user_name="jerry", password="string"))
-    # client_api.create_user(User(user_name="jerry", password="string"))
     ds.create_user(User(user_name="david", password="123456"))
-    # client_api.create_user(User(user_name="david", password="123456"))
 
     # Step 2: Jerry logs in and uploads three datasets
     # He uploads DE1 and DE3 in sealed mode, and uploads DE2 in enclave mode.
-    # cur_token = ds.login_user("jerry", "string")["access_token"]
     for cur_num in range(3):
         cur_file_index = (cur_num % 6) + 1
         cur_full_name = "integration_tests/test_file_full_trust/train-" + str(cur_file_index) + ".csv"
@@ -76,7 +71,6 @@ if __name__ == '__main__':
     ds.upload_policy("jerry", policy_four,)
 
     # Step 4: david logs in and looks at the available apis
-    # cur_token = client_api.login_user("david", "123456")["access_token"]
     list_of_apis = ds.get_all_apis()
     # print("All available APIs are:")
     # print(list_of_apis)
