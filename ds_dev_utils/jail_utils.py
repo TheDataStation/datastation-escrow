@@ -196,7 +196,7 @@ class DSDocker:
             s.sendall(to_send)
 
             # receive output
-            data = pickle.loads(s.recv(1024))
+            data = pickle.loads(s.recv(1024))["return_value"]
 
         print(f"Network run output: {data}")
         return data
