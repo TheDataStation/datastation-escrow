@@ -341,6 +341,7 @@ def call_actual_api(api_name,
     print("accessed path: " + os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,)
     session = DSDocker(
         # TODO: this is sus, maybe we want to have a variable storing DS path
+        #  Also we probably want to specify the image ourselves
         os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,
         # '/Users/christopherzhu/Documents/chidata/DataStation/examples/example_one.py',
         "connector_file",
