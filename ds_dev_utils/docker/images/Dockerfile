@@ -1,5 +1,7 @@
 FROM python
 
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /usr/src/ds
 
 RUN mkdir /usr/src/ds/functions

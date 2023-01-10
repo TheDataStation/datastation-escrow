@@ -364,7 +364,7 @@ def call_actual_api(api_name,
 
     # clean up
     session.network_remove()
-    session.stop_and_prune()
+    # session.stop_and_prune()
 
 
 def call_actual_api_(api_name,

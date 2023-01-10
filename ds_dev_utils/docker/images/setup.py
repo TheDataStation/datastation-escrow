@@ -35,9 +35,13 @@ def main():
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
 
+    print("setting up...")
+
     # setup server and get connection
     fs = function_server(2222)
     conn, addr = fs.get_connection()
+
+    print("getting connection...")
 
     # receive pickled function and input
     with conn:
