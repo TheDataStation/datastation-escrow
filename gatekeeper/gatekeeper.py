@@ -195,7 +195,7 @@ class Gatekeeper:
                                               kwargs=kwargs)
         api_process.start()
         api_pid = api_process.pid
-        api_pid = 63452
+        api_pid = 85243
 
         # print("api process id:", str(api_pid))
         api_result = main_conn.recv()
@@ -324,7 +324,7 @@ def call_actual_api(api_name,
      None
     """
     api_pid = os.getpid()
-    api_pid = 63452
+    api_pid = 85243
     # print("api process id:", str(api_pid))
     # set the list of accessible data for this api call,
     # and the corresponding data owner's symmetric keys if running in no trust mode
@@ -501,7 +501,7 @@ def call_api(api,
                                           kwargs=kwargs)
     api_process.start()
     api_pid = api_process.pid
-    api_pid = 63452
+    api_pid = 85243
 
     # print("api process id:", str(api_pid))
     api_result = main_conn.recv()
