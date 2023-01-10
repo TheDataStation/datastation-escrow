@@ -191,13 +191,15 @@ class DSDocker:
         # connect to socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((self.HOST, self.PORT))
+            print("connected!")
 
             # send the pickled function to docker container
             s.sendall(to_send)
 
             # receive output
-            data = pickle.loads(s.recv(1024))["return_value"]
-
+            full_data = pickle.loads(s.recv(1024))
+            print(full_data)
+            data = full_data["return_value"]
         print(f"Network run output: {data}")
         return data
 
