@@ -9,7 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from dsapplicationregistration.dsar_core import register
 from common import ds_utils
 
-@register()
+@register
 def train_income_model():
     """train a logistic regression model on income data"""
     print("starting train model")

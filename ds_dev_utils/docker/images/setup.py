@@ -17,7 +17,8 @@ class function_server:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket = s
 
-        self.host = socket.gethostname()
+        self.host = socket.gethostbyname("")
+        # self.host = "host.docker.internal"
         self.port = port_num
         s.bind((self.host, self.port))
 
@@ -31,6 +32,7 @@ class function_server:
 
 
 def main():
+    time.sleep(3)
     # load connectors before doing anything
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
@@ -39,6 +41,7 @@ def main():
 
     # setup server and get connection
     fs = function_server(2222)
+    print("set up function server")
     conn, addr = fs.get_connection()
 
     print("getting connection...")
@@ -56,6 +59,7 @@ def main():
             ret = run_function(inputs["function"], *inputs["args"], **inputs["kwargs"])
             # send result back
             to_send_back = pickle.dumps({"return_value":ret})
+            # time.sleep(5)
             conn.sendall(to_send_back)
 
             # conn.sendall(bytes(str(ret), "utf-8"))
