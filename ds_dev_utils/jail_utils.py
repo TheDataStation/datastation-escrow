@@ -196,8 +196,12 @@ class DSDocker:
             # send the pickled function to docker container
             s.sendall(to_send)
 
+            time.sleep(10)
+
             # receive output
-            full_data = pickle.loads(s.recv(1024))
+            val = s.recv(1024)
+            print(val)
+            full_data = pickle.loads(val)
             print(full_data)
             data = full_data["return_value"]
         print(f"Network run output: {data}")

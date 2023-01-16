@@ -31,8 +31,6 @@ from dsapplicationregistration.dsar_core import clear_register
 from userregister import user_register
 
 
-
-
 class DataStation:
 
     class DSConfig:

@@ -1,2 +1,2 @@
-connector_name: "income_full_docker"
+connector_name: ""
 connector_module_path: "examples/income_full_docker.py"
