@@ -32,7 +32,7 @@ class function_server:
 
 
 def main():
-    time.sleep(3)
+    # time.sleep(3)
     # load connectors before doing anything
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)

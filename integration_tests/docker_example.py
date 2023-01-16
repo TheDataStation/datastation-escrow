@@ -1,5 +1,4 @@
 import pathlib
-import main
 import os
 import shutil
 import time
