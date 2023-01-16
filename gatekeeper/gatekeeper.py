@@ -150,8 +150,7 @@ class Gatekeeper:
         # Lastly, in data-aware execution, all_accessible_data_id should be data_aware_DE
         else:
             all_accessible_data_id = data_aware_DE
-        # print("all accessible data elements are: ")
-        # print(all_accessible_data_id)
+        print("all accessible data elements are: ", all_accessible_data_id)
 
         get_datasets_by_ids_res = database_api.get_datasets_by_ids(
             all_accessible_data_id)
@@ -190,7 +189,7 @@ class Gatekeeper:
                                                     ),
                                               kwargs=kwargs)
         api_process.start()
-        # api_pid = api_process.pid
+        # Below is the ID corresponds to the docker container
         api_pid = 63452
 
         # print("api process id:", str(api_pid))
@@ -199,6 +198,11 @@ class Gatekeeper:
 
         # clean up the two dictionaries used for communication,
         # and get the data ids accessed from the list of data paths accessed through the interceptor
+
+        print("Checking the two dictionaries:")
+        print(self.accessible_data_dict)
+        print(self.data_accessed_dict)
+
         if api_pid in self.accessible_data_dict.keys():
             del self.accessible_data_dict[api_pid]
 
@@ -285,13 +289,6 @@ def call_actual_api(api_name,
     Returns:
      None
     """
-    api_pid = os.getpid()
-    api_pid = 85243
-    # print("api process id:", str(api_pid))
-    # set the list of accessible data for this api call,
-    # and the corresponding data owner's symmetric keys if running in no trust mode
-    accessible_data_dict[api_pid] = (
-        accessible_data_paths, accessible_data_key_dict)
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
@@ -327,37 +324,6 @@ def call_actual_api(api_name,
     session.network_remove()
     session.stop_and_prune()
 
-
-def call_actual_api_(api_name,
-                     connector_name,
-                     connector_module_path,
-                     accessible_data_dict,
-                     accessible_data_paths,
-                     accessible_data_key_dict,
-                     api_conn,
-                     *args,
-                     **kwargs,
-                     ):
-
-    api_pid = os.getpid()
-    # print("api process id:", str(api_pid))
-    # set the list of accessible data for this api call,
-    # and the corresponding data owner's symmetric keys if running in no trust mode
-    accessible_data_dict[api_pid] = (
-        accessible_data_paths, accessible_data_key_dict)
-
-    print(os.path.dirname(os.path.realpath(__file__)))
-    # print(api_name, *args, **kwargs)
-    register_connectors(connector_name, connector_module_path)
-    list_of_apis = get_registered_functions()
-    # print("list_of_apis:", list_of_apis)
-    for cur_api in list_of_apis:
-        if api_name == cur_api.__name__:
-            # print("call", api_name)
-            result = cur_api(*args, **kwargs)
-            api_conn.send(result)
-            api_conn.close()
-            break
 
 # We add times to the following function to record the overheads
 
