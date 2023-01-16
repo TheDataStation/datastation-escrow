@@ -41,6 +41,7 @@ def docker_cp(container, src, dst):
 
 
 class DSDocker:
+    # HOST = "127.0.0.1"
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
     PORT = 12345  # The port used by the server
 
@@ -191,7 +192,7 @@ class DSDocker:
         # connect to socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((self.HOST, self.PORT))
-            print("connected!")
+            print(f"connected to {self.HOST}, {self.PORT}!")
 
             # send the pickled function to docker container
             s.sendall(to_send)
@@ -225,4 +226,4 @@ if __name__ == "__main__":
 
     # clean up
     session.network_remove()
-    session.stop_and_prune()
+    # session.stop_and_prune()
