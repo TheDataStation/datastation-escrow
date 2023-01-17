@@ -174,15 +174,14 @@ class Gatekeeper:
                     dataset.owner_id)
                 accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
 
+        self.accessible_data_dict[63452] = (accessible_data_paths, accessible_data_key_dict)
+
         # start a new process for the api call
         main_conn, api_conn = multiprocessing.Pipe()
         api_process = multiprocessing.Process(target=call_actual_api,
                                               args=(api,
                                                     self.connector_name,
                                                     self.connector_module_path,
-                                                    self.accessible_data_dict,
-                                                    accessible_data_paths,
-                                                    accessible_data_key_dict,
                                                     self.mount_dir,
                                                     api_conn,
                                                     *args,
@@ -264,9 +263,6 @@ class Gatekeeper:
 def call_actual_api(api_name,
                     connector_name,
                     connector_module_path,
-                    accessible_data_dict,
-                    accessible_data_paths,
-                    accessible_data_key_dict,
                     mount_dir,
                     api_conn,
                     *args,
@@ -290,25 +286,28 @@ def call_actual_api(api_name,
      None
     """
 
-    print(os.path.dirname(os.path.realpath(__file__)))
-    # print(api_name, *args, **kwargs)
     register_connectors(connector_name, connector_module_path)
-    list_of_apis = get_registered_functions()
+    # print(os.path.dirname(os.path.realpath(__file__)))
+    # print(api_name, *args, **kwargs)
     # print("list_of_apis:", list_of_apis)
-    time.sleep(1)
-    print("connector name / module path: ", connector_name, connector_module_path)
-    print("accessed path: " + os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,)
+    # time.sleep(1)
+    # print("connector name / module path: ", connector_name, connector_module_path)
+    # print("accessed path: " + os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,)
+    connector_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path
+    docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
+    print(connector_realpath)
     session = DSDocker(
-        os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,
+        connector_realpath,
         "connector_file",
         mount_dir,
-        os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images",
+        docker_image_realpath,
     )
 
     print(session.container.top())
 
     # run function
-    # session.direct_run("read_file", "/mnt/data/hi.txt")
+    list_of_apis = get_registered_functions()
+
     for cur_api in list_of_apis:
         if api_name == cur_api.__name__:
             print("call", api_name)

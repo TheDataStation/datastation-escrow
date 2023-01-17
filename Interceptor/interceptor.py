@@ -89,6 +89,7 @@ class Xmp(Fuse):
         return os.readlink("." + path)
 
     def readdir(self, path, offset):
+
         # zz: filter out paths that are not the parent paths of any of the accessible data or itself
 
         pid = Fuse.GetContext(self)["pid"]
@@ -98,6 +99,7 @@ class Xmp(Fuse):
             in_other_process = True
         else:
             accessible_data_paths = accessible_data_dict_global[pid][0]
+            # print(accessible_data_paths)
 
         # print("Interceptor: readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
@@ -319,7 +321,7 @@ class Xmp(Fuse):
                                     ciphertext=encrypted_bytes,
                                     key=self.symmetric_key)
 
-
+            # Steven: why does READ not trigger for file 2?
             def read(self, length, offset):
                 print("Interceptor: I am reading " + str(self.file_path))
 
