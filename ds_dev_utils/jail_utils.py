@@ -45,7 +45,7 @@ class DSDocker:
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
     PORT = 12345  # The port used by the server
 
-    def __init__(self, function_file, connector_file, data_dir, dockerfile):
+    def __init__(self, function_file, data_dir, dockerfile):
         """
         Initializes a docker container with mount point data_dir, with
         image given. Loads function file into container.

@@ -298,7 +298,6 @@ def call_actual_api(api_name,
     print(connector_realpath)
     session = DSDocker(
         connector_realpath,
-        "connector_file",
         mount_dir,
         docker_image_realpath,
     )
