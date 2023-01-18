@@ -5,6 +5,7 @@ import tarfile
 import pickle
 import socket
 import requests
+import threading
 from flask import Flask
 
 
@@ -69,7 +70,7 @@ class DSDocker:
         self.image, log = self.client.images.build(
             path=dockerfile, tag="ds_docker")
         # print(self.image, log)
-        
+
         print("Created image!")
 
         # run a container with command. It's detached so it runs in the background
@@ -81,12 +82,15 @@ class DSDocker:
                                                        tty=True,
                                                        # define ports. These are arbitrary
                                                        ports={
-                                                           '80/tcp': self.PORT},
+                                                           '80/tcp': self.PORT,
+                                                        #    '81/tcp': 3030
+                                                       },
                                                        # read only for security
                                                     #    read_only = True,
                                                        # run as user
                                                     #    user="docker_user",
                                                        # mount volumes
+                                                    #    extra_hosts={"host.docker.internal":"host-gateway"},
                                                        volumes={data_dir: {
                                                            'bind': '/mnt/data', 'mode': 'rw'}},
                                                        )
@@ -208,14 +212,44 @@ class DSDocker:
         print(f"Network run output: {data}")
         return data
 
-# app = Flask(__name__)
-# @app.route("/")
-# def hello():
-#     return "Hello World!"
 
+def flask_thread(to_send):
+
+
+    app = Flask(__name__)
+    @app.route("/started")
+    def started():
+        print("received")
+        return "Start received!"
+
+    @app.route("/function")
+    def function():
+        print("function")
+        return to_send
+
+    @app.route("/function_return")
+    def function_return():
+        print("return value: ")
+        return "asdf"
+
+
+    print("hi")
+    app.run(debug = False, host="localhost", port=3030)
+
+    print("huhwuh")
+
+def flask_run(function_name, *args, **kwargs):
+    # create a dictionary to pickle
+    func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
+
+    # make pickle from dictionary
+    to_send = pickle.dumps(func_dict)
+    thr = threading.Thread(target=flask_thread, args=(to_send,))
+    thr.start()
 
 if __name__ == "__main__":
     # app.run(debug = True, port = 3000)
+    flask_run("line_count")
 
     # create a new ds_docker instance
     session = DSDocker(
@@ -225,10 +259,15 @@ if __name__ == "__main__":
         "./docker/images"
     )
 
-    r = requests.post('http://localhost:3000/', data={bytes("hi", "utf-8"),bytes("hi", "utf-8")})
-    # r = requests.get('http://localhost:3000/')
+    time.sleep(30000)
 
-    print(f"Status Code: {r.status_code}, Content: {r.content}")
+
+    # session.flask_run("line_count")
+
+    r = requests.post('http://localhost:3000/function', data={bytes("hi", "utf-8"),bytes("hi", "utf-8")})
+    # r = requests.get('http://localhost:3000/function')
+
+    # print(f"Status Code: {r.status_code}, Content: {r.content}")
 
 
     # print(session.container.top())

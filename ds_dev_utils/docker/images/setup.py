@@ -2,6 +2,7 @@ import time
 import socket
 import pickle
 import os
+import requests
 from flask import Flask, request
 
 from run_function import (load_connectors,
@@ -34,10 +35,10 @@ class function_server:
 
 
 app = Flask(__name__)
-@app.route("/", methods = ['POST', 'GET'])
+@app.route("/function", methods = ['POST', 'GET'])
 def hello():
     if request.method == 'POST':
-        time.sleep(30)
+        # time.sleep(30)
         return "post Hello World!"
     else:
         return "Hello World!"
@@ -49,8 +50,17 @@ def main():
     load_connectors(connector_dir)
     print("setting up...")
 
+    # send signal that the container has started
+    response = requests.get('http://host.docker.internal:3030/started')
+    print(response.content)
 
-    app.run(debug = True, host="0.0.0.0", port = 80)
+    # request function to run
+    response = requests.get('http://host.docker.internal:3030/function')
+    function_dict = pickle.loads(response.content)
+    print("function dictionary: ", function_dict)
+
+
+    app.run(debug = False, host="0.0.0.0", port = 80)
 
     # # setup server and get connection
     # fs = function_server(2222)
