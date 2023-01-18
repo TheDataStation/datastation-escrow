@@ -4,6 +4,8 @@ import os
 import tarfile
 import pickle
 import socket
+import requests
+from flask import Flask
 
 
 def docker_cp(container, src, dst):
@@ -43,7 +45,7 @@ def docker_cp(container, src, dst):
 class DSDocker:
     # HOST = "127.0.0.1"
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
-    PORT = 12345  # The port used by the server
+    PORT = 3000  # The port used by the server
 
     def __init__(self, function_file, connector_file, data_dir, dockerfile):
         """
@@ -67,6 +69,8 @@ class DSDocker:
         self.image, log = self.client.images.build(
             path=dockerfile, tag="ds_docker")
         # print(self.image, log)
+        
+        print("Created image!")
 
         # run a container with command. It's detached so it runs in the background
         #  It is loaded with a setup script that starts the server.
@@ -77,7 +81,7 @@ class DSDocker:
                                                        tty=True,
                                                        # define ports. These are arbitrary
                                                        ports={
-                                                           '2222/tcp': self.PORT},
+                                                           '80/tcp': self.PORT},
                                                        # read only for security
                                                     #    read_only = True,
                                                        # run as user
@@ -96,15 +100,15 @@ class DSDocker:
         self.container.start()
 
         # create container network
-        self.network = self.client.networks.create("jail_network",
-                                                   driver="bridge",
-                                                   # shut off internet access
-                                                   internal=True,
-                                                   check_duplicate=True,
-                                                   )
+        # self.network = self.client.networks.create("jail_network",
+        #                                            driver="bridge",
+        #                                            # shut off internet access
+        #                                            internal=True,
+        #                                            check_duplicate=True,
+        #                                            )
 
-        # connect container to network
-        self.network.connect(self.container)
+        # # connect container to network
+        # self.network.connect(self.container)
 
     def stop_and_prune(self):
         """
@@ -204,8 +208,15 @@ class DSDocker:
         print(f"Network run output: {data}")
         return data
 
+# app = Flask(__name__)
+# @app.route("/")
+# def hello():
+#     return "Hello World!"
+
 
 if __name__ == "__main__":
+    # app.run(debug = True, port = 3000)
+
     # create a new ds_docker instance
     session = DSDocker(
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_functions/example_one.py',
@@ -214,12 +225,18 @@ if __name__ == "__main__":
         "./docker/images"
     )
 
-    print(session.container.top())
+    r = requests.post('http://localhost:3000/', data={bytes("hi", "utf-8"),bytes("hi", "utf-8")})
+    # r = requests.get('http://localhost:3000/')
+
+    print(f"Status Code: {r.status_code}, Content: {r.content}")
+
+
+    # print(session.container.top())
 
     # run function
     # session.direct_run("read_file", "/mnt/data/hi.txt")
-    session.network_run("line_count")
+    # session.network_run("line_count")
 
     # clean up
-    session.network_remove()
+    # session.network_remove()
     # session.stop_and_prune()

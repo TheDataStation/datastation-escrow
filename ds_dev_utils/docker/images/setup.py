@@ -2,6 +2,8 @@ import time
 import socket
 import pickle
 import os
+from flask import Flask, request
+
 from run_function import (load_connectors,
                             run_function)
 from dsapplicationregistration.dsar_core import get_registered_functions
@@ -31,38 +33,49 @@ class function_server:
         return s.accept()
 
 
+app = Flask(__name__)
+@app.route("/", methods = ['POST', 'GET'])
+def hello():
+    if request.method == 'POST':
+        time.sleep(30)
+        return "post Hello World!"
+    else:
+        return "Hello World!"
+
 def main():
     # time.sleep(3)
     # load connectors before doing anything
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
-
     print("setting up...")
 
-    # setup server and get connection
-    fs = function_server(2222)
-    print("set up function server")
-    conn, addr = fs.get_connection()
 
-    print("getting connection...")
+    app.run(debug = True, host="0.0.0.0", port = 80)
 
-    # receive pickled function and input
-    with conn:
-        print(f"Connected by {addr}")
-        while True:
-            data = conn.recv(1024)
-            if not data:
-                break
+    # # setup server and get connection
+    # fs = function_server(2222)
+    # print("set up function server")
+    # conn, addr = fs.get_connection()
 
-            # interpret pickled data and run
-            inputs = pickle.loads(data)
-            ret = run_function(inputs["function"], *inputs["args"], **inputs["kwargs"])
-            # send result back
-            to_send_back = pickle.dumps({"return_value":ret})
-            # time.sleep(5)
-            conn.sendall(to_send_back)
+    # print("getting connection...")
 
-            # conn.sendall(bytes(str(ret), "utf-8"))
+    # # receive pickled function and input
+    # with conn:
+    #     print(f"Connected by {addr}")
+    #     while True:
+    #         data = conn.recv(1024)
+    #         if not data:
+    #             break
+
+    #         # interpret pickled data and run
+    #         inputs = pickle.loads(data)
+    #         ret = run_function(inputs["function"], *inputs["args"], **inputs["kwargs"])
+    #         # send result back
+    #         to_send_back = pickle.dumps({"return_value":ret})
+    #         # time.sleep(5)
+    #         conn.sendall(to_send_back)
+
+    #         # conn.sendall(bytes(str(ret), "utf-8"))
 
 if __name__ ==  '__main__':
     main()
