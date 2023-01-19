@@ -5,7 +5,7 @@ import tarfile
 import pickle
 import socket
 import requests
-from multiprocessing import Process
+from multiprocessing import Process, Event, Queue
 from flask import Flask, request
 
 
@@ -137,22 +137,33 @@ class DSDocker:
         # create a dictionary to pickle
         func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
 
+        # Create a shutdown event
+        shutdown_event = Event()
+
+        # Create a queue to share data
+        q = Queue()
+
         # make pickle from dictionary
         to_send = pickle.dumps(func_dict)
-        server = Process(target=flask_thread, args=(to_send,))
+        server = Process(target=flask_thread, args=(shutdown_event, q, to_send,))
 
         server.start()
-
-        # time.sleep(1)
 
         # start the container
         self.container.start()
 
+        shutdown_event.wait()
+        print("Event done waiting!")
+
+        return_value = q.get()
+        print("Main thread: ", return_value)
+
+        server.terminate()
         server.join()
 
-def flask_thread(to_send):
+        return return_value
 
-
+def flask_thread(shutdown_event:Event, q:Queue, to_send):
     app = Flask(__name__)
     @app.route("/started")
     def started():
@@ -166,20 +177,22 @@ def flask_thread(to_send):
 
     @app.route("/function_return", methods=['post'])
     def function_return():
+        # unpickle request data
         unpickled = (request.get_data())
-        print(unpickled)
         ret_dict = pickle.loads(unpickled)
         ret = ret_dict["return_value"]
-        print("return value: ", ret)
+        print("Child Thread, return value: ", ret)
+
+        # add to shared queue
+        q.put(ret)
+
+        # signal shutdown
+        shutdown_event.set()
         return 'Request received. Server shutting down...'
 
-        # return "asdf"
-
-
-    print("hi")
+    # run the flask app
+    print("Child thread: flask app starting...")
     app.run(debug = False, host="localhost", port=3030)
-
-    print("huhwuh")
 
 if __name__ == "__main__":
     # app.run(debug = True, port = 3000)
