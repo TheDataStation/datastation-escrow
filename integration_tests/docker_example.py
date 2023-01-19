@@ -75,22 +75,22 @@ if __name__ == '__main__':
     # print(list_of_apis)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
-    line_count_res = ds.call_api("david", "line_count", "optimistic")
+    line_count_res = ds.call_api("david", "line_count", "pessimistic")
     print(line_count_res)
 
-    # line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
-    # print(line_count_res)
-
-    # Step 6: Jerry now adds a policy to allow david to access DE 2 for line_count
-    # Then david logs in again
-    # cur_token = client_api.login_user("jerry", "string")["access_token"]
-    policy_five = Policy(user_id=2, api="line_count", data_id=2)
-    ds.upload_policy("jerry",policy_five)
-    # cur_token = client_api.login_user("david", "123456")["access_token"]
-
-    # Step 7: david tries to release the staged DE.
-    release_staged_res = ds.release_staged_DE("david",1)
-    print(release_staged_res)
+    # # line_count_res = client_api.call_api("line_count", cur_token, "optimistic")
+    # # print(line_count_res)
+    #
+    # # Step 6: Jerry now adds a policy to allow david to access DE 2 for line_count
+    # # Then david logs in again
+    # # cur_token = client_api.login_user("jerry", "string")["access_token"]
+    # policy_five = Policy(user_id=2, api="line_count", data_id=2)
+    # ds.upload_policy("jerry",policy_five)
+    # # cur_token = client_api.login_user("david", "123456")["access_token"]
+    #
+    # # Step 7: david tries to release the staged DE.
+    # release_staged_res = ds.release_staged_DE("david",1)
+    # print(release_staged_res)
 
     # # Step 8: david calls the API get_first_n_lines
     # first_line_res = client_api.call_api("get_first_n_lines", cur_token, "pessimistic", 1, DE_id=[2, 3])

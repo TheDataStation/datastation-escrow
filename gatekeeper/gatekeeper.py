@@ -175,15 +175,14 @@ class Gatekeeper:
                     dataset.owner_id)
                 accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
 
+        self.accessible_data_dict[63452] = (accessible_data_paths, accessible_data_key_dict)
+
         # start a new process for the api call
         main_conn, api_conn = multiprocessing.Pipe()
         api_process = multiprocessing.Process(target=call_actual_api,
                                               args=(api,
                                                     self.connector_name,
                                                     self.connector_module_path,
-                                                    self.accessible_data_dict,
-                                                    accessible_data_paths,
-                                                    accessible_data_key_dict,
                                                     self.mount_dir,
                                                     api_conn,
                                                     *args,
@@ -260,9 +259,6 @@ class Gatekeeper:
 def call_actual_api(api_name,
                     connector_name,
                     connector_module_path,
-                    accessible_data_dict,
-                    accessible_data_paths,
-                    accessible_data_key_dict,
                     mount_dir,
                     api_conn,
                     *args,
@@ -285,13 +281,6 @@ def call_actual_api(api_name,
     Returns:
      None
     """
-    api_pid = os.getpid()
-    api_pid = 85243
-    # print("api process id:", str(api_pid))
-    # set the list of accessible data for this api call,
-    # and the corresponding data owner's symmetric keys if running in no trust mode
-    accessible_data_dict[api_pid] = (
-        accessible_data_paths, accessible_data_key_dict)
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
