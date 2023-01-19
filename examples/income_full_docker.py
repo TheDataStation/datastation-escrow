@@ -32,5 +32,5 @@ def train_income_model():
     ytrains = np.concatenate(ytrains)
     income_model = LogisticRegression()
     income_model.fit(Xtrains, ytrains)
-    return 5
-    # return sys.getsizeof(income_model)
+    # return 5
+    return income_model
