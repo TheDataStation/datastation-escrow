@@ -100,17 +100,6 @@ class DSDocker:
                   function_file,
                   "/usr/src/ds/functions")
 
-        # create container network
-        # self.network = self.client.networks.create("jail_network",
-        #                                            driver="bridge",
-        #                                            # shut off internet access
-        #                                            internal=True,
-        #                                            check_duplicate=True,
-        #                                            )
-
-        # # connect container to network
-        # self.network.connect(self.container)
-
     def stop_and_prune(self):
         """
         Stops the given Docker container instance and removes any non-running containers
@@ -125,45 +114,58 @@ class DSDocker:
         self.container.stop()
         self.client.containers.prune()
 
-    def network_remove(self):
-        """
-        disconnects container from network and removes the network
-        """
-        self.network.disconnect(self.container)
-        self.network.remove()
-
-
     def flask_run(self, function_name, *args, **kwargs):
-        # create a dictionary to pickle
-        func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
+        """
+        utilizes a flask server to send functions
 
-        # Create a shutdown event
+        Parameters:
+         function_name: name of function to run
+         args, kwargs: arguments for the function
+
+        Returns:
+         function return value
+        """
+
+        # Create a shutdown event and queue to share data between threads
         shutdown_event = Event()
-
-        # Create a queue to share data
         q = Queue()
 
+        # create a dictionary to pickle
+        func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
         # make pickle from dictionary
         to_send = pickle.dumps(func_dict)
-        server = Process(target=flask_thread, args=(shutdown_event, q, to_send,))
 
+        # create a new thread for the flask server
+        server = Process(target=flask_thread, args=(shutdown_event, q, to_send,))
         server.start()
 
-        # start the container
         self.container.start()
 
+        # wait to shut down, then get the return value inside the queue
         shutdown_event.wait()
         print("Event done waiting!")
-
         return_value = q.get()
         print("Main thread: ", return_value)
 
+        # end the process and join threads
         server.terminate()
         server.join()
 
         return return_value
 
 def flask_thread(shutdown_event:Event, q:Queue, to_send):
+    """
+    the thread function that gets run whenever DSDocker.flask_run is called
+
+    Parameters:
+     shutdown_event: setting this event causes the main thread to kill this thread
+     q: queue to share data
+     to_send: the function to send to the docker container
+
+    Returns:
+     Nothing
+    """
+
     app = Flask(__name__)
     @app.route("/started")
     def started():
@@ -205,26 +207,8 @@ if __name__ == "__main__":
         "./docker/images"
     )
 
+    # run function
     session.flask_run("line_count")
 
-
-    # time.sleep(30000)
-
-
-    # session.flask_run("line_count")
-
-    # r = requests.post('http://localhost:3000/function', data={bytes("hi", "utf-8"),bytes("hi", "utf-8")})
-    # r = requests.get('http://localhost:3000/function')
-
-    # print(f"Status Code: {r.status_code}, Content: {r.content}")
-
-
-    # print(session.container.top())
-
-    # run function
-    # session.direct_run("read_file", "/mnt/data/hi.txt")
-    # session.network_run("line_count")
-
     # clean up
-    # session.network_remove()
     session.stop_and_prune()
