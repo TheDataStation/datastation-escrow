@@ -197,8 +197,6 @@ class DSDocker:
             # send the pickled function to docker container
             s.sendall(to_send)
 
-            time.sleep(10)
-
             # receive output
             val = s.recv(1024)
             print(val)

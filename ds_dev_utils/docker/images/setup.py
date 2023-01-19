@@ -37,6 +37,7 @@ def main():
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
 
+
     print("setting up...")
 
     # setup server and get connection

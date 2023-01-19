@@ -98,37 +98,40 @@ class DataStation:
         check_point_freq = self.config.check_point_freq
         self.write_ahead_log = WAL(wal_path, check_point_freq)
 
-        # start interceptor process
-        ds_storage_path = self.config.ds_storage_path
+        # set up mount point
         mount_point = self.config.mount_point
+        self.accessible_data_dict = {}
+        self.data_accessed_dict = {}
 
-        manager = multiprocessing.Manager()
+        # # start interceptor process
+        # ds_storage_path = self.config.ds_storage_path
+        # mount_point = self.config.mount_point
+        #
+        # manager = multiprocessing.Manager()
 
-        self.accessible_data_dict = manager.dict()
-        self.data_accessed_dict = manager.dict()
-
-        self.interceptor_process = multiprocessing.Process(target=interceptor.main,
-                                                           args=(ds_storage_path,
-                                                                 mount_point,
-                                                                 self.accessible_data_dict,
-                                                                 self.data_accessed_dict))
-
-        self.interceptor_process.start()
-        print("starting interceptor...")
-        counter = 0
-        while not os.path.ismount(mount_point):
-            time.sleep(1)
-            counter += 1
-            if counter == 10:
-                print("mount time out")
-                exit(1)
-        print("Mounted {} to {}".format(ds_storage_path, mount_point))
-        print(os.path.dirname(os.path.realpath(__file__)))
+        # self.interceptor_process = multiprocessing.Process(target=interceptor.main,
+        #                                                    args=(ds_storage_path,
+        #                                                          mount_point,
+        #                                                          self.accessible_data_dict,
+        #                                                          self.data_accessed_dict))
+        #
+        # self.interceptor_process.start()
+        #
+        # print("starting interceptor...")
+        # counter = 0
+        # while not os.path.ismount(mount_point):
+        #     time.sleep(1)
+        #     counter += 1
+        #     if counter == 10:
+        #         print("mount time out")
+        #         exit(1)
+        # print("Mounted {} to {}".format(ds_storage_path, mount_point))
+        # print(os.path.dirname(os.path.realpath(__file__)))
 
         # set up an instance of the key manager
         self.key_manager = KeyManager()
 
-        # set up the the gatekeeper
+        # set up the gatekeeper
         self.connector_name = app_config["connector_name"]
         self.connector_module_path = app_config["connector_module_path"]
         self.gatekeeper = Gatekeeper(
@@ -623,21 +626,20 @@ class DataStation:
         Shuts down the DS system. Unmounts the interceptor and stops the process, clears
          the DB, app register, and db.checkpoint
         """
-
-        # print("shutting down...")
-        mount_point = self.config.mount_point
-        # print(mount_point)
-        unmount_status = os.system("umount " + str(mount_point))
-        counter = 0
-        while unmount_status != 0:
-            time.sleep(1)
-            unmount_status = os.system("umount " + str(mount_point))
-            if counter == 10:
-                print("Unmount failed")
-                exit(1)
-
-        assert os.path.ismount(mount_point) is False
-        self.interceptor_process.join()
+        # # print("shutting down...")
+        # mount_point = self.config.mount_point
+        # # print(mount_point)
+        # unmount_status = os.system("umount " + str(mount_point))
+        # counter = 0
+        # while unmount_status != 0:
+        #     time.sleep(1)
+        #     unmount_status = os.system("umount " + str(mount_point))
+        #     if counter == 10:
+        #         print("Unmount failed")
+        #         exit(1)
+        #
+        # assert os.path.ismount(mount_point) is False
+        # self.interceptor_process.join()
 
         # Clear DB, app register, and db.checkpoint
         engine.dispose()
