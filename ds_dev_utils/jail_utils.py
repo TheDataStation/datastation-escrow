@@ -5,8 +5,8 @@ import tarfile
 import pickle
 import socket
 import requests
-import threading
-from flask import Flask
+from multiprocessing import Process
+from flask import Flask, request
 
 
 def docker_cp(container, src, dst):
@@ -100,9 +100,6 @@ class DSDocker:
                   function_file,
                   "/usr/src/ds/functions")
 
-        # start the container
-        self.container.start()
-
         # create container network
         # self.network = self.client.networks.create("jail_network",
         #                                            driver="bridge",
@@ -135,83 +132,23 @@ class DSDocker:
         self.network.disconnect(self.container)
         self.network.remove()
 
-    def connector_run(self, connector_name):
-        """
-        TODO: implement
-        calls a developer-written connector, which then calls the function within the
-         docker container
 
-        Parameters:
-         connector_name: name of connector to run
-
-        Returns:
-         connector return value
-        """
-        return
-
-    def direct_run(self, function_name, *args, **kwargs):
-        """
-        OLD: communicates with docker to container to run a function, only by
-         using the Python SDK (docker_cp, etc.) and pickle
-
-        Parameters:
-         function_name: name of function to run
-         args, kwargs: arguments for the function
-
-        Returns:
-         function return value
-        """
-
-        # create pickle file and dump
-        filename = self.base_dir + "/functions/pickled_"+function_name
-        arg_dict = {"args": args, "kwargs": kwargs}
-        with open(filename, 'wb') as pf:
-            pickle.dump(arg_dict, pf)
-
-        # send pickle file to container
-        docker_cp(self.container,
-                  filename,
-                  "/usr/src/ds/pickled")
-
-        # run the function
-        code, ret = self.container.exec_run(
-            "python run_function.py " + function_name)
-        print("Direct run output: \n" + ret.decode("utf-8"))
-        return ret
-
-    def network_run(self, function_name, *args, **kwargs):
-        """
-        utilizes a docker network to send functions through sockets
-
-        Parameters:
-         function_name: name of function to run
-         args, kwargs: arguments for the function
-
-        Returns:
-         function return value
-        """
-
+    def flask_run(self, function_name, *args, **kwargs):
         # create a dictionary to pickle
         func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
 
         # make pickle from dictionary
         to_send = pickle.dumps(func_dict)
+        server = Process(target=flask_thread, args=(to_send,))
 
-        # connect to socket
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((self.HOST, self.PORT))
-            print(f"connected to {self.HOST}, {self.PORT}!")
+        server.start()
 
-            # send the pickled function to docker container
-            s.sendall(to_send)
+        # time.sleep(1)
 
-            # receive output
-            full_data = pickle.loads(s.recv(1024))
-            print(full_data)
-            data = full_data["return_value"]
-        print(f"Network run output: {data}")
-        return data
+        # start the container
+        self.container.start()
 
+        server.join()
 
 def flask_thread(to_send):
 
@@ -227,10 +164,16 @@ def flask_thread(to_send):
         print("function")
         return to_send
 
-    @app.route("/function_return")
+    @app.route("/function_return", methods=['post'])
     def function_return():
-        print("return value: ")
-        return "asdf"
+        unpickled = (request.get_data())
+        print(unpickled)
+        ret_dict = pickle.loads(unpickled)
+        ret = ret_dict["return_value"]
+        print("return value: ", ret)
+        return 'Request received. Server shutting down...'
+
+        # return "asdf"
 
 
     print("hi")
@@ -238,18 +181,8 @@ def flask_thread(to_send):
 
     print("huhwuh")
 
-def flask_run(function_name, *args, **kwargs):
-    # create a dictionary to pickle
-    func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
-
-    # make pickle from dictionary
-    to_send = pickle.dumps(func_dict)
-    thr = threading.Thread(target=flask_thread, args=(to_send,))
-    thr.start()
-
 if __name__ == "__main__":
     # app.run(debug = True, port = 3000)
-    flask_run("line_count")
 
     # create a new ds_docker instance
     session = DSDocker(
@@ -259,12 +192,15 @@ if __name__ == "__main__":
         "./docker/images"
     )
 
-    time.sleep(30000)
+    session.flask_run("line_count")
+
+
+    # time.sleep(30000)
 
 
     # session.flask_run("line_count")
 
-    r = requests.post('http://localhost:3000/function', data={bytes("hi", "utf-8"),bytes("hi", "utf-8")})
+    # r = requests.post('http://localhost:3000/function', data={bytes("hi", "utf-8"),bytes("hi", "utf-8")})
     # r = requests.get('http://localhost:3000/function')
 
     # print(f"Status Code: {r.status_code}, Content: {r.content}")
@@ -278,4 +214,4 @@ if __name__ == "__main__":
 
     # clean up
     # session.network_remove()
-    # session.stop_and_prune()
+    session.stop_and_prune()

@@ -23,7 +23,7 @@ def line_count():
         csv_file = open(file)
         reader = csv.reader(csv_file)
         res.append(len(list(reader)))
-    return files
+    # return files
     return res
 
 @register

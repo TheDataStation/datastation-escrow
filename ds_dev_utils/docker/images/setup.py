@@ -50,6 +50,8 @@ def main():
     load_connectors(connector_dir)
     print("setting up...")
 
+    # notice that communication from container to host doesn't
+    #  need a port mapping
     # send signal that the container has started
     response = requests.get('http://host.docker.internal:3030/started')
     print(response.content)
@@ -59,7 +61,18 @@ def main():
     function_dict = pickle.loads(response.content)
     print("function dictionary: ", function_dict)
 
+    # run the function and pickle it
+    ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
+    to_send_back = pickle.dumps({"return_value":ret})
 
+    print(to_send_back)
+
+    # send the return value of the function
+    response = requests.post("http://host.docker.internal:3030/function_return",
+            data=to_send_back,
+            # headers={'Content-Type': 'application/octet-stream'},
+            )
+    print(response, response.content)
     app.run(debug = False, host="0.0.0.0", port = 80)
 
     # # setup server and get connection
