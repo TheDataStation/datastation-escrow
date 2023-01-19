@@ -52,8 +52,25 @@ def main():
 
     # notice that communication from container to host doesn't
     #  need a port mapping
-    # send signal that the container has started
-    response = requests.get('http://host.docker.internal:3030/started')
+
+    # send signal that the container has started, and keep trying until it succeeds
+    #  stack overflow: https://stackoverflow.com/questions/27062099/python-requests-retrying-until-a-valid-response-is-received
+    cnt = 0
+    max_retry = 3
+    while cnt < max_retry:
+        try:
+            response = requests.get('http://host.docker.internal:3030/started')
+            if response.status_code == requests.codes.ok:
+                break
+            else:
+                raise RuntimeError(
+                        "requests.get: wrong status code")
+        except requests.exceptions.RequestException as e:
+            time.sleep(2**cnt)
+            cnt += 1
+            if cnt >= max_retry:
+                raise e
+
     print(response.content)
 
     # request function to run

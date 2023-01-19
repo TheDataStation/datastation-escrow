@@ -139,6 +139,7 @@ class DSDocker:
         server = Process(target=flask_thread, args=(shutdown_event, q, to_send,))
         server.start()
 
+        # time.sleep(1)
         self.container.start()
 
         # wait to shut down, then get the return value inside the queue

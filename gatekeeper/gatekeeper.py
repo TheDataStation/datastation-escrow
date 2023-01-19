@@ -314,14 +314,14 @@ def call_actual_api(api_name,
         os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images",
     )
 
-    print(session.container.top())
+    # print(session.container.top())
 
     # run function
     # session.direct_run("read_file", "/mnt/data/hi.txt")
     for cur_api in list_of_apis:
         if api_name == cur_api.__name__:
             print("call", api_name)
-            ret = session.network_run(api_name, *args, **kwargs)
+            ret = session.flask_run(api_name, *args, **kwargs)
 
             # result = cur_api(*args, **kwargs)
             api_conn.send(ret)
@@ -329,8 +329,8 @@ def call_actual_api(api_name,
             break
 
     # clean up
-    session.network_remove()
-    # session.stop_and_prune()
+    # session.network_remove()
+    session.stop_and_prune()
 
 
 def call_actual_api_(api_name,
