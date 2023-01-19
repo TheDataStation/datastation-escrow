@@ -1,7 +1,6 @@
 # This script loads a state of the data station needed to test out ML example
 import pathlib
 import sys
-import main
 import os
 import shutil
 import numpy as np
