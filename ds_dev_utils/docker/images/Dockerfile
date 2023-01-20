@@ -8,9 +8,12 @@ RUN mkdir /usr/src/ds/functions
 RUN mkdir /usr/src/ds/pickled
 RUN mkdir /usr/src/ds/connectors
 
-RUN apt-get update && apt-get install -y fuse && rm -rf /var/lib/apt/lists/*
-
 COPY . .
+
+RUN apt-get update
+RUN apt-get install -y fuse
+RUN apt-get install libfuse-dev
+RUN rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -r requirements.txt
 

@@ -131,6 +131,8 @@ class DataStation:
         # set up an instance of the key manager
         self.key_manager = KeyManager()
 
+        print(mount_point)
+        print(storage_path)
         # set up the gatekeeper
         self.connector_name = app_config["connector_name"]
         self.connector_module_path = app_config["connector_module_path"]
@@ -143,7 +145,7 @@ class DataStation:
             self.data_accessed_dict,
             self.connector_name,
             self.connector_module_path,
-            mount_point
+            self.config.ds_storage_path
         )
 
         # set up the table_paths in dbservice.check_point

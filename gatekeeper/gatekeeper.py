@@ -300,8 +300,8 @@ def call_actual_api(api_name,
     print(connector_realpath)
     session = DSDocker(
         connector_realpath,
-        # mount_dir,
-        "/Users/kos/PycharmProjects/V1test/SM_storage",
+        mount_dir,
+        # "/Users/kos/PycharmProjects/V1test/SM_storage",
         docker_image_realpath,
     )
 
