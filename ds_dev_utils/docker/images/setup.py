@@ -6,6 +6,8 @@ import requests
 
 from run_function import (load_connectors,
                             run_function)
+# from Interceptor import interceptor
+# import multiprocessing
 from dsapplicationregistration.dsar_core import get_registered_functions
 
 def main():
@@ -14,6 +16,32 @@ def main():
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
     print("setting up...")
+
+    # # Setting up the interceptor
+    #
+    # manager = multiprocessing.Manager()
+    #
+    # storage_path = "/mnt/data"
+    # mount_path = "/mnt/data_mount"
+    #
+    # interceptor_process = multiprocessing.Process(target=interceptor.main,
+    #                                               args=(storage_path,
+    #                                                     mount_path,
+    #                                                     {},
+    #                                                     {}))
+    #
+    # interceptor_process.start()
+    #
+    # print("starting interceptor...")
+    # counter = 0
+    # while not os.path.ismount(mount_path):
+    #     time.sleep(1)
+    #     counter += 1
+    #     if counter == 10:
+    #         print("mount time out")
+    #         exit(1)
+    # print("Mounted {} to {}".format(storage_path, mount_path))
+    # print(os.path.dirname(os.path.realpath(__file__)))
 
     # notice that communication from container to host doesn't
     #  need a port mapping
@@ -55,5 +83,7 @@ def main():
             # headers={'Content-Type': 'application/octet-stream'},
             )
     print(response, response.content)
+
+    time.sleep(1000000)
 if __name__ ==  '__main__':
     main()

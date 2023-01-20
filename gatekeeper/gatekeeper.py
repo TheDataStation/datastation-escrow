@@ -300,7 +300,8 @@ def call_actual_api(api_name,
     print(connector_realpath)
     session = DSDocker(
         connector_realpath,
-        mount_dir,
+        # mount_dir,
+        "/Users/kos/PycharmProjects/V1test/SM_storage",
         docker_image_realpath,
     )
 
@@ -319,8 +320,8 @@ def call_actual_api(api_name,
             api_conn.close()
             break
 
-    # clean up
-    session.stop_and_prune()
+    # clean up: uncomment line below in production
+    # session.stop_and_prune()
 
 
 # We add times to the following function to record the overheads

@@ -18,6 +18,7 @@ def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
     files = ds_utils.get_all_files()
+    print(files)
     res = []
     for file in set(files):
         csv_file = open(file)

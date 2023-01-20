@@ -75,22 +75,18 @@ class DSDocker:
 
         # run a container with command. It's detached so it runs in the background
         #  It is loaded with a setup script that starts the server.
+
+        # tty allows commands such as "docker cp" to be run
+        # ports define ports. These are arbitrary
         self.container = self.client.containers.create(self.image,
                                                        "python setup.py",
                                                        detach=True,
-                                                       #  tty allows commands such as "docker cp" to be run
                                                        tty=True,
-                                                       # define ports. These are arbitrary
                                                        ports={
                                                            '80/tcp': self.PORT,
-                                                        #    '81/tcp': 3030
                                                        },
-                                                       # read only for security
-                                                    #    read_only = True,
-                                                       # run as user
-                                                    #    user="docker_user",
-                                                       # mount volumes
-                                                    #    extra_hosts={"host.docker.internal":"host-gateway"},
+                                                       cap_add=["SYS_ADMIN", "MKNOD"],
+                                                       devices=["/dev/fuse:/dev/1:rwm"],
                                                        volumes={data_dir: {
                                                            'bind': '/mnt/data', 'mode': 'rw'}},
                                                        )

@@ -7,8 +7,11 @@ def get_all_files():
     ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
     ds_config = general_utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
     mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
+    print(mount_path)
     files = []
     DE_dir_name = os.listdir(mount_path)
+    print(mount_path)
+    print(DE_dir_name)
     for i in range(len(DE_dir_name)):
         DE_dir_name[i] = os.path.join(str(mount_path), str(DE_dir_name[i]))
         if len(os.listdir(DE_dir_name[i])) > 0:
