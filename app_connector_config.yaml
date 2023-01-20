@@ -1,3 +1,7 @@
 connector_name: ""
 connector_module_path: "examples/docker_example.py"
 
+#connector_name: ""
+#connector_module_path: "examples/income_full_docker.py"
+
+

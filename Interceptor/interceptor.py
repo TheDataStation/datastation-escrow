@@ -323,7 +323,7 @@ class Xmp(Fuse):
 
             # Steven: why does READ not trigger for file 2?
             def read(self, length, offset):
-                print("Interceptor: I am reading " + str(self.file_path))
+                # print("Interceptor: I am reading " + str(self.file_path))
 
                 if self.iolock:
                     self.iolock.acquire()

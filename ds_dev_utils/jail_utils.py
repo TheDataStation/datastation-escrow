@@ -4,6 +4,9 @@ import os
 import tarfile
 import pickle
 import socket
+import requests
+from multiprocessing import Process, Event, Queue
+from flask import Flask, request
 
 
 def docker_cp(container, src, dst):
@@ -43,7 +46,7 @@ def docker_cp(container, src, dst):
 class DSDocker:
     # HOST = "127.0.0.1"
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
-    PORT = 12345  # The port used by the server
+    PORT = 3000  # The port used by the server
 
     def __init__(self, function_file, data_dir, dockerfile):
         """
@@ -68,6 +71,8 @@ class DSDocker:
             path=dockerfile, tag="ds_docker")
         # print(self.image, log)
 
+        print("Created image!")
+
         # run a container with command. It's detached so it runs in the background
         #  It is loaded with a setup script that starts the server.
         self.container = self.client.containers.create(self.image,
@@ -77,12 +82,15 @@ class DSDocker:
                                                        tty=True,
                                                        # define ports. These are arbitrary
                                                        ports={
-                                                           '2222/tcp': self.PORT},
+                                                           '80/tcp': self.PORT,
+                                                        #    '81/tcp': 3030
+                                                       },
                                                        # read only for security
                                                     #    read_only = True,
                                                        # run as user
                                                     #    user="docker_user",
                                                        # mount volumes
+                                                    #    extra_hosts={"host.docker.internal":"host-gateway"},
                                                        volumes={data_dir: {
                                                            'bind': '/mnt/data', 'mode': 'rw'}},
                                                        )
@@ -91,20 +99,6 @@ class DSDocker:
         docker_cp(self.container,
                   function_file,
                   "/usr/src/ds/functions")
-
-        # start the container
-        self.container.start()
-
-        # create container network
-        self.network = self.client.networks.create("jail_network",
-                                                   driver="bridge",
-                                                   # shut off internet access
-                                                   internal=True,
-                                                   check_duplicate=True,
-                                                   )
-
-        # connect container to network
-        self.network.connect(self.container)
 
     def stop_and_prune(self):
         """
@@ -120,31 +114,9 @@ class DSDocker:
         self.container.stop()
         self.client.containers.prune()
 
-    def network_remove(self):
+    def flask_run(self, function_name, *args, **kwargs):
         """
-        disconnects container from network and removes the network
-        """
-        self.network.disconnect(self.container)
-        self.network.remove()
-
-    def connector_run(self, connector_name):
-        """
-        TODO: implement
-        calls a developer-written connector, which then calls the function within the
-         docker container
-
-        Parameters:
-         connector_name: name of connector to run
-
-        Returns:
-         connector return value
-        """
-        return
-
-    def direct_run(self, function_name, *args, **kwargs):
-        """
-        OLD: communicates with docker to container to run a function, only by
-         using the Python SDK (docker_cp, etc.) and pickle
+        utilizes a flask server to send functions
 
         Parameters:
          function_name: name of function to run
@@ -154,60 +126,81 @@ class DSDocker:
          function return value
         """
 
-        # create pickle file and dump
-        filename = self.base_dir + "/functions/pickled_"+function_name
-        arg_dict = {"args": args, "kwargs": kwargs}
-        with open(filename, 'wb') as pf:
-            pickle.dump(arg_dict, pf)
-
-        # send pickle file to container
-        docker_cp(self.container,
-                  filename,
-                  "/usr/src/ds/pickled")
-
-        # run the function
-        code, ret = self.container.exec_run(
-            "python run_function.py " + function_name)
-        print("Direct run output: \n" + ret.decode("utf-8"))
-        return ret
-
-    def network_run(self, function_name, *args, **kwargs):
-        """
-        utilizes a docker network to send functions through sockets
-
-        Parameters:
-         function_name: name of function to run
-         args, kwargs: arguments for the function
-
-        Returns:
-         function return value
-        """
+        # Create a shutdown event and queue to share data between threads
+        shutdown_event = Event()
+        q = Queue()
 
         # create a dictionary to pickle
         func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
-
         # make pickle from dictionary
         to_send = pickle.dumps(func_dict)
 
-        # connect to socket
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((self.HOST, self.PORT))
-            print(f"connected to {self.HOST}, {self.PORT}!")
+        # create a new thread for the flask server
+        server = Process(target=flask_thread, args=(shutdown_event, q, to_send,))
+        server.start()
 
-            # send the pickled function to docker container
-            s.sendall(to_send)
+        # time.sleep(1)
+        self.container.start()
 
-            # receive output
-            val = s.recv(1024)
-            print(val)
-            full_data = pickle.loads(val)
-            print(full_data)
-            data = full_data["return_value"]
-        print(f"Network run output: {data}")
-        return data
+        # wait to shut down, then get the return value inside the queue
+        shutdown_event.wait()
+        print("Event done waiting!")
+        return_value = q.get()
+        print("Main thread: ", return_value)
+
+        # end the process and join threads
+        server.terminate()
+        server.join()
+
+        return return_value
+
+def flask_thread(shutdown_event:Event, q:Queue, to_send):
+    """
+    the thread function that gets run whenever DSDocker.flask_run is called
+
+    Parameters:
+     shutdown_event: setting this event causes the main thread to kill this thread
+     q: queue to share data
+     to_send: the function to send to the docker container
+
+    Returns:
+     Nothing
+    """
+
+    app = Flask(__name__)
+    @app.route("/started")
+    def started():
+        print("received")
+        return "Start received!"
+
+    @app.route("/function")
+    def function():
+        print("function")
+        return to_send
+
+    @app.route("/function_return", methods=['post'])
+    def function_return():
+        # unpickle request data
+        unpickled = (request.get_data())
+        ret_dict = pickle.loads(unpickled)
+        ret = ret_dict["return_value"]
+        print("Child Thread, return value: ", ret)
+
+        # add to shared queue
+        q.put(ret)
+
+        # signal shutdown
+        shutdown_event.set()
+        return 'Request received. Server shutting down...'
+
+    # run the flask app
+    print("Child thread: flask app starting...")
+    app.run(debug = False, host="localhost", port=3030)
 
 
 if __name__ == "__main__":
+    # app.run(debug = True, port = 3000)
+
     # create a new ds_docker instance
     session = DSDocker(
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_functions/example_one.py',
@@ -216,12 +209,8 @@ if __name__ == "__main__":
         "./docker/images"
     )
 
-    print(session.container.top())
-
     # run function
-    # session.direct_run("read_file", "/mnt/data/hi.txt")
-    session.network_run("line_count")
+    session.flask_run("line_count")
 
     # clean up
-    session.network_remove()
-    # session.stop_and_prune()
+    session.stop_and_prune()

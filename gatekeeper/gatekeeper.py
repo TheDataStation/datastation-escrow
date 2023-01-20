@@ -286,6 +286,8 @@ def call_actual_api(api_name,
      None
     """
 
+    print(os.path.dirname(os.path.realpath(__file__)))
+    # print(api_name, *args, **kwargs)
     register_connectors(connector_name, connector_module_path)
     # print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
@@ -302,7 +304,7 @@ def call_actual_api(api_name,
         docker_image_realpath,
     )
 
-    print(session.container.top())
+    # print(session.container.top())
 
     # run function
     list_of_apis = get_registered_functions()
@@ -310,8 +312,7 @@ def call_actual_api(api_name,
     for cur_api in list_of_apis:
         if api_name == cur_api.__name__:
             print("call", api_name)
-            ret = session.network_run(api_name, *args, **kwargs)
-            print("return value is", ret)
+            ret = session.flask_run(api_name, *args, **kwargs)
 
             # result = cur_api(*args, **kwargs)
             api_conn.send(ret)
@@ -319,7 +320,6 @@ def call_actual_api(api_name,
             break
 
     # clean up
-    session.network_remove()
     session.stop_and_prune()
 
 
