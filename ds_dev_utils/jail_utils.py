@@ -86,7 +86,7 @@ class DSDocker:
                                                            '80/tcp': self.PORT,
                                                        },
                                                        cap_add=["SYS_ADMIN", "MKNOD"],
-                                                       devices=["/dev/fuse:/dev/1:rwm"],
+                                                       devices=["/dev/fuse:/dev/fuse:rwm"],
                                                        volumes={data_dir: {
                                                            'bind': '/mnt/data', 'mode': 'rw'}},
                                                        )
