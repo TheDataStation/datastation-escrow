@@ -1,5 +1,7 @@
 numpy
 scikit-learn
+
 flask
 requests
 fuse-python
+cryptography

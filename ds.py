@@ -22,11 +22,9 @@ from writeaheadlog.write_ahead_log import WAL
 from crypto import cryptoutils as cu
 from crypto.key_manager import KeyManager
 from gatekeeper.gatekeeper import Gatekeeper
-from clientapi.client_api import ClientAPI
 from dbservice import database_api
 from dbservice.database import engine
 from dbservice.database_api import clear_checkpoint_table_paths
-from Interceptor import interceptor
 from dsapplicationregistration.dsar_core import clear_register
 from userregister import user_register
 

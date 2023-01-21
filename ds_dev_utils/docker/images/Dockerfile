@@ -7,6 +7,7 @@ WORKDIR /usr/src/ds
 RUN mkdir /usr/src/ds/functions
 RUN mkdir /usr/src/ds/pickled
 RUN mkdir /usr/src/ds/connectors
+RUN mkdir -p /mnt/data_mount
 
 COPY . .
 
