@@ -174,7 +174,7 @@ class Gatekeeper:
                     dataset.owner_id)
                 accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
 
-        self.accessible_data_dict[63452] = (accessible_data_paths, accessible_data_key_dict)
+        accessible_data_dict = (accessible_data_paths, accessible_data_key_dict)
 
         # start a new process for the api call
         main_conn, api_conn = multiprocessing.Pipe()
@@ -183,6 +183,7 @@ class Gatekeeper:
                                                     self.connector_name,
                                                     self.connector_module_path,
                                                     self.mount_dir,
+                                                    accessible_data_dict,
                                                     api_conn,
                                                     *args,
                                                     ),
@@ -264,6 +265,7 @@ def call_actual_api(api_name,
                     connector_name,
                     connector_module_path,
                     mount_dir,
+                    accessible_data_dict,
                     api_conn,
                     *args,
                     **kwargs,
@@ -301,7 +303,7 @@ def call_actual_api(api_name,
     session = DSDocker(
         connector_realpath,
         mount_dir,
-        # "/Users/kos/PycharmProjects/V1test/SM_storage",
+        accessible_data_dict,
         docker_image_realpath,
     )
 

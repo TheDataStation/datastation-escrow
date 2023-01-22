@@ -88,24 +88,27 @@ class Xmp(Fuse):
     def readlink(self, path):
         return os.readlink("." + path)
 
+    # Filter out paths that are not the parent paths of any of the accessible data or itself
+
     def readdir(self, path, offset):
 
-        # zz: filter out paths that are not the parent paths of any of the accessible data or itself
+        print("Calling readdir...")
 
         pid = Fuse.GetContext(self)["pid"]
+        print("Readdir: pid is", pid)
         in_other_process = False
         # print(pid, main_process_id_global, os.getpid())
         if pid not in accessible_data_dict_global.keys():
+            print("Readdir: In other process!")
             in_other_process = True
         else:
             accessible_data_paths = accessible_data_dict_global[pid][0]
-            # print(accessible_data_paths)
+            print(accessible_data_paths)
 
-        # print("Interceptor: readdir", path)
+        print("Interceptor: readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
-        # print(str(path_to_access))
+        print(str(path_to_access))
         for e in os.listdir("." + path):
-            # print(str(e))
             if in_other_process:
                 yield fuse.Direntry(e)
             else:
@@ -114,13 +117,6 @@ class Xmp(Fuse):
                         # print("Interceptor: yield")
                         yield fuse.Direntry(e)
                         break
-                    # parts = pathlib.Path(acc_path).parts
-                    # # print(parts)
-                    # # TODO: prob too hacky
-                    # if str(e) in parts:
-                    #     # print("Interceptor: yield")
-                    #     yield fuse.Direntry(e)
-                    #     break
 
     def unlink(self, path):
         os.unlink("." + path)
@@ -165,66 +161,10 @@ class Xmp(Fuse):
     #      os.utime("." + path, (ts_acc.tv_sec, ts_mod.tv_sec))
 
     def access(self, path, mode):
-        # mode_to_str = {0: "os.F_OK", 1: "os.X_OK", 2: "os.W_OK", 4: "os.R_OK"}
-        # if mode == os.R_OK or mode == os.W_OK:
-        # print("Interceptor: Testing access for " + path + " in " + mode_to_str[mode] + " mode")
-        # print("Interceptor: fuse context:")
-        # print(self.GetContext())
-        # print(Fuse.GetContext(self))
-        # TODO: maybe don't return error here (if accessing data that's shouldn't be accessible),
-        #  since this requires the application to catch the error
-        # access_okay = False
-        path_to_access = pathlib.Path("." + path).absolute()
-        # for acc_path in accessible_data_paths:
-        #     if path_to_access in pathlib.Path(acc_path).parents or str(path_to_access) == acc_path:
-        #         access_okay = True
-        #         break
-        # if mode != os.F_OK and not access_okay:
-        #     return -EACCES
         if not os.access("." + path, mode):
             # if mode == os.R_OK:
             #     print("Interceptor: can't read")
             return -EACCES
-        # else:
-        #     if pathlib.Path(path_to_access).is_file():
-        #         if mode != os.F_OK:
-        #             fuse_context = Fuse.GetContext(self)
-        #             pid = fuse_context["pid"]
-        #
-        #             if pid in accessible_data_dict_global.keys():
-        #                 print("Interceptor: Access okay for " + str(path_to_access) + " in " + str(mode) + " mode")
-        #                 print("Interceptor: pid:", pid)
-        #
-        #             if pid not in data_accessed_dict_global.keys():
-        #                 data_accessed_dict_global[pid] = set()
-        #
-        #             cur_set = data_accessed_dict_global[pid]
-        #             cur_set.add(str(path_to_access))
-        #             data_accessed_dict_global[pid] = cur_set
-
-        # print(data_accessed_dict_global)
-        # if mode == os.R_OK:
-        #     print("Interceptor: read okay")
-
-    #    This is how we could add stub extended attribute handlers...
-    #    (We can't have ones which aptly delegate requests to the underlying fs
-    #    because Python lacks a standard xattr interface.)
-    #
-    #    def getxattr(self, path, name, size):
-    #        val = name.swapcase() + '@' + path
-    #        if size == 0:
-    #            # We are asked for size of the value.
-    #            return len(val)
-    #        return val
-    #
-    #    def listxattr(self, path, size):
-    #        # We use the "user" namespace to please XFS utils
-    #        aa = ["user." + a for a in ("foo", "bar")]
-    #        if size == 0:
-    #            # We are asked for size of the attr list, ie. joint size of attrs
-    #            # plus null separators.
-    #            return len("".join(aa)) + len(aa)
-    #        return aa
 
     def statfs(self):
         """
@@ -286,6 +226,7 @@ class Xmp(Fuse):
                 cur_set = data_accessed_dict_global[pid]
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set
+                print("Data accessed is", data_accessed_dict_global[pid])
 
                 self.symmetric_key = None
                 self.decrypted_bytes = None
@@ -323,7 +264,7 @@ class Xmp(Fuse):
 
             # Steven: why does READ not trigger for file 2?
             def read(self, length, offset):
-                # print("Interceptor: I am reading " + str(self.file_path))
+                print("Interceptor: I am reading " + str(self.file_path))
 
                 if self.iolock:
                     self.iolock.acquire()

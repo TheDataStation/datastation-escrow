@@ -1,17 +1,21 @@
+import sys
 import time
 import socket
 import pickle
 import os
 import requests
+from ast import literal_eval
 
 from run_function import (load_connectors, run_function)
 from Interceptor import interceptor
 import multiprocessing
 from dsapplicationregistration.dsar_core import get_registered_functions
 
+
 def main():
     # time.sleep(3)
     # load connectors before doing anything
+
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
     print("setting up...")
@@ -20,6 +24,8 @@ def main():
 
     manager = multiprocessing.Manager()
 
+    data_accessed_dict = manager.dict()
+
     storage_path = "/mnt/data"
     mount_path = "/mnt/data_mount"
 
@@ -27,7 +33,7 @@ def main():
                                                   args=(storage_path,
                                                         mount_path,
                                                         {},
-                                                        {}))
+                                                        data_accessed_dict))
 
     interceptor_process.start()
 
@@ -56,9 +62,9 @@ def main():
                 break
             else:
                 raise RuntimeError(
-                        "requests.get: wrong status code")
+                    "requests.get: wrong status code")
         except requests.exceptions.RequestException as e:
-            time.sleep(2**cnt)
+            time.sleep(2 ** cnt)
             cnt += 1
             if cnt >= max_retry:
                 raise e
@@ -72,17 +78,22 @@ def main():
 
     # run the function and pickle it
     ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
-    to_send_back = pickle.dumps({"return_value":ret})
+    to_send_back = pickle.dumps({"return_value": ret})
 
+    # Before we return the result of the function, look at the data elements accessed
+
+    print("In setup.py: data accessed is", data_accessed_dict)
     print(to_send_back)
 
     # send the return value of the function
     response = requests.post("http://host.docker.internal:3030/function_return",
-            data=to_send_back,
-            # headers={'Content-Type': 'application/octet-stream'},
-            )
+                             data=to_send_back,
+                             # headers={'Content-Type': 'application/octet-stream'},
+                             )
     print(response, response.content)
 
     time.sleep(1000000)
-if __name__ ==  '__main__':
+
+
+if __name__ == '__main__':
     main()

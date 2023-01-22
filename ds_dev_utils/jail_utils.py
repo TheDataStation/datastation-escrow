@@ -48,7 +48,7 @@ class DSDocker:
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
     PORT = 3000  # The port used by the server
 
-    def __init__(self, function_file, data_dir, dockerfile):
+    def __init__(self, function_file, data_dir, accessible_data_dict, dockerfile):
         """
         Initializes a docker container with mount point data_dir, with
         image given. Loads function file into container.
@@ -63,6 +63,9 @@ class DSDocker:
 
         Returns:
         """
+
+        print(accessible_data_dict)
+
         self.base_dir = os.path.dirname(os.path.realpath(__file__))
         self.client = docker.from_env()
 
@@ -150,7 +153,7 @@ class DSDocker:
 
         return return_value
 
-def flask_thread(shutdown_event:Event, q:Queue, to_send):
+def flask_thread(shutdown_event: Event, q: Queue, to_send):
     """
     the thread function that gets run whenever DSDocker.flask_run is called
 
@@ -191,7 +194,7 @@ def flask_thread(shutdown_event:Event, q:Queue, to_send):
 
     # run the flask app
     print("Child thread: flask app starting...")
-    app.run(debug = False, host="localhost", port=3030)
+    app.run(debug=False, host="localhost", port=3030)
 
 
 if __name__ == "__main__":
