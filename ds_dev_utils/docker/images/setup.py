@@ -16,6 +16,10 @@ def main():
     # time.sleep(3)
     # load connectors before doing anything
 
+    # Get the PID of the current process
+    main_pid = os.getpid()
+    print("setup.py: main PID is", main_pid)
+
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
     print("setting up...")
@@ -81,7 +85,6 @@ def main():
     to_send_back = pickle.dumps({"return_value": ret})
 
     # Before we return the result of the function, look at the data elements accessed
-
     print("In setup.py: data accessed is", data_accessed_dict)
     print(to_send_back)
 
