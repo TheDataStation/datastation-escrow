@@ -8,7 +8,6 @@ import requests
 from multiprocessing import Process, Event, Queue
 from flask import Flask, request
 
-
 def docker_cp(container, src, dst):
     """
     Code modified from:
@@ -65,15 +64,6 @@ class DSDocker:
         """
 
         # In here we convert the accessible_data_dict to paths that Docker sees
-        # print(accessible_data_dict)
-        accessible_data_old_set = accessible_data_dict[0]
-        accessible_data_new_set = set()
-        for cur_data in accessible_data_old_set:
-            data_str_list = cur_data.split("/")[-2:]
-            cur_data = os.path.join("/mnt/data", data_str_list[0], data_str_list[1])
-            accessible_data_new_set.add(cur_data)
-
-        accessible_data_dict = (accessible_data_new_set, accessible_data_dict[1])
         print(accessible_data_dict)
 
         cur_dir = os.path.dirname(os.path.realpath(__file__))
@@ -196,10 +186,14 @@ def flask_thread(shutdown_event: Event, q: Queue, to_send):
 
     @app.route("/function_return", methods=['post'])
     def function_return():
+        print("Starting function return.")
         # unpickle request data
         unpickled = (request.get_data())
+        print(unpickled)
         ret_dict = pickle.loads(unpickled)
-        ret = ret_dict["return_value"]
+        print("Returned dictionary is", ret_dict)
+        # ret = ret_dict["return_value"]
+        ret = ret_dict["data_accessed"]
         print("Child Thread, return value: ", ret)
 
         # add to shared queue

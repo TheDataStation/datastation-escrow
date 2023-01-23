@@ -31,7 +31,6 @@ def main():
     print("setting up...")
 
     # Setting up the interceptor
-
     manager = multiprocessing.Manager()
 
     accessible_data_dict = manager.dict()
@@ -91,7 +90,8 @@ def main():
 
     # run the function and pickle it
     ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
-    to_send_back = pickle.dumps({"return_value": ret})
+    to_send_back = pickle.dumps({"data_accessed": dict(data_accessed_dict)})
+    # to_send_back = pickle.dumps({"return_value": ret, "data_accessed": data_accessed_dict})
 
     # Before we return the result of the function, look at the data elements accessed
     print("In setup.py: data accessed is", data_accessed_dict)

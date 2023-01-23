@@ -175,6 +175,14 @@ class Gatekeeper:
                 accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
 
         accessible_data_dict = (accessible_data_paths, accessible_data_key_dict)
+        accessible_data_old_set = accessible_data_dict[0]
+        accessible_data_new_set = set()
+        for cur_data in accessible_data_old_set:
+            data_str_list = cur_data.split("/")[-2:]
+            cur_data = os.path.join("/mnt/data", data_str_list[0], data_str_list[1])
+            accessible_data_new_set.add(cur_data)
+
+        accessible_data_dict = (accessible_data_new_set, accessible_data_dict[1])
 
         # start a new process for the api call
         main_conn, api_conn = multiprocessing.Pipe()
@@ -323,8 +331,7 @@ def call_actual_api(api_name,
             break
 
     # clean up: uncomment line below in production
-    # session.stop_and_prune()
-
+    session.stop_and_prune()
 
 # We add times to the following function to record the overheads
 
