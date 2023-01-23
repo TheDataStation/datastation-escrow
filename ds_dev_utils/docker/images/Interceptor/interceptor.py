@@ -103,7 +103,7 @@ class Xmp(Fuse):
             in_other_process = True
         else:
             accessible_data_paths = accessible_data_dict_global[pid][0]
-            print(accessible_data_paths)
+            print("Interceptor: the accessible data paths are", accessible_data_paths)
 
         print("Interceptor: readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()

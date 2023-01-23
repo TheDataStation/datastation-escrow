@@ -20,6 +20,12 @@ def main():
     main_pid = os.getpid()
     print("setup.py: main PID is", main_pid)
 
+    with open("/usr/src/ds/accessible.pkl", "rb") as f:
+        accessible_data_bytes = f.read()
+        accessible_data_obj = pickle.loads(accessible_data_bytes)
+
+    print(accessible_data_obj)
+
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
     print("setting up...")
@@ -28,7 +34,10 @@ def main():
 
     manager = multiprocessing.Manager()
 
+    accessible_data_dict = manager.dict()
     data_accessed_dict = manager.dict()
+
+    accessible_data_dict[main_pid] = accessible_data_obj
 
     storage_path = "/mnt/data"
     mount_path = "/mnt/data_mount"
@@ -36,7 +45,7 @@ def main():
     interceptor_process = multiprocessing.Process(target=interceptor.main,
                                                   args=(storage_path,
                                                         mount_path,
-                                                        {},
+                                                        accessible_data_dict,
                                                         data_accessed_dict))
 
     interceptor_process.start()

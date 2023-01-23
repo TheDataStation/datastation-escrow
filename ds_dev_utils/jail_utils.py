@@ -64,7 +64,24 @@ class DSDocker:
         Returns:
         """
 
+        # In here we convert the accessible_data_dict to paths that Docker sees
+        # print(accessible_data_dict)
+        accessible_data_old_set = accessible_data_dict[0]
+        accessible_data_new_set = set()
+        for cur_data in accessible_data_old_set:
+            data_str_list = cur_data.split("/")[-2:]
+            cur_data = os.path.join("/mnt/data", data_str_list[0], data_str_list[1])
+            accessible_data_new_set.add(cur_data)
+
+        accessible_data_dict = (accessible_data_new_set, accessible_data_dict[1])
         print(accessible_data_dict)
+
+        cur_dir = os.path.dirname(os.path.realpath(__file__))
+        accessible_path = os.path.join(cur_dir, "docker/images/accessible.pkl")
+        accessible_data_dict_pkl = pickle.dumps(accessible_data_dict)
+        f = open(accessible_path, "wb")
+        f.write(accessible_data_dict_pkl)
+        f.close()
 
         self.base_dir = os.path.dirname(os.path.realpath(__file__))
         self.client = docker.from_env()
