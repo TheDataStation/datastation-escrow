@@ -208,11 +208,6 @@ class Gatekeeper:
         # and get the data ids accessed from the list of data paths accessed through the interceptor
 
         print("Checking the two dictionaries:")
-        print(self.accessible_data_dict)
-        print(self.data_accessed_dict)
-
-        if api_pid in self.accessible_data_dict.keys():
-            del self.accessible_data_dict[api_pid]
 
         # Get the IDs of the DEs that are actually accessed
         data_ids_accessed = set()

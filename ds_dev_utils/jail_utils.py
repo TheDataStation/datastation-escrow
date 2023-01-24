@@ -192,8 +192,7 @@ def flask_thread(shutdown_event: Event, q: Queue, to_send):
         print(unpickled)
         ret_dict = pickle.loads(unpickled)
         print("Returned dictionary is", ret_dict)
-        # ret = ret_dict["return_value"]
-        ret = ret_dict["data_accessed"]
+        ret = (ret_dict["return_value"], ret_dict["data_accessed"])
         print("Child Thread, return value: ", ret)
 
         # add to shared queue
