@@ -203,25 +203,32 @@ class Gatekeeper:
         # print("api process id:", str(api_pid))
         api_result = main_conn.recv()
         api_process.join()
-
-        # clean up the two dictionaries used for communication,
-        # and get the data ids accessed from the list of data paths accessed through the interceptor
+        data_path_accessed = api_result[1]
+        data_ids_accessed = []
+        for path in data_path_accessed:
+            data_ids_accessed.append(int(path.split("/")[-2]))
+        api_result = api_result[0]
+        print("API result is", api_result)
 
         print("Checking the two dictionaries:")
+        print(accessible_data_new_set)
+        print(data_ids_accessed)
+        print(accessible_data_policy)
+        print(all_accessible_data_id)
 
-        # Get the IDs of the DEs that are actually accessed
-        data_ids_accessed = set()
-        if api_pid in self.data_accessed_dict.keys():
-            cur_data_accessed = self.data_accessed_dict[api_pid].copy()
-            del self.data_accessed_dict[api_pid]
-            get_datasets_by_paths_res = database_api.get_datasets_by_paths(
-                cur_data_accessed)
-            if get_datasets_by_paths_res.status == -1:
-                err_msg = "No accessible data for " + api
-                print(err_msg)
-                return Response(status=1, message=err_msg)
-            data_ids_accessed = set(
-                [dataset.id for dataset in get_datasets_by_paths_res.data])
+        # # Get the IDs of the DEs that are actually accessed
+        # data_ids_accessed = set()
+        # if api_pid in self.data_accessed_dict.keys():
+        #     cur_data_accessed = self.data_accessed_dict[api_pid].copy()
+        #     del self.data_accessed_dict[api_pid]
+        #     get_datasets_by_paths_res = database_api.get_datasets_by_paths(
+        #         cur_data_accessed)
+        #     if get_datasets_by_paths_res.status == -1:
+        #         err_msg = "No accessible data for " + api
+        #         print(err_msg)
+        #         return Response(status=1, message=err_msg)
+        #     data_ids_accessed = set(
+        #         [dataset.id for dataset in get_datasets_by_paths_res.data])
 
         # print("data id accessed are:")
         # print(data_ids_accessed)

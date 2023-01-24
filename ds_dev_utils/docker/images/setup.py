@@ -90,7 +90,8 @@ def main():
 
     # run the function and pickle it
     ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
-    to_send_back = pickle.dumps({"return_value": ret, "data_accessed": dict(data_accessed_dict)})
+    data_accessed = dict(data_accessed_dict)[main_pid]
+    to_send_back = pickle.dumps({"return_value": ret, "data_accessed": data_accessed})
 
     # Before we return the result of the function, look at the data elements accessed
     print("In setup.py: data accessed is", data_accessed_dict)
