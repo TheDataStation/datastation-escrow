@@ -95,7 +95,7 @@ def main():
 
     # Before we return the result of the function, look at the data elements accessed
     print("In setup.py: data accessed is", data_accessed_dict)
-    print(to_send_back)
+    # print(to_send_back)
 
     # send the return value of the function
     response = requests.post("http://host.docker.internal:3030/function_return",
