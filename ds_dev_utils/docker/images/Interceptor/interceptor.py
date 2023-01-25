@@ -92,10 +92,10 @@ class Xmp(Fuse):
 
     def readdir(self, path, offset):
 
-        print("Calling readdir...")
+        # print("Calling readdir...")
 
         pid = Fuse.GetContext(self)["pid"]
-        print("Readdir: pid is", pid)
+        # print("Readdir: pid is", pid)
         in_other_process = False
         # print(pid, main_process_id_global, os.getpid())
         if pid not in accessible_data_dict_global.keys():
@@ -103,11 +103,11 @@ class Xmp(Fuse):
             in_other_process = True
         else:
             accessible_data_paths = accessible_data_dict_global[pid][0]
-            print("Interceptor: the accessible data paths are", accessible_data_paths)
+            # print("Interceptor: the accessible data paths are", accessible_data_paths)
 
-        print("Interceptor: readdir", path)
+        # print("Interceptor: readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
-        print(str(path_to_access))
+        # print(str(path_to_access))
         for e in os.listdir("." + path):
             if in_other_process:
                 yield fuse.Direntry(e)
@@ -262,9 +262,8 @@ class Xmp(Fuse):
                                     ciphertext=encrypted_bytes,
                                     key=self.symmetric_key)
 
-            # Steven: why does READ not trigger for file 2?
             def read(self, length, offset):
-                print("Interceptor: I am reading " + str(self.file_path))
+                # print("Interceptor: I am reading " + str(self.file_path))
 
                 if self.iolock:
                     self.iolock.acquire()
@@ -284,7 +283,6 @@ class Xmp(Fuse):
                                 else:
                                     content = self.decrypted_bytes[offset:offset + length]
                                     return content
-                                    # return self.decrypted_bytes[offset:offset + length].rstrip(b'\x00')
                             else:
                                 print("Interceptor: Cannot decrypt ", self.file_path)
                                 return b''

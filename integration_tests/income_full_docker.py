@@ -1,4 +1,4 @@
-# This script loads a state of the data station needed to test out ML example
+# This script loads a state of the data station needed to test out income example in full_trust.
 import pathlib
 import sys
 import os
