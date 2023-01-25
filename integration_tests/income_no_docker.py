@@ -92,6 +92,9 @@ if __name__ == '__main__':
             cur_np_obj = np.load(cur_train)
             # np object to pkl bytes
             cur_pkl_obj = pickle.dumps(cur_np_obj)
+            if cur_train == "integration_tests/ml_file_full_trust/training_income/train0_X.npy":
+                print(len(cur_pkl_obj))
+                print(cur_pkl_obj[:100])
             # pkl bytes encrypted
             ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
             # write encrypted bytes to file
@@ -100,12 +103,6 @@ if __name__ == '__main__':
             cur_cipher_file = open(cur_cipher_name, "wb")
             cur_cipher_file.write(ciphertext_bytes)
             cur_cipher_file.close()
-
-    with open("integration_tests/ml_file_full_trust/training_income/train0_X.npy", "rb") as f:
-        cur_bytes = f.read()
-        print(cur_bytes)
-
-    exit()
 
     # For each user, we upload his partition of the data (2 data elements, both X and y)
     data_id_counter = 1

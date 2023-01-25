@@ -25,7 +25,8 @@ def train_income_model():
         f = open(file, "rb")
         cur_file_bytes = f.read()
         f.close()
-        print(cur_file_bytes)
+        print(len(cur_file_bytes))
+        print(cur_file_bytes[:100])
         # These bytes should be decrpted already, we convert it to object
         cur_np_ele = pickle.loads(cur_file_bytes)
         array_to_append = file.split('/')[-1].split('.')[0][-1]
