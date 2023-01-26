@@ -220,9 +220,6 @@ class Xmp(Fuse):
                 if pid not in data_accessed_dict_global.keys():
                     data_accessed_dict_global[pid] = set()
 
-                print("Got pid number: ", pid)
-                print("Got uid number: ", fuse_context["uid"])
-                print("Got gid number: ", fuse_context["gid"])
                 cur_set = data_accessed_dict_global[pid]
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set
@@ -241,9 +238,9 @@ class Xmp(Fuse):
 
                         # get the symmetric key of the current file if it's accessible by the current user accessing
                         if self.file_path in accessible_data_key_dict.keys():
-                            print("Getting the current key...")
+                            # print("Getting the current key...")
                             self.symmetric_key = accessible_data_key_dict[self.file_path]
-                            print("Key is", self.symmetric_key)
+                            # print("Key is", self.symmetric_key)
 
                             # Decrypt the entire file here and use it as a cache.
                             # since multiple read/writes can happen to the file,

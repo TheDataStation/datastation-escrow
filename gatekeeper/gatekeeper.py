@@ -174,15 +174,25 @@ class Gatekeeper:
                     dataset.owner_id)
                 accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
 
-        accessible_data_dict = (accessible_data_paths, accessible_data_key_dict)
-        accessible_data_old_set = accessible_data_dict[0]
+        # Update path names
+
+        accessible_data_old_set = accessible_data_paths
         accessible_data_new_set = set()
         for cur_data in accessible_data_old_set:
             data_str_list = cur_data.split("/")[-2:]
             cur_data = os.path.join("/mnt/data", data_str_list[0], data_str_list[1])
             accessible_data_new_set.add(cur_data)
 
-        accessible_data_dict = (accessible_data_new_set, accessible_data_dict[1])
+        key_map = dict()
+        for cur_key in accessible_data_key_dict:
+            data_str_list = cur_key.split("/")[-2:]
+            new_key = os.path.join("/mnt/data", data_str_list[0], data_str_list[1])
+            key_map[cur_key] = new_key
+
+        accessible_data_key_dict_new = {newkey: accessible_data_key_dict[oldkey]
+                                        for (oldkey, newkey) in key_map.items()}
+
+        accessible_data_dict = (accessible_data_new_set, accessible_data_key_dict_new)
 
         # start a new process for the api call
         main_conn, api_conn = multiprocessing.Pipe()
