@@ -1,6 +1,5 @@
 # This script loads a state of the data station needed to test out income example in no_trust.
 import pathlib
-import sys
 import os
 import shutil
 import numpy as np

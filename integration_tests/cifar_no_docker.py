@@ -1,16 +1,17 @@
+# This script loads a state of the data station needed to test out cifar example in no_trust.
 import pathlib
-
-import main
 import os
 import shutil
+import numpy as np
+from crypto import cryptoutils as cu
 import pickle
 import torch
 from torch.utils.data import DataLoader
 
 from common import general_utils
+from ds import DataStation
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
-from crypto import cryptoutils as cu
 
 if __name__ == '__main__':
 
@@ -25,22 +26,20 @@ if __name__ == '__main__':
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
 
-    client_api = main.initialize_system(ds_config, app_config)
+    ds = DataStation(ds_config, app_config)
 
     # Remove the code block below if testing out durability of log
-    log_path = client_api.log.log_path
+    log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):
         os.remove(log_path)
 
     # Remove the code block below if testing out durability of wal
-    wal_path = client_api.write_ahead_log.wal_path
+    wal_path = ds.write_ahead_log.wal_path
     if os.path.exists(wal_path):
         os.remove(wal_path)
 
     # Save data station's public key
-    ds_public_key = client_api.key_manager.ds_public_key
-
-    # Adding new users
+    ds_public_key = ds.key_manager.ds_public_key
 
     # We upload 8 users, one holds each partition of the data (X and y)
     num_users = 8
@@ -57,15 +56,11 @@ if __name__ == '__main__':
         cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
         public_key_list.append(cur_public_key)
         cur_uname = "user" + str(cur_num)
-        client_api.create_user(User(user_name=cur_uname, password="string"),
-                               cipher_sym_key_list[cur_num],
-                               public_key_list[cur_num], )
+        ds.create_user(User(user_name=cur_uname, password="string"),
+                       cipher_sym_key_list[cur_num],
+                       public_key_list[cur_num], )
 
-    # print(client_api.key_manager.agents_symmetric_key)
-
-    # Adding datasets and policies
-
-    # First clear ml_file_no_trust/training
+    # First clear ml_file_no_trust/training_income
 
     no_trust_folder = 'integration_tests/ml_file_no_trust/training_cifar'
     for filename in os.listdir(no_trust_folder):
@@ -89,7 +84,7 @@ if __name__ == '__main__':
 
     for cur_num in range(num_users):
         cur_t_path = "integration_tests/ml_file_full_trust/training_cifar/train" + str(cur_num) + ".pt"
-        cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_num+1]
+        cur_user_sym_key = ds.key_manager.agents_symmetric_key[cur_num + 1]
         # Load torch object
         cur_torch = torch.load(cur_t_path)
         # print(type(cur_torch))
@@ -104,13 +99,10 @@ if __name__ == '__main__':
         name_to_upload = "train" + str(cur_num) + ".pt"
         cur_cipher_file.close()
 
-    # Now we upload the encrypted files
-
     # For each user, we upload his partition of the data
     for cur_num in range(num_users):
         # Log in the current user and get a token
         cur_uname = "user" + str(cur_num)
-        cur_token = client_api.login_user(cur_uname, "string")["access_token"]
 
         # Upload his partition X of the data
         cur_train_t = "integration_tests/ml_file_no_trust/training_cifar/train" + str(cur_num) + ".pkl"
@@ -118,26 +110,25 @@ if __name__ == '__main__':
         cur_file_bytes = cur_file_t.read()
         cur_optimistic_flag = False
         name_to_upload = "train" + str(cur_num) + ".pkl"
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
-                                            "file",
-                                            cur_optimistic_flag,
-                                            cur_token, )
+        cur_res = ds.upload_dataset(cur_uname,
+                                    name_to_upload,
+                                    cur_file_bytes,
+                                    "file",
+                                    cur_optimistic_flag, )
         cur_file_t.close()
 
         # Add a policy saying user with id==1 can call train_cifar_model on the datasets
-        client_api.upload_policy(Policy(user_id=1, api="train_cifar_model", data_id=cur_num+1), cur_token)
+        ds.upload_policy(cur_uname, Policy(user_id=1, api="train_cifar_model", data_id=cur_num + 1))
 
-    # Use token for user0
-    cur_token = client_api.login_user("user0", "string")["access_token"]
+    # In here, DB construction is done. We just need to call train_cifar_model
 
     # Call the NN model
     test_data = torch.load('integration_tests/ml_file_full_trust/testing_cifar/test.pt')
     testloader = DataLoader(test_data, batch_size=32)
 
-    accuracy = client_api.call_api("train_cifar_model", cur_token, "optimistic", 5, testloader)
+    accuracy = ds.call_api("user0", "train_cifar_model", "optimistic", 1, testloader)
     print("Model accuracy is: "+str(accuracy))
 
     # Shutting down
 
-    client_api.shut_down(ds_config)
+    ds.shut_down()

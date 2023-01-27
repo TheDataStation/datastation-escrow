@@ -326,7 +326,7 @@ def call_actual_api(api_name,
             break
 
     # clean up: uncomment line below in production
-    session.stop_and_prune()
+    # session.stop_and_prune()
 
 # We add times to the following function to record the overheads
 

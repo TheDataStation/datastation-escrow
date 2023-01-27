@@ -3,8 +3,11 @@
 
 #connector_name: ""
 #connector_module_path: "examples/income_full_docker.py"
+#
+#connector_name: ""
+#connector_module_path: "examples/income_no_docker.py"
 
 connector_name: ""
-connector_module_path: "examples/income_no_docker.py"
+connector_module_path: "examples/cifar_no_docker.py"
 
 

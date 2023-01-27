@@ -1,5 +1,6 @@
 numpy
 scikit-learn
+torch
 
 flask
 requests
