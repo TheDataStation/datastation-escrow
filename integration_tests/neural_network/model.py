@@ -51,12 +51,6 @@ def train(net, trainloader, epochs, val = None):
             loss = criterion(net(images), labels)
             loss.backward()
             optimizer.step()
-        # if val != None:
-        #     loss, _ = test(net, val)
-        #     if cross > loss:
-        #         cross = loss
-        #     else:
-        #         return i
 
 def get_model_parameters(net):
     return [val.cpu().numpy() for _, val in net.state_dict().items()]

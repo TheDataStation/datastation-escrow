@@ -2,7 +2,6 @@
 import pathlib
 import os
 import shutil
-import numpy as np
 from crypto import cryptoutils as cu
 import pickle
 import torch

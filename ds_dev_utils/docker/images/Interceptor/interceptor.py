@@ -212,6 +212,7 @@ class Xmp(Fuse):
                 #      the wrong key?
                 fuse_context = Fuse.GetContext(Xmp_self)
                 pid = fuse_context["pid"]
+                # print("Interceptor: PID is", pid)
 
                 # if pid in accessible_data_dict_global.keys():
                 #     print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
@@ -219,6 +220,7 @@ class Xmp(Fuse):
 
                 if pid not in data_accessed_dict_global.keys():
                     data_accessed_dict_global[pid] = set()
+                    # print("Interceptor: accessed data dict is", data_accessed_dict_global)
 
                 cur_set = data_accessed_dict_global[pid]
                 cur_set.add(str(self.file_path))
