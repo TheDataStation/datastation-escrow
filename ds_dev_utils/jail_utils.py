@@ -66,12 +66,8 @@ class DSDocker:
         # In here we convert the accessible_data_dict to paths that Docker sees
         print(accessible_data_dict)
 
-        cur_dir = os.path.dirname(os.path.realpath(__file__))
-        accessible_path = os.path.join(cur_dir, "docker/images/accessible.pkl")
-        accessible_data_dict_pkl = pickle.dumps(accessible_data_dict)
-        f = open(accessible_path, "wb")
-        f.write(accessible_data_dict_pkl)
-        f.close()
+        # cur_dir = os.path.dirname(os.path.realpath(__file__))
+        # accessible_path = os.path.join(cur_dir, "docker/images/accessible.pkl")
 
         self.base_dir = os.path.dirname(os.path.realpath(__file__))
         self.client = docker.from_env()
@@ -100,6 +96,18 @@ class DSDocker:
                                                        volumes={data_dir: {
                                                            'bind': '/mnt/data', 'mode': 'rw'}},
                                                        )
+
+        cur_dir = os.path.dirname(os.path.realpath(__file__))
+        args_dict_file = os.path.join(cur_dir, "args.pkl")
+
+        accessible_data_dict_pkl = pickle.dumps(accessible_data_dict)
+        f = open(args_dict_file, "wb")
+        f.write(accessible_data_dict_pkl)
+        f.close()
+
+        docker_cp(self.container,
+                  args_dict_file,
+                  "/usr/src/ds")
 
         # copy the function file into the container
         docker_cp(self.container,

@@ -20,7 +20,7 @@ def main():
     main_pid = os.getpid()
     print("setup.py: main PID is", main_pid)
 
-    with open("/usr/src/ds/accessible.pkl", "rb") as f:
+    with open("/usr/src/ds/args.pkl", "rb") as f:
         accessible_data_bytes = f.read()
         accessible_data_obj = pickle.loads(accessible_data_bytes)
 
