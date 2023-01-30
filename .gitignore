@@ -35,6 +35,7 @@ covid_classifier_model.h5
 ml_acc.csv
 demofile.txt
 *.tar
+ds_dev_utils/args.pkl
 
 # C extensions
 *.so
