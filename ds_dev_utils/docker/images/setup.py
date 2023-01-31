@@ -60,8 +60,6 @@ def main():
     print("Mounted {} to {}".format(storage_path, mount_path))
     print(os.path.dirname(os.path.realpath(__file__)))
 
-    exit()
-
     # notice that communication from container to host doesn't
     #  need a port mapping
 

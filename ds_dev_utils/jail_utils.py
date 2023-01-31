@@ -80,11 +80,6 @@ class DSDocker:
             path=dockerfile, tag="ds_docker")
         # print(self.image, log)
 
-        # TODO: 5 containers are created at this step. Figure out why.
-
-        print("Here 1111111")
-        exit()
-
         print("Created image!")
 
         # run a container with command. It's detached so it runs in the background
