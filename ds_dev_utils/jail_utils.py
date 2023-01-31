@@ -5,7 +5,7 @@ import tarfile
 import pickle
 import socket
 import requests
-from multiprocessing import Process, Event, Queue
+from multiprocessing import Process, Event, Queue, Manager
 from flask import Flask, request
 
 def docker_cp(container, src, dst):
@@ -15,7 +15,7 @@ def docker_cp(container, src, dst):
 
     Parameters:
      container: container to send file to
-     src: the localhosts's source file
+     src: the localhosts's source file (FULL path)
      dst: the container's filesystem
 
     Returns:
@@ -47,7 +47,7 @@ class DSDocker:
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
     PORT = 3000  # The port used by the server
 
-    def __init__(self, function_file, data_dir, accessible_data_dict, dockerfile):
+    def __init__(self, function_file, data_dir, config_dict, dockerfile):
         """
         Initializes a docker container with mount point data_dir, with
         image given. Loads function file into container.
@@ -63,8 +63,7 @@ class DSDocker:
         Returns:
         """
 
-        # In here we convert the accessible_data_dict to paths that Docker sees
-        print(accessible_data_dict)
+        print("config_dict contents: ", config_dict)
 
         # cur_dir = os.path.dirname(os.path.realpath(__file__))
         # accessible_path = os.path.join(cur_dir, "docker/images/accessible.pkl")
@@ -98,15 +97,15 @@ class DSDocker:
                                                        )
 
         cur_dir = os.path.dirname(os.path.realpath(__file__))
-        args_dict_file = os.path.join(cur_dir, "args.pkl")
+        config_dict_file = os.path.join(cur_dir, "args.pkl")
 
-        accessible_data_dict_pkl = pickle.dumps(accessible_data_dict)
-        f = open(args_dict_file, "wb")
-        f.write(accessible_data_dict_pkl)
+        config_dict_file_pkl = pickle.dumps(config_dict)
+        f = open(config_dict_file, "wb")
+        f.write(config_dict_file_pkl)
         f.close()
 
         docker_cp(self.container,
-                  args_dict_file,
+                  config_dict_file,
                   "/usr/src/ds")
 
         # copy the function file into the container
@@ -168,6 +167,23 @@ class DSDocker:
 
         return return_value
 
+class FlaskDockerServer:
+    def __init__(self, port=3030, host="localhost"):
+        self.port = port
+        self.host = host
+        self.manager = Manager()
+        self.q = Queue()
+        self.function_dict_to_send = self.manager.dict()
+
+    def start_server(self):
+        self.server = Process(target=flask_thread, args=(self.q, self.function_dict_to_send))
+        self.server.start()
+        return
+
+    def stop_server(self):
+        self.server.terminate()
+        self.server.join()
+
 def flask_thread(shutdown_event: Event, q: Queue, to_send):
     """
     the thread function that gets run whenever DSDocker.flask_run is called
@@ -184,17 +200,21 @@ def flask_thread(shutdown_event: Event, q: Queue, to_send):
     app = Flask(__name__)
     @app.route("/started")
     def started():
-        print("received")
+        id = int(request.args.get('docker_id'))
+        print("received from: ", id)
         return "Start received!"
 
     @app.route("/function")
     def function():
-        print("function")
+        id = int(request.args.get('docker_id'))
+        print("sending function from id: ", id)
         return to_send
 
     @app.route("/function_return", methods=['post'])
     def function_return():
-        print("Starting function return.")
+        id = int(request.args.get('docker_id'))
+
+        print("Starting function return from id: ", id)
         # unpickle request data
         unpickled = (request.get_data())
         print(unpickled)

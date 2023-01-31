@@ -52,7 +52,20 @@ class Gatekeeper:
         self.connector_module_path = connector_module_path
         self.mount_dir = mount_dir
 
+        # set docker id variable
+        self.docker_id = 1
+
         # print("Start setting up the gatekeeper")
+        print("Gatekeeper setup success")
+
+    def get_new_docker_id(self):
+        ret = self.docker_id
+        self.docker_id += 1
+        return ret
+
+    def register_function_file(self, connector_name, connector_module_path):
+        self.connector_name = connector_name
+        self.connector_module_path = connector_module_path
         register_connectors(connector_name, connector_module_path)
         # print("Check registration results:")
         apis_to_register = get_names_registered_functions()
@@ -78,7 +91,7 @@ class Gatekeeper:
                     print("database_api.create_api_dependency: internal database error")
                     raise RuntimeError(
                         "database_api.create_api_dependency: internal database error")
-        print("Gatekeeper setup success")
+
 
     def get_accessible_data(self, user_id, api):
         accessible_data = policy_broker.get_user_api_info(user_id, api)
@@ -203,6 +216,7 @@ class Gatekeeper:
                                                     self.mount_dir,
                                                     accessible_data_dict,
                                                     api_conn,
+                                                    self.get_new_docker_id(),
                                                     *args,
                                                     ),
                                               kwargs=kwargs)
@@ -270,6 +284,7 @@ def call_actual_api(api_name,
                     mount_dir,
                     accessible_data_dict,
                     api_conn,
+                    docker_id,
                     *args,
                     **kwargs,
                     ):
@@ -303,10 +318,12 @@ def call_actual_api(api_name,
     connector_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path
     docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
     print(connector_realpath)
+
+    config_dict = {"accessible_data_dict": accessible_data_dict, "docker_id": docker_id}
     session = DSDocker(
         connector_realpath,
         mount_dir,
-        accessible_data_dict,
+        config_dict,
         docker_image_realpath,
     )
 

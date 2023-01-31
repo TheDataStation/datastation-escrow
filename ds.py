@@ -25,7 +25,7 @@ from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
 from dbservice.database_api import clear_checkpoint_table_paths
-from dsapplicationregistration.dsar_core import clear_register
+from dsapplicationregistration.dsar_core import clear_register, register_connectors
 from userregister import user_register
 
 
@@ -132,8 +132,12 @@ class DataStation:
         print(mount_point)
         print(storage_path)
         # set up the gatekeeper
-        self.connector_name = app_config["connector_name"]
-        self.connector_module_path = app_config["connector_module_path"]
+
+        # TODO: unused for now
+        self.connector_dict = {}
+
+        # self.connector_name = app_config["connector_name"]
+        # self.connector_module_path = app_config["connector_module_path"]
         self.gatekeeper = Gatekeeper(
             self.data_station_log,
             self.write_ahead_log,
@@ -141,8 +145,9 @@ class DataStation:
             self.trust_mode,
             self.accessible_data_dict,
             self.data_accessed_dict,
-            self.connector_name,
-            self.connector_module_path,
+            # self.connector_dict,
+            None,
+            None,
             self.config.ds_storage_path
         )
 
@@ -178,6 +183,12 @@ class DataStation:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
             self.cur_user_id = 1
+
+    # TODO: add connector files directly, rather than on startup?
+    def register_function_file(self, connector_name, connector_module_path):
+        self.gatekeeper.register_function_file(connector_name, connector_module_path)
+        self.connector_dict[connector_name] = connector_module_path
+
 
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
         """

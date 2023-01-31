@@ -26,6 +26,8 @@ if __name__ == '__main__':
 
     ds = DataStation(ds_config, app_config)
 
+    ds.register_function_file("asdf", "examples/income_no_docker.py")
+
     # Remove the code block below if testing out durability of log
     log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):
