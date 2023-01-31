@@ -64,7 +64,6 @@ class DSDocker:
         """
 
         # In here we convert the accessible_data_dict to paths that Docker sees
-        print(accessible_data_dict)
 
         cur_dir = os.path.dirname(os.path.realpath(__file__))
         accessible_path = os.path.join(cur_dir, "docker/images/accessible.pkl")
@@ -80,6 +79,11 @@ class DSDocker:
         self.image, log = self.client.images.build(
             path=dockerfile, tag="ds_docker")
         # print(self.image, log)
+
+        # TODO: 5 containers are created at this step. Figure out why.
+
+        print("Here 1111111")
+        exit()
 
         print("Created image!")
 
