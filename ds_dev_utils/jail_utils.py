@@ -8,6 +8,23 @@ import requests
 from multiprocessing import Process, Event, Queue, Manager
 from flask import Flask, request
 
+class FlaskDockerServer:
+    def __init__(self, port=3030, host="localhost"):
+        self.port = port
+        self.host = host
+        self.manager = Manager()
+        self.q = Queue()
+        self.function_dict_to_send = self.manager.dict()
+
+    def start_server(self):
+        self.server = Process(target=flask_thread, args=(self.q, self.function_dict_to_send))
+        self.server.start()
+        return
+
+    def stop_server(self):
+        self.server.terminate()
+        self.server.join()
+
 def docker_cp(container, src, dst):
     """
     Code modified from:
@@ -47,7 +64,7 @@ class DSDocker:
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
     PORT = 3000  # The port used by the server
 
-    def __init__(self, function_file, data_dir, config_dict, dockerfile):
+    def __init__(self, server: FlaskDockerServer, function_file, data_dir, config_dict, dockerfile):
         """
         Initializes a docker container with mount point data_dir, with
         image given. Loads function file into container.
@@ -64,6 +81,9 @@ class DSDocker:
         """
 
         print("config_dict contents: ", config_dict)
+
+        self.docker_id = config_dict["docker_id"]
+        self.server = server
 
         # cur_dir = os.path.dirname(os.path.realpath(__file__))
         # accessible_path = os.path.join(cur_dir, "docker/images/accessible.pkl")
@@ -87,9 +107,9 @@ class DSDocker:
                                                        "python setup.py",
                                                        detach=True,
                                                        tty=True,
-                                                       ports={
-                                                           '80/tcp': self.PORT,
-                                                       },
+                                                    #    ports={
+                                                    #        '80/tcp': self.PORT,
+                                                    #    },
                                                        cap_add=["SYS_ADMIN", "MKNOD"],
                                                        devices=["/dev/fuse:/dev/fuse:rwm"],
                                                        volumes={data_dir: {
@@ -139,52 +159,16 @@ class DSDocker:
          function return value
         """
 
-        # Create a shutdown event and queue to share data between threads
-        shutdown_event = Event()
-        q = Queue()
-
         # create a dictionary to pickle
         func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
-        # make pickle from dictionary
-        to_send = pickle.dumps(func_dict)
 
-        # create a new thread for the flask server
-        server = Process(target=flask_thread, args=(shutdown_event, q, to_send,))
-        server.start()
+        self.server.function_dict_to_send[self.docker_id] = func_dict
 
         # time.sleep(1)
         self.container.start()
 
-        # wait to shut down, then get the return value inside the queue
-        shutdown_event.wait()
-        print("Event done waiting!")
-        return_value = q.get()
-        print("Main thread: ", return_value)
 
-        # end the process and join threads
-        server.terminate()
-        server.join()
-
-        return return_value
-
-class FlaskDockerServer:
-    def __init__(self, port=3030, host="localhost"):
-        self.port = port
-        self.host = host
-        self.manager = Manager()
-        self.q = Queue()
-        self.function_dict_to_send = self.manager.dict()
-
-    def start_server(self):
-        self.server = Process(target=flask_thread, args=(self.q, self.function_dict_to_send))
-        self.server.start()
-        return
-
-    def stop_server(self):
-        self.server.terminate()
-        self.server.join()
-
-def flask_thread(shutdown_event: Event, q: Queue, to_send):
+def flask_thread(q: Queue, function_dict_to_send):
     """
     the thread function that gets run whenever DSDocker.flask_run is called
 
@@ -208,7 +192,7 @@ def flask_thread(shutdown_event: Event, q: Queue, to_send):
     def function():
         id = int(request.args.get('docker_id'))
         print("sending function from id: ", id)
-        return to_send
+        return pickle.dumps(function_dict_to_send[id])
 
     @app.route("/function_return", methods=['post'])
     def function_return():
@@ -224,11 +208,8 @@ def flask_thread(shutdown_event: Event, q: Queue, to_send):
         print("Child Thread, return value: ", ret)
 
         # add to shared queue
-        q.put(ret)
-
-        # signal shutdown
-        shutdown_event.set()
-        return 'Request received. Server shutting down...'
+        q.put({"docker_id": id, "return_value": ret})
+        return "Received return value from container."
 
     # run the flask app
     print("Child thread: flask app starting...")
@@ -237,17 +218,26 @@ def flask_thread(shutdown_event: Event, q: Queue, to_send):
 
 if __name__ == "__main__":
     # app.run(debug = True, port = 3000)
+    server = FlaskDockerServer()
+
+    config_dict = {'accessible_data_dict':{}}
 
     # create a new ds_docker instance
     session = DSDocker(
+        server,
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_functions/example_one.py',
-        "connector_file",
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_data',
+        config_dict,
         "./docker/images"
     )
 
     # run function
     session.flask_run("line_count")
+    session.flask_run("line_count")
+
+    for i in range(2):
+        ret = server.q.get(block=True)
+        print(ret)
 
     # clean up
     session.stop_and_prune()

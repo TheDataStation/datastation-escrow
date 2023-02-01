@@ -21,7 +21,7 @@ from ds_dev_utils import jail_utils
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
-from ds_dev_utils.jail_utils import DSDocker
+from ds_dev_utils.jail_utils import DSDocker, FlaskDockerServer
 
 
 class Gatekeeper:
@@ -54,6 +54,9 @@ class Gatekeeper:
 
         # set docker id variable
         self.docker_id = 1
+
+        self.server = FlaskDockerServer()
+        self.server.start_server()
 
         # print("Start setting up the gatekeeper")
         print("Gatekeeper setup success")
@@ -208,25 +211,43 @@ class Gatekeeper:
         accessible_data_dict = (accessible_data_new_set, accessible_data_key_dict_new)
 
         # start a new process for the api call
-        main_conn, api_conn = multiprocessing.Pipe()
-        api_process = multiprocessing.Process(target=call_actual_api,
-                                              args=(api,
-                                                    self.connector_name,
-                                                    self.connector_module_path,
-                                                    self.mount_dir,
-                                                    accessible_data_dict,
-                                                    api_conn,
-                                                    self.get_new_docker_id(),
-                                                    *args,
-                                                    ),
-                                              kwargs=kwargs)
-        api_process.start()
-        # Below is the ID corresponds to the docker container
-        api_pid = 63452
+        connector_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + self.connector_module_path
+        docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
+        print(connector_realpath)
 
-        # print("api process id:", str(api_pid))
-        api_result = main_conn.recv()
-        api_process.join()
+        config_dict = {"accessible_data_dict": accessible_data_dict, "docker_id": self.get_new_docker_id()}
+        config_dict2 = {"accessible_data_dict": accessible_data_dict, "docker_id": self.get_new_docker_id()}
+        session = DSDocker(
+            self.server,
+            connector_realpath,
+            self.mount_dir,
+            config_dict,
+            docker_image_realpath,
+        )
+        session2 = DSDocker(
+            self.server,
+            connector_realpath,
+            self.mount_dir,
+            config_dict2,
+            docker_image_realpath,
+        )
+
+        # print(session.container.top())
+
+        # run function
+        list_of_apis = get_registered_functions()
+
+        for cur_api in list_of_apis:
+            if api == cur_api.__name__:
+                print("call", api)
+                session.flask_run(api, *args, **kwargs)
+                session2.flask_run(api, *args, **kwargs)
+                for i in range(2):
+                    res = self.server.q.get(block=True)
+                    print(res)
+                    api_result = res['return_value']
+                break
+
         data_path_accessed = api_result[1]
         data_ids_accessed = []
         for path in data_path_accessed:
@@ -285,6 +306,7 @@ def call_actual_api(api_name,
                     accessible_data_dict,
                     api_conn,
                     docker_id,
+                    server,
                     *args,
                     **kwargs,
                     ):
@@ -321,6 +343,7 @@ def call_actual_api(api_name,
 
     config_dict = {"accessible_data_dict": accessible_data_dict, "docker_id": docker_id}
     session = DSDocker(
+        server,
         connector_realpath,
         mount_dir,
         config_dict,
@@ -335,7 +358,9 @@ def call_actual_api(api_name,
     for cur_api in list_of_apis:
         if api_name == cur_api.__name__:
             print("call", api_name)
-            ret = session.flask_run(api_name, *args, **kwargs)
+            session.flask_run(api_name, *args, **kwargs)
+            ret = server.q.get(block=True)
+            print(ret)
 
             # result = cur_api(*args, **kwargs)
             api_conn.send(ret)
