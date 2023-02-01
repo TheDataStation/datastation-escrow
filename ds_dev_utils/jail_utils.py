@@ -220,7 +220,7 @@ if __name__ == "__main__":
     # app.run(debug = True, port = 3000)
     server = FlaskDockerServer()
 
-    config_dict = {'accessible_data_dict':{}}
+    config_dict = {'docker_id':1,'accessible_data_dict':{'/mnt/data/hi.txt'}}
 
     # create a new ds_docker instance
     session = DSDocker(
