@@ -30,6 +30,14 @@ class ClientAPI:
     validates the login credentials of the user, then if the user is authorized
      the computation is passed to the ds class
     """
+    def validate_and_get_username(token):
+        # place for decryption of token
+        # decrypt(token)
+
+        # Perform authentication
+        username = user_register.authenticate_user(token)
+
+        return username
 
     def __init__(self,
                  storageManager: StorageManager,
@@ -64,23 +72,6 @@ class ClientAPI:
             self.cur_user_id = 1
         # print("Starting user id should be:")
         # print(self.cur_user_id)
-
-        # The following field decides which data_id we should use when we upload a new DE
-        # Right now we are just incrementing by 1
-        data_id_resp = database_api.get_data_with_max_id()
-        if data_id_resp.status == 1:
-            self.cur_data_id = data_id_resp.data[0].id + 1
-        else:
-            self.cur_data_id = 1
-        # print("Starting data id should be:")
-        # print(self.cur_data_id)
-
-        # The following fields decides which staging_data_id we should use at a new insertion
-        staging_id_resp = database_api.get_staging_with_max_id()
-        if staging_id_resp.status == 1:
-            self.cur_staging_data_id = staging_id_resp.data[0].id + 1
-        else:
-            self.cur_staging_data_id = 1
 
     def shut_down(self, ds_config):
         # print("shut down...")
