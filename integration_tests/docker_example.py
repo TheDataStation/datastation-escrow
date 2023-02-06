@@ -1,7 +1,6 @@
 import pathlib
 import os
 import shutil
-import time
 
 from common import general_utils
 from common.pydantic_models.user import User
