@@ -25,8 +25,9 @@ from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
 from dbservice.database_api import clear_checkpoint_table_paths
-from dsapplicationregistration.dsar_core import (get_registered_procedures, )
-                                                 # clear_register
+from dsapplicationregistration.dsar_core import (get_registered_procedures,
+                                                 clear_procedure,
+                                                 clear_function,)
 from userregister import user_register
 
 
@@ -422,9 +423,88 @@ class DataStation:
         for cur_api in list_of_procedures:
             if api == cur_api.__name__:
                 print("user is calling procedure", api)
-                result = cur_api(*args, **kwargs)
+                cur_api(*args, **kwargs)
+                return 0
 
-        return
+        # If it's jail, it goes to the gatekeeper
+        res = self.gatekeeper.call_api(api,
+                                       cur_user_id,
+                                       exec_mode,
+                                       *args,
+                                       **kwargs)
+        # Only when the returned status is 0 can we release the result
+        if res.status == 0:
+            api_result = res.result
+            # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
+            if self.trust_mode == "no_trust":
+                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
+                    cur_user_id)
+                api_result = cu.encrypt_data_with_symmetric_key(
+                    cu.to_bytes(api_result), caller_symmetric_key)
+            return api_result
+        # In this case we need to put result into staging storage, so that they can be released later
+        elif res.status == -1:
+            api_result = res.result[0]
+            data_ids_accessed = res.result[1]
+            # We first convert api_result to bytes because we need to store it in staging storage
+            # In full_trust mode, we convert it to bytes directly
+            if self.trust_mode == "full_trust":
+                api_result = cu.to_bytes(api_result)
+            # In no_trust mode, we encrypt it using caller's symmetric key
+            else:
+                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
+                    cur_user_id)
+                api_result = cu.encrypt_data_with_symmetric_key(
+                    cu.to_bytes(api_result), caller_symmetric_key)
+
+            # print(api_result)
+            # print(data_ids_accessed)
+
+            # Call staging storage to store the bytes
+
+            # Decide which data_id to use from ClientAPI.cur_data_id field
+            staging_data_id = self.cur_staging_data_id
+            self.cur_staging_data_id += 1
+
+            staging_storage_response = self.staging_storage.store(staging_data_id,
+                                                                  api_result)
+            if staging_storage_response.status == 1:
+                return staging_storage_response
+
+            # Storing into staging storage is successful. We now call data_register to register this staging DE in DB.
+            # We need to store to both the staged table and the provenance table.
+
+            # Full_trust mode
+            if self.trust_mode == "full_trust":
+                # Staged table
+                data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
+                                                                                    cur_user_id,
+                                                                                    api,)
+                # Provenance table
+                data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
+                                                                                            data_ids_accessed,)
+            else:
+                # Staged table
+                data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
+                                                                                    cur_user_id,
+                                                                                    api,
+                                                                                    self.write_ahead_log,
+                                                                                    self.key_manager,
+                                                                                    )
+                # Provenance table
+                data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
+                                                                                            data_ids_accessed,
+                                                                                            cur_user_id,
+                                                                                            self.write_ahead_log,
+                                                                                            self.key_manager,
+                                                                                            )
+            if data_register_response_staged.status != 0 or data_register_response_provenance.status != 0:
+                return Response(status=data_register_response_staged.status,
+                                message="internal database error")
+            res_msg = "Staged data ID " + str(staging_data_id)
+            return res_msg
+        else:
+            return res.message
 
     # def call_api(self, username, api: API, exec_mode, *args, **kwargs):
     #     """
@@ -449,84 +529,84 @@ class DataStation:
     #         return Response(status=1, message="Something wrong with the current user")
     #     cur_user_id = cur_user.data[0].id
     #
-    #     res = self.gatekeeper.call_api(api,
-    #                                    cur_user_id,
-    #                                    exec_mode,
-    #                                    *args,
-    #                                    **kwargs)
-    #     # Only when the returned status is 0 can we release the result
-    #     if res.status == 0:
-    #         api_result = res.result
-    #         # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
-    #         if self.trust_mode == "no_trust":
-    #             caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
-    #                 cur_user_id)
-    #             api_result = cu.encrypt_data_with_symmetric_key(
-    #                 cu.to_bytes(api_result), caller_symmetric_key)
-    #         return api_result
-    #     # In this case we need to put result into staging storage, so that they can be released later
-    #     elif res.status == -1:
-    #         api_result = res.result[0]
-    #         data_ids_accessed = res.result[1]
-    #         # We first convert api_result to bytes because we need to store it in staging storage
-    #         # In full_trust mode, we convert it to bytes directly
-    #         if self.trust_mode == "full_trust":
-    #             api_result = cu.to_bytes(api_result)
-    #         # In no_trust mode, we encrypt it using caller's symmetric key
-    #         else:
-    #             caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
-    #                 cur_user_id)
-    #             api_result = cu.encrypt_data_with_symmetric_key(
-    #                 cu.to_bytes(api_result), caller_symmetric_key)
-    #
-    #         # print(api_result)
-    #         # print(data_ids_accessed)
-    #
-    #         # Call staging storage to store the bytes
-    #
-    #         # Decide which data_id to use from ClientAPI.cur_data_id field
-    #         staging_data_id = self.cur_staging_data_id
-    #         self.cur_staging_data_id += 1
-    #
-    #         staging_storage_response = self.staging_storage.store(staging_data_id,
-    #                                                               api_result)
-    #         if staging_storage_response.status == 1:
-    #             return staging_storage_response
-    #
-    #         # Storing into staging storage is successful. We now call data_register to register this staging DE in DB.
-    #         # We need to store to both the staged table and the provenance table.
-    #
-    #         # Full_trust mode
-    #         if self.trust_mode == "full_trust":
-    #             # Staged table
-    #             data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
-    #                                                                                 cur_user_id,
-    #                                                                                 api,)
-    #             # Provenance table
-    #             data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
-    #                                                                                         data_ids_accessed,)
-    #         else:
-    #             # Staged table
-    #             data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
-    #                                                                                 cur_user_id,
-    #                                                                                 api,
-    #                                                                                 self.write_ahead_log,
-    #                                                                                 self.key_manager,
-    #                                                                                 )
-    #             # Provenance table
-    #             data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
-    #                                                                                         data_ids_accessed,
-    #                                                                                         cur_user_id,
-    #                                                                                         self.write_ahead_log,
-    #                                                                                         self.key_manager,
-    #                                                                                         )
-    #         if data_register_response_staged.status != 0 or data_register_response_provenance.status != 0:
-    #             return Response(status=data_register_response_staged.status,
-    #                             message="internal database error")
-    #         res_msg = "Staged data ID " + str(staging_data_id)
-    #         return res_msg
-    #     else:
-    #         return res.message
+        # res = self.gatekeeper.call_api(api,
+        #                                cur_user_id,
+        #                                exec_mode,
+        #                                *args,
+        #                                **kwargs)
+        # # Only when the returned status is 0 can we release the result
+        # if res.status == 0:
+        #     api_result = res.result
+        #     # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
+        #     if self.trust_mode == "no_trust":
+        #         caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
+        #             cur_user_id)
+        #         api_result = cu.encrypt_data_with_symmetric_key(
+        #             cu.to_bytes(api_result), caller_symmetric_key)
+        #     return api_result
+        # # In this case we need to put result into staging storage, so that they can be released later
+        # elif res.status == -1:
+        #     api_result = res.result[0]
+        #     data_ids_accessed = res.result[1]
+        #     # We first convert api_result to bytes because we need to store it in staging storage
+        #     # In full_trust mode, we convert it to bytes directly
+        #     if self.trust_mode == "full_trust":
+        #         api_result = cu.to_bytes(api_result)
+        #     # In no_trust mode, we encrypt it using caller's symmetric key
+        #     else:
+        #         caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
+        #             cur_user_id)
+        #         api_result = cu.encrypt_data_with_symmetric_key(
+        #             cu.to_bytes(api_result), caller_symmetric_key)
+        #
+        #     # print(api_result)
+        #     # print(data_ids_accessed)
+        #
+        #     # Call staging storage to store the bytes
+        #
+        #     # Decide which data_id to use from ClientAPI.cur_data_id field
+        #     staging_data_id = self.cur_staging_data_id
+        #     self.cur_staging_data_id += 1
+        #
+        #     staging_storage_response = self.staging_storage.store(staging_data_id,
+        #                                                           api_result)
+        #     if staging_storage_response.status == 1:
+        #         return staging_storage_response
+        #
+        #     # Storing into staging storage is successful. We now call data_register to register this staging DE in DB.
+        #     # We need to store to both the staged table and the provenance table.
+        #
+        #     # Full_trust mode
+        #     if self.trust_mode == "full_trust":
+        #         # Staged table
+        #         data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
+        #                                                                             cur_user_id,
+        #                                                                             api,)
+        #         # Provenance table
+        #         data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
+        #                                                                                     data_ids_accessed,)
+        #     else:
+        #         # Staged table
+        #         data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
+        #                                                                             cur_user_id,
+        #                                                                             api,
+        #                                                                             self.write_ahead_log,
+        #                                                                             self.key_manager,
+        #                                                                             )
+        #         # Provenance table
+        #         data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
+        #                                                                                     data_ids_accessed,
+        #                                                                                     cur_user_id,
+        #                                                                                     self.write_ahead_log,
+        #                                                                                     self.key_manager,
+        #                                                                                     )
+        #     if data_register_response_staged.status != 0 or data_register_response_provenance.status != 0:
+        #         return Response(status=data_register_response_staged.status,
+        #                         message="internal database error")
+        #     res_msg = "Staged data ID " + str(staging_data_id)
+        #     return res_msg
+        # else:
+        #     return res.message
 
     # data users gives a staged DE ID and tries to release it
     def release_staged_DE(self, username, staged_ID):
@@ -650,7 +730,8 @@ class DataStation:
 
         # Clear DB, app register, and db.checkpoint
         engine.dispose()
-        clear_register()
+        clear_function()
+        clear_procedure()
         clear_checkpoint_table_paths()
 
         print("shut down complete")

@@ -60,11 +60,18 @@ if __name__ == '__main__':
                               "file",
                               cur_optimistic_flag,)
 
-        # # Step 3: jerry creates a policy saying that david can discover how many lines his files have
-        # # for DE [1, 3].
-        # policy_one = Policy(user_id=2, api="line_count", data_id=1)
-        # ds.call_api("jerry", "upload_policy", "pessimistic", ds, "jerry", policy_one)
-        # policy_two = Policy(user_id=2, api="line_count", data_id=3)
-        # ds.call_api("jerry", "upload_policy", "pessimistic", ds, "jerry", policy_two)
+    # Step 3: jerry creates a policy saying that david can discover how many lines his files have
+    # for DE [1, 3].
+    policy_one = Policy(user_id=2, api="line_count", data_id=1)
+    ds.call_api("jerry", "upload_policy", "pessimistic", ds, "jerry", policy_one)
+    policy_two = Policy(user_id=2, api="line_count", data_id=3)
+    ds.call_api("jerry", "upload_policy", "pessimistic", ds, "jerry", policy_two)
+
+    # Step 4: david calls the API line_count. He runs it in optimistic mode.
+    line_count_res = ds.call_api("david", "line_count", "optimistic")
+    print("The result of line count is:", line_count_res)
+
+    # Last step: shut down the Data Station
+    ds.shut_down()
 
 

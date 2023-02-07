@@ -1,7 +1,6 @@
-from dsapplicationregistration.dsar_core import (register_connectors,
-                        get_names_registered_functions,
-                        get_registered_functions,
-                        get_registered_dependencies, )
+from dsapplicationregistration.dsar_core import (register_epf,
+                                                 get_registered_functions,
+                                                 get_registered_dependencies, )
 import os
 import argparse
 import pickle
@@ -22,7 +21,7 @@ def load_connectors(connector_dir):
         if os.path.isfile(file):
             # print(file + " is file")
 
-            register_connectors(filename, file)
+            register_epf(file)
 
 def unpickle(function_name):
     """
@@ -70,6 +69,7 @@ def main():
     arg_dict = unpickle(args.function)
     res = run_function(args.function,*arg_dict["args"], **arg_dict["kwargs"])
     print(res)
+
 
 if __name__ == "__main__":
     main()

@@ -10,7 +10,8 @@ import pathlib
 #                                                  get_registered_dependencies, )
 from dsapplicationregistration.dsar_core import (register_epf,
                                                  get_procedures_names,
-                                                 get_functions_names,)
+                                                 get_functions_names,
+                                                 get_registered_functions,)
 from dbservice import database_api
 from policybroker import policy_broker
 from common.pydantic_models.api import API
@@ -59,17 +60,18 @@ class Gatekeeper:
         function_names = get_functions_names()
         print(procedure_names)
         print(function_names)
+        functions = get_registered_functions()
         # dependencies_to_register = get_registered_dependencies()
         # # print(dependencies_to_register)
 
         # now we call dbservice to register these info in the DB
-        # for cur_api in apis_to_register:
-        #     api_db = API(api_name=cur_api)
-        #     database_service_response = database_api.create_api(api_db)
-        #     if database_service_response.status == -1:
-        #         print("database_api.create_api: internal database error")
-        #         raise RuntimeError(
-        #             "database_api.create_api: internal database error")
+        for cur_api in function_names:
+            api_db = API(api_name=cur_api)
+            database_service_response = database_api.create_api(api_db)
+            if database_service_response.status == -1:
+                print("database_api.create_api: internal database error")
+                raise RuntimeError(
+                    "database_api.create_api: internal database error")
         # for cur_from_api in dependencies_to_register:
         #     to_api_list = dependencies_to_register[cur_from_api]
         #     for cur_to_api in to_api_list:
@@ -201,8 +203,7 @@ class Gatekeeper:
         main_conn, api_conn = multiprocessing.Pipe()
         api_process = multiprocessing.Process(target=call_actual_api,
                                               args=(api,
-                                                    self.connector_name,
-                                                    self.connector_module_path,
+                                                    self.epf_path,
                                                     self.mount_dir,
                                                     accessible_data_dict,
                                                     api_conn,
@@ -268,8 +269,7 @@ class Gatekeeper:
         return response
 
 def call_actual_api(api_name,
-                    connector_name,
-                    connector_module_path,
+                    epf_path,
                     mount_dir,
                     accessible_data_dict,
                     api_conn,
@@ -282,8 +282,7 @@ def call_actual_api(api_name,
 
     Parameters:
      api_name: name of API to run on Docker container
-     connector_name: name of connector
-     connector_module_path: path to connector module
+     epf_path: path to the epf file
      accessible_data_dict: dictionary of data that API is allowed to access, fed to Interceptor
      accessible_data_paths: paths associated with data dict
      accessible_data_key_dict:
@@ -296,18 +295,18 @@ def call_actual_api(api_name,
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
-    # register_connectors(connector_name, connector_module_path)
+    register_epf(epf_path)
     # print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
     # print("list_of_apis:", list_of_apis)
     # time.sleep(1)
     # print("connector name / module path: ", connector_name, connector_module_path)
     # print("accessed path: " + os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,)
-    connector_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path
+    epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
     docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
-    print(connector_realpath)
+    print("The real epf path is", epf_realpath)
     session = DSDocker(
-        connector_realpath,
+        epf_realpath,
         mount_dir,
         accessible_data_dict,
         docker_image_realpath,
@@ -316,10 +315,10 @@ def call_actual_api(api_name,
     # print(session.container.top())
 
     # run function
-    # list_of_apis = get_registered_functions()
+    list_of_functions = get_registered_functions()
 
-    for cur_api in list_of_apis:
-        if api_name == cur_api.__name__:
+    for cur_f in list_of_functions:
+        if api_name == cur_f.__name__:
             print("call", api_name)
             ret = session.flask_run(api_name, *args, **kwargs)
 
@@ -332,6 +331,7 @@ def call_actual_api(api_name,
     # session.stop_and_prune()
 
 # We add times to the following function to record the overheads
+
 
 if __name__ == '__main__':
     print("Gatekeeper starting.")

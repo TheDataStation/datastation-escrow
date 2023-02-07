@@ -119,9 +119,11 @@ def get_registered_functions():
 def get_registered_dependencies():
     return function.dependencies
 
+def clear_function():
+    function.clear()
 
-# def clear_register():
-#     register.clear()
+def clear_procedure():
+    procedure.clear()
 
 # def register_connectors(connector_name, connector_module_path):
 #     spec = importlib.util.spec_from_file_location(connector_name, connector_module_path)
