@@ -2,6 +2,7 @@ import os
 import pathlib
 from common import general_utils
 from common.pydantic_models.user import User
+from common.pydantic_models.policy import Policy
 from ds import DataStation
 
 
@@ -45,3 +46,5 @@ def upload_dataset(ds: DataStation,
     ds.upload_dataset(username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
 
 # Default implementation for upload policy.
+def upload_policy(ds: DataStation, username, policy: Policy):
+    ds.upload_policy(username, policy)

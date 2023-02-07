@@ -116,10 +116,10 @@ def get_registered_functions():
     copy = [el for el in function.registered_functions]
     return copy
 
-# def get_registered_dependencies():
-#     return register.dependencies
-#
-#
+def get_registered_dependencies():
+    return function.dependencies
+
+
 # def clear_register():
 #     register.clear()
 

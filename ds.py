@@ -422,9 +422,7 @@ class DataStation:
         for cur_api in list_of_procedures:
             if api == cur_api.__name__:
                 print("user is calling procedure", api)
-                print("Arguments are", *args)
                 result = cur_api(*args, **kwargs)
-                print(result)
 
         return
 

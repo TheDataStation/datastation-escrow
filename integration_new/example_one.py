@@ -60,5 +60,11 @@ if __name__ == '__main__':
                               "file",
                               cur_optimistic_flag,)
 
-        # Step 3: jerry creates a policy saying that david can discover how many lines his files have
-        # for DE [1, 3]. He creates another policy saying david can read the first n lines of DE [2, 3]
+        # # Step 3: jerry creates a policy saying that david can discover how many lines his files have
+        # # for DE [1, 3].
+        # policy_one = Policy(user_id=2, api="line_count", data_id=1)
+        # ds.call_api("jerry", "upload_policy", "pessimistic", ds, "jerry", policy_one)
+        # policy_two = Policy(user_id=2, api="line_count", data_id=3)
+        # ds.call_api("jerry", "upload_policy", "pessimistic", ds, "jerry", policy_two)
+
+
