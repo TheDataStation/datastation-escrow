@@ -1,13 +1,4 @@
-#connector_name: ""
-#connector_module_path: "example_connectors/docker_example.py"
+epf_path: "example_epf/example_one.py"
 
-#connector_name: ""
-#connector_module_path: "example_connectors/income_full_docker.py"
-#
-connector_name: ""
-connector_module_path: "example_connectors/income_no_docker.py"
-
-#connector_name: ""
-#connector_module_path: "example_connectors/cifar_no_docker.py"
 
 

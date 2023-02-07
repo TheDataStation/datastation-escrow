@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import register
-from common import ds_utils
+from common import escrow_api
 import csv
 
 # @register

@@ -7,13 +7,13 @@ import sys
 from sklearn.linear_model import LogisticRegression
 
 from dsapplicationregistration.dsar_core import register
-from common import ds_utils
+from common import escrow_api
 
 @register
 def train_income_model():
     """train a logistic regression model on income data"""
     print("starting train model")
-    files = ds_utils.get_all_files()
+    files = escrow_api.get_all_files()
     Xtrains = []
     ytrains = []
     f_name_in_order = []

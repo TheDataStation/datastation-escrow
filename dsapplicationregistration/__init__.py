@@ -1,1 +1,1 @@
-from dsapplicationregistration.dsar_core import register
+from dsapplicationregistration.dsar_core import function, procedure

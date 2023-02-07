@@ -7,7 +7,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 
 from dsapplicationregistration import register
-from common import ds_utils
+from common import escrow_api
 
 @register()
 def covid_v2():

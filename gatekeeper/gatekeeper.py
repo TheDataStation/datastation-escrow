@@ -4,10 +4,12 @@ import time
 import multiprocessing
 import pathlib
 
-from dsapplicationregistration.dsar_core import (register_connectors,
-                                                 get_names_registered_functions,
-                                                 get_registered_functions,
-                                                 get_registered_dependencies, )
+# from dsapplicationregistration.dsar_core import (register_connectors,
+#                                                  get_names_registered_functions,
+#                                                  get_registered_functions,
+#                                                  get_registered_dependencies, )
+from dsapplicationregistration.dsar_core import (register_epf,
+                                                 get_procedures_names,)
 from dbservice import database_api
 from policybroker import policy_broker
 from common.pydantic_models.api import API
@@ -32,8 +34,7 @@ class Gatekeeper:
                  trust_mode: str,
                  accessible_data_dict,
                  data_accessed_dict,
-                 connector_name,
-                 connector_module_path,
+                 epf_path,
                  mount_dir,
                  ):
         """
@@ -48,37 +49,36 @@ class Gatekeeper:
 
         self.accessible_data_dict = accessible_data_dict
         self.data_accessed_dict = data_accessed_dict
-        self.connector_name = connector_name
-        self.connector_module_path = connector_module_path
+        self.epf_path = epf_path
         self.mount_dir = mount_dir
 
-        # print("Start setting up the gatekeeper")
-        register_connectors(connector_name, connector_module_path)
-        # print("Check registration results:")
-        apis_to_register = get_names_registered_functions()
-        dependencies_to_register = get_registered_dependencies()
-        # print(dependencies_to_register)
+        print("Start setting up the gatekeeper")
+        register_epf(epf_path)
+        procedure_names = get_procedures_names()
+        print(procedure_names)
+        # dependencies_to_register = get_registered_dependencies()
+        # # print(dependencies_to_register)
 
         # now we call dbservice to register these info in the DB
-        for cur_api in apis_to_register:
-            api_db = API(api_name=cur_api)
-            database_service_response = database_api.create_api(api_db)
-            if database_service_response.status == -1:
-                print("database_api.create_api: internal database error")
-                raise RuntimeError(
-                    "database_api.create_api: internal database error")
-        for cur_from_api in dependencies_to_register:
-            to_api_list = dependencies_to_register[cur_from_api]
-            for cur_to_api in to_api_list:
-                api_dependency_db = APIDependency(from_api=cur_from_api,
-                                                  to_api=cur_to_api, )
-                database_service_response = database_api.create_api_dependency(
-                    api_dependency_db)
-                if database_service_response.status == -1:
-                    print("database_api.create_api_dependency: internal database error")
-                    raise RuntimeError(
-                        "database_api.create_api_dependency: internal database error")
-        print("Gatekeeper setup success")
+        # for cur_api in apis_to_register:
+        #     api_db = API(api_name=cur_api)
+        #     database_service_response = database_api.create_api(api_db)
+        #     if database_service_response.status == -1:
+        #         print("database_api.create_api: internal database error")
+        #         raise RuntimeError(
+        #             "database_api.create_api: internal database error")
+        # for cur_from_api in dependencies_to_register:
+        #     to_api_list = dependencies_to_register[cur_from_api]
+        #     for cur_to_api in to_api_list:
+        #         api_dependency_db = APIDependency(from_api=cur_from_api,
+        #                                           to_api=cur_to_api, )
+        #         database_service_response = database_api.create_api_dependency(
+        #             api_dependency_db)
+        #         if database_service_response.status == -1:
+        #             print("database_api.create_api_dependency: internal database error")
+        #             raise RuntimeError(
+        #                 "database_api.create_api_dependency: internal database error")
+        # print("Gatekeeper setup success")
 
     def get_accessible_data(self, user_id, api):
         accessible_data = policy_broker.get_user_api_info(user_id, api)
@@ -164,7 +164,7 @@ class Gatekeeper:
         # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
         trust_mode = self.trust_mode
 
-        accessible_data_key_dict = None
+        accessible_data_key_dict = {}
         if trust_mode == "no_trust":
             # get the symmetric key of each accessible data's owner,
             # and store them in dict to pass to interceptor
@@ -293,7 +293,7 @@ def call_actual_api(api_name,
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
-    register_connectors(connector_name, connector_module_path)
+    # register_connectors(connector_name, connector_module_path)
     # print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
     # print("list_of_apis:", list_of_apis)
@@ -313,7 +313,7 @@ def call_actual_api(api_name,
     # print(session.container.top())
 
     # run function
-    list_of_apis = get_registered_functions()
+    # list_of_apis = get_registered_functions()
 
     for cur_api in list_of_apis:
         if api_name == cur_api.__name__:
