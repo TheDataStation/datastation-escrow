@@ -201,7 +201,7 @@ class Gatekeeper:
 
         # start a new process for the api call
 
-        api_result = call_actual_api(api,
+        ret = call_actual_api(api,
                             self.epf_path,
                             self.mount_dir,
                             accessible_data_dict,
@@ -210,6 +210,7 @@ class Gatekeeper:
                             *args,
                             )
 
+        api_result = ret["return_value"]
         data_path_accessed = api_result[1]
         data_ids_accessed = []
         for path in data_path_accessed:
