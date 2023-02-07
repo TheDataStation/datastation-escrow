@@ -1,18 +1,19 @@
-# Logistic regression model for the income dataset, no trust version.
+# Logistic regression model for the income dataset, full trust version.
 
+import os.path
 import pathlib
 import numpy as np
+import sys
 from sklearn.linear_model import LogisticRegression
-import pickle
 
 from dsapplicationregistration.dsar_core import register
-from common import ds_utils
+from common import escrow_api
 
 @register
 def train_income_model():
     """train a logistic regression model on income data"""
     print("starting train model")
-    files = ds_utils.get_all_files()
+    files = escrow_api.get_all_files()
     Xtrains = []
     ytrains = []
     f_name_in_order = []
@@ -20,16 +21,9 @@ def train_income_model():
         if pathlib.Path(file).is_file():
             f_name_in_order.append(file)
     f_name_in_order.sort(key=lambda x: int(x.split('/')[-2]))
-    print(f_name_in_order)
     for file in f_name_in_order:
-        f = open(file, "rb")
-        cur_file_bytes = f.read()
-        f.close()
-        print(len(cur_file_bytes))
-        print(cur_file_bytes[:100])
-        # These bytes should be decrpted already, we convert it to object
-        cur_np_ele = pickle.loads(cur_file_bytes)
         array_to_append = file.split('/')[-1].split('.')[0][-1]
+        cur_np_ele = np.load(file)
         if array_to_append == "X":
             Xtrains.append(cur_np_ele)
         else:

@@ -11,9 +11,6 @@ RUN mkdir -p /mnt/data_mount
 
 COPY . .
 
-RUN apt-get update
-RUN apt-get install -y fuse
-RUN apt-get install libfuse-dev
-RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get clean && apt-get update && apt-get install -y fuse && apt-get install libfuse-dev && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -r requirements.txt

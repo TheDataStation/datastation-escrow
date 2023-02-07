@@ -1,7 +1,6 @@
 import pathlib
 import os
 import shutil
-import time
 
 from common import general_utils
 from common.pydantic_models.user import User
@@ -61,9 +60,9 @@ if __name__ == '__main__':
     # Step 3: jerry creates a policy saying that david can discover how many lines his files have
     # for DE [1, 3]. He creates another policy saying david can read the first n lines of DE [2, 3]
     policy_one = Policy(user_id=2, api="line_count", data_id=1)
-    ds.upload_policy("jerry",policy_one,)
+    ds.upload_policy("jerry", policy_one,)
     policy_two = Policy(user_id=2, api="line_count", data_id=3)
-    ds.upload_policy("jerry",policy_two,)
+    ds.upload_policy("jerry", policy_two,)
     policy_three = Policy(user_id=2, api="get_first_n_lines", data_id=2)
     ds.upload_policy("jerry", policy_three,)
     policy_four = Policy(user_id=2, api="get_first_n_lines", data_id=3)

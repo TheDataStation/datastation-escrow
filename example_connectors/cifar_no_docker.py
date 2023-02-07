@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from collections import OrderedDict
 
 from dsapplicationregistration.dsar_core import register
-from common import ds_utils
+from common import escrow_api
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

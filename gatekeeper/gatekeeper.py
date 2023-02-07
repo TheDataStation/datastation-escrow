@@ -4,10 +4,14 @@ import time
 import multiprocessing
 import pathlib
 
-from dsapplicationregistration.dsar_core import (register_connectors,
-                                                 get_names_registered_functions,
-                                                 get_registered_functions,
-                                                 get_registered_dependencies, )
+# from dsapplicationregistration.dsar_core import (register_connectors,
+#                                                  get_names_registered_functions,
+#                                                  get_registered_functions,
+#                                                  get_registered_dependencies, )
+from dsapplicationregistration.dsar_core import (register_epf,
+                                                 get_procedures_names,
+                                                 get_functions_names,
+                                                 get_registered_functions,)
 from dbservice import database_api
 from policybroker import policy_broker
 from common.pydantic_models.api import API
@@ -32,8 +36,7 @@ class Gatekeeper:
                  trust_mode: str,
                  accessible_data_dict,
                  data_accessed_dict,
-                 connector_name,
-                 connector_module_path,
+                 epf_path,
                  mount_dir,
                  ):
         """
@@ -48,10 +51,8 @@ class Gatekeeper:
 
         self.accessible_data_dict = accessible_data_dict
         self.data_accessed_dict = data_accessed_dict
-        self.connector_name = connector_name
-        self.connector_module_path = connector_module_path
+        self.epf_path = epf_path
         self.mount_dir = mount_dir
-
         # set docker id variable
         self.docker_id = 1
 
@@ -59,42 +60,30 @@ class Gatekeeper:
         self.server.start_server()
 
         # print("Start setting up the gatekeeper")
-        print("Gatekeeper setup success")
-
-    def get_new_docker_id(self):
-        ret = self.docker_id
-        self.docker_id += 1
-        return ret
-
-    def register_function_file(self, connector_name, connector_module_path):
-        self.connector_name = connector_name
-        self.connector_module_path = connector_module_path
-        register_connectors(connector_name, connector_module_path)
-        # print("Check registration results:")
-        apis_to_register = get_names_registered_functions()
-        dependencies_to_register = get_registered_dependencies()
-        # print(dependencies_to_register)
-
+        print("Start setting up the gatekeeper")
+        register_epf(epf_path)
+        procedure_names = get_procedures_names()
+        function_names = get_functions_names()
+        print(procedure_names)
+        print(function_names)
+        functions = get_registered_functions()
+        # dependencies_to_register = get_registered_dependencies()
+        # # print(dependencies_to_register)
         # now we call dbservice to register these info in the DB
-        for cur_api in apis_to_register:
+        for cur_api in function_names:
             api_db = API(api_name=cur_api)
             database_service_response = database_api.create_api(api_db)
             if database_service_response.status == -1:
                 print("database_api.create_api: internal database error")
                 raise RuntimeError(
                     "database_api.create_api: internal database error")
-        for cur_from_api in dependencies_to_register:
-            to_api_list = dependencies_to_register[cur_from_api]
-            for cur_to_api in to_api_list:
-                api_dependency_db = APIDependency(from_api=cur_from_api,
-                                                  to_api=cur_to_api, )
-                database_service_response = database_api.create_api_dependency(
-                    api_dependency_db)
-                if database_service_response.status == -1:
-                    print("database_api.create_api_dependency: internal database error")
-                    raise RuntimeError(
-                        "database_api.create_api_dependency: internal database error")
 
+        print("Gatekeeper setup success")
+
+    def get_new_docker_id(self):
+        ret = self.docker_id
+        self.docker_id += 1
+        return ret
 
     def get_accessible_data(self, user_id, api):
         accessible_data = policy_broker.get_user_api_info(user_id, api)
@@ -180,7 +169,7 @@ class Gatekeeper:
         # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
         trust_mode = self.trust_mode
 
-        accessible_data_key_dict = None
+        accessible_data_key_dict = {}
         if trust_mode == "no_trust":
             # get the symmetric key of each accessible data's owner,
             # and store them in dict to pass to interceptor
@@ -211,32 +200,15 @@ class Gatekeeper:
         accessible_data_dict = (accessible_data_new_set, accessible_data_key_dict_new)
 
         # start a new process for the api call
-        connector_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + self.connector_module_path
-        docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
-        print(connector_realpath)
 
-        config_dict = {"accessible_data_dict": accessible_data_dict, "docker_id": self.get_new_docker_id()}
-        session = DSDocker(
-            self.server,
-            connector_realpath,
-            self.mount_dir,
-            config_dict,
-            docker_image_realpath,
-        )
-
-        # print(session.container.top())
-
-        # run function
-        list_of_apis = get_registered_functions()
-
-        for cur_api in list_of_apis:
-            if api == cur_api.__name__:
-                print("call", api)
-                session.flask_run(api, *args, **kwargs)
-                res = self.server.q.get(block=True)
-                print(res)
-                api_result = res['return_value']
-                break
+        api_result = call_actual_api(api,
+                            self.epf_path,
+                            self.mount_dir,
+                            accessible_data_dict,
+                            self.get_new_docker_id(),
+                            self.server,
+                            *args,
+                            )
 
         data_path_accessed = api_result[1]
         data_ids_accessed = []
@@ -290,11 +262,9 @@ class Gatekeeper:
         return response
 
 def call_actual_api(api_name,
-                    connector_name,
-                    connector_module_path,
+                    epf_path,
                     mount_dir,
                     accessible_data_dict,
-                    api_conn,
                     docker_id,
                     server,
                     *args,
@@ -306,35 +276,33 @@ def call_actual_api(api_name,
 
     Parameters:
      api_name: name of API to run on Docker container
-     connector_name: name of connector
-     connector_module_path: path to connector module
-     accessible_data_dict: dictionary of data that API is allowed to access, fed to Interceptor
-     accessible_data_paths: paths associated with data dict
-     accessible_data_key_dict:
+     epf_path: path to the epf file
      mount_dir: directory of filesystem mount for Interceptor
-     api_conn: variables to be passed from parent to child thread, including API result
+     accessible_data_dict: dictionary of data that API is allowed to access, fed to Interceptor
+     docker_id: id assigned to docker container
+     server: flask server to receive communications with docker container
+     *args / *kwargs for api
 
     Returns:
-     None
+     Result of api
     """
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
-    register_connectors(connector_name, connector_module_path)
     # print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
     # print("list_of_apis:", list_of_apis)
     # time.sleep(1)
     # print("connector name / module path: ", connector_name, connector_module_path)
     # print("accessed path: " + os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,)
-    connector_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path
+    epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
     docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
-    print(connector_realpath)
 
     config_dict = {"accessible_data_dict": accessible_data_dict, "docker_id": docker_id}
+    print("The real epf path is", epf_realpath)
     session = DSDocker(
         server,
-        connector_realpath,
+        epf_realpath,
         mount_dir,
         config_dict,
         docker_image_realpath,
@@ -343,24 +311,21 @@ def call_actual_api(api_name,
     # print(session.container.top())
 
     # run function
-    list_of_apis = get_registered_functions()
+    list_of_functions = get_registered_functions()
 
-    for cur_api in list_of_apis:
-        if api_name == cur_api.__name__:
+    for cur_f in list_of_functions:
+        if api_name == cur_f.__name__:
             print("call", api_name)
             session.flask_run(api_name, *args, **kwargs)
             ret = server.q.get(block=True)
             print(ret)
-
-            # result = cur_api(*args, **kwargs)
-            api_conn.send(ret)
-            api_conn.close()
-            break
+            return ret
 
     # clean up: uncomment line below in production
     # session.stop_and_prune()
 
 # We add times to the following function to record the overheads
+
 
 if __name__ == '__main__':
     print("Gatekeeper starting.")
