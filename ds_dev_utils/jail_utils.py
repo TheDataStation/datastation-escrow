@@ -17,7 +17,7 @@ class FlaskDockerServer:
         self.function_dict_to_send = self.manager.dict()
 
     def start_server(self):
-        self.server = Process(target=flask_thread, args=(self.q, self.function_dict_to_send))
+        self.server = Process(target=flask_thread, args=(self.port, self.q, self.function_dict_to_send))
         self.server.start()
         return
 
@@ -169,7 +169,7 @@ class DSDocker:
         self.container.start()
 
 
-def flask_thread(q: Queue, function_dict_to_send):
+def flask_thread(port, q: Queue, function_dict_to_send):
     """
     the thread function that gets run whenever DSDocker.flask_run is called
 
@@ -214,7 +214,7 @@ def flask_thread(q: Queue, function_dict_to_send):
 
     # run the flask app
     print("Child thread: flask app starting...")
-    app.run(debug=False, host="localhost", port=3030)
+    app.run(debug=False, host="localhost", port=port)
 
 
 if __name__ == "__main__":

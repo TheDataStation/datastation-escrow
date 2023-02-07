@@ -216,19 +216,11 @@ class Gatekeeper:
         print(connector_realpath)
 
         config_dict = {"accessible_data_dict": accessible_data_dict, "docker_id": self.get_new_docker_id()}
-        config_dict2 = {"accessible_data_dict": accessible_data_dict, "docker_id": self.get_new_docker_id()}
         session = DSDocker(
             self.server,
             connector_realpath,
             self.mount_dir,
             config_dict,
-            docker_image_realpath,
-        )
-        session2 = DSDocker(
-            self.server,
-            connector_realpath,
-            self.mount_dir,
-            config_dict2,
             docker_image_realpath,
         )
 
@@ -241,11 +233,9 @@ class Gatekeeper:
             if api == cur_api.__name__:
                 print("call", api)
                 session.flask_run(api, *args, **kwargs)
-                session2.flask_run(api, *args, **kwargs)
-                for i in range(2):
-                    res = self.server.q.get(block=True)
-                    print(res)
-                    api_result = res['return_value']
+                res = self.server.q.get(block=True)
+                print(res)
+                api_result = res['return_value']
                 break
 
         data_path_accessed = api_result[1]

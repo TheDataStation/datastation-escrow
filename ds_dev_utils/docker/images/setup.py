@@ -113,7 +113,7 @@ def main():
                              )
     print(response, response.content)
 
-    time.sleep(1000000)
+    # time.sleep(1000000)
 
 
 if __name__ == '__main__':

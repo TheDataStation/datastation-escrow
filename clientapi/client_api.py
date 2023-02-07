@@ -1,6 +1,8 @@
 import os
 import pickle
 import time
+from flask import Flask, request
+from multiprocessing import Process, Event, Queue, Manager
 
 from dbservice import database_api
 
@@ -24,8 +26,41 @@ from crypto import cryptoutils as cu
 from dbservice.database import engine
 from dsapplicationregistration.dsar_core import clear_register
 from dbservice.database_api import clear_checkpoint_table_paths
+from ds import DataStation
+
+app = Flask(__name__)
+
+def flask_thread(port, config):
+    ds = DataStation(config, None)
+
+    # TODO: make ds stateless
+
+    # create user
+    @app.route("/call_api")
+    def call_api():
+        unpickled = (request.get_data())
+        print(unpickled)
+        user_dict = pickle.loads(unpickled)
+        print("User dictionary is", user_dict)
+
+        return ds.create_user(user_dict['user'], user_dict['user_sym_key'], user_dict['user_pub_key'])
+
+    # log in
+    @app.route("/login_user")
+    def login_user(username, password):
+        response = user_register.login_user(username, password)
+        if response.status == 0:
+            return {"access_token": response.token, "token_type": "bearer"}
+        else:
+            # if password cannot correctly be verified, we return -1 to indicate login has failed
+            return -1
+
+    app.run(debug=False, host="localhost", port=port)
+    return
+
 
 class ClientAPI:
+
     """
     validates the login credentials of the user, then if the user is authorized
      the computation is passed to the ds class
@@ -40,101 +75,24 @@ class ClientAPI:
         return username
 
     def __init__(self,
-                 storageManager: StorageManager,
-                 stagingStorage: StagingStorage,
-                 data_station_log: Log,
-                 write_ahead_log: WAL,
-                 keyManager: KeyManager,
-                 trust_mode: str,
-                 interceptor_process,
-                 accessible_data_dict,
-                 data_accessed_dict,
-                 ):
+                 config, port=8080):
 
-        self.storage_manager = storageManager
-        self.staging_storage = stagingStorage
-        self.log = data_station_log
-        self.write_ahead_log = write_ahead_log
-        self.key_manager = keyManager
+        self.port = port
 
-        # The following field decides the trust mode for the DS
-        self.trust_mode = trust_mode
-        self.interceptor_process = interceptor_process
-        self.accessible_data_dict = accessible_data_dict
-        self.data_accessed_dict = data_accessed_dict
+        self.server = Process(target=flask_thread, args=(self.port,config))
+        return
 
-        # The following field decides which user_id we should use when we upload a new user
-        # Right now we are just incrementing by 1
-        user_id_resp = database_api.get_user_with_max_id()
-        if user_id_resp.status == 1:
-            self.cur_user_id = user_id_resp.data[0].id + 1
-        else:
-            self.cur_user_id = 1
-        # print("Starting user id should be:")
-        # print(self.cur_user_id)
 
-    def shut_down(self, ds_config):
-        # print("shut down...")
-        mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
-        unmount_status = os.system("umount " + str(mount_point))
-        counter = 0
-        while unmount_status != 0:
-            time.sleep(1)
-            unmount_status = os.system("umount " + str(mount_point))
-            if counter == 10:
-                print("Unmount failed")
-                exit(1)
+    def start_server(self):
+        self.server.start()
 
-        assert os.path.ismount(mount_point) is False
-        self.interceptor_process.join()
 
-        # Clear DB, app register, and db.checkpoint
-        engine.dispose()
-        clear_register()
-        clear_checkpoint_table_paths()
 
-        print("shut down complete")
+    def shut_down(self):
 
-    # create user
 
-    def create_user(self, user: User, user_sym_key=None, user_public_key=None):
+        print("client_api shut down complete")
 
-        # First we decide which user_id to use from ClientAPI.cur_user_id field
-        user_id = self.cur_user_id
-        self.cur_user_id += 1
-
-        # Part one: register this user's symmetric key and public key
-        if self.trust_mode == "no_trust":
-            self.key_manager.store_agent_symmetric_key(user_id, user_sym_key)
-            self.key_manager.store_agent_public_key(user_id, user_public_key)
-
-        # Part two: Call the user_register to register the user in the DB
-        if self.trust_mode == "full_trust":
-            response = user_register.create_user(user_id,
-                                                 user.user_name,
-                                                 user.password,)
-        else:
-            response = user_register.create_user(user_id,
-                                                 user.user_name,
-                                                 user.password,
-                                                 self.write_ahead_log,
-                                                 self.key_manager,)
-
-        if response.status == 1:
-            return Response(status=response.status, message=response.message)
-
-        return Response(status=response.status, message=response.message)
-
-    # log in
-
-    @staticmethod
-    def login_user(username, password):
-        response = user_register.login_user(username, password)
-        if response.status == 0:
-            return {"access_token": response.token, "token_type": "bearer"}
-        else:
-            # if password cannot correctly be verified, we return -1 to indicate login has failed
-            return -1
 
     # list application apis
 
@@ -167,6 +125,10 @@ class ClientAPI:
                        optimistic,
                        token,
                        original_data_size=None):
+
+        self.validate_and_get_username(token)
+        # parse HTTP request data (payload with the arguments)
+        # self.ds.upload_dataset(parsed_data_name, parsed_data_in_bytes ...etc.)
 
         # Perform authentication
         cur_username = user_register.authenticate_user(token)
