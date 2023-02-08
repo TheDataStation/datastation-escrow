@@ -38,16 +38,31 @@ def flask_thread(port, config, app_config):
     # create user
     @app.route("/call_api", methods=['post'])
     def call_api():
+        """
+        Calls the API specified by a pickled dict-like structure. The dict must contain:
+         username: the user that is calling this api
+         api: the api to be called
+         exec_mode: execution mode
+         args: arguments for the api being called
+         kwargs: arguments for the api being called
+        """
         unpickled = (request.get_data())
         # print(unpickled)
         args = pickle.loads(unpickled)
         # print("Call API Arguments are:", args)
 
-        return pickle.dumps(ds.call_api(args['username'], args['api'], args['exec_mode'], ds, *args['args'], **args['kwargs']))
+        return pickle.dumps(ds.call_api(args['username'], args['api'], args['exec_mode'], *args['args'], **args['kwargs']))
 
     # create user
     @app.route("/create_user", methods=['post'])
     def create_user():
+        """
+        Creates a user from a pickled dict-like structure. The dict must contain:
+         username: the user that is calling this api
+         user_sym_key (optional): symmetric key for user
+         user_public_key (optional): public key for user
+        """
+
         unpickled = (request.get_data())
         # print(unpickled)
         args = pickle.loads(unpickled)

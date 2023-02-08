@@ -12,6 +12,9 @@ from clientapi.client_api import ClientAPI
 
 
 def call_api(username, api, exec_mode, *args, **kwargs):
+    """
+    Quick and dirty call_api that posts requests to the client_api
+    """
     api_dict = {'username': username,
                 'api': api,
                 'exec_mode': exec_mode,
@@ -109,29 +112,13 @@ if __name__ == '__main__':
     # Step 3: jerry creates a policy saying that david can discover how many lines his files have
     # for DE [1, 3].
     policy_one = Policy(user_id=2, api="line_count", data_id=1)
-    api_dict = {'username': 'jerry',
-                'api': 'upload_policy',
-                'exec_mode': 'pessimistic',
-                'args': ["jerry", policy_one],
-                'kwargs': {}}
-    api_response = requests.post("http://localhost:8080/call_api",
-                                 data=pickle.dumps(api_dict),
-                                 # headers={'Content-Type': 'application/octet-stream'},
-                                 )
+    api_response = call_api('jerry', 'upload_policy', 'pessimistic', 'jerry', policy_one)
 
     policy_two = Policy(user_id=2, api="line_count", data_id=3)
-    api_dict = {'username': 'jerry',
-                'api': 'upload_policy',
-                'exec_mode': 'pessimistic',
-                'args': ["jerry", policy_two],
-                'kwargs': {}}
-    api_response = requests.post("http://localhost:8080/call_api",
-                                 data=pickle.dumps(api_dict),
-                                 # headers={'Content-Type': 'application/octet-stream'},
-                                 )
+    api_response = call_api('jerry', 'upload_policy', 'pessimistic', 'jerry', policy_one)
 
     # Step 4: david calls the API line_count. He runs it in optimistic mode.
-    line_count_res = ds.call_api("david", "line_count", "optimistic")
+    line_count_res = call_api("david", "line_count", "optimistic")
     print("The result of line count is:", line_count_res)
 
     # Last step: shut down the Data Station

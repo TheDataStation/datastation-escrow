@@ -435,7 +435,7 @@ class DataStation:
         for cur_api in list_of_procedures:
             if api == cur_api.__name__:
                 print("user is calling procedure", api)
-                cur_api(*args, **kwargs)
+                cur_api(self, *args, **kwargs)
                 return 0
 
         # If it's jail, it goes to the gatekeeper

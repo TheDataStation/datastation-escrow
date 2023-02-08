@@ -9,7 +9,18 @@ from multiprocessing import Process, Event, Queue, Manager
 from flask import Flask, request
 
 class FlaskDockerServer:
-    def __init__(self, port=3030, host="localhost"):
+    def __init__(self, host="localhost", port=3030):
+        """
+        Initializes a Flask server to serve all docker containers.
+         DOES NOT start server; call start_server() for that.
+
+        Parameters:
+         port: port to start server on, default 3030
+         host: host to start server on, default localhost
+
+        Returns:
+         Nothing
+        """
         self.port = port
         self.host = host
         self.manager = Manager()
@@ -17,11 +28,29 @@ class FlaskDockerServer:
         self.function_dict_to_send = self.manager.dict()
 
     def start_server(self):
+        """
+        STARTS the flask server in a new thread.
+
+        Parameters:
+         Nothing
+
+        Returns:
+         Nothing
+        """
         self.server = Process(target=flask_thread, args=(self.port, self.q, self.function_dict_to_send))
         self.server.start()
         return
 
     def stop_server(self):
+        """
+        Stops the flask server by terminating the thread it is running on.
+
+        Parameters:
+         Nothing
+
+        Returns:
+         Nothing
+        """
         self.server.terminate()
         self.server.join()
 
@@ -176,7 +205,7 @@ def flask_thread(port, q: Queue, function_dict_to_send):
     Parameters:
      shutdown_event: setting this event causes the main thread to kill this thread
      q: queue to share data
-     to_send: the function to send to the docker container
+     function_dict_to_send: a shared function dict that sends based on container ID
 
     Returns:
      Nothing
