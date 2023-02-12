@@ -48,3 +48,7 @@ def upload_dataset(ds: DataStation,
 # Default implementation for upload policy.
 def upload_policy(ds: DataStation, username, policy: Policy):
     ds.upload_policy(username, policy)
+
+# Default implementation for suggest share.
+def suggest_share(ds: DataStation, username, agents, functions, data_elements):
+    ds.suggest_share(username, agents, functions, data_elements)

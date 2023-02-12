@@ -394,6 +394,22 @@ class DataStation:
 
         return policy_broker.get_all_policies()
 
+    def suggest_share(self, username, agents: list[int], functions: list[str], data_elements: list[int]):
+        """
+        Propose a share.
+
+        Parameters:
+            username: the unique username identifying which user is calling the api
+            agents: list of user ids
+            functions: list of functions
+            data_elements: list of data elements
+        """
+        print(username)
+        print(agents)
+        print(functions)
+        print(data_elements)
+        return
+
     def call_api(self, username, api: API, share_id, exec_mode=None, *args, **kwargs):
         """
         Calls an API as the given user

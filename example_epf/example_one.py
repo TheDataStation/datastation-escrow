@@ -20,6 +20,10 @@ def upload_policy(ds, username, policy):
     print("This is a customized upload policy!")
     escrow_api.upload_policy(ds, username, policy)
 
+@procedure
+def suggest_share(ds, username, agents, functions, data_elements):
+    escrow_api.suggest_share(ds, username, agents, functions, data_elements)
+
 @function
 def line_count():
     """count number of lines in a file"""
