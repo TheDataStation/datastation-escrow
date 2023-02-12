@@ -151,7 +151,7 @@ def get_all_policies():
 
 # For gatekeeper
 
-def get_user_api_info(user_id, api):
+def get_user_api_info(user_id, api, share_id):
     list_of_policies = []
     list_of_dependencies = []
     dependency_graph = dict()
@@ -183,7 +183,7 @@ def get_user_api_info(user_id, api):
     # print(cur_ancestors)
 
     # get list of policies for the current user
-    policy_res = database_api.get_policy_for_user(user_id)
+    policy_res = database_api.get_policy_for_user(user_id, share_id)
     for i in range(len(policy_res.data)):
         cur_tuple = (policy_res.data[i].user_id,
                      policy_res.data[i].api,

@@ -52,6 +52,7 @@ if __name__ == '__main__':
         name_to_upload = "file-" + str(cur_num + 1)
         cur_res = ds.call_api("jerry",
                               "upload_dataset",
+                              0,
                               "pessimistic",
                               ds,
                               "jerry",
@@ -62,13 +63,13 @@ if __name__ == '__main__':
 
     # Step 3: jerry creates a policy saying that david can discover how many lines his files have
     # for DE [1, 3].
-    policy_one = Policy(user_id=2, api="line_count", data_id=1)
-    ds.call_api("jerry", "upload_policy", "pessimistic", ds, "jerry", policy_one)
-    policy_two = Policy(user_id=2, api="line_count", data_id=3)
-    ds.call_api("jerry", "upload_policy", "pessimistic", ds, "jerry", policy_two)
+    policy_one = Policy(user_id=2, api="line_count", data_id=1, share_id=1, status=1)
+    ds.call_api("jerry", "upload_policy", 0, "pessimistic", ds, "jerry", policy_one)
+    policy_two = Policy(user_id=2, api="line_count", data_id=3, share_id=1, status=1)
+    ds.call_api("jerry", "upload_policy", 0, "pessimistic", ds, "jerry", policy_two)
 
     # Step 4: david calls the API line_count. He runs it in optimistic mode.
-    line_count_res = ds.call_api("david", "line_count", "optimistic")
+    line_count_res = ds.call_api("david", "line_count", 1, "pessimistic")
     print("The result of line count is:", line_count_res)
 
     # Last step: shut down the Data Station

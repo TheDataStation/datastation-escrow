@@ -85,8 +85,8 @@ class Gatekeeper:
         #                 "database_api.create_api_dependency: internal database error")
         # print("Gatekeeper setup success")
 
-    def get_accessible_data(self, user_id, api):
-        accessible_data = policy_broker.get_user_api_info(user_id, api)
+    def get_accessible_data(self, user_id, api, share_id):
+        accessible_data = policy_broker.get_user_api_info(user_id, api, share_id)
         return accessible_data
 
     # We add times to the following function to record the overheads
@@ -94,6 +94,7 @@ class Gatekeeper:
     def call_api(self,
                  api,
                  cur_user_id,
+                 share_id,
                  exec_mode,
                  *args,
                  **kwargs):
@@ -105,6 +106,7 @@ class Gatekeeper:
         Parameters:
          api: api to call
          cur_user_id: the user id to decide what data is exposed
+         share_id: id of share from which the api is called,
          exec_mode: optimistic or pessimistic
 
         Returns:
@@ -128,7 +130,7 @@ class Gatekeeper:
 
         # look at the accessible data by policy for current (user, api)
         # print(cur_user_id, api)
-        accessible_data_policy = self.get_accessible_data(cur_user_id, api)
+        accessible_data_policy = self.get_accessible_data(cur_user_id, api, share_id)
 
         # Note: In data-aware-functions, if accessible_data_policy does not include data_aware_DE,
         # we end the execution immediately

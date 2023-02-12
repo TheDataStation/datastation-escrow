@@ -394,13 +394,14 @@ class DataStation:
 
         return policy_broker.get_all_policies()
 
-    def call_api(self, username, api: API, exec_mode=None, *args, **kwargs):
+    def call_api(self, username, api: API, share_id, exec_mode=None, *args, **kwargs):
         """
         Calls an API as the given user
 
         Parameters:
          username: the unique username identifying which user is calling the api
          api: api to call
+         share_id: from which share is this being called
          exec_mode: optimistic or pessimistic
          *args, **kwargs: arguments to the API call
 
@@ -429,6 +430,7 @@ class DataStation:
         # If it's jail, it goes to the gatekeeper
         res = self.gatekeeper.call_api(api,
                                        cur_user_id,
+                                       share_id,
                                        exec_mode,
                                        *args,
                                        **kwargs)
