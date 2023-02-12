@@ -7,7 +7,9 @@ from common.pydantic_models.policy import PolicyCreate
 def create_policy(db: Session, policy: PolicyCreate):
     db_policy = Policy(user_id=policy.user_id,
                        api=policy.api,
-                       data_id=policy.data_id,)
+                       data_id=policy.data_id,
+                       share_id=policy.share_id,
+                       status=policy.status,)
     try:
         db.add(db_policy)
         db.commit()
@@ -21,7 +23,9 @@ def remove_policy(db: Session, policy: PolicyCreate):
     try:
         db.query(Policy).filter(Policy.user_id == policy.user_id,
                                 Policy.api == policy.api,
-                                Policy.data_id == policy.data_id).delete()
+                                Policy.data_id == policy.data_id,
+                                Policy.share_id == policy.share_id,
+                                Policy.status == policy.status).delete()
         db.commit()
     except SQLAlchemyError as e:
         db.rollback()
@@ -44,7 +48,10 @@ def bulk_upload_policies(db: Session, policies):
     for policy in policies:
         cur_policy = Policy(user_id=policy.user_id,
                             api=policy.api,
-                            data_id=policy.data_id,)
+                            data_id=policy.data_id,
+                            share_id=policy.share_id,
+                            status=policy.status,
+                            )
         policies_to_add.append(cur_policy)
     try:
         db.add_all(policies_to_add)

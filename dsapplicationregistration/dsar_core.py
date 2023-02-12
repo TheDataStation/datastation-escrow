@@ -58,35 +58,6 @@ class Procedure:
         self.registered_procedures_names = set()
         self.registered_procedures = []
 
-# class Register:
-#     def __init__(self):
-#         self.registered_functions_names = set()
-#         self.registered_functions = []
-#         self.dependencies = dict()
-#
-#     def __call__(self, _f=None, *, depends_on=None):
-#         def decorator_func(f):
-#             f_name = f.__name__
-#             if f_name not in self.registered_functions_names:
-#                 self.registered_functions.append(f)
-#                 self.registered_functions_names.add(f_name)
-#             if depends_on is not None:
-#                 self.dependencies[f.__name__] = [func.__name__ for func in depends_on]
-#
-#             @functools.wraps(f)
-#             def return_function(*args, **kwargs):
-#                 return f(*args, **kwargs)
-#             return return_function
-#         if _f is None:
-#             return decorator_func
-#         else:
-#             return decorator_func(_f)
-#
-#     def clear(self):
-#         self.registered_functions_names = set()
-#         self.registered_functions = []
-#         self.dependencies = dict()
-
 
 function = Function()
 procedure = Procedure()
