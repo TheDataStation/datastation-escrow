@@ -27,96 +27,63 @@ from crypto import cryptoutils as cu
 from dbservice.database import engine
 from dbservice.database_api import clear_checkpoint_table_paths
 from ds import DataStation
+from main import initialize_system
 
 app = Flask(__name__)
 
-def flask_thread(port, config, app_config):
-    ds = DataStation(config, app_config)
-
-    # TODO: make ds stateless
-
-    # create user
-    @app.route("/call_api", methods=['post'])
-    def call_api():
-        """
-        Calls the API specified by a pickled dict-like structure. The dict must contain:
-         username: the user that is calling this api
-         api: the api to be called
-         exec_mode: execution mode
-         args: arguments for the api being called
-         kwargs: arguments for the api being called
-        """
-        unpickled = (request.get_data())
-        # print(unpickled)
-        args = pickle.loads(unpickled)
-        # print("Call API Arguments are:", args)
-
-        return pickle.dumps(ds.call_api(args['username'], args['api'], args['exec_mode'], *args['args'], **args['kwargs']))
-
-    # create user
-    @app.route("/create_user", methods=['post'])
-    def create_user():
-        """
-        Creates a user from a pickled dict-like structure. The dict must contain:
-         username: the user that is calling this api
-         user_sym_key (optional): symmetric key for user
-         user_public_key (optional): public key for user
-        """
-
-        unpickled = (request.get_data())
-        # print(unpickled)
-        args = pickle.loads(unpickled)
-        print("Received 'Create User'. User Arguments are:", args, file=sys.stdout)
-
-        return pickle.dumps(ds.create_user(args['user'], args.get('user_sym_key', None), args.get('user_public_key', None)))
-
-    # log in
-    @app.route("/login_user")
-    def login_user(username, password):
-        response = user_register.login_user(username, password)
-        if response.status == 0:
-            return {"access_token": response.token, "token_type": "bearer"}
-        else:
-            # if password cannot correctly be verified, we return -1 to indicate login has failed
-            return -1
-
-    app.run(debug=False, host="localhost", port=port)
-    return
-
-
-class ClientAPI:
-
+# create user
+@app.route("/call_api", methods=['post'])
+def call_api():
     """
-    validates the login credentials of the user, then if the user is authorized
-     the computation is passed to the ds class
+    Calls the API specified by a pickled dict-like structure. The dict must contain:
+        username: the user that is calling this api
+        api: the api to be called
+        exec_mode: execution mode
+        args: arguments for the api being called
+        kwargs: arguments for the api being called
     """
-    def validate_and_get_username(token):
-        # place for decryption of token
-        # decrypt(token)
+    unpickled = (request.get_data())
+    # print(unpickled)
+    args = pickle.loads(unpickled)
+    # print("Call API Arguments are:", args)
+    # enqueue(api_call(data))
 
-        # Perform authentication
-        username = user_register.authenticate_user(token)
+    return pickle.dumps(ds.call_api(args['username'], args['api'], args['exec_mode'], *args['args'], **args['kwargs']))
 
-        return username
+# create user
+@app.route("/create_user", methods=['post'])
+def create_user():
+    """
+    Creates a user from a pickled dict-like structure. The dict must contain:
+        username: the user that is calling this api
+        user_sym_key (optional): symmetric key for user
+        user_public_key (optional): public key for user
+    """
 
-    def __init__(self,
-                 config, app_config, port=8080):
+    unpickled = (request.get_data())
+    # print(unpickled)
+    args = pickle.loads(unpickled)
+    print("Received 'Create User'. User Arguments are:", args, file=sys.stdout)
 
-        self.port = port
+    return pickle.dumps(ds.create_user(args['user'], args.get('user_sym_key', None), args.get('user_public_key', None)))
 
-        self.server = Process(target=flask_thread, args=(self.port,config, app_config))
-        return
-
-
-    def start_server(self):
-        self.server.start()
-
-
-
-    def shut_down(self):
-
-
-        print("client_api shut down complete")
+# log in
+@app.route("/login_user")
+def login_user(username, password):
+    response = user_register.login_user(username, password)
+    if response.status == 0:
+        return {"access_token": response.token, "token_type": "bearer"}
+    else:
+        # if password cannot correctly be verified, we return -1 to indicate login has failed
+        return -1
 
 if __name__ == "__main__":
-    print("Client API")
+    port = 8080
+
+    # read and parse config
+    config = None
+
+    global ds
+    ds = initialize_system(config)
+
+    app.run(debug=False, host="localhost", port=port)
