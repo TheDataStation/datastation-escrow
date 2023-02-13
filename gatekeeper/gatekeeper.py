@@ -266,6 +266,9 @@ class Gatekeeper:
 
         return response
 
+    def shut_down(self):
+        self.server.stop_server()
+
 def call_actual_api(api_name,
                     epf_path,
                     mount_dir,
