@@ -17,6 +17,7 @@ from storagemanager.storage_manager import StorageManager
 from stagingstorage.staging_storage import StagingStorage
 from policybroker import policy_broker
 from dataregister import data_register
+from sharemanager import share_manager
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto import cryptoutils as cu
@@ -148,11 +149,19 @@ class DataStation:
         else:
             self.cur_staging_data_id = 1
 
+        # The following field decides which user_id we should use
         user_id_resp = database_api.get_user_with_max_id()
         if user_id_resp.status == 1:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
             self.cur_user_id = 1
+
+        # The following field decides which share_id we should use
+        share_id_resp = database_api.get_share_with_max_id()
+        if share_id_resp.status == 1:
+            self.cur_share_id = share_id_resp.data[0].id + 1
+        else:
+            self.cur_share_id = 1
 
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
         """
@@ -396,7 +405,7 @@ class DataStation:
 
     def suggest_share(self, username, agents: list[int], functions: list[str], data_elements: list[int]):
         """
-        Propose a share.
+        Propose a share. This leads to the creation of a share.
 
         Parameters:
             username: the unique username identifying which user is calling the api
@@ -404,10 +413,25 @@ class DataStation:
             functions: list of functions
             data_elements: list of data elements
         """
-        print(username)
-        print(agents)
-        print(functions)
-        print(data_elements)
+        # We first register the share in the DB
+        # Decide which share_id to use from self.cur_share_id
+        share_id = self.cur_share_id
+        self.cur_share_id += 1
+
+        if self.trust_mode == "full_trust":
+            response = share_manager.register_share_in_DB(username,
+                                                          share_id, )
+        else:
+            response = share_manager.register_share_in_DB(username,
+                                                          share_id,
+                                                          self.write_ahead_log,
+                                                          self.key_manager, )
+
+        # We now create the policies with status 0.
+        for a in agents:
+            for f in functions:
+                for d in data_elements:
+                    print([a, f, d, share_id, 0])
         return
 
     def call_api(self, username, api: API, share_id, exec_mode=None, *args, **kwargs):

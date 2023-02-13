@@ -6,6 +6,7 @@ from common.pydantic_models.api_dependency import APIDependency
 from common.pydantic_models.policy import Policy
 from common.pydantic_models.staged import Staged
 from common.pydantic_models.provenance import Provenance
+from common.pydantic_models.share import Share
 from typing import List
 
 class Response(BaseModel):
@@ -35,3 +36,6 @@ class StagedResponse(Response):
 
 class ProvenanceResponse(Response):
     data: List[Provenance]
+
+class ShareResponse(Response):
+    data: List[Share]
