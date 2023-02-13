@@ -60,6 +60,9 @@ def login_user(username, password):
         return -1
 
 def signal_handler(sig, frame):
+    """
+    Handles the shut down of DS when ctrl-C is pressed.
+    """
     print('DS Shutting down...')
 
     ds.shut_down()

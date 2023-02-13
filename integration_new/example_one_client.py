@@ -42,18 +42,9 @@ if __name__ == '__main__':
     #         elif os.path.isdir(file_path):
     #             shutil.rmtree(file_path)
 
-    ds_config = general_utils.parse_config("data_station_config.yaml")
-    app_config = general_utils.parse_config("app_connector_config.yaml")
-
-    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
-    mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
-
     # log_path = "ds_log.pkl"
     # if os.path.exists(log_path):
     #     os.remove(log_path)
-
-    # just to wait for server to start
-    time.sleep(3)
 
     # START REMOTE USER LOGIN AND ACTIONS
 
