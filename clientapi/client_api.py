@@ -2,6 +2,7 @@ import os
 import pickle
 import sys
 import argparse
+import signal
 from flask import Flask, request
 
 from main import initialize_system
@@ -57,7 +58,16 @@ def login_user(username, password):
         # if password cannot correctly be verified, we return -1 to indicate login has failed
         return -1
 
+def signal_handler(sig, frame):
+    print('You pressed Ctrl+C! \n DS Shutting down..')
+
+    ds.shut_down()
+    sys.exit(0)
+
 if __name__ == "__main__":
+    """
+    Initializes an api to communicate by HTTP with a client.
+    """
     parser = argparse.ArgumentParser(
                     prog = 'DSClientAPI',
                     description = 'A Client API for Data Station',
@@ -65,6 +75,8 @@ if __name__ == "__main__":
     parser.add_argument('-c','--ds_config', nargs='?', default='data_station_config.yaml', type=str)
     parser.add_argument('-a','--app_config', nargs='?', default='app_connector_config.yaml', type=str)
     parser.add_argument('-p','--port', nargs='?', default=8080, type=int)
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     args = parser.parse_args()
     print(args)
@@ -75,3 +87,5 @@ if __name__ == "__main__":
     ds = initialize_system(args.ds_config, args.app_config)
 
     app.run(debug=False, host="localhost", port=port)
+
+    # signal.pause()
