@@ -431,8 +431,36 @@ class DataStation:
         for a in agents:
             for f in functions:
                 for d in data_elements:
-                    print([a, f, d, share_id, 0])
-        return
+                    cur_policy = Policy(user_id=a, api=f, data_id=d, share_id=share_id, status=0)
+                    if self.trust_mode == "full_trust":
+                        response = policy_broker.upload_policy(cur_policy,
+                                                               username, )
+                    else:
+                        response = policy_broker.upload_policy(cur_policy,
+                                                               username,
+                                                               self.write_ahead_log,
+                                                               self.key_manager, )
+        return 0
+
+    def ack_data_in_share(self, username, share_id, data_id):
+        """
+        Updates a policy's status to ready (1)
+
+        Parameters:
+            username: the unique username identifying which user is calling the api
+            share_id: id of the share
+            data_id: id of the data element
+        """
+        if self.trust_mode == "full_trust":
+            response = policy_broker.ack_data_in_share(username, share_id, data_id)
+        else:
+            response = policy_broker.ack_data_in_share(username,
+                                                       share_id,
+                                                       data_id,
+                                                       self.write_ahead_log,
+                                                       self.key_manager, )
+
+        return Response(status=response.status, message=response.message)
 
     def call_api(self, username, api: API, share_id, exec_mode=None, *args, **kwargs):
         """

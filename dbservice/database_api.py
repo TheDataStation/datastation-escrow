@@ -207,6 +207,14 @@ def create_policy(request):
         else:
             return response.PolicyResponse(status=-1, msg="fail", data=[])
 
+def ack_data_in_share(data_id, share_id):
+    with get_db() as session:
+        policy = policy_repo.ack_data_in_share(session, data_id, share_id)
+        if policy:
+            return response.PolicyResponse(status=1, msg="success", data=[policy])
+        else:
+            return response.PolicyResponse(status=-1, msg="fail", data=[])
+
 def remove_policy(request):
     with get_db() as session:
         res = policy_repo.remove_policy(session, request)

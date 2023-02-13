@@ -19,6 +19,16 @@ def create_policy(db: Session, policy: PolicyCreate):
         return None
     return db_policy
 
+def ack_data_in_share(db: Session, data_id, share_id):
+    try:
+        db.query(Policy).filter(Policy.data_id == data_id,
+                                Policy.share_id == share_id).update({'status': 1})
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+    return "update success"
+
 def remove_policy(db: Session, policy: PolicyCreate):
     try:
         db.query(Policy).filter(Policy.user_id == policy.user_id,

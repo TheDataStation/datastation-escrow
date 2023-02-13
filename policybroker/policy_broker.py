@@ -100,7 +100,7 @@ def remove_policy(policy: Policy,
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
-    # If in no_trust mode, we need to record this ADD_POLICY to wal
+    # If in no_trust mode, we need to record this REMOVE_POLICY to wal
     if write_ahead_log is not None:
         wal_entry = "database_api.remove_policy(Policy(user_id=" + str(policy.user_id) \
                     + ",api='" + policy.api \
@@ -112,6 +112,37 @@ def remove_policy(policy: Policy,
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     response = database_api.remove_policy(policy)
+    return Response(status=response.status, message=response.msg)
+
+
+# update a policy's status
+
+def ack_data_in_share(cur_username,
+                      data_id,
+                      share_id,
+                      write_ahead_log=None,
+                      key_manager=None, ):
+    # First check if the dataset owner is the current user
+    verify_owner_response = common_procedure.verify_dataset_owner(data_id, cur_username)
+    if verify_owner_response.status == 1:
+        return verify_owner_response
+
+    # Get caller's id
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+    # If the user doesn't exist, something is wrong
+    if cur_user.status == -1:
+        return Response(status=1, message="Something wrong with the current user")
+    cur_user_id = cur_user.data[0].id
+
+    # If in no_trust mode, we need to record this UPDATE_POLICY_STATUS to wal
+    if write_ahead_log is not None:
+        wal_entry = "database_api.ack_data_in_share(data_id=" + str(data_id) \
+                    + ",share_id=" + str(share_id) \
+                    + "))"
+        # If write_ahead_log is not None, key_manager also will not be None
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+
+    response = database_api.ack_data_in_share(data_id, share_id)
     return Response(status=response.status, message=response.msg)
 
 
