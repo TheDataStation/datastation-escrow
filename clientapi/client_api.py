@@ -64,7 +64,7 @@ if __name__ == "__main__":
                     epilog = 'Text at the bottom of help')
     parser.add_argument('-c','--ds_config', nargs='?', default='data_station_config.yaml', type=str)
     parser.add_argument('-a','--app_config', nargs='?', default='app_connector_config.yaml', type=str)
-    parser.add_argument('-p','--port', nargs='?', const=8080, type=int)
+    parser.add_argument('-p','--port', nargs='?', default=8080, type=int)
 
     args = parser.parse_args()
     print(args)

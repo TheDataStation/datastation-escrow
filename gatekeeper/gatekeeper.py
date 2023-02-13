@@ -72,11 +72,15 @@ class Gatekeeper:
         # now we call dbservice to register these info in the DB
         for cur_api in function_names:
             api_db = API(api_name=cur_api)
+            print("api added: ", api_db)
             database_service_response = database_api.create_api(api_db)
             if database_service_response.status == -1:
                 print("database_api.create_api: internal database error")
                 raise RuntimeError(
                     "database_api.create_api: internal database error")
+
+        api_res = database_api.get_all_apis()
+        print("all apis uploaded, with pid: ", os.getpid(), api_res)
 
         print("Gatekeeper setup success")
 
