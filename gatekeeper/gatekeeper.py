@@ -203,8 +203,7 @@ class Gatekeeper:
 
         accessible_data_dict = (accessible_data_new_set, accessible_data_key_dict_new)
 
-        # start a new process for the api call
-
+        # actual api call
         ret = call_actual_api(api,
                             self.epf_path,
                             self.mount_dir,
@@ -329,7 +328,7 @@ def call_actual_api(api_name,
             print(ret)
             return ret
 
-    # clean up: uncomment line below in production
+    # TODO clean up: uncomment line below in production
     # session.stop_and_prune()
 
 # We add times to the following function to record the overheads

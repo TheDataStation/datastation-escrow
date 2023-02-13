@@ -73,9 +73,9 @@ if __name__ == "__main__":
                     prog = 'DSClientAPI',
                     description = 'A Client API for Data Station',
                     epilog = 'Text at the bottom of help')
-    parser.add_argument('-c','--ds_config', nargs='?', default='data_station_config.yaml', type=str)
-    parser.add_argument('-a','--app_config', nargs='?', default='app_connector_config.yaml', type=str)
-    parser.add_argument('-p','--port', nargs='?', default=8080, type=int)
+    parser.add_argument('-c','--ds_config', default='data_station_config.yaml', type=str)
+    parser.add_argument('-a','--app_config', default='app_connector_config.yaml', type=str)
+    parser.add_argument('-p','--port', default=8080, type=int)
 
     signal.signal(signal.SIGINT, signal_handler)
 
