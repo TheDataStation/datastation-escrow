@@ -442,7 +442,7 @@ class DataStation:
                                                                self.key_manager, )
         return 0
 
-    def ack_data_in_share(self, username, share_id, data_id):
+    def ack_data_in_share(self, username, data_id, share_id):
         """
         Updates a policy's status to ready (1)
 
@@ -452,17 +452,17 @@ class DataStation:
             data_id: id of the data element
         """
         if self.trust_mode == "full_trust":
-            response = policy_broker.ack_data_in_share(username, share_id, data_id)
+            response = policy_broker.ack_data_in_share(username, data_id, share_id)
         else:
             response = policy_broker.ack_data_in_share(username,
-                                                       share_id,
                                                        data_id,
+                                                       share_id,
                                                        self.write_ahead_log,
                                                        self.key_manager, )
 
-        return Response(status=response.status, message=response.message)
+        return response
 
-    def call_api(self, username, api: API, share_id, exec_mode=None, *args, **kwargs):
+    def call_api(self, username, api: API, share_id=None, exec_mode=None, *args, **kwargs):
         """
         Calls an API as the given user
 

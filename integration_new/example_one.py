@@ -52,8 +52,8 @@ if __name__ == '__main__':
         name_to_upload = "file-" + str(cur_num + 1)
         cur_res = ds.call_api("jerry",
                               "upload_dataset",
-                              0,
-                              "pessimistic",
+                              None,
+                              None,
                               ds,
                               "jerry",
                               name_to_upload,
@@ -66,18 +66,15 @@ if __name__ == '__main__':
     agents = [2]
     functions = ["line_count"]
     data_elements = [1, 3]
-    ds.call_api("jerry", "suggest_share", 0, "pessimistic", ds, "jerry", agents, functions, data_elements)
+    ds.call_api("jerry", "suggest_share", None, None, ds, "jerry", agents, functions, data_elements)
 
-    # # Step 3: jerry creates a policy saying that david can discover how many lines his files have
-    # # for DE [1, 3].
-    # policy_one = Policy(user_id=2, api="line_count", data_id=1, share_id=1, status=1)
-    # ds.call_api("jerry", "upload_policy", 0, "pessimistic", ds, "jerry", policy_one)
-    # policy_two = Policy(user_id=2, api="line_count", data_id=3, share_id=1, status=1)
-    # ds.call_api("jerry", "upload_policy", 0, "pessimistic", ds, "jerry", policy_two)
-    #
-    # # Step 4: david calls the API line_count. He runs it in optimistic mode.
-    # line_count_res = ds.call_api("david", "line_count", 1, "pessimistic")
-    # print("The result of line count is:", line_count_res)
+    # Step 4: jerry acknowledges this share
+    for data_id in data_elements:
+        ds.call_api("jerry", "ack_data_in_share", None, None, ds, "jerry", data_id, 1)
+
+    # Step 5: david calls the API line_count. He runs it in optimistic mode.
+    line_count_res = ds.call_api("david", "line_count", 1, "pessimistic")
+    print("The result of line count is:", line_count_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()

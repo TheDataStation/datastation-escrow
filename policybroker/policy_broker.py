@@ -143,7 +143,7 @@ def ack_data_in_share(cur_username,
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     response = database_api.ack_data_in_share(data_id, share_id)
-    return Response(status=response.status, message=response.msg)
+    return response
 
 
 # get all policies from DB

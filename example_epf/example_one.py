@@ -24,6 +24,10 @@ def upload_policy(ds, username, policy):
 def suggest_share(ds, username, agents, functions, data_elements):
     escrow_api.suggest_share(ds, username, agents, functions, data_elements)
 
+@procedure
+def ack_data_in_share(ds, username, data_id, share_id):
+    escrow_api.ack_data_in_share(ds, username, data_id, share_id)
+
 @function
 def line_count():
     """count number of lines in a file"""

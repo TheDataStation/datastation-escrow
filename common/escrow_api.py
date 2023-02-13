@@ -52,3 +52,7 @@ def upload_policy(ds: DataStation, username, policy: Policy):
 # Default implementation for suggest share.
 def suggest_share(ds: DataStation, username, agents, functions, data_elements):
     ds.suggest_share(username, agents, functions, data_elements)
+
+# Default implementation for ack_data_in_share.
+def ack_data_in_share(ds: DataStation, username, share_id, data_id):
+    ds.ack_data_in_share(username, share_id, data_id)
