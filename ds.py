@@ -723,7 +723,7 @@ class DataStation:
     def shut_down(self):
         """
         Shuts down the DS system. Unmounts the interceptor and stops the process, clears
-         the DB, app register, shuts down the gatekeeper server, and db.checkpoint
+         the DB, app register, and db.checkpoint, and shuts down the gatekeeper server
         """
         # # print("shutting down...")
         # mount_point = self.config.mount_point
