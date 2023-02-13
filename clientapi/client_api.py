@@ -3,6 +3,7 @@ import pickle
 import sys
 import argparse
 import signal
+import shutil
 from flask import Flask, request
 
 from main import initialize_system
@@ -59,7 +60,7 @@ def login_user(username, password):
         return -1
 
 def signal_handler(sig, frame):
-    print('You pressed Ctrl+C! \n DS Shutting down..')
+    print('DS Shutting down...')
 
     ds.shut_down()
     sys.exit(0)
@@ -78,6 +79,20 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
 
+
+    # TODO: remove these and put them somewhere else
+    if os.path.exists("data_station.db"):
+        os.remove("data_station.db")
+    folders = ['SM_storage', 'Staging_storage']
+    for folder in folders:
+        for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+
+
     args = parser.parse_args()
     print(args)
     port = args.port
@@ -85,6 +100,11 @@ if __name__ == "__main__":
     global ds
     # ds = initialize_system(args.ds_config, args.app_config)
     ds = initialize_system(args.ds_config, args.app_config)
+
+    # TODO: remove these and put them somewhere else
+    log_path = ds.data_station_log.log_path
+    if os.path.exists(log_path):
+        os.remove(log_path)
 
     app.run(debug=False, host="localhost", port=port)
 
