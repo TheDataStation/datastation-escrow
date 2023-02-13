@@ -15,7 +15,7 @@ class StorageManager:
         if data_type == "file":
             file_name = path.basename(data_name)
             dir_path = self.get_dir_path(data_id)
-            # Speficy path for file
+            # Specify path for file
             dst_file_path = path.join(dir_path, file_name)
 
             try:
