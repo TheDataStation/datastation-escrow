@@ -148,11 +148,13 @@ def get_user_api_info(user_id, api):
     list_of_apis = list(api_res.data)
 
     # Initialize dependency_graph using the list of apis as keys
+    print("list of apis:", list_of_apis)
     for cur_api in list_of_apis:
         dependency_graph[cur_api] = []
 
     # get list of API dependencies from DB, and fill in dependency_graph
     api_depend_res = database_api.get_all_api_dependencies()
+    print("api_depend_res: ", api_depend_res)
     for i in range(len(api_depend_res.data)):
         from_api = api_depend_res.data[i].from_api
         to_api = api_depend_res.data[i].to_api
@@ -164,7 +166,7 @@ def get_user_api_info(user_id, api):
 
     # get ancestors of the api being called
     cur_ancestors = [api]
-    print(api, dependency_graph, cur_ancestors)
+    print("get_user_api_info: ",api, dependency_graph, cur_ancestors)
     get_all_ancestors(api, dependency_graph, cur_ancestors)
     # print("Current api's ancestors are:")
     # print(cur_ancestors)

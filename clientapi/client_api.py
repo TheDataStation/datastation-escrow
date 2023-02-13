@@ -1,33 +1,13 @@
 import os
 import pickle
-import time
 import sys
+import argparse
 from flask import Flask, request
-from multiprocessing import Process, Event, Queue, Manager
 
-from dbservice import database_api
-
-from common.pydantic_models.api import API
-from common.pydantic_models.user import User
-from common.pydantic_models.dataset import Dataset
-from common.pydantic_models.response import Response
-from common.pydantic_models.policy import Policy
+from main import initialize_system
 
 from userregister import user_register
-from dataregister import data_register
-from policybroker import policy_broker
-from gatekeeper import gatekeeper
-from storagemanager.storage_manager import StorageManager
-from stagingstorage.staging_storage import StagingStorage
-from verifiability.log import Log
-import pathlib
-from writeaheadlog.write_ahead_log import WAL
-from crypto.key_manager import KeyManager
-from crypto import cryptoutils as cu
-from dbservice.database import engine
-from dbservice.database_api import clear_checkpoint_table_paths
 from ds import DataStation
-from main import initialize_system
 
 app = Flask(__name__)
 
@@ -78,12 +58,20 @@ def login_user(username, password):
         return -1
 
 if __name__ == "__main__":
-    port = 8080
+    parser = argparse.ArgumentParser(
+                    prog = 'DSClientAPI',
+                    description = 'A Client API for Data Station',
+                    epilog = 'Text at the bottom of help')
+    parser.add_argument('-c','--ds_config', nargs='?', default='data_station_config.yaml', type=str)
+    parser.add_argument('-a','--app_config', nargs='?', default='app_connector_config.yaml', type=str)
+    parser.add_argument('-p','--port', nargs='?', const=8080, type=int)
 
-    # read and parse config
-    config = None
+    args = parser.parse_args()
+    print(args)
+    port = args.port
 
     global ds
-    ds = initialize_system(config)
+    # ds = initialize_system(args.ds_config, args.app_config)
+    ds = initialize_system(args.ds_config, args.app_config)
 
     app.run(debug=False, host="localhost", port=port)

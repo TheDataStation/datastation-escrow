@@ -127,7 +127,7 @@ class Gatekeeper:
         # print(data_aware_DE)
 
         # look at the accessible data by policy for current (user, api)
-        # print(cur_user_id, api)
+        print(cur_user_id, api)
         accessible_data_policy = self.get_accessible_data(cur_user_id, api)
 
         # Note: In data-aware-functions, if accessible_data_policy does not include data_aware_DE,
