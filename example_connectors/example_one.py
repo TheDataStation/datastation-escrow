@@ -1,7 +1,7 @@
 import csv
 
 from dsapplicationregistration import register
-from common import escrow_api
+
 
 @register
 def line_count():

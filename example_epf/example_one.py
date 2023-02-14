@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from common import escrow_api
+from escrowapi import escrow_api
 
 import csv
 
