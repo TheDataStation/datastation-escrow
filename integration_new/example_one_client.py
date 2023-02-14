@@ -21,7 +21,7 @@ def call_api(username, api, exec_mode, *args, **kwargs):
                 'kwargs': kwargs}
 
     api_response = requests.post("http://localhost:8080/call_api",
-                                 data=pickle.dumps(api_dict),
+                                 json=api_dict,
                                  # headers={'Content-Type': 'application/octet-stream'},
                                  )
 

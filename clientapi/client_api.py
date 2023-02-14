@@ -24,9 +24,9 @@ def call_api():
         args: arguments for the api being called
         kwargs: arguments for the api being called
     """
-    unpickled = (request.get_data())
-    # print(unpickled)
-    args = pickle.loads(unpickled)
+    unpickled = (request.get_json())
+    print(unpickled)
+    # args = pickle.loads(unpickled)
     # print("Call API Arguments are:", args)
     # enqueue(api_call(data))
 
