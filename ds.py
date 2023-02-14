@@ -231,13 +231,13 @@ class DataStation:
         # Call policy_broker directly
         return policy_broker.get_all_dependencies()
 
-    def upload_dataset(self,
-                       username,
-                       data_name,
-                       data_in_bytes,
-                       data_type,
-                       optimistic,
-                       original_data_size=None):
+    def register_dataset(self,
+                         username,
+                         data_name,
+                         data_in_bytes,
+                         data_type,
+                         optimistic,
+                         original_data_size=None):
         """
         Uploads a dataset to DS, tied to a specific user
 

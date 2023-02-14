@@ -51,11 +51,11 @@ if __name__ == '__main__':
         if cur_num == 1:
             cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
+        cur_res = client_api.register_dataset(name_to_upload,
+                                              cur_file_bytes,
                                             "file",
-                                            cur_optimistic_flag,
-                                            cur_token, )
+                                              cur_optimistic_flag,
+                                              cur_token, )
 
     # Step 3: jerry creates a policy saying that david can discover how many lines his files have
     # for DE [1, 3]. He creates another policy saying david can read the first n lines of DE [2, 3]

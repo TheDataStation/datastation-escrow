@@ -51,7 +51,7 @@ if __name__ == '__main__':
             cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
         cur_res = ds.call_api("jerry",
-                              "upload_dataset",
+                              "register_dataset",
                               None,
                               None,
                               ds,

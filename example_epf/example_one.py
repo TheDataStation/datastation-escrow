@@ -5,15 +5,15 @@ import csv
 
 
 @api_endpoint
-def upload_dataset(ds,
-                   username,
-                   data_name,
-                   data_in_bytes,
-                   data_type,
-                   optimistic,
-                   original_data_size=None):
+def register_dataset(ds,
+                     username,
+                     data_name,
+                     data_in_bytes,
+                     data_type,
+                     optimistic,
+                     original_data_size=None):
     print("This is a customized upload data!")
-    escrow_api.upload_dataset(ds, username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
+    escrow_api.register_dataset(ds, username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
 
 @api_endpoint
 def upload_policy(ds, username, policy):
@@ -42,4 +42,4 @@ def line_count():
     return res
 
 # create a PR for interceptor docker, and another one for this change
-# restructuring the code; and cleaning up the naming
+# restructuring the code
