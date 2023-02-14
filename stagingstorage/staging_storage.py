@@ -24,6 +24,7 @@ class StagingStorage:
             return Response(status=0,
                             message="staging data store successfully")
         except OSError as error:
+            print(error)
             return Response(status=1,
                             message="staging data id=" + str(data_id) + "already exists")
 
