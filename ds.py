@@ -111,11 +111,6 @@ class DataStation:
         print(storage_path)
         # set up the gatekeeper
 
-        # TODO: unused for now
-        self.connector_dict = {}
-
-        # self.connector_name = app_config["connector_name"]
-        # self.connector_module_path = app_config["connector_module_path"]
         self.epf_path = app_config["epf_path"]
         self.gatekeeper = Gatekeeper(
             self.data_station_log,

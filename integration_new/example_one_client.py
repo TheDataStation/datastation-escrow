@@ -13,6 +13,8 @@ from common.pydantic_models.policy import Policy
 def call_api(username, api, exec_mode, *args, **kwargs):
     """
     Quick and dirty call_api that posts requests to the client_api
+
+    TODO: should be in its own module such as "client_utils"
     """
     api_dict = {'username': username,
                 'api': api,
@@ -106,5 +108,5 @@ if __name__ == '__main__':
         call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
-    line_count_res = call_api("david", "line_count", 1, "pessimistic")
+    line_count_res = call_api("david", "line_count", 1, "optimistic")
     print("The result of line count is:", line_count_res)
