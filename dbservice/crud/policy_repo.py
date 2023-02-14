@@ -46,7 +46,7 @@ def get_all_policies(db: Session):
     policies = db.query(Policy).all()
     return policies
 
-def get_policy_for_user(db: Session, user_id: str, share_id: int):
+def get_ack_policy_user_share(db: Session, user_id: str, share_id: int):
     policies = db.query(Policy).filter(Policy.user_id == user_id,
                                        Policy.share_id == share_id,
                                        Policy.status == 1).all()

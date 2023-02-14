@@ -229,9 +229,9 @@ def get_all_policies():
         else:
             return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
 
-def get_policy_for_user(user_id, share_id):
+def get_ack_policy_user_share(user_id, share_id):
     with get_db() as session:
-        policies = policy_repo.get_policy_for_user(session, user_id, share_id)
+        policies = policy_repo.get_ack_policy_user_share(session, user_id, share_id)
         if len(policies):
             return response.PolicyResponse(status=1, msg="success", data=policies)
         else:

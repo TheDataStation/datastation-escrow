@@ -214,7 +214,7 @@ def get_user_api_info(user_id, api, share_id):
     # print(cur_ancestors)
 
     # get list of policies for the current user
-    policy_res = database_api.get_policy_for_user(user_id, share_id)
+    policy_res = database_api.get_ack_policy_user_share(user_id, share_id)
     for i in range(len(policy_res.data)):
         cur_tuple = (policy_res.data[i].user_id,
                      policy_res.data[i].api,
