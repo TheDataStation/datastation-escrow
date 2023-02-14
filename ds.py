@@ -332,7 +332,7 @@ class DataStation:
 
         return Response(status=data_register_response.status, message=data_register_response.message)
 
-    def upload_policy(self, username, policy: Policy):
+    def upload_policy(self, username, user_id, api, data_id):
         """
         Uploads a policy written by the given user to DS
 
@@ -343,6 +343,7 @@ class DataStation:
         Returns:
          Response of policy broker
         """
+        policy = Policy(user_id=user_id, api=api, data_id=data_id)
 
         if self.trust_mode == "full_trust":
             response = policy_broker.upload_policy(policy,
@@ -435,6 +436,7 @@ class DataStation:
         for cur_api in list_of_procedures:
             if api == cur_api.__name__:
                 print("user is calling procedure", api)
+                print(args)
                 cur_api(self, *args, **kwargs)
                 return 0
 
