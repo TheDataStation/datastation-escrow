@@ -32,17 +32,17 @@ class Function:
         self.dependencies = dict()
 
 
-class Procedure:
+class APIEndPoint:
     def __init__(self):
-        self.registered_procedures_names = set()
-        self.registered_procedures = []
+        self.registered_api_endpoint_names = set()
+        self.registered_api_endpoint = []
 
     def __call__(self, _f=None):
         def decorator_func(f):
             f_name = f.__name__
-            if f_name not in self.registered_procedures_names:
-                self.registered_procedures.append(f)
-                self.registered_procedures_names.add(f_name)
+            if f_name not in self.registered_api_endpoint_names:
+                self.registered_api_endpoint.append(f)
+                self.registered_api_endpoint_names.add(f_name)
 
             @functools.wraps(f)
             def return_function(*args, **kwargs):
@@ -55,52 +55,23 @@ class Procedure:
             return decorator_func(_f)
 
     def clear(self):
-        self.registered_procedures_names = set()
-        self.registered_procedures = []
-
-# class Register:
-#     def __init__(self):
-#         self.registered_functions_names = set()
-#         self.registered_functions = []
-#         self.dependencies = dict()
-#
-#     def __call__(self, _f=None, *, depends_on=None):
-#         def decorator_func(f):
-#             f_name = f.__name__
-#             if f_name not in self.registered_functions_names:
-#                 self.registered_functions.append(f)
-#                 self.registered_functions_names.add(f_name)
-#             if depends_on is not None:
-#                 self.dependencies[f.__name__] = [func.__name__ for func in depends_on]
-#
-#             @functools.wraps(f)
-#             def return_function(*args, **kwargs):
-#                 return f(*args, **kwargs)
-#             return return_function
-#         if _f is None:
-#             return decorator_func
-#         else:
-#             return decorator_func(_f)
-#
-#     def clear(self):
-#         self.registered_functions_names = set()
-#         self.registered_functions = []
-#         self.dependencies = dict()
+        self.registered_api_endpoint_names = set()
+        self.registered_api_endpoint = []
 
 
 function = Function()
-procedure = Procedure()
+api_endpoint = APIEndPoint()
 
 def register_epf(epf_path):
     spec = importlib.util.spec_from_file_location("", epf_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-def get_procedures_names():
-    procedure_names = []
-    for p in procedure.registered_procedures:
-        procedure_names.append(p.__name__)
-    return procedure_names
+def get_api_endpoint_names():
+    api_endpoint_names = []
+    for api in api_endpoint.registered_api_endpoint:
+        api_endpoint_names.append(api.__name__)
+    return api_endpoint_names
 
 def get_functions_names():
     function_names = []
@@ -108,8 +79,8 @@ def get_functions_names():
         function_names.append(f.__name__)
     return function_names
 
-def get_registered_procedures():
-    copy = [el for el in procedure.registered_procedures]
+def get_registered_api_endpoint():
+    copy = [el for el in api_endpoint.registered_api_endpoint]
     return copy
 
 def get_registered_functions():
@@ -122,13 +93,8 @@ def get_registered_dependencies():
 def clear_function():
     function.clear()
 
-def clear_procedure():
-    procedure.clear()
-
-# def register_connectors(connector_name, connector_module_path):
-#     spec = importlib.util.spec_from_file_location(connector_name, connector_module_path)
-#     module = importlib.util.module_from_spec(spec)
-#     spec.loader.exec_module(module)
+def clear_api_endpoint():
+    api_endpoint.clear()
 
 # def __test_registration():
 #     print("Any registered?")

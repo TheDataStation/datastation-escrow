@@ -26,9 +26,9 @@ from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
 from dbservice.database_api import clear_checkpoint_table_paths
-from dsapplicationregistration.dsar_core import (get_registered_procedures,
-                                                 clear_procedure,
-                                                 clear_function,)
+from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
+                                                 clear_api_endpoint,
+                                                 clear_function, )
 from userregister import user_register
 
 
@@ -486,12 +486,12 @@ class DataStation:
             return Response(status=1, message="Something wrong with the current user")
         cur_user_id = cur_user.data[0].id
 
-        # Now we need to check if the current API called is a procedure (non-jail) or a function (jail)
+        # Now we need to check if the current API called is a api_endpoint (non-jail) or a function (jail)
         # If it's non-jail, it does not need to go through the gatekeeper
-        list_of_procedures = get_registered_procedures()
-        for cur_api in list_of_procedures:
+        list_of_api_endpoint = get_registered_api_endpoint()
+        for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
-                print("user is calling procedure", api)
+                print("user is calling an api_endpoint", api)
                 cur_api(*args, **kwargs)
                 return 0
 
@@ -801,7 +801,7 @@ class DataStation:
         # Clear DB, app register, and db.checkpoint
         engine.dispose()
         clear_function()
-        clear_procedure()
+        clear_api_endpoint()
         clear_checkpoint_table_paths()
 
         print("shut down complete")

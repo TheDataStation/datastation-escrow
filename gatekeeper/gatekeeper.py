@@ -9,9 +9,9 @@ import pathlib
 #                                                  get_registered_functions,
 #                                                  get_registered_dependencies, )
 from dsapplicationregistration.dsar_core import (register_epf,
-                                                 get_procedures_names,
+                                                 get_api_endpoint_names,
                                                  get_functions_names,
-                                                 get_registered_functions,)
+                                                 get_registered_functions, )
 from dbservice import database_api
 from policybroker import policy_broker
 from common.pydantic_models.api import API
@@ -56,7 +56,7 @@ class Gatekeeper:
 
         print("Start setting up the gatekeeper")
         register_epf(epf_path)
-        procedure_names = get_procedures_names()
+        procedure_names = get_api_endpoint_names()
         function_names = get_functions_names()
         print(procedure_names)
         print(function_names)
