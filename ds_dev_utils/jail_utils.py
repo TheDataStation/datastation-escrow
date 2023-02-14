@@ -68,7 +68,7 @@ def docker_cp(container, src, dst):
      The error (if any) of the function put_archive
     """
     # save working directory
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = os.path.abspath(os.curdir)
 
     # change directory to create tar file. This is necessary since
     # the tar file is relative
