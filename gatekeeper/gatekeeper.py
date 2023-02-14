@@ -9,9 +9,9 @@ import pathlib
 #                                                  get_registered_functions,
 #                                                  get_registered_dependencies, )
 from dsapplicationregistration.dsar_core import (register_epf,
-                                                 get_procedures_names,
+                                                 get_api_endpoint_names,
                                                  get_functions_names,
-                                                 get_registered_functions,)
+                                                 get_registered_functions, )
 from dbservice import database_api
 from policybroker import policy_broker
 from common.pydantic_models.api import API
@@ -62,7 +62,7 @@ class Gatekeeper:
         # print("Start setting up the gatekeeper")
         print("Start setting up the gatekeeper")
         register_epf(epf_path)
-        procedure_names = get_procedures_names()
+        procedure_names = get_api_endpoint_names()
         function_names = get_functions_names()
         print(procedure_names)
         print(function_names)
@@ -89,8 +89,8 @@ class Gatekeeper:
         self.docker_id += 1
         return ret
 
-    def get_accessible_data(self, user_id, api):
-        accessible_data = policy_broker.get_user_api_info(user_id, api)
+    def get_accessible_data(self, user_id, api, share_id):
+        accessible_data = policy_broker.get_user_api_info(user_id, api, share_id)
         return accessible_data
 
     # We add times to the following function to record the overheads
@@ -98,6 +98,7 @@ class Gatekeeper:
     def call_api(self,
                  api,
                  cur_user_id,
+                 share_id,
                  exec_mode,
                  *args,
                  **kwargs):
@@ -109,6 +110,7 @@ class Gatekeeper:
         Parameters:
          api: api to call
          cur_user_id: the user id to decide what data is exposed
+         share_id: id of share from which the api is called,
          exec_mode: optimistic or pessimistic
 
         Returns:
@@ -131,8 +133,8 @@ class Gatekeeper:
         # print(data_aware_DE)
 
         # look at the accessible data by policy for current (user, api)
-        print(cur_user_id, api)
-        accessible_data_policy = self.get_accessible_data(cur_user_id, api)
+        # print(cur_user_id, api)
+        accessible_data_policy = self.get_accessible_data(cur_user_id, api, share_id)
 
         # Note: In data-aware-functions, if accessible_data_policy does not include data_aware_DE,
         # we end the execution immediately

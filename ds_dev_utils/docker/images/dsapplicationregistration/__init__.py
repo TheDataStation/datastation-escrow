@@ -1,1 +1,1 @@
-from dsapplicationregistration.dsar_core import function, procedure
+from dsapplicationregistration.dsar_core import function, api_endpoint

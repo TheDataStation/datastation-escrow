@@ -50,12 +50,12 @@ if __name__ == '__main__':
         if cur_num == 1:
             cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
-        cur_res = ds.upload_dataset("jerry",
-                                    name_to_upload,
-                                    cur_file_bytes,
+        cur_res = ds.register_dataset("jerry",
+                                      name_to_upload,
+                                      cur_file_bytes,
                                     "file",
-                                    cur_optimistic_flag,
-                                    )
+                                      cur_optimistic_flag,
+                                      )
 
     # Step 3: jerry creates a policy saying that david can discover how many lines his files have
     # for DE [1, 3]. He creates another policy saying david can read the first n lines of DE [2, 3]

@@ -6,7 +6,8 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 
 from dsapplicationregistration.dsar_core import register
-from common import escrow_api
+from escrowapi import escrow_api
+
 
 @register
 def train_income_model():

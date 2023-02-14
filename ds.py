@@ -17,6 +17,7 @@ from storagemanager.storage_manager import StorageManager
 from stagingstorage.staging_storage import StagingStorage
 from policybroker import policy_broker
 from dataregister import data_register
+from sharemanager import share_manager
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto import cryptoutils as cu
@@ -25,9 +26,9 @@ from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
 from dbservice.database_api import clear_checkpoint_table_paths
-from dsapplicationregistration.dsar_core import (get_registered_procedures,
-                                                 clear_procedure,
-                                                 clear_function,)
+from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
+                                                 clear_api_endpoint,
+                                                 clear_function, )
 from userregister import user_register
 
 
@@ -154,17 +155,19 @@ class DataStation:
         else:
             self.cur_staging_data_id = 1
 
+        # The following field decides which user_id we should use
         user_id_resp = database_api.get_user_with_max_id()
         if user_id_resp.status == 1:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
             self.cur_user_id = 1
 
-    # TODO: add connector files directly, rather than on startup?
-    def register_function_file(self, connector_name, connector_module_path):
-        self.gatekeeper.register_function_file(connector_name, connector_module_path)
-        self.connector_dict[connector_name] = connector_module_path
-
+        # The following field decides which share_id we should use
+        share_id_resp = database_api.get_share_with_max_id()
+        if share_id_resp.status == 1:
+            self.cur_share_id = share_id_resp.data[0].id + 1
+        else:
+            self.cur_share_id = 1
 
     def create_user(self, user: User, user_sym_key=None, user_public_key=None):
         """
@@ -234,13 +237,13 @@ class DataStation:
         # Call policy_broker directly
         return policy_broker.get_all_dependencies()
 
-    def upload_dataset(self,
-                       username,
-                       data_name,
-                       data_in_bytes,
-                       data_type,
-                       optimistic,
-                       original_data_size=None):
+    def register_dataset(self,
+                         username,
+                         data_name,
+                         data_in_bytes,
+                         data_type,
+                         optimistic,
+                         original_data_size=None):
         """
         Uploads a dataset to DS, tied to a specific user
 
@@ -407,13 +410,73 @@ class DataStation:
 
         return policy_broker.get_all_policies()
 
-    def call_api(self, username, api: API, exec_mode=None, *args, **kwargs):
+    def suggest_share(self, username, agents: list[int], functions: list[str], data_elements: list[int]):
+        """
+        Propose a share. This leads to the creation of a share.
+
+        Parameters:
+            username: the unique username identifying which user is calling the api
+            agents: list of user ids
+            functions: list of functions
+            data_elements: list of data elements
+        """
+        # We first register the share in the DB
+        # Decide which share_id to use from self.cur_share_id
+        share_id = self.cur_share_id
+        self.cur_share_id += 1
+
+        if self.trust_mode == "full_trust":
+            response = share_manager.register_share_in_DB(username,
+                                                          share_id, )
+        else:
+            response = share_manager.register_share_in_DB(username,
+                                                          share_id,
+                                                          self.write_ahead_log,
+                                                          self.key_manager, )
+
+        # We now create the policies with status 0.
+        for a in agents:
+            for f in functions:
+                for d in data_elements:
+                    cur_policy = Policy(user_id=a, api=f, data_id=d, share_id=share_id, status=0)
+                    if self.trust_mode == "full_trust":
+                        response = policy_broker.upload_policy(cur_policy,
+                                                               username, )
+                    else:
+                        response = policy_broker.upload_policy(cur_policy,
+                                                               username,
+                                                               self.write_ahead_log,
+                                                               self.key_manager, )
+        return 0
+
+    def ack_data_in_share(self, username, data_id, share_id):
+        """
+        Updates a policy's status to ready (1)
+
+        Parameters:
+            username: the unique username identifying which user is calling the api
+            share_id: id of the share
+            data_id: id of the data element
+        """
+        if self.trust_mode == "full_trust":
+            response = policy_broker.ack_data_in_share(username, data_id, share_id)
+        else:
+            response = policy_broker.ack_data_in_share(username,
+                                                       data_id,
+                                                       share_id,
+                                                       self.write_ahead_log,
+                                                       self.key_manager, )
+
+        return response
+
+    def call_api(self, username, api: API, share_id=None, exec_mode=None, *args, **kwargs):
         """
         Calls an API as the given user
 
         Parameters:
          username: the unique username identifying which user is calling the api
          api: api to call
+         share_id: from which share is this being called
          exec_mode: optimistic or pessimistic
          *args, **kwargs: arguments to the API call
 
@@ -430,19 +493,19 @@ class DataStation:
             return Response(status=1, message="Something wrong with the current user")
         cur_user_id = cur_user.data[0].id
 
-        # Now we need to check if the current API called is a procedure (non-jail) or a function (jail)
+        # Now we need to check if the current API called is a api_endpoint (non-jail) or a function (jail)
         # If it's non-jail, it does not need to go through the gatekeeper
-        list_of_procedures = get_registered_procedures()
-        for cur_api in list_of_procedures:
+        list_of_api_endpoint = get_registered_api_endpoint()
+        for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
-                print("user is calling procedure", api)
-                print(args)
-                cur_api(self, *args, **kwargs)
+                print("user is calling an api_endpoint", api)
+                cur_api(*args, **kwargs)
                 return 0
 
         # If it's jail, it goes to the gatekeeper
         res = self.gatekeeper.call_api(api,
                                        cur_user_id,
+                                       share_id,
                                        exec_mode,
                                        *args,
                                        **kwargs)
@@ -748,7 +811,7 @@ class DataStation:
         # Clear DB, app register, and db.checkpoint
         engine.dispose()
         clear_function()
-        clear_procedure()
+        clear_api_endpoint()
         clear_checkpoint_table_paths()
 
         print("shut down complete")

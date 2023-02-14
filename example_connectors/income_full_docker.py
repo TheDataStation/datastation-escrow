@@ -1,13 +1,12 @@
 # Logistic regression model for the income dataset, full trust version.
 
-import os.path
 import pathlib
 import numpy as np
-import sys
 from sklearn.linear_model import LogisticRegression
 
 from dsapplicationregistration.dsar_core import register
-from common import escrow_api
+from escrowapi import escrow_api
+
 
 @register
 def train_income_model():

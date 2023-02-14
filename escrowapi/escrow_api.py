@@ -36,15 +36,23 @@ def get_specified_files(DE_id):
 
 
 # Default implementation for upload data.
-def upload_dataset(ds: DataStation,
-                   username,
-                   data_name,
-                   data_in_bytes,
-                   data_type,
-                   optimistic,
-                   original_data_size=None):
-    ds.upload_dataset(username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
+def register_dataset(ds: DataStation,
+                     username,
+                     data_name,
+                     data_in_bytes,
+                     data_type,
+                     optimistic,
+                     original_data_size=None):
+    ds.register_dataset(username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
 
 # Default implementation for upload policy.
 def upload_policy(ds: DataStation, username, user_id, api, data_id):
     ds.upload_policy(username, user_id, api, data_id)
+
+# Default implementation for suggest share.
+def suggest_share(ds: DataStation, username, agents, functions, data_elements):
+    ds.suggest_share(username, agents, functions, data_elements)
+
+# Default implementation for ack_data_in_share.
+def ack_data_in_share(ds: DataStation, username, share_id, data_id):
+    ds.ack_data_in_share(username, share_id, data_id)
