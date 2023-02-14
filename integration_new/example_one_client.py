@@ -75,8 +75,9 @@ if __name__ == '__main__':
             cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
         ret = call_api('jerry',
-                       'upload_dataset',
-                       'pessimistic',
+                       'register_dataset',
+                       None,
+                       None,
                        "jerry",
                        name_to_upload,
                        cur_file_bytes,
@@ -95,10 +96,15 @@ if __name__ == '__main__':
 
     # Step 3: jerry creates a policy saying that david can discover how many lines his files have
     # for DE [1, 3].
-    api_response = call_api('jerry', 'upload_policy', 'pessimistic', 'jerry', 2, "line_count", 1)
+    agents = [2]
+    functions = ["line_count"]
+    data_elements = [1, 3]
+    call_api("jerry", "suggest_share", None, None, "jerry", agents, functions, data_elements)
 
-    api_response = call_api('jerry', 'upload_policy', 'pessimistic', 'jerry', 2, "line_count", 3)
+    # Step 4: jerry acknowledges this share
+    for data_id in data_elements:
+        call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
 
-    # Step 4: david calls the API line_count. He runs it in optimistic mode.
-    line_count_res = call_api("david", "line_count", "optimistic")
+    # Step 5: david calls the API line_count. He runs it in optimistic mode.
+    line_count_res = call_api("david", "line_count", 1, "pessimistic")
     print("The result of line count is:", line_count_res)

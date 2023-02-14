@@ -68,11 +68,11 @@ if __name__ == '__main__':
     agents = [2]
     functions = ["line_count"]
     data_elements = [1, 3]
-    ds.call_api("jerry", "suggest_share", None, None, ds, "jerry", agents, functions, data_elements)
+    ds.call_api("jerry", "suggest_share", None, None, "jerry", agents, functions, data_elements)
 
     # Step 4: jerry acknowledges this share
     for data_id in data_elements:
-        ds.call_api("jerry", "ack_data_in_share", None, None, ds, "jerry", data_id, 1)
+        ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
     line_count_res = ds.call_api("david", "line_count", 1, "pessimistic")
