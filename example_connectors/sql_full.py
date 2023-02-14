@@ -1,7 +1,7 @@
 import sqlite3
 
 from dsapplicationregistration import register
-from common import ds_utils
+
 
 def run_custom_query(query, db_name):
     conn = sqlite3.connect(db_name)

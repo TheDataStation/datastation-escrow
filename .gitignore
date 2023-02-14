@@ -34,6 +34,7 @@ zhiru_chameleon_key.pem
 covid_classifier_model.h5
 ml_acc.csv
 demofile.txt
+*.tar
 
 # C extensions
 *.so

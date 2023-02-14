@@ -2,7 +2,14 @@ from .database import engine, Base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import event
 
-from .crud import user_repo, dataset_repo, api_repo, api_dependency_repo, policy_repo, staged_repo, provenance_repo
+from .crud import (user_repo,
+                   dataset_repo,
+                   api_repo,
+                   api_dependency_repo,
+                   policy_repo,
+                   staged_repo,
+                   provenance_repo,
+                   share_repo,)
 from .responses import response
 from contextlib import contextmanager
 from dbservice.checkpoint.check_point import check_point
@@ -200,6 +207,12 @@ def create_policy(request):
         else:
             return response.PolicyResponse(status=-1, msg="fail", data=[])
 
+def ack_data_in_share(data_id, share_id):
+    with get_db() as session:
+        res = policy_repo.ack_data_in_share(session, data_id, share_id)
+        if res is not None:
+            return 0
+
 def remove_policy(request):
     with get_db() as session:
         res = policy_repo.remove_policy(session, request)
@@ -216,9 +229,9 @@ def get_all_policies():
         else:
             return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
 
-def get_policy_for_user(user_id):
+def get_ack_policy_user_share(user_id, share_id):
     with get_db() as session:
-        policies = policy_repo.get_policy_for_user(session, user_id)
+        policies = policy_repo.get_ack_policy_user_share(session, user_id, share_id)
         if len(policies):
             return response.PolicyResponse(status=1, msg="success", data=policies)
         else:
@@ -301,6 +314,22 @@ def bulk_create_provenance(child_id, provenances):
             return 0
         else:
             return 1
+
+def create_share(request):
+    with get_db() as session:
+        share = share_repo.create_share(session, request)
+        if share:
+            return response.ShareResponse(status=1, msg="success", data=[share])
+        else:
+            return response.ShareResponse(status=-1, msg="fail", data=[])
+
+def get_share_with_max_id():
+    with get_db() as session:
+        share = share_repo.get_share_with_max_id(session)
+        if share:
+            return response.ShareResponse(status=1, msg="success", data=[share])
+        else:
+            return response.ShareResponse(status=-1, msg="internal database error", data=[])
 
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)

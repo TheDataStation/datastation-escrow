@@ -34,7 +34,7 @@ if __name__ == '__main__':
         for num_functions in num_functions_list:
 
             with open("app_connector_config.yaml", 'w') as f:
-                connector_module_path = "examples/file_sharing{}.py".format(num_functions)
+                connector_module_path = "example_connectors/file_sharing{}.py".format(num_functions)
                 f.write("connector_name: \"file_sharing\"\nconnector_module_path: \"{}\"".format(connector_module_path))
                 f.flush()
                 os.fsync(f.fileno())
@@ -127,12 +127,12 @@ if __name__ == '__main__':
                         content = f.read()
                         cur_optimistic_flag = False
                         name_to_upload = "file-" + str(cur_num + 1)
-                        cur_res = client_api.upload_dataset(name_to_upload,
-                                                            content,
+                        cur_res = client_api.register_dataset(name_to_upload,
+                                                              content,
                                                             "file",
-                                                            cur_optimistic_flag,
-                                                            cur_token,
-                                                            original_data_size=len(random_bytes))
+                                                              cur_optimistic_flag,
+                                                              cur_token,
+                                                              original_data_size=len(random_bytes))
                         if cur_res.status == 0:
                             list_of_data_ids.append(cur_res.data_id)
 

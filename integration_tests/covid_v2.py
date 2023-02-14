@@ -99,11 +99,11 @@ if __name__ == '__main__':
         with open(cur_image, "rb") as file:
             plaintext_bytes = file.read()
             ciphertext_bytes = cu.encrypt_data_with_symmetric_key(plaintext_bytes, cur_user_sym_key)
-            cur_upload_res = client_api.upload_dataset(cur_image,
-                                                       ciphertext_bytes,
+            cur_upload_res = client_api.register_dataset(cur_image,
+                                                         ciphertext_bytes,
                                                        "file",
-                                                       False,
-                                                       cur_token, )
+                                                         False,
+                                                         cur_token, )
             client_api.upload_policy(Policy(user_id=1, api="covid_v2", data_id=cur_upload_res.data_id),
                                      cur_token)
 

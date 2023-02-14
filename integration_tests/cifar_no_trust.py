@@ -19,8 +19,8 @@ if __name__ == '__main__':
 
     # System initialization
 
-    ds_config = utils.parse_config("data_station_config.yaml")
-    app_config = utils.parse_config("app_connector_config.yaml")
+    ds_config = general_utils.parse_config("data_station_config.yaml")
+    app_config = general_utils.parse_config("app_connector_config.yaml")
 
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     # Now we upload the encrypted files
 
-    # For each user, we upload his partition of the data (2 data elements, both X and y)
+    # For each user, we upload his partition of the data
     for cur_num in range(num_users):
         # Log in the current user and get a token
         cur_uname = "user" + str(cur_num)
@@ -118,11 +118,11 @@ if __name__ == '__main__':
         cur_file_bytes = cur_file_t.read()
         cur_optimistic_flag = False
         name_to_upload = "train" + str(cur_num) + ".pkl"
-        cur_res = client_api.upload_dataset(name_to_upload,
-                                            cur_file_bytes,
+        cur_res = client_api.register_dataset(name_to_upload,
+                                              cur_file_bytes,
                                             "file",
-                                            cur_optimistic_flag,
-                                            cur_token, )
+                                              cur_optimistic_flag,
+                                              cur_token, )
         cur_file_t.close()
 
         # Add a policy saying user with id==1 can call train_cifar_model on the datasets

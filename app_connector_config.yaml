@@ -1,2 +1,4 @@
-connector_name: "example_one"
-connector_module_path: "examples/example_one.py"
+epf_path: "example_epf/example_one.py"
+
+
+

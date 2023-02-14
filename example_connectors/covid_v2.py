@@ -1,5 +1,4 @@
 import os
-import pathlib
 import pandas as pd
 from tensorflow import keras
 import tensorflow as tf
@@ -7,7 +6,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 
 from dsapplicationregistration import register
-from common import ds_utils
+
 
 @register()
 def covid_v2():

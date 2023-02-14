@@ -1,13 +1,13 @@
+from dsapplicationregistration.dsar_core import register
+from escrowapi import escrow_api
 import csv
-
-from dsapplicationregistration import register
-from common import ds_utils
 
 @register
 def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
-    files = ds_utils.get_all_files()
+    files = escrow_api.get_all_files()
+    print(files)
     res = []
     for file in set(files):
         csv_file = open(file)
@@ -18,7 +18,7 @@ def line_count():
 @register
 def get_first_n_lines(num_lines, DE_id):
     print("Getting the first", num_lines, "lines of DE id", DE_id)
-    files = ds_utils.get_specified_files(DE_id)
+    files = escrow_api.get_specified_files(DE_id)
     res = []
     for file in set(files):
         csv_file = open(file)

@@ -1,12 +1,9 @@
 import os
 import pathlib
-from common import general_utils
 
 # Returns the all the file names that are accessible to the caller (in absolute paths)
 def get_all_files():
-    ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    ds_config = general_utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
+    mount_path = pathlib.Path("/mnt/data_mount")
     files = []
     DE_dir_name = os.listdir(mount_path)
     for i in range(len(DE_dir_name)):
@@ -17,9 +14,7 @@ def get_all_files():
 
 # Returns the files names accessible to the caller, specified by a list.
 def get_specified_files(DE_id):
-    ds_path = str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent)
-    ds_config = general_utils.parse_config(os.path.join(ds_path, "data_station_config.yaml"))
-    mount_path = pathlib.Path(ds_config["mount_path"]).absolute()
+    mount_path = pathlib.Path("/mnt/data_mount")
     files = []
     for cur_id in DE_id:
         DE_dir_name = os.path.join(str(mount_path), str(cur_id))
