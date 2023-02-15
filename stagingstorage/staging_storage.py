@@ -13,7 +13,7 @@ class StagingStorage:
     def store(self, data_id, data):
         try:
             dir_path = self.get_dir_path(data_id)
-            # Speficy path for file
+            # Specify path for file
             dst_file_path = path.join(dir_path, "data")
             # if dir already exists, data with the same id has already been stored
             makedirs(dir_path, exist_ok=False)
@@ -24,6 +24,7 @@ class StagingStorage:
             return Response(status=0,
                             message="staging data store successfully")
         except OSError as error:
+            print(error)
             return Response(status=1,
                             message="staging data id=" + str(data_id) + "already exists")
 

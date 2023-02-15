@@ -110,6 +110,7 @@ class DataStation:
         print(mount_point)
         print(storage_path)
         # set up the gatekeeper
+
         self.epf_path = app_config["epf_path"]
         self.gatekeeper = Gatekeeper(
             self.data_station_log,
@@ -329,7 +330,7 @@ class DataStation:
 
         return Response(status=data_register_response.status, message=data_register_response.message)
 
-    def upload_policy(self, username, policy: Policy):
+    def upload_policy(self, username, user_id, api, data_id):
         """
         Uploads a policy written by the given user to DS
 
@@ -340,6 +341,7 @@ class DataStation:
         Returns:
          Response of policy broker
         """
+        policy = Policy(user_id=user_id, api=api, data_id=data_id)
 
         if self.trust_mode == "full_trust":
             response = policy_broker.upload_policy(policy,
@@ -492,7 +494,8 @@ class DataStation:
         for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
                 print("user is calling an api_endpoint", api)
-                cur_api(*args, **kwargs)
+                # print(args)
+                cur_api(self, *args, **kwargs)
                 return 0
 
         # If it's jail, it goes to the gatekeeper
@@ -781,7 +784,7 @@ class DataStation:
     def shut_down(self):
         """
         Shuts down the DS system. Unmounts the interceptor and stops the process, clears
-         the DB, app register, and db.checkpoint
+         the DB, app register, and db.checkpoint, and shuts down the gatekeeper server
         """
         # # print("shutting down...")
         # mount_point = self.config.mount_point
@@ -797,6 +800,9 @@ class DataStation:
         #
         # assert os.path.ismount(mount_point) is False
         # self.interceptor_process.join()
+
+        # stop gatekeeper server
+        self.gatekeeper.shut_down()
 
         # Clear DB, app register, and db.checkpoint
         engine.dispose()

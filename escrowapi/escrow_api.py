@@ -46,8 +46,8 @@ def register_dataset(ds: DataStation,
     ds.register_dataset(username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
 
 # Default implementation for upload policy.
-def upload_policy(ds: DataStation, username, policy: Policy):
-    ds.upload_policy(username, policy)
+def upload_policy(ds: DataStation, username, user_id, api, data_id):
+    ds.upload_policy(username, user_id, api, data_id)
 
 # Default implementation for suggest share.
 def suggest_share(ds: DataStation, username, agents, functions, data_elements):

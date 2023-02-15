@@ -1,5 +1,6 @@
 from dbservice import database_api
 from common import common_procedure
+import os
 from common.pydantic_models.policy import Policy
 from common.pydantic_models.user import User
 from common.pydantic_models.response import Response
@@ -208,7 +209,7 @@ def get_user_api_info(user_id, api, share_id):
 
     # get ancestors of the api being called
     cur_ancestors = [api]
-    print(api, dependency_graph, cur_ancestors)
+    print("get_user_api_info, with pid: ", os.getpid() ,api, dependency_graph, cur_ancestors)
     get_all_ancestors(api, dependency_graph, cur_ancestors)
     # print("Current api's ancestors are:")
     # print(cur_ancestors)

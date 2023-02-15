@@ -7,9 +7,10 @@ from crypto import cryptoutils as cu
 import pickle
 
 from common import general_utils
-from ds import DataStation
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
+from clientapi.client_api import ClientAPI
+from ds import DataStation
 
 if __name__ == '__main__':
 
@@ -19,12 +20,14 @@ if __name__ == '__main__':
     # System initialization
 
     ds_config = general_utils.parse_config("data_station_config.yaml")
-    app_config = general_utils.parse_config("app_connector_config.yaml")
+    # app_config = general_utils.parse_config("app_connector_config.yaml")
 
-    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
-    mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
+    ds = DataStation(ds_config, None)
+    client_api = ClientAPI(ds)
 
-    ds = DataStation(ds_config, app_config)
+    client_api.start_server()
+
+    ds.register_function_file("asdf", "examples/income_no_docker.py")
 
     # Remove the code block below if testing out durability of log
     log_path = ds.data_station_log.log_path
@@ -138,9 +141,13 @@ if __name__ == '__main__':
     res_model = cu.from_bytes(cu.decrypt_data_with_symmetric_key(res_model,
                                                                  ds.key_manager.get_agent_symmetric_key(1)))
 
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(dir_path)
+    x_test_loc = os.path.join(dir_path, "ml_file_full_trust/testing_income/test_X.npy")
+    y_test_loc = os.path.join(dir_path, "ml_file_full_trust/testing_income/test_y.npy")
     # After we get the model back, we test its accuracy
-    x_test = np.load("integration_tests/ml_file_full_trust/testing_income/test_X.npy")
-    y_test = np.load("integration_tests/ml_file_full_trust/testing_income/test_y.npy")
+    x_test = np.load(x_test_loc)
+    y_test = np.load(y_test_loc)
     accuracy = res_model.score(x_test, y_test)
     print("Model accuracy is " + str(accuracy))
 

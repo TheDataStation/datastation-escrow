@@ -2,10 +2,10 @@ import os
 import shutil
 import pathlib
 
+from main import initialize_system
 from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
-from ds import DataStation
 
 if __name__ == '__main__':
 
@@ -29,7 +29,10 @@ if __name__ == '__main__':
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
 
-    ds = DataStation(ds_config, app_config)
+    ds_config = "data_station_config.yaml"
+    app_config = "app_connector_config.yaml"
+
+    ds = initialize_system(ds_config, app_config)
 
     log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):
@@ -54,7 +57,6 @@ if __name__ == '__main__':
                               "register_dataset",
                               None,
                               None,
-                              ds,
                               "jerry",
                               name_to_upload,
                               cur_file_bytes,
@@ -66,11 +68,11 @@ if __name__ == '__main__':
     agents = [2]
     functions = ["line_count"]
     data_elements = [1, 3]
-    ds.call_api("jerry", "suggest_share", None, None, ds, "jerry", agents, functions, data_elements)
+    ds.call_api("jerry", "suggest_share", None, None, "jerry", agents, functions, data_elements)
 
     # Step 4: jerry acknowledges this share
     for data_id in data_elements:
-        ds.call_api("jerry", "ack_data_in_share", None, None, ds, "jerry", data_id, 1)
+        ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
     line_count_res = ds.call_api("david", "line_count", 1, "pessimistic")

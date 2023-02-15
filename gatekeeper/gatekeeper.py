@@ -25,7 +25,7 @@ from ds_dev_utils import jail_utils
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto.key_manager import KeyManager
-from ds_dev_utils.jail_utils import DSDocker
+from ds_dev_utils.jail_utils import DSDocker, FlaskDockerServer
 
 
 class Gatekeeper:
@@ -53,7 +53,13 @@ class Gatekeeper:
         self.data_accessed_dict = data_accessed_dict
         self.epf_path = epf_path
         self.mount_dir = mount_dir
+        # set docker id variable
+        self.docker_id = 1
 
+        self.server = FlaskDockerServer()
+        self.server.start_server()
+
+        # print("Start setting up the gatekeeper")
         print("Start setting up the gatekeeper")
         register_epf(epf_path)
         procedure_names = get_api_endpoint_names()
@@ -63,27 +69,25 @@ class Gatekeeper:
         functions = get_registered_functions()
         # dependencies_to_register = get_registered_dependencies()
         # # print(dependencies_to_register)
-
         # now we call dbservice to register these info in the DB
         for cur_api in function_names:
             api_db = API(api_name=cur_api)
+            print("api added: ", api_db)
             database_service_response = database_api.create_api(api_db)
             if database_service_response.status == -1:
                 print("database_api.create_api: internal database error")
                 raise RuntimeError(
                     "database_api.create_api: internal database error")
-        # for cur_from_api in dependencies_to_register:
-        #     to_api_list = dependencies_to_register[cur_from_api]
-        #     for cur_to_api in to_api_list:
-        #         api_dependency_db = APIDependency(from_api=cur_from_api,
-        #                                           to_api=cur_to_api, )
-        #         database_service_response = database_api.create_api_dependency(
-        #             api_dependency_db)
-        #         if database_service_response.status == -1:
-        #             print("database_api.create_api_dependency: internal database error")
-        #             raise RuntimeError(
-        #                 "database_api.create_api_dependency: internal database error")
-        # print("Gatekeeper setup success")
+
+        api_res = database_api.get_all_apis()
+        print("all apis uploaded, with pid: ", os.getpid(), api_res)
+
+        print("Gatekeeper setup success")
+
+    def get_new_docker_id(self):
+        ret = self.docker_id
+        self.docker_id += 1
+        return ret
 
     def get_accessible_data(self, user_id, api, share_id):
         accessible_data = policy_broker.get_user_api_info(user_id, api, share_id)
@@ -201,24 +205,17 @@ class Gatekeeper:
 
         accessible_data_dict = (accessible_data_new_set, accessible_data_key_dict_new)
 
-        # start a new process for the api call
-        main_conn, api_conn = multiprocessing.Pipe()
-        api_process = multiprocessing.Process(target=call_actual_api,
-                                              args=(api,
-                                                    self.epf_path,
-                                                    self.mount_dir,
-                                                    accessible_data_dict,
-                                                    api_conn,
-                                                    *args,
-                                                    ),
-                                              kwargs=kwargs)
-        api_process.start()
-        # Below is the ID corresponds to the docker container
-        api_pid = 63452
+        # actual api call
+        ret = call_actual_api(api,
+                            self.epf_path,
+                            self.mount_dir,
+                            accessible_data_dict,
+                            self.get_new_docker_id(),
+                            self.server,
+                            *args,
+                            )
 
-        # print("api process id:", str(api_pid))
-        api_result = main_conn.recv()
-        api_process.join()
+        api_result = ret["return_value"]
         data_path_accessed = api_result[1]
         data_ids_accessed = []
         for path in data_path_accessed:
@@ -270,11 +267,15 @@ class Gatekeeper:
 
         return response
 
+    def shut_down(self):
+        self.server.stop_server()
+
 def call_actual_api(api_name,
                     epf_path,
                     mount_dir,
                     accessible_data_dict,
-                    api_conn,
+                    docker_id,
+                    server,
                     *args,
                     **kwargs,
                     ):
@@ -285,19 +286,18 @@ def call_actual_api(api_name,
     Parameters:
      api_name: name of API to run on Docker container
      epf_path: path to the epf file
-     accessible_data_dict: dictionary of data that API is allowed to access, fed to Interceptor
-     accessible_data_paths: paths associated with data dict
-     accessible_data_key_dict:
      mount_dir: directory of filesystem mount for Interceptor
-     api_conn: variables to be passed from parent to child thread, including API result
+     accessible_data_dict: dictionary of data that API is allowed to access, fed to Interceptor
+     docker_id: id assigned to docker container
+     server: flask server to receive communications with docker container
+     *args / *kwargs for api
 
     Returns:
-     None
+     Result of api
     """
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
-    register_epf(epf_path)
     # print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
     # print("list_of_apis:", list_of_apis)
@@ -306,11 +306,14 @@ def call_actual_api(api_name,
     # print("accessed path: " + os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
     docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
+
+    config_dict = {"accessible_data_dict": accessible_data_dict, "docker_id": docker_id}
     print("The real epf path is", epf_realpath)
     session = DSDocker(
+        server,
         epf_realpath,
         mount_dir,
-        accessible_data_dict,
+        config_dict,
         docker_image_realpath,
     )
 
@@ -322,14 +325,12 @@ def call_actual_api(api_name,
     for cur_f in list_of_functions:
         if api_name == cur_f.__name__:
             print("call", api_name)
-            ret = session.flask_run(api_name, *args, **kwargs)
+            session.flask_run(api_name, *args, **kwargs)
+            ret = server.q.get(block=True)
+            print(ret)
+            return ret
 
-            # result = cur_api(*args, **kwargs)
-            api_conn.send(ret)
-            api_conn.close()
-            break
-
-    # clean up: uncomment line below in production
+    # TODO clean up: uncomment line below in production
     # session.stop_and_prune()
 
 # We add times to the following function to record the overheads

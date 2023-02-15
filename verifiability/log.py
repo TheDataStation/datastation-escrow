@@ -67,7 +67,7 @@ class Log:
                     log.write(entry_to_add)
                     log.flush()
                     os.fsync(log)
-            # case 2: durable, encrypted log: need to encrypte the content part
+            # case 2: durable, encrypted log: need to encrypt the content part
             # note: we still keep the caller ID field as plaintext
             else:
                 with open(self.log_path, 'ab') as log:

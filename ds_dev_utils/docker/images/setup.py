@@ -20,11 +20,14 @@ def main():
     main_pid = os.getpid()
     print("setup.py: main PID is", main_pid)
 
-    with open("/usr/src/ds/accessible.pkl", "rb") as f:
-        accessible_data_bytes = f.read()
-        accessible_data_obj = pickle.loads(accessible_data_bytes)
+    with open("/usr/src/ds/args.pkl", "rb") as f:
+        config_dict_data_bytes = f.read()
+        config_dict = pickle.loads(config_dict_data_bytes)
 
-    print(accessible_data_obj)
+    print(config_dict)
+
+    accessible_data_obj = config_dict["accessible_data_dict"]
+    docker_id = config_dict["docker_id"]
 
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
@@ -60,6 +63,8 @@ def main():
     print("Mounted {} to {}".format(storage_path, mount_path))
     print(os.path.dirname(os.path.realpath(__file__)))
 
+    send_params = {"docker_id": docker_id}
+
     # notice that communication from container to host doesn't
     #  need a port mapping
 
@@ -69,7 +74,7 @@ def main():
     max_retry = 3
     while cnt < max_retry:
         try:
-            response = requests.get('http://host.docker.internal:3030/started')
+            response = requests.get('http://host.docker.internal:3030/started', params=send_params)
             if response.status_code == requests.codes.ok:
                 break
             else:
@@ -84,7 +89,7 @@ def main():
     print(response.content)
 
     # request function to run
-    response = requests.get('http://host.docker.internal:3030/function')
+    response = requests.get('http://host.docker.internal:3030/function', params=send_params)
     function_dict = pickle.loads(response.content)
     print("function dictionary: ", function_dict)
 
@@ -103,11 +108,12 @@ def main():
     # send the return value of the function
     response = requests.post("http://host.docker.internal:3030/function_return",
                              data=to_send_back,
+                             params=send_params,
                              # headers={'Content-Type': 'application/octet-stream'},
                              )
     print(response, response.content)
 
-    time.sleep(1000000)
+    # time.sleep(1000000)
 
 
 if __name__ == '__main__':
