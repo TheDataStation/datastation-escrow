@@ -78,6 +78,7 @@ if __name__ == "__main__":
     parser.add_argument('-c','--ds_config', default='data_station_config.yaml', type=str)
     parser.add_argument('-a','--app_config', default='app_connector_config.yaml', type=str)
     parser.add_argument('-p','--port', default=8080, type=int)
+    parser.add_argument('-hs','--host', default="localhost", type=str)
 
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -98,6 +99,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
     port = args.port
+    host = args.host
 
     global ds
     # ds = initialize_system(args.ds_config, args.app_config)
@@ -108,6 +110,6 @@ if __name__ == "__main__":
     if os.path.exists(log_path):
         os.remove(log_path)
 
-    app.run(debug=False, host="localhost", port=port)
+    app.run(debug=False, host=host, port=port)
 
     # signal.pause()
