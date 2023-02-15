@@ -72,12 +72,12 @@ if __name__ == "__main__":
     Initializes an api to communicate by HTTP with a client.
     """
     parser = argparse.ArgumentParser(
-                    prog = 'DSClientAPI',
-                    description = 'A Client API for Data Station',
-                    epilog = 'Text at the bottom of help')
-    parser.add_argument('-c','--ds_config', default='data_station_config.yaml', type=str)
-    parser.add_argument('-a','--app_config', default='app_connector_config.yaml', type=str)
-    parser.add_argument('-p','--port', default=8080, type=int)
+                    prog='DSClientAPI',
+                    description='A Client API for Data Station',
+                    epilog='Text at the bottom of help')
+    parser.add_argument('-c', '--ds_config', default='data_station_config.yaml', type=str)
+    parser.add_argument('-a', '--app_config', default='app_connector_config.yaml', type=str)
+    parser.add_argument('-p', '--port', default=8080, type=int)
 
     signal.signal(signal.SIGINT, signal_handler)
 

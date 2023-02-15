@@ -3,7 +3,7 @@ import pathlib
 import pickle
 import time
 from torch.utils.data import ConcatDataset, DataLoader
-from integration_tests.neural_network.model import Net, train, test
+from oldstuff.integration_tests import Net, train, test
 
 from dsapplicationregistration import register
 import glob

@@ -68,7 +68,7 @@ if __name__ == '__main__':
     # He uploads DE1 and DE3 in sealed mode, and uploads DE2 in enclave mode.
     for cur_num in range(3):
         cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "integration_tests/test_file_full_trust/train-" + \
+        cur_full_name = "integration_new/test_files/plaintext/train-" + \
             str(cur_file_index) + ".csv"
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
