@@ -7,9 +7,7 @@ import shutil
 from flask import Flask, request
 
 from main import initialize_system
-
 from userregister import user_register
-from ds import DataStation
 
 app = Flask(__name__)
 
@@ -67,6 +65,7 @@ def signal_handler(sig, frame):
 
     ds.shut_down()
     sys.exit(0)
+
 
 if __name__ == "__main__":
     """
