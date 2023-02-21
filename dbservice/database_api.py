@@ -89,9 +89,9 @@ def get_dataset_by_name(request):
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
-def get_dataset_by_id(request):
+def get_data_by_id(data_id: int):
     with get_db() as session:
-        dataset = dataset_repo.get_dataset_by_id(session, request)
+        dataset = dataset_repo.get_data_by_id(session, data_id)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:

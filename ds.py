@@ -348,11 +348,16 @@ class DataStation:
         if verify_owner_response.status == 1:
             return verify_owner_response
 
-        # storage_manager_response = self.storage_manager.store(data_name,
-        #                                                       data_id,
-        #                                                       data_in_bytes,
-        #                                                       data_type,)
-        return verify_owner_response
+        # We now get the data_name and data_type from data_id
+        data_res = database_api.get_data_by_id(data_id)
+        if data_res.status == -1:
+            return data_res
+
+        storage_manager_response = self.storage_manager.store(data_res.data[0].name,
+                                                              data_id,
+                                                              data_in_bytes,
+                                                              data_res.data[0].type,)
+        return storage_manager_response
 
     def remove_dataset(self, username, data_name):
         """
@@ -548,12 +553,12 @@ class DataStation:
             return Response(status=1, message="Something wrong with the current user")
         cur_user_id = cur_user.data[0].id
 
-        # Now we need to check if the current API called is a api_endpoint (non-jail) or a function (jail)
+        # Now we need to check if the current API called is an api_endpoint (non-jail) or a function (jail)
         # If it's non-jail, it does not need to go through the gatekeeper
         list_of_api_endpoint = get_registered_api_endpoint()
         for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
-                print("user is calling an api_endpoint", api)
+                # print("user is calling an api_endpoint", api)
                 # print(args)
                 res = cur_api(self, *args, **kwargs)
                 return res
