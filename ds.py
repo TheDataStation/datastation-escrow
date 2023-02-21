@@ -101,8 +101,6 @@ class DataStation:
 
         # set up mount point
         mount_point = self.config.mount_point
-        self.accessible_data_dict = {}
-        self.data_accessed_dict = {}
 
         # set up an instance of the key manager
         self.key_manager = KeyManager()
@@ -117,8 +115,6 @@ class DataStation:
             self.write_ahead_log,
             self.key_manager,
             self.trust_mode,
-            self.accessible_data_dict,
-            self.data_accessed_dict,
             self.epf_path,
             self.config.ds_storage_path
         )
