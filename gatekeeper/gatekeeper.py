@@ -169,12 +169,7 @@ class Gatekeeper:
                 data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
                 accessible_data_key_dict[cur_data_path] = data_owner_symmetric_key
 
-        print(accessible_data_set)
-        print(accessible_data_key_dict)
-
-        exit()
-
-        accessible_data_dict = (accessible_data_new_set, accessible_data_key_dict_new)
+        accessible_data_dict = (accessible_data_set, accessible_data_key_dict)
 
         # actual api call
         ret = call_actual_api(api,
