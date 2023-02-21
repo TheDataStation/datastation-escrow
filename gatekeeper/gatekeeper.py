@@ -158,7 +158,7 @@ class Gatekeeper:
             print(err_msg)
             return Response(status=1, message=err_msg)
         accessible_data_paths = set(
-            [dataset.access_type for dataset in get_datasets_by_ids_res.data])
+            [dataset.access_param for dataset in get_datasets_by_ids_res.data])
 
         # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
         trust_mode = self.trust_mode
@@ -171,7 +171,7 @@ class Gatekeeper:
             for dataset in get_datasets_by_ids_res.data:
                 data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(
                     dataset.owner_id)
-                accessible_data_key_dict[dataset.access_type] = data_owner_symmetric_key
+                accessible_data_key_dict[dataset.access_param] = data_owner_symmetric_key
 
         # Update path names
 

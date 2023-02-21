@@ -5,15 +5,23 @@ import csv
 
 
 @api_endpoint
-def register_dataset(ds,
-                     username,
-                     data_name,
-                     data_in_bytes,
-                     data_type,
-                     optimistic,
-                     original_data_size=None):
-    print("This is a customized upload data!")
-    escrow_api.register_dataset(ds, username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
+def register_data(ds,
+                  username,
+                  data_name,
+                  data_in_bytes,
+                  data_type,
+                  optimistic):
+    # print("This is a customized upload data!")
+    res = escrow_api.register_data(ds, username, data_name, data_in_bytes, data_type, optimistic)
+    return res
+
+@api_endpoint
+def upload_data(ds,
+                username,
+                data_id,
+                data_in_bytes):
+    res = escrow_api.upload_data(ds, username, data_id, data_in_bytes)
+    return res
 
 @api_endpoint
 def upload_policy(ds, username, user_id, api, data_id):

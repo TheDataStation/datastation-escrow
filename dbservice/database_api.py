@@ -99,7 +99,7 @@ def get_dataset_by_id(request):
 
 def get_dataset_by_access_type(request):
     with get_db() as session:
-        dataset = dataset_repo.get_dataset_by_access_type(session, request)
+        dataset = dataset_repo.get_dataset_by_access_param(session, request)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:

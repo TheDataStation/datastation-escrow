@@ -35,15 +35,23 @@ def get_specified_files(DE_id):
     return files
 
 
-# Default implementation for upload data.
-def register_dataset(ds: DataStation,
-                     username,
-                     data_name,
-                     data_in_bytes,
-                     data_type,
-                     optimistic,
-                     original_data_size=None):
-    ds.register_dataset(username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
+# Default implementation for registering data.
+def register_data(ds: DataStation,
+                  username,
+                  data_name,
+                  data_type,
+                  access_param,
+                  optimistic):
+    res = ds.register_data(username, data_name, data_type, access_param, optimistic)
+    return res
+
+# Default Implementation for uploading data.
+def upload_data(ds: DataStation,
+                username,
+                data_id,
+                data_in_bytes):
+    res = ds.upload_file(username, data_id, data_in_bytes)
+    return res
 
 # Default implementation for upload policy.
 def upload_policy(ds: DataStation, username, user_id, api, data_id):

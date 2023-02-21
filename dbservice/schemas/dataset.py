@@ -11,7 +11,6 @@ class Dataset(Base):
     name = Column(String, unique=True)
     description = Column(String)
     type = Column(String)
-    access_type = Column(String)
+    access_param = Column(String)
     optimistic = Column(Boolean)
     owner_id = Column(Integer)
-    original_data_size = Column(Integer)
