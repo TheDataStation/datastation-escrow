@@ -33,22 +33,24 @@ def call_api(username, api, exec_mode, *args, **kwargs):
 
 def register_policy_delete_policy(event: Event, name_to_upload, cur_file_bytes, cur_optimistic_flag):
     event.wait()
-    ret = call_api('jerry',
-                    'register_dataset',
-                    None,
-                    None,
-                    "jerry",
-                    name_to_upload,
-                    cur_file_bytes,
-                    "file",
-                    cur_optimistic_flag)
-    print(ret)
-    ret = call_api('jerry',
-                    'remove_dataset',
-                    None,
-                    None,
-                    'jerry',
-                    name_to_upload)
+    for i in range(10):
+        ret = call_api('jerry',
+                        'register_dataset',
+                        None,
+                        None,
+                        "jerry",
+                        name_to_upload,
+                        cur_file_bytes,
+                        "file",
+                        cur_optimistic_flag)
+        print(ret)
+        ret = call_api('jerry',
+                        'remove_dataset',
+                        None,
+                        None,
+                        'jerry',
+                        name_to_upload)
+        print(ret)
 
 if __name__ == '__main__':
 
