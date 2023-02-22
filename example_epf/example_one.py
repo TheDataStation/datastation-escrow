@@ -16,6 +16,13 @@ def register_dataset(ds,
     escrow_api.register_dataset(ds, username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
 
 @api_endpoint
+def remove_dataset(ds,
+                    username,
+                    data_name):
+    print("This is a customized remove dataset!")
+    escrow_api.remove_dataset(ds, username, data_name)
+
+@api_endpoint
 def upload_policy(ds, username, user_id, api, data_id):
     print("This is a customized upload policy!")
     escrow_api.upload_policy(ds, username, user_id, api, data_id)

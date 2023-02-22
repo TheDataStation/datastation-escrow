@@ -31,10 +31,24 @@ def call_api(username, api, exec_mode, *args, **kwargs):
 
     return pickle.loads(api_response.content)
 
-def call_api_thread(event: Event, username, api, exec_mode, *args, **kwargs):
+def register_policy_delete_policy(event: Event, name_to_upload, cur_file_bytes, cur_optimistic_flag):
     event.wait()
-    ret = call_api(username, api, exec_mode, *args, **kwargs)
+    ret = call_api('jerry',
+                    'register_dataset',
+                    None,
+                    None,
+                    "jerry",
+                    name_to_upload,
+                    cur_file_bytes,
+                    "file",
+                    cur_optimistic_flag)
     print(ret)
+    ret = call_api('jerry',
+                    'remove_dataset',
+                    None,
+                    None,
+                    'jerry',
+                    name_to_upload)
 
 if __name__ == '__main__':
 
@@ -70,42 +84,40 @@ if __name__ == '__main__':
                                          )
     print(pickle.loads(create_user_response.content))
 
+    event = Event()
+
+    processes = []
     # Step 2: Jerry logs in and uploads three datasets
     # He uploads DE1 and DE3 in sealed mode, and uploads DE2 in enclave mode.
-    # for i in range(10):
-    for cur_num in range(3):
-        cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "integration_tests/test_file_full_trust/train-" + \
-            str(cur_file_index) + ".csv"
+    for cur_num in range(100):
+        cur_file_index = cur_num + 1
+        cur_full_name = "integration_tests/many_files/file-" + \
+            str(cur_file_index)
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic_flag = False
-        if cur_num == 1:
+        if cur_num % 3 == 1:
             cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
-        # p = Process(target=call_api_thread, args=(event,
-        #                                         'jerry',
-        #                                         'register_dataset',
-        #                                         None,
-        #                                         None,
-        #                                         "jerry",
-        #                                         name_to_upload,
-        #                                         cur_file_bytes,
-        #                                         "file",
-        #                                         cur_optimistic_flag))
-        # p.start()
-        # processes.append(p)
-        ret = call_api('jerry',
-                    'register_dataset',
-                    None,
-                    None,
-                    "jerry",
-                    name_to_upload,
-                    cur_file_bytes,
-                    "file",
-                    cur_optimistic_flag)
-        print(ret)
+        p = Process(target=register_policy_delete_policy, args=(event,
+                                                name_to_upload,
+                                                cur_file_bytes,
+                                                cur_optimistic_flag))
+        p.start()
+        processes.append(p)
+        # ret = call_api('jerry',
+        #             'register_dataset',
+        #             None,
+        #             None,
+        #             "jerry",
+        #             name_to_upload,
+        #             cur_file_bytes,
+        #             "file",
+        #             cur_optimistic_flag)
 
+    event.set()
+    for p in processes:
+        p.join()
     # Step 3: jerry creates a policy saying that david can discover how many lines his files have
     # for DE [1, 3].
     agents = [2]

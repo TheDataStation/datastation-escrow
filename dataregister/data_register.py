@@ -22,6 +22,7 @@ def register_data_in_DB(data_id,
 
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
     if existed_dataset.status == 1:
+        print("same name error")
         return Response(status=1, message="there is a dataset using the same name")
 
     # We now call DB to register a new dataset in the database

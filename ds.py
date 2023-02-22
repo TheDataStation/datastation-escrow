@@ -1,6 +1,7 @@
 import os
 import sys
 import multiprocessing
+import threading
 import pathlib
 import time
 import pickle
@@ -490,6 +491,7 @@ class DataStation:
         for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
                 print("user is calling an api_endpoint", api)
+                print("PID: ", os.getpid(), " TID: ", threading.get_native_id())
                 # print(args)
                 cur_api(self, *args, **kwargs)
                 return 0
