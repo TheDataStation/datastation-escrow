@@ -28,6 +28,7 @@ integration_tests/ml_file_no_trust
 integration_tests/file_sharing_plots
 integration_tests/test_metadata
 integration_tests/sql_test
+integration_tests/many_files
 test.txt
 zhiru_chameleon_key.pem
 .DS_Store
