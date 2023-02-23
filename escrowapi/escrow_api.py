@@ -5,6 +5,34 @@ from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
 from ds import DataStation
 
+class EscrowAPI:
+    __comp = None
+    def __init__(self, comp):
+        self.__comp = comp
+
+    def do_stuff(self):
+        print("doing stuff")
+
+    def call_comp(self):
+        self.__comp.call_stuff()
+
+class EscrowAPIStatic:
+    __comp = None
+
+    @classmethod
+    def set_comp(cls,comp):
+        print(cls)
+        cls.__comp = comp
+
+    @classmethod
+    def do_stuff(cls):
+        cls.__comp.do_stuff()
+
+def ds_decorator(function):
+    def wrap_function(*args, **kwargs):
+        kwargs['ds'] = None
+        return function(*args, **kwargs)
+    return wrap_function
 
 # Returns the all the file names that are accessible to the caller (in absolute paths)
 def get_all_files():
@@ -36,13 +64,14 @@ def get_specified_files(DE_id):
 
 
 # Default implementation for upload data.
-def register_dataset(ds: DataStation,
-                     username,
+@ds_decorator
+def register_dataset(username,
                      data_name,
                      data_in_bytes,
                      data_type,
                      optimistic,
-                     original_data_size=None):
+                     original_data_size=None,
+                     ):
     ds.register_dataset(username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
 
 # Default implementation for upload policy.
