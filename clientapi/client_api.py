@@ -11,7 +11,7 @@ from userregister import user_register
 
 app = Flask(__name__)
 
-# create user
+# call api
 @app.route("/call_api", methods=['post'])
 def call_api():
     """
