@@ -1,10 +1,6 @@
-from escrowapi.escrow_api import EscrowAPI, EscrowAPIStatic
+from escrowapi.escrow_api import EscrowAPI
 
-eapi = EscrowAPI("hi")
-print(eapi)
-EscrowAPIStatic.set_comp("waterbottle")
-
-eapi.__comp = "huh whuh"
-print(eapi.__comp)
+# eapi = EscrowAPI("hi")
+# print(eapi)
 
 # EscrowAPIStatic.__comp__ = "huh whuh"

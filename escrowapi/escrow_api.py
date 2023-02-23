@@ -1,10 +1,3 @@
-import os
-import pathlib
-from common import general_utils
-from common.pydantic_models.user import User
-from common.pydantic_models.policy import Policy
-from ds import DataStation
-
 class EscrowAPI:
     __comp = None
 
@@ -14,8 +7,8 @@ class EscrowAPI:
         cls.__comp = comp
 
     @classmethod
-    def get_all_accessible_des(cls):
-        return cls.__comp.get_all_accessible_des()
+    def get_all_files(cls):
+        return cls.__comp.get_all_files()
 
 
     @classmethod
