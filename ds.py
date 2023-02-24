@@ -586,9 +586,7 @@ class DataStation:
 
         Parameters:
          username: the unique username identifying which user is calling the api
-         api: api to call
-         exec_mode: optimistic or pessimistic
-         *args, **kwargs: arguments to the API call
+         staged_ID: the data id to release
 
         Returns:
          released data
