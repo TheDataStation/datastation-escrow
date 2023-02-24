@@ -46,7 +46,7 @@ class Gatekeeper:
         self.server = FlaskDockerServer()
         self.server.start_server()
 
-        # register functions in database_api
+        # register all api_endpoints that are functions in database_api
         function_names = get_functions_names()
         # now we call dbservice to register these info in the DB
         for cur_api in function_names:
