@@ -20,6 +20,6 @@ def initialize_system(ds_config_path, app_config_path, need_to_recover = False):
     app_config = general_utils.parse_config(app_config_path)
 
     ds = DataStation(ds_config, app_config, need_to_recover)
-    EscrowAPI.set_comp(ds)
+    EscrowAPI._set_comp(ds)
 
     return ds
