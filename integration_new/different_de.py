@@ -59,9 +59,11 @@ if __name__ == '__main__':
                              file_bytes, )
 
     de_name_2 = "postgres_table"
-    de_access_param_obj = {"credentials": "host='hh-pgsql-public.ebi.ac.uk' dbname='pfmegrnargs' "
-                                          "user='reader' password='NWDMCE5xdipIjRrp'",
-                           "query": "SELECT * FROM rnc_database"}
+    de_access_param_obj = {"credentials": "host='psql-mock-database-cloud.postgres.database.azure.com' "
+                                          "dbname='booking1677197406169yivvxvruhvmbvqzh' "
+                                          "user='gyhksqubzvuzcrdbhovifciu@psql-mock-database-cloud' "
+                                          "password='mbaqbkpppcmhsdbqukeutann'",
+                           "query": "SELECT * FROM bookings"}
     de_access_param_2 = json.dumps(de_access_param_obj)
     optimistic_flag_2 = False
     register_res = ds.call_api("jerry",
