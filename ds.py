@@ -231,68 +231,6 @@ class DataStation:
         # Call policy_broker directly
         return policy_broker.get_all_dependencies()
 
-    # def register_data(self,
-    #                      username,
-    #                      data_name,
-    #                      data_in_bytes,
-    #                      data_type,
-    #                      optimistic,
-    #                      original_data_size=None):
-    #     """
-    #     Uploads a dataset to DS, tied to a specific user
-    #
-    #     Parameters:
-    #      username: the unique username identifying which user owns the dataset
-    #      data_name: name of the data
-    #      data_in_bytes: size of data to be uploaded
-    #      data_type: TODO: what types of data are able to be uploaded?
-    #      optimistic: flag to be included in optimistic data discovery
-    #
-    #     Returns:
-    #      Response of data register
-    #     """
-    #     # Decide which data_id to use from ClientAPI.cur_data_id field
-    #     data_id = self.cur_data_id
-    #     self.cur_data_id += 1
-    #
-    #     # We first call SM to store the data
-    #     # Note that SM needs to return access_param (how can the data element be accessed)
-    #     # so that data_register can register this info
-    #
-    #     storage_manager_response = self.storage_manager.store(data_name,
-    #                                                           data_id,
-    #                                                           data_in_bytes,
-    #                                                           data_type,)
-    #     if storage_manager_response.status == 1:
-    #         return storage_manager_response
-    #
-    #     # Storing data is successful. We now call data_register to register this data element in DB
-    #     # Note: for file, access_param is the fullpath to the file
-    #     access_param = storage_manager_response.access_param
-    #
-    #     if self.trust_mode == "full_trust":
-    #         data_register_response = data_register.register_data_in_DB(data_id,
-    #                                                                    data_name,
-    #                                                                    username,
-    #                                                                    data_type,
-    #                                                                    access_param,
-    #                                                                    optimistic)
-    #     else:
-    #         data_register_response = data_register.register_data_in_DB(data_id,
-    #                                                                    data_name,
-    #                                                                    username,
-    #                                                                    data_type,
-    #                                                                    access_param,
-    #                                                                    optimistic,
-    #                                                                    self.write_ahead_log,
-    #                                                                    self.key_manager,
-    #                                                                    original_data_size)
-    #     if data_register_response.status != 0:
-    #         return Response(status=data_register_response.status,
-    #                         message=data_register_response.message)
-    #
-    #     return data_register_response
-
     def register_data(self,
                       username,
                       data_name,
@@ -652,9 +590,7 @@ class DataStation:
 
         Parameters:
          username: the unique username identifying which user is calling the api
-         api: api to call
-         exec_mode: optimistic or pessimistic
-         *args, **kwargs: arguments to the API call
+         staged_ID: id of the staged data element
 
         Returns:
          released data
@@ -749,21 +685,6 @@ class DataStation:
         Shuts down the DS system. Unmounts the interceptor and stops the process, clears
          the DB, app register, and db.checkpoint, and shuts down the gatekeeper server
         """
-        # # print("shutting down...")
-        # mount_point = self.config.mount_point
-        # # print(mount_point)
-        # unmount_status = os.system("umount " + str(mount_point))
-        # counter = 0
-        # while unmount_status != 0:
-        #     time.sleep(1)
-        #     unmount_status = os.system("umount " + str(mount_point))
-        #     if counter == 10:
-        #         print("Unmount failed")
-        #         exit(1)
-        #
-        # assert os.path.ismount(mount_point) is False
-        # self.interceptor_process.join()
-
         # stop gatekeeper server
         self.gatekeeper.shut_down()
 
