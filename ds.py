@@ -195,8 +195,7 @@ class DataStation:
 
         return Response(status=response.status, message=response.message)
 
-    @staticmethod
-    def get_all_apis():
+    def get_all_apis(self):
         """
         Gets all APIs from the policy broker
 
@@ -209,8 +208,7 @@ class DataStation:
         # Call policy_broker directly
         return policy_broker.get_all_apis()
 
-    @staticmethod
-    def get_all_api_dependencies():
+    def get_all_api_dependencies(self):
         """
         Gets all API dependencies from the policy broker
 
