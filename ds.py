@@ -382,8 +382,7 @@ class DataStation:
 
         return Response(status=response.status, message=response.message)
 
-    @staticmethod
-    def get_all_policies():
+    def get_all_policies(self):
         """
         Gets all a policies from DS
 
