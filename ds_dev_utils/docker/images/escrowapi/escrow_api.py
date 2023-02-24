@@ -2,7 +2,7 @@ class EscrowAPI:
     __comp = None
 
     @classmethod
-    def set_comp(cls,comp):
+    def _set_comp(cls,comp):
         print("setting escrow api composition to: ", comp)
         cls.__comp = comp
 
