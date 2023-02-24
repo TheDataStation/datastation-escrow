@@ -2,9 +2,9 @@ class EscrowAPI:
     __comp = None
 
     @classmethod
-    def _set_comp(cls,comp):
-        print("setting escrow api composition to: ", comp)
-        cls.__comp = comp
+    def _set_comp(cls,api_implementation):
+        print("setting escrow api composition to: ", api_implementation)
+        cls.__comp = api_implementation
 
     @classmethod
     def get_all_files(cls):
