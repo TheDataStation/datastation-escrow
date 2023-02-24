@@ -8,6 +8,8 @@ from ast import literal_eval
 
 from run_function import (load_connectors, run_function)
 from Interceptor import interceptor
+from escrow_api_docker import EscrowAPIDocker
+from escrowapi.escrow_api import EscrowAPI
 import multiprocessing
 from dsapplicationregistration.dsar_core import get_registered_functions
 
@@ -19,6 +21,9 @@ def main():
     # Get the PID of the current process
     main_pid = os.getpid()
     print("setup.py: main PID is", main_pid)
+
+    escrow_api_docker = EscrowAPIDocker()
+    EscrowAPI._set_comp(escrow_api_docker)
 
     with open("/usr/src/ds/args.pkl", "rb") as f:
         config_dict_data_bytes = f.read()

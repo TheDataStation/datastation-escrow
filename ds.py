@@ -495,7 +495,7 @@ class DataStation:
             if api == cur_api.__name__:
                 print("user is calling an api_endpoint", api)
                 # print(args)
-                cur_api(self, *args, **kwargs)
+                cur_api(*args, **kwargs)
                 return 0
 
         # If it's jail, it goes to the gatekeeper
