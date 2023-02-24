@@ -26,7 +26,8 @@ from dbservice import database_api
 from dbservice.database import engine
 from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
                                                  clear_api_endpoint,
-                                                 clear_function, )
+                                                 clear_function,
+                                                 register_epf, )
 from userregister import user_register
 
 
@@ -99,9 +100,12 @@ class DataStation:
         self.key_manager = KeyManager()
 
         print(storage_path)
-        # set up the gatekeeper
-
         self.epf_path = app_config["epf_path"]
+
+        # register all api_endpoints
+        register_epf(self.epf_path)
+
+        # set up the gatekeeper
         self.gatekeeper = Gatekeeper(
             self.data_station_log,
             self.write_ahead_log,

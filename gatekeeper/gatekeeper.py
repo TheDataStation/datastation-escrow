@@ -29,6 +29,8 @@ class Gatekeeper:
         The general class for the gatekeeper, which brokers access to data elements
         """
 
+        print("Start setting up the gatekeeper")
+
         # save variables
         self.data_station_log = data_station_log
         self.write_ahead_log = write_ahead_log
@@ -40,19 +42,12 @@ class Gatekeeper:
         # set docker id variable
         self.docker_id = 1
 
+
         self.server = FlaskDockerServer()
         self.server.start_server()
 
-        # print("Start setting up the gatekeeper")
-        print("Start setting up the gatekeeper")
-        register_epf(epf_path)
-        procedure_names = get_api_endpoint_names()
+        # register functions in database_api
         function_names = get_functions_names()
-        print(procedure_names)
-        print(function_names)
-        functions = get_registered_functions()
-        # dependencies_to_register = get_registered_dependencies()
-        # # print(dependencies_to_register)
         # now we call dbservice to register these info in the DB
         for cur_api in function_names:
             api_db = API(api_name=cur_api)
