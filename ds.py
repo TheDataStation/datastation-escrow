@@ -428,7 +428,8 @@ class DataStation:
         for a in agents:
             for f in functions:
                 for d in data_elements:
-                    cur_policy = Policy(user_id=a, api=f, data_id=d, share_id=share_id, status=0)
+                    cur_policy = Policy(
+                        user_id=a, api=f, data_id=d, share_id=share_id, status=0)
                     if self.trust_mode == "full_trust":
                         response = policy_broker.upload_policy(cur_policy,
                                                                username, )
@@ -449,7 +450,8 @@ class DataStation:
             data_id: id of the data element
         """
         if self.trust_mode == "full_trust":
-            response = policy_broker.ack_data_in_share(username, data_id, share_id)
+            response = policy_broker.ack_data_in_share(
+                username, data_id, share_id)
         else:
             response = policy_broker.ack_data_in_share(username,
                                                        data_id,
