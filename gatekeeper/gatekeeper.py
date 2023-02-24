@@ -22,8 +22,6 @@ class Gatekeeper:
                  write_ahead_log: WAL,
                  key_manager: KeyManager,
                  trust_mode: str,
-                 accessible_data_dict,
-                 data_accessed_dict,
                  epf_path,
                  mount_dir,
                  ):
@@ -37,8 +35,6 @@ class Gatekeeper:
         self.key_manager = key_manager
         self.trust_mode = trust_mode
 
-        self.accessible_data_dict = accessible_data_dict
-        self.data_accessed_dict = data_accessed_dict
         self.epf_path = epf_path
         self.mount_dir = mount_dir
         # set docker id variable
