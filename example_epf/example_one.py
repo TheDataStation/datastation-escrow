@@ -31,7 +31,7 @@ def ack_data_in_share(username, data_id, share_id):
 def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
-    files = EscrowAPI.get_all_files()
+    files = EscrowAPI.get_all_accessible_des()
     print(files)
     res = []
     for file in set(files):

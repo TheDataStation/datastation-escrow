@@ -7,8 +7,8 @@ class EscrowAPI:
         cls.__comp = api_implementation
 
     @classmethod
-    def get_all_files(cls):
-        return cls.__comp.get_all_files()
+    def get_all_accessible_des(cls):
+        return cls.__comp.get_all_accessible_des()
 
 
     @classmethod

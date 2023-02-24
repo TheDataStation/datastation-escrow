@@ -7,7 +7,7 @@ class EscrowAPIDocker:
 
 
     # Returns the all the file names that are accessible to the caller (in absolute paths)
-    def get_all_files(self):
+    def get_all_accessible_des(self):
         mount_path = pathlib.Path("/mnt/data_mount")
         files = []
         DE_dir_name = os.listdir(mount_path)
@@ -26,10 +26,11 @@ class EscrowAPIDocker:
             files.append(os.path.join(str(DE_dir_name), str(os.listdir(DE_dir_name)[0])))
         return files
 
-    def get_accessible_des(self):
+    #TODO: implement these
+    def _get_accessible_des(self):
         # some implementation of requests to communicate with flask docker server
         ret = requests.post("")
         return ret
 
-    def get_de(self):
+    def _get_de(self):
         requests.post("")
