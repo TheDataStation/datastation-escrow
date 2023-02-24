@@ -326,7 +326,9 @@ class DataStation:
 
         Parameters:
          username: the unique username identifying which user wrote the policy
-         policy: policy to upload
+         user_id: part of policy to upload, the user ID of the policy
+         api: the api the policy refers to
+         data_id: the data id the policy refers to
 
         Returns:
          Response of policy broker
@@ -359,17 +361,21 @@ class DataStation:
                                                           self.key_manager,)
             return response
 
-    def remove_policy(self, username, policy: Policy):
+    def remove_policy(self, username, user_id, api, data_id):
         """
         Removes a policy from DS
 
         Parameters:
          username: the unique username identifying which user wrote the policy
-         policy: policy to remove
+         user_id: part of policy to upload, the user ID of the policy
+         api: the api the policy refers to
+         data_id: the data id the policy refers to
 
         Returns:
          Response of policy broker
         """
+
+        policy = Policy(user_id=user_id, api=api, data_id=data_id)
 
         if self.trust_mode == "full_trust":
             response = policy_broker.remove_policy(policy,
