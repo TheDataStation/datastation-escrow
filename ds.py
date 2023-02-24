@@ -24,7 +24,6 @@ from crypto.key_manager import KeyManager
 from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
-from dbservice.database_api import clear_checkpoint_table_paths, set_checkpoint_table_paths, recover_db_from_snapshots
 from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
                                                  clear_api_endpoint,
                                                  clear_function, )
@@ -114,12 +113,12 @@ class DataStation:
 
         # set up the table_paths in dbservice.check_point
         table_paths = self.config.table_paths
-        set_checkpoint_table_paths(table_paths)
+        database_api.set_checkpoint_table_paths(table_paths)
 
         # Lastly, if we are in recover mode, we need to call
         if need_to_recover:
             self.load_symmetric_keys()
-            recover_db_from_snapshots(self.key_manager)
+            database_api.recover_db_from_snapshots(self.key_manager)
             self.recover_db_from_wal()
 
         # The following field decides which data_id we should use when we upload a new DE
@@ -683,7 +682,7 @@ class DataStation:
         engine.dispose()
         clear_function()
         clear_api_endpoint()
-        clear_checkpoint_table_paths()
+        database_api.clear_checkpoint_table_paths()
 
         print("shut down complete")
 
