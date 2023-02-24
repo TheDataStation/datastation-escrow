@@ -18,17 +18,16 @@ def register_data_in_DB(data_id,
                         key_manager=None,
                         original_data_size=None):
 
-    # check if there is an existing dataset
+    # Check if there is an existing dataset
 
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
     if existed_dataset.status == 1:
         return Response(status=1, message="there is a dataset using the same name")
 
-    # We now call DB to register a new dataset in the database
+    # Call DB to register a new dataset in the database
 
-    # check if there is an existing user
+    # Check if there is an existing user
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
-    # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
@@ -46,7 +45,6 @@ def register_data_in_DB(data_id,
                     + "',optimistic=" + str(optimistic) \
                     + "',original_data_size=" + str(original_data_size) \
                     + "))"
-        # If write_ahead_log is not None, key_manager also will not be None
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     new_dataset = Dataset(id=data_id,
@@ -67,7 +65,7 @@ def remove_data(data_name,
                 write_ahead_log=None,
                 key_manager=None,):
 
-    # Step 1: check if there is an existing dataset
+    # Check if there is an existing dataset
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
 
     if existed_dataset.status == -1:
@@ -79,19 +77,19 @@ def remove_data(data_name,
     dataset_id = existed_dataset.data[0].id
     type_of_data = existed_dataset.data[0].type
 
-    # check if there is an existing user
+    # Check if there is an existing user
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
-    # Step 2: if exists, check if the dataset owner is the current user
+    # If dataset exists, check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(dataset_id, cur_username)
     if verify_owner_response.status == 1:
         return verify_owner_response
 
-    # Step 3: actually remove the dataset
+    # Actually remove the dataset
     # If in no_trust mode, we need to record this REMOVE_DATA to wal
     if write_ahead_log is not None:
         wal_entry = "database_api.remove_dataset_by_name(Dataset(name='" + data_name \

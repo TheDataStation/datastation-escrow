@@ -11,7 +11,7 @@ from userregister import user_register
 
 app = Flask(__name__)
 
-# create user
+# call api
 @app.route("/call_api", methods=['post'])
 def call_api():
     """
@@ -75,10 +75,10 @@ if __name__ == "__main__":
                     prog = 'DSClientAPI',
                     description = 'A Client API for Data Station',
                     epilog = 'Text at the bottom of help')
-    parser.add_argument('-c','--ds_config', default='data_station_config.yaml', type=str)
-    parser.add_argument('-a','--app_config', default='app_connector_config.yaml', type=str)
-    parser.add_argument('-p','--port', default=8080, type=int)
-    parser.add_argument('-hs','--host', default="localhost", type=str)
+    parser.add_argument('-c', '--ds_config', default='data_station_config.yaml', type=str)
+    parser.add_argument('-a', '--app_config', default='app_connector_config.yaml', type=str)
+    parser.add_argument('-p', '--port', default=8080, type=int)
+    parser.add_argument('-hs', '--host', default="localhost", type=str)
 
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -94,7 +94,6 @@ if __name__ == "__main__":
                 os.unlink(file_path)
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
-
 
     args = parser.parse_args()
     print(args)

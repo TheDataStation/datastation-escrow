@@ -1,13 +1,4 @@
 import os
-import pathlib
-import time
-import multiprocessing
-import pathlib
-
-# from dsapplicationregistration.dsar_core import (register_connectors,
-#                                                  get_names_registered_functions,
-#                                                  get_registered_functions,
-#                                                  get_registered_dependencies, )
 from dsapplicationregistration.dsar_core import (register_epf,
                                                  get_api_endpoint_names,
                                                  get_functions_names,
@@ -18,9 +9,6 @@ from common.pydantic_models.api import API
 from common.pydantic_models.api_dependency import APIDependency
 from common.pydantic_models.user import User
 from common.pydantic_models.response import Response, APIExecResponse
-from common import general_utils
-from crypto import cryptoutils as cu
-from ds_dev_utils import jail_utils
 
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
@@ -40,7 +28,7 @@ class Gatekeeper:
                  mount_dir,
                  ):
         """
-        The general class for the gatekeeper, which brokers access to data.
+        The general class for the gatekeeper, which brokers access to data elements
         """
 
         # save variables
@@ -207,13 +195,13 @@ class Gatekeeper:
 
         # actual api call
         ret = call_actual_api(api,
-                            self.epf_path,
-                            self.mount_dir,
-                            accessible_data_dict,
-                            self.get_new_docker_id(),
-                            self.server,
-                            *args,
-                            )
+                              self.epf_path,
+                              self.mount_dir,
+                              accessible_data_dict,
+                              self.get_new_docker_id(),
+                              self.server,
+                              *args,
+                              )
 
         api_result = ret["return_value"]
         data_path_accessed = api_result[1]
@@ -223,11 +211,9 @@ class Gatekeeper:
         api_result = api_result[0]
         print("API result is", api_result)
 
-        print("Checking the two dictionaries:")
-        print(accessible_data_new_set)
-        print(data_ids_accessed)
-        print(accessible_data_policy)
-        print(all_accessible_data_id)
+        print("data accessed is", data_ids_accessed)
+        print("accessible data by policy is", accessible_data_policy)
+        print("all accessible data is", all_accessible_data_id)
 
         if set(data_ids_accessed).issubset(set(accessible_data_policy)):
             # print("All data access allowed by policy.")
@@ -235,7 +221,7 @@ class Gatekeeper:
             self.data_station_log.log_intent_policy_match(cur_user_id,
                                                           api,
                                                           data_ids_accessed,
-                                                          self.key_manager,)
+                                                          self.key_manager, )
             # In this case, we can return the result to caller.
             response = APIExecResponse(status=0,
                                        message="API result can be released",
@@ -248,10 +234,10 @@ class Gatekeeper:
                                                              api,
                                                              data_ids_accessed,
                                                              set(accessible_data_policy),
-                                                             self.key_manager,)
+                                                             self.key_manager, )
             response = APIExecResponse(status=-1,
                                        message="Some access to optimistic data not allowed by policy.",
-                                       result=[api_result, data_ids_accessed],)
+                                       result=[api_result, data_ids_accessed], )
         else:
             # TODO: illegal access can still happen since interceptor does not block access
             #  (except filter out inaccessible data when list dir)
@@ -261,7 +247,7 @@ class Gatekeeper:
                                                              api,
                                                              data_ids_accessed,
                                                              set(accessible_data_policy),
-                                                             self.key_manager,)
+                                                             self.key_manager, )
             response = Response(
                 status=1, message="Access to illegal data happened. Something went wrong.")
 
@@ -269,6 +255,7 @@ class Gatekeeper:
 
     def shut_down(self):
         self.server.stop_server()
+
 
 def call_actual_api(api_name,
                     epf_path,
@@ -281,7 +268,6 @@ def call_actual_api(api_name,
                     ):
     """
     The thread that runs the API on the Docker container
-    TODO: do not hard code API pid
 
     Parameters:
      api_name: name of API to run on Docker container
@@ -333,8 +319,8 @@ def call_actual_api(api_name,
     # TODO clean up: uncomment line below in production
     # session.stop_and_prune()
 
-# We add times to the following function to record the overheads
 
+# We add times to the following function to record the overheads
 
 if __name__ == '__main__':
     print("Gatekeeper starting.")
