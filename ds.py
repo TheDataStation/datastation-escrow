@@ -496,7 +496,7 @@ class DataStation:
         list_of_api_endpoint = get_registered_api_endpoint()
         for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
-                # print("user is calling an api_endpoint", api)
+                print("user is calling an api_endpoint", api)
                 # print(args)
                 res = cur_api(*args, **kwargs)
                 return res
