@@ -33,6 +33,11 @@ def ack_data_in_share(username, data_id, share_id):
     return EscrowAPI.ack_data_in_share(username, data_id, share_id)
 
 @function
+def get_data():
+    """get the content of the data elements"""
+    des = EscrowAPI.get_all_accessible_des()
+
+@function
 def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
