@@ -12,7 +12,6 @@ from common.pydantic_models.policy import Policy
 from common import common_procedure
 from common.general_utils import parse_config
 
-from dbservice.database_api import set_checkpoint_table_paths, recover_db_from_snapshots
 from storagemanager.storage_manager import StorageManager
 from stagingstorage.staging_storage import StagingStorage
 from policybroker import policy_broker
@@ -25,10 +24,10 @@ from crypto.key_manager import KeyManager
 from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
-from dbservice.database_api import clear_checkpoint_table_paths
 from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
                                                  clear_api_endpoint,
-                                                 clear_function, )
+                                                 clear_function,
+                                                 register_epf, )
 from userregister import user_register
 
 
@@ -61,8 +60,6 @@ class DataStation:
             # interceptor paths
             self.ds_storage_path = str(pathlib.Path(
                 ds_config["storage_path"]).absolute())
-            self.mount_point = str(pathlib.Path(
-                ds_config["mount_path"]).absolute())
 
     def __init__(self, ds_config, app_config, need_to_recover=False):
         """
@@ -98,38 +95,33 @@ class DataStation:
         check_point_freq = self.config.check_point_freq
         self.write_ahead_log = WAL(wal_path, check_point_freq)
 
-        # set up mount point
-        mount_point = self.config.mount_point
-        self.accessible_data_dict = {}
-        self.data_accessed_dict = {}
-
         # set up an instance of the key manager
         self.key_manager = KeyManager()
 
-        print(mount_point)
         print(storage_path)
-        # set up the gatekeeper
-
         self.epf_path = app_config["epf_path"]
+
+        # register all api_endpoints
+        register_epf(self.epf_path)
+
+        # set up the gatekeeper
         self.gatekeeper = Gatekeeper(
             self.data_station_log,
             self.write_ahead_log,
             self.key_manager,
             self.trust_mode,
-            self.accessible_data_dict,
-            self.data_accessed_dict,
             self.epf_path,
             self.config.ds_storage_path
         )
 
         # set up the table_paths in dbservice.check_point
         table_paths = self.config.table_paths
-        set_checkpoint_table_paths(table_paths)
+        database_api.set_checkpoint_table_paths(table_paths)
 
         # Lastly, if we are in recover mode, we need to call
         if need_to_recover:
             self.load_symmetric_keys()
-            recover_db_from_snapshots(self.key_manager)
+            database_api.recover_db_from_snapshots(self.key_manager)
             self.recover_db_from_wal()
 
         # The following field decides which data_id we should use when we upload a new DE
@@ -202,8 +194,7 @@ class DataStation:
 
         return Response(status=response.status, message=response.message)
 
-    @staticmethod
-    def get_all_apis():
+    def get_all_apis(self):
         """
         Gets all APIs from the policy broker
 
@@ -216,8 +207,7 @@ class DataStation:
         # Call policy_broker directly
         return policy_broker.get_all_apis()
 
-    @staticmethod
-    def get_all_api_dependencies():
+    def get_all_api_dependencies(self):
         """
         Gets all API dependencies from the policy broker
 
@@ -339,7 +329,9 @@ class DataStation:
 
         Parameters:
          username: the unique username identifying which user wrote the policy
-         policy: policy to upload
+         user_id: part of policy to upload, the user ID of the policy
+         api: the api the policy refers to
+         data_id: the data id the policy refers to
 
         Returns:
          Response of policy broker
@@ -372,17 +364,21 @@ class DataStation:
                                                           self.key_manager, )
             return response
 
-    def remove_policy(self, username, policy: Policy):
+    def remove_policy(self, username, user_id, api, data_id):
         """
         Removes a policy from DS
 
         Parameters:
          username: the unique username identifying which user wrote the policy
-         policy: policy to remove
+         user_id: part of policy to upload, the user ID of the policy
+         api: the api the policy refers to
+         data_id: the data id the policy refers to
 
         Returns:
          Response of policy broker
         """
+
+        policy = Policy(user_id=user_id, api=api, data_id=data_id)
 
         if self.trust_mode == "full_trust":
             response = policy_broker.remove_policy(policy,
@@ -395,8 +391,7 @@ class DataStation:
 
         return Response(status=response.status, message=response.message)
 
-    @staticmethod
-    def get_all_policies():
+    def get_all_policies(self):
         """
         Gets all a policies from DS
 
@@ -436,7 +431,8 @@ class DataStation:
         for a in agents:
             for f in functions:
                 for d in data_elements:
-                    cur_policy = Policy(user_id=a, api=f, data_id=d, share_id=share_id, status=0)
+                    cur_policy = Policy(
+                        user_id=a, api=f, data_id=d, share_id=share_id, status=0)
                     if self.trust_mode == "full_trust":
                         response = policy_broker.upload_policy(cur_policy,
                                                                username, )
@@ -445,7 +441,7 @@ class DataStation:
                                                                username,
                                                                self.write_ahead_log,
                                                                self.key_manager, )
-        return 0
+        return response
 
     def ack_data_in_share(self, username, data_id, share_id):
         """
@@ -457,7 +453,8 @@ class DataStation:
             data_id: id of the data element
         """
         if self.trust_mode == "full_trust":
-            response = policy_broker.ack_data_in_share(username, data_id, share_id)
+            response = policy_broker.ack_data_in_share(
+                username, data_id, share_id)
         else:
             response = policy_broker.ack_data_in_share(username,
                                                        data_id,
@@ -544,6 +541,8 @@ class DataStation:
 
             staging_storage_response = self.staging_storage.store(staging_data_id,
                                                                   api_result)
+
+            # staging_storage error
             if staging_storage_response.status == 1:
                 return staging_storage_response
 
@@ -692,7 +691,7 @@ class DataStation:
         engine.dispose()
         clear_function()
         clear_api_endpoint()
-        clear_checkpoint_table_paths()
+        database_api.clear_checkpoint_table_paths()
 
         print("shut down complete")
 
