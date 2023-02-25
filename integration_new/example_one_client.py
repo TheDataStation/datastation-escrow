@@ -77,7 +77,7 @@ if __name__ == '__main__':
             cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
         ret = call_api('jerry',
-                       'register_dataset',
+                       'register_data',
                        None,
                        None,
                        "jerry",
