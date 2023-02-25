@@ -127,12 +127,12 @@ if __name__ == '__main__':
                         content = f.read()
                         cur_optimistic_flag = False
                         name_to_upload = "file-" + str(cur_num + 1)
-                        cur_res = client_api.register_dataset(name_to_upload,
-                                                              content,
+                        cur_res = client_api.register_data(name_to_upload,
+                                                           content,
                                                             "file",
-                                                              cur_optimistic_flag,
-                                                              cur_token,
-                                                              original_data_size=len(random_bytes))
+                                                           cur_optimistic_flag,
+                                                           cur_token,
+                                                           original_data_size=len(random_bytes))
                         if cur_res.status == 0:
                             list_of_data_ids.append(cur_res.data_id)
 

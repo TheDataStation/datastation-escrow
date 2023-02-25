@@ -12,11 +12,10 @@ def register_data_in_DB(data_id,
                         data_name,
                         cur_username,
                         data_type,
-                        access_type,
+                        access_param,
                         optimistic,
                         write_ahead_log=None,
-                        key_manager=None,
-                        original_data_size=None):
+                        key_manager=None):
 
     # Check if there is an existing dataset
 
@@ -32,8 +31,8 @@ def register_data_in_DB(data_id,
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
-    if pathlib.Path(access_type).is_file():
-        access_type = str(pathlib.Path(access_type).absolute())
+    if pathlib.Path(access_param).is_file():
+        access_param = str(pathlib.Path(access_param).absolute())
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log is not None:
@@ -41,9 +40,8 @@ def register_data_in_DB(data_id,
                     + ",name='" + data_name \
                     + "',owner_id=" + str(cur_user_id) \
                     + ",type='" + data_type \
-                    + "',access_type='" + access_type \
+                    + "',access_param='" + access_param \
                     + "',optimistic=" + str(optimistic) \
-                    + "',original_data_size=" + str(original_data_size) \
                     + "))"
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
@@ -51,9 +49,8 @@ def register_data_in_DB(data_id,
                           name=data_name,
                           owner_id=cur_user_id,
                           type=data_type,
-                          access_type=access_type,
-                          optimistic=optimistic,
-                          original_data_size=original_data_size)
+                          access_param=access_param,
+                          optimistic=optimistic)
     database_service_response = database_api.create_dataset(new_dataset)
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")

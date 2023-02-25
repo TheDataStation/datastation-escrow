@@ -5,27 +5,32 @@ import csv
 
 
 @api_endpoint
-def register_dataset(username,
-                     data_name,
-                     data_in_bytes,
-                     data_type,
-                     optimistic,
-                     original_data_size=None):
-    print("This is a customized upload data!")
-    EscrowAPI.register_dataset(username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
+def register_data(username,
+                  data_name,
+                  data_type,
+                  access_param,
+                  optimistic):
+    print("This is a customized register data!")
+    return EscrowAPI.register_data(username, data_name, data_type, access_param, optimistic)
+
+@api_endpoint
+def upload_data(username,
+                data_id,
+                data_in_bytes):
+    return EscrowAPI.upload_data(username, data_id, data_in_bytes)
 
 @api_endpoint
 def upload_policy(username, user_id, api, data_id):
     print("This is a customized upload policy!")
-    EscrowAPI.upload_policy(username, user_id, api, data_id)
+    return EscrowAPI.upload_policy(username, user_id, api, data_id)
 
 @api_endpoint
 def suggest_share(username, agents, functions, data_elements):
-    EscrowAPI.suggest_share(username, agents, functions, data_elements)
+    return EscrowAPI.suggest_share(username, agents, functions, data_elements)
 
 @api_endpoint
 def ack_data_in_share(username, data_id, share_id):
-    EscrowAPI.ack_data_in_share(username, data_id, share_id)
+    return EscrowAPI.ack_data_in_share(username, data_id, share_id)
 
 @function
 def line_count():
@@ -39,6 +44,3 @@ def line_count():
         reader = csv.reader(csv_file)
         res.append(len(list(reader)))
     return res
-
-# create a PR for interceptor docker, and another one for this change
-# restructuring the code

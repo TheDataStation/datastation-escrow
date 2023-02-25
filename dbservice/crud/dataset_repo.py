@@ -16,7 +16,7 @@ def get_all_optimistic_datasets(db: Session):
     all_optimistic_data = db.query(Dataset).filter(Dataset.optimistic == True).all()
     return all_optimistic_data
 
-def get_dataset_by_id(db: Session, dataset_id: int):
+def get_data_by_id(db: Session, dataset_id: int):
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
     if dataset:
         return dataset
@@ -31,9 +31,9 @@ def get_dataset_by_name(db: Session, name: str):
     else:
         return None
 
-# zz: get id by access_type
-def get_dataset_by_access_type(db: Session, access_type: str):
-    dataset = db.query(Dataset).filter(Dataset.access_type == access_type).first()
+# zz: get id by access_param
+def get_dataset_by_access_param(db: Session, access_param: str):
+    dataset = db.query(Dataset).filter(Dataset.access_param == access_param).first()
     if dataset:
         return dataset
     else:
@@ -41,7 +41,7 @@ def get_dataset_by_access_type(db: Session, access_type: str):
 
 def get_datasets_by_paths(db: Session, paths):
     # session.query(MyUserClass).filter(MyUserClass.id.in_((123,456))).all()
-    datasets = db.query(Dataset).filter(Dataset.access_type.in_(tuple(paths))).all()
+    datasets = db.query(Dataset).filter(Dataset.access_param.in_(tuple(paths))).all()
     return datasets
 
 def get_datasets_by_ids(db: Session, ids: list):
@@ -63,10 +63,9 @@ def create_dataset(db: Session, dataset: DatasetCreate):
                          owner_id=dataset.owner_id,
                          name=dataset.name,
                          type=dataset.type,
-                         access_type=dataset.access_type,
+                         access_param=dataset.access_param,
                          description=dataset.description,
-                         optimistic=dataset.optimistic,
-                         original_data_size=dataset.original_data_size)
+                         optimistic=dataset.optimistic)
 
     try:
         db.add(db_dataset)
@@ -104,9 +103,9 @@ def recover_datas(db: Session, datas):
                            owner_id=data.owner_id,
                            name=data.name,
                            type=data.type,
-                           access_type=data.access_type,
+                           access_param=data.access_param,
                            description=data.description,
-                           optimistic=data.optimistic,)
+                           optimistic=data.optimistic, )
         datas_to_add.append(cur_data)
     try:
         db.add_all(datas_to_add)
