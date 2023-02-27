@@ -94,7 +94,7 @@ def main():
     print(response.content)
 
     # request function to run
-    response = requests.get('http://host.docker.internal:3030/function', params=send_params)
+    response = requests.get('http://host.docker.internal:3030/get_function_dict', params=send_params)
     function_dict = pickle.loads(response.content)
     print("function dictionary: ", function_dict)
 
@@ -103,7 +103,10 @@ def main():
     print("Return value is", ret)
     print(dict(data_accessed_dict))
 
-    data_accessed = dict(data_accessed_dict)[main_pid]
+    if main_pid in dict(data_accessed_dict):
+        data_accessed = dict(data_accessed_dict)[main_pid]
+    else:
+        data_accessed = []
     to_send_back = pickle.dumps({"return_value": ret, "data_accessed": data_accessed})
 
     # Before we return the result of the function, look at the data elements accessed
@@ -111,14 +114,11 @@ def main():
     # print(to_send_back)
 
     # send the return value of the function
-    response = requests.post("http://host.docker.internal:3030/function_return",
+    response = requests.post("http://host.docker.internal:3030/get_function_return",
                              data=to_send_back,
                              params=send_params,
-                             # headers={'Content-Type': 'application/octet-stream'},
                              )
     print(response, response.content)
-
-    # time.sleep(1000000)
 
 
 if __name__ == '__main__':

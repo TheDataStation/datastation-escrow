@@ -219,13 +219,13 @@ def flask_thread(port, q: Queue, function_dict_to_send):
         print("received from: ", id)
         return "Start received!"
 
-    @app.route("/function")
+    @app.route("/get_function_dict")
     def function():
         docker_id = int(request.args.get('docker_id'))
         print("sending function from docker_id: ", docker_id)
         return pickle.dumps(function_dict_to_send[docker_id])
 
-    @app.route("/function_return", methods=['post'])
+    @app.route("/get_function_return", methods=['post'])
     def function_return():
         docker_id = int(request.args.get('docker_id'))
 

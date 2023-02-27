@@ -42,10 +42,10 @@ def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
     files = EscrowAPI.get_all_accessible_des()
-    print(files)
-    res = []
-    for file in set(files):
-        csv_file = open(file)
-        reader = csv.reader(csv_file)
-        res.append(len(list(reader)))
-    return res
+    return files
+    # res = []
+    # for file in set(files):
+    #     csv_file = open(file)
+    #     reader = csv.reader(csv_file)
+    #     res.append(len(list(reader)))
+    # return res
