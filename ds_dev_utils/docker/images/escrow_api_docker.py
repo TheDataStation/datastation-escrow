@@ -1,10 +1,12 @@
 import requests
 import os
 import pathlib
+
+
 class EscrowAPIDocker:
+
     def __init__(self):
         return
-
 
     # Returns the all the file names that are accessible to the caller (in absolute paths)
     def get_all_accessible_des(self):
@@ -26,7 +28,7 @@ class EscrowAPIDocker:
             files.append(os.path.join(str(DE_dir_name), str(os.listdir(DE_dir_name)[0])))
         return files
 
-    #TODO: implement these
+    # TODO: implement these
     def _get_accessible_des(self):
         # some implementation of requests to communicate with flask docker server
         ret = requests.post("")
