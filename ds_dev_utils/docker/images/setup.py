@@ -28,7 +28,7 @@ def main():
 
     print(config_dict)
 
-    accessible_de_obj = config_dict["accessible_de"]
+    accessible_de = config_dict["accessible_de"]
     docker_id = config_dict["docker_id"]
 
     connector_dir = "/usr/src/ds/functions"
@@ -36,14 +36,14 @@ def main():
     print("setting up...")
 
     # Set up escrow_api docker
-    escrow_api_docker = EscrowAPIDocker()
+    escrow_api_docker = EscrowAPIDocker(accessible_de)
     EscrowAPI.set_comp(escrow_api_docker)
 
-    # Set up the file interceptor using info from accessible_de_obj
+    # Set up the file interceptor using info from accessible_de
 
     accessible_data_set = set()
     accessible_data_key_dict = {}
-    for cur_de in accessible_de_obj:
+    for cur_de in accessible_de:
         if cur_de.type == "file":
             cur_data_path = os.path.join("/mnt/data", str(cur_de.id), cur_de.name)
             accessible_data_set.add(cur_data_path)

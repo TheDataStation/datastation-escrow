@@ -5,7 +5,7 @@ import psycopg2
 
 class DataElement:
 
-    def __init__(self, id, name, type, access_param):
+    def __init__(self, id, name, type, access_param, enc_key=None):
         """
         For initializing an abstraction Data Element
 
@@ -14,11 +14,13 @@ class DataElement:
             nameP name of data element
             type: type of data element. We support a fixed set
             access_param: parameters needed to retrive this DE
+            enc_key: for no trust mode, the symmetric encryption key
         """
         self.id = id
         self.name = name
         self.type = type
         self.access_param = access_param
+        self.enc_key = enc_key
         if self.type == "postgres":
             self.access_param = json.loads(self.access_param)
 
@@ -44,18 +46,3 @@ class DataElement:
             return res
         else:
             return 0
-
-
-if __name__ == "__main__":
-    de_one = DataElement(1, "file", "a_cool_file")
-    data_one = de_one.get_data()
-    de_access_param_obj = {"credentials": "host='psql-mock-database-cloud.postgres.database.azure.com' "
-                                          "dbname='booking1677197406169yivvxvruhvmbvqzh' "
-                                          "user='gyhksqubzvuzcrdbhovifciu@psql-mock-database-cloud' "
-                                          "password='mbaqbkpppcmhsdbqukeutann'",
-                           "query": "SELECT * FROM bookings"}
-    de_access_param_2 = json.dumps(de_access_param_obj)
-    de_two = DataElement(2, "postgres", de_access_param_2)
-    data_two = de_two.get_data()
-    print(data_one)
-    print(data_two)

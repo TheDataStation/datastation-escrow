@@ -5,8 +5,8 @@ import pathlib
 
 class EscrowAPIDocker:
 
-    def __init__(self):
-        return
+    def __init__(self, accessible_de):
+        self.accessible_de = accessible_de
 
     # # Returns the all the file names that are accessible to the caller (in absolute paths)
     # def get_all_accessible_des(self):
@@ -28,12 +28,8 @@ class EscrowAPIDocker:
     #         files.append(os.path.join(str(DE_dir_name), str(os.listdir(DE_dir_name)[0])))
     #     return files
 
-    @staticmethod
-    def get_all_accessible_des():
-        # some implementation of requests to communicate with flask docker server
-        # ret = requests.post("")
-        # return ret
-        pass
+    def get_all_accessible_des(self):
+        return self.accessible_de
 
     @staticmethod
     def _get_de(self):
