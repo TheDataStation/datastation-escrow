@@ -22,23 +22,35 @@ def main():
     main_pid = os.getpid()
     print("setup.py: main PID is", main_pid)
 
-    escrow_api_docker = EscrowAPIDocker()
-    EscrowAPI.set_comp(escrow_api_docker)
-
     with open("/usr/src/ds/args.pkl", "rb") as f:
         config_dict_data_bytes = f.read()
         config_dict = pickle.loads(config_dict_data_bytes)
 
     print(config_dict)
 
-    accessible_data_obj = config_dict["accessible_data_dict"]
+    accessible_de_obj = config_dict["accessible_de"]
     docker_id = config_dict["docker_id"]
 
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
     print("setting up...")
 
-    # Setting up the interceptor
+    # Set up escrow_api docker
+    escrow_api_docker = EscrowAPIDocker()
+    EscrowAPI.set_comp(escrow_api_docker)
+
+    # Set up the file interceptor using info from accessible_de_obj
+
+    accessible_data_set = set()
+    accessible_data_key_dict = {}
+    for cur_de in accessible_de_obj:
+        if cur_de.type == "file":
+            cur_data_path = os.path.join("/mnt/data", str(cur_de.id), cur_de.name)
+            accessible_data_set.add(cur_data_path)
+            accessible_data_key_dict[cur_data_path] = cur_de.enc_key
+
+    accessible_data_obj = (accessible_data_set, accessible_data_key_dict)
+
     manager = multiprocessing.Manager()
 
     accessible_data_dict = manager.dict()

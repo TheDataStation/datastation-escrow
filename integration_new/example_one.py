@@ -76,7 +76,7 @@ if __name__ == '__main__':
         ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
-    line_count_res = ds.call_api("david", "line_count", 1, "pessimistic")
+    line_count_res = ds.call_api("david", "line_count", 1, "optimistic")
     print("The result of line count is:", line_count_res)
 
     # Last step: shut down the Data Station
