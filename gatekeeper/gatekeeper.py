@@ -42,8 +42,6 @@ class Gatekeeper:
         self.mount_dir = mount_dir
         # set docker id variable
         self.docker_id = 1
-
-
         self.server = FlaskDockerServer()
         self.server.start_server()
 

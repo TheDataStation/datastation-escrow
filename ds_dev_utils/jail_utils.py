@@ -212,6 +212,7 @@ def flask_thread(port, q: Queue, function_dict_to_send):
     """
 
     app = Flask(__name__)
+
     @app.route("/started")
     def started():
         id = int(request.args.get('docker_id'))
@@ -220,15 +221,15 @@ def flask_thread(port, q: Queue, function_dict_to_send):
 
     @app.route("/function")
     def function():
-        id = int(request.args.get('docker_id'))
-        print("sending function from id: ", id)
-        return pickle.dumps(function_dict_to_send[id])
+        docker_id = int(request.args.get('docker_id'))
+        print("sending function from docker_id: ", docker_id)
+        return pickle.dumps(function_dict_to_send[docker_id])
 
     @app.route("/function_return", methods=['post'])
     def function_return():
-        id = int(request.args.get('docker_id'))
+        docker_id = int(request.args.get('docker_id'))
 
-        print("Starting function return from id: ", id)
+        print("Starting function return from docker_id: ", docker_id)
         # unpickle request data
         unpickled = (request.get_data())
         print(unpickled)
@@ -238,7 +239,7 @@ def flask_thread(port, q: Queue, function_dict_to_send):
         print("Child Thread, return value: ", ret)
 
         # add to shared queue
-        q.put({"docker_id": id, "return_value": ret})
+        q.put({"docker_id": docker_id, "return_value": ret})
         return "Received return value from container."
 
     # run the flask app
