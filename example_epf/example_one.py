@@ -44,8 +44,8 @@ def line_count():
     accessible_de = EscrowAPI.get_all_accessible_des()
     res = []
     for cur_de in set(accessible_de):
-        file = cur_de.get_data()
-        csv_file = open(file)
+        file_name = cur_de.get_data()
+        csv_file = open(file_name)
         reader = csv.reader(csv_file)
         res.append(len(list(reader)))
     return res
