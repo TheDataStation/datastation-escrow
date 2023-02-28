@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     # Step 3: jerry suggests a share saying david can access these two des.
     agents = [2]
-    functions = ["get_data"]
+    functions = ["retrieve_data"]
     data_elements = [1, 2]
     ds.call_api("jerry", "suggest_share", None, None, "jerry", agents, functions, data_elements)
 
@@ -87,9 +87,9 @@ if __name__ == '__main__':
     for data_id in data_elements:
         ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
 
-    # # Step 5: david calls the API line_count. He runs it in optimistic mode.
-    # line_count_res = ds.call_api("david", "line_count", 1, "pessimistic")
-    # print("The result of line count is:", line_count_res)
+    # Step 5: david calls the API line_count. He runs it in optimistic mode.
+    line_count_res = ds.call_api("david", "retrieve_data", 1, "pessimistic")
+    print("The result of retrieving data is:", line_count_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()
