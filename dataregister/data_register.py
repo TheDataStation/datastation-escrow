@@ -18,7 +18,6 @@ def register_data_in_DB(data_id,
                         key_manager=None):
 
     # Check if there is an existing dataset
-
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
     if existed_dataset.status == 1:
         return Response(status=1, message="there is a dataset using the same name")
@@ -64,7 +63,6 @@ def remove_data(data_name,
 
     # Check if there is an existing dataset
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
-
     if existed_dataset.status == -1:
         return Response(status=1, message="Dataset does not exist.")
 
@@ -76,12 +74,11 @@ def remove_data(data_name,
 
     # Check if there is an existing user
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
-    # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
-    # If dataset exists, check if the dataset owner is the current user
+    # Check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(dataset_id, cur_username)
     if verify_owner_response.status == 1:
         return verify_owner_response
@@ -113,7 +110,7 @@ def register_staged_in_DB(data_id,
                 + ",caller_id=" + str(caller_id) \
                 + ",api='" + api \
                 + "'))"
-    # If in no_trust mode, we have to record this entry
+    # If in no_trust mode, record this entry
     if write_ahead_log is not None:
         write_ahead_log.log(caller_id, wal_entry, key_manager, )
 
@@ -135,7 +132,7 @@ def register_provenance_in_DB(data_id,
     wal_entry = "database_api.bulk_create_provenance(" + str(data_id) \
                 + ", " + str(list(data_ids_accessed)) \
                 + ")"
-    # If in no_trust mode, we have to record this entry
+    # If in no_trust mode, record this entry
     if write_ahead_log is not None:
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
