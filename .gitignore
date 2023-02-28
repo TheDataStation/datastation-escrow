@@ -36,6 +36,7 @@ ml_acc.csv
 demofile.txt
 *.tar
 ds_dev_utils/args.pkl
+integration_new/test_files
 
 # C extensions
 *.so
