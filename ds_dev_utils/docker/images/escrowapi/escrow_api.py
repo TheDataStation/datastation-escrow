@@ -2,7 +2,7 @@ class EscrowAPI:
     __comp = None
 
     @classmethod
-    def _set_comp(cls,api_implementation):
+    def set_comp(cls, api_implementation):
         print("setting escrow api composition to: ", api_implementation)
         cls.__comp = api_implementation
 
@@ -10,22 +10,26 @@ class EscrowAPI:
     def get_all_accessible_des(cls):
         return cls.__comp.get_all_accessible_des()
 
+    @classmethod
+    def register_data(cls,
+                      username,
+                      data_name,
+                      data_type,
+                      access_param,
+                      optimistic,
+                      ):
+        return cls.__comp.register_data(username, data_name, data_type, access_param, optimistic)
 
     @classmethod
-    def register_dataset(cls,
-                        username,
-                        data_name,
-                        data_in_bytes,
-                        data_type,
-                        optimistic,
-                        original_data_size=None,
-                        ):
-        return cls.__comp.register_dataset(username, data_name, data_in_bytes, data_type, optimistic, original_data_size)
+    def upload_data(cls,
+                    username,
+                    data_id,
+                    data_in_bytes):
+        return cls.__comp.upload_file(username, data_id, data_in_bytes)
 
     @classmethod
     def upload_policy(cls, username, user_id, api, data_id):
         return cls.__comp.upload_policy(username, user_id, api, data_id)
-
 
     @classmethod
     def suggest_share(cls, username, agents, functions, data_elements):

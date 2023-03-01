@@ -33,14 +33,31 @@ def ack_data_in_share(username, data_id, share_id):
     return EscrowAPI.ack_data_in_share(username, data_id, share_id)
 
 @function
+def retrieve_data():
+    """get the content of the data elements"""
+    accessible_de = EscrowAPI.get_all_accessible_des()
+    res = []
+    for cur_de in set(accessible_de):
+        print(cur_de.type)
+        if cur_de.type == "file":
+            file_name = cur_de.get_data()
+            csv_file = open(file_name)
+            reader = csv.reader(csv_file)
+            res.append(list(reader))
+        else:
+            data = cur_de.get_data()
+            res.append(data)
+    return res
+
+@function
 def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
-    files = EscrowAPI.get_all_accessible_des()
-    print(files)
+    accessible_de = EscrowAPI.get_all_accessible_des()
     res = []
-    for file in set(files):
-        csv_file = open(file)
+    for cur_de in set(accessible_de):
+        file_name = cur_de.get_data()
+        csv_file = open(file_name)
         reader = csv.reader(csv_file)
         res.append(len(list(reader)))
     return res

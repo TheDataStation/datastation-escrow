@@ -67,7 +67,7 @@ def main():
     load_connectors(connector_dir)
     # unpickle function args and run it
     arg_dict = unpickle(args.function)
-    res = run_function(args.function,*arg_dict["args"], **arg_dict["kwargs"])
+    res = run_function(args.function, *arg_dict["args"], **arg_dict["kwargs"])
     print(res)
 
 

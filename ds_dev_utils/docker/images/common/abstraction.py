@@ -53,26 +53,3 @@ class DataElement:
             return result.json()[0:100]
         else:
             return 0
-
-
-if __name__ == "__main__":
-    de_one = DataElement(1, "a_cool_file", "file", "a_cool_file")
-    data_one = de_one.get_data()
-    de_access_param_obj_2 = {"credentials": "host='psql-mock-database-cloud.postgres.database.azure.com' "
-                                            "dbname='booking1677197406169yivvxvruhvmbvqzh' "
-                                            "user='gyhksqubzvuzcrdbhovifciu@psql-mock-database-cloud' "
-                                            "password='mbaqbkpppcmhsdbqukeutann'",
-                             "query": "SELECT * FROM bookings"}
-    de_access_param_2 = json.dumps(de_access_param_obj_2)
-    de_two = DataElement(2, "postgres-table", "postgres", de_access_param_2)
-    data_two = de_two.get_data()
-    with open("integration_new/test_files/credentials/nyc.txt", 'r') as file:
-        api_key = file.read()
-    de_access_param_obj_3 = {"api_key": api_key,
-                             "endpoint": "https://data.cityofnewyork.us/resource/ic3t-wcy2.json"}
-    de_access_param_3 = json.dumps(de_access_param_obj_3)
-    de_three = DataElement(3, "job_application", "opendata", de_access_param_3)
-    data_three = de_three.get_data()
-    # print(data_one)
-    # print(data_two)
-    print(data_three)

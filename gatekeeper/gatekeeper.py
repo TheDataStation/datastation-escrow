@@ -10,6 +10,7 @@ from common.pydantic_models.api import API
 from common.pydantic_models.api_dependency import APIDependency
 from common.pydantic_models.user import User
 from common.pydantic_models.response import Response, APIExecResponse
+from common.abstraction import DataElement
 
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
@@ -42,8 +43,6 @@ class Gatekeeper:
         self.mount_dir = mount_dir
         # set docker id variable
         self.docker_id = 1
-
-
         self.server = FlaskDockerServer()
         self.server.start_server()
 
@@ -69,7 +68,8 @@ class Gatekeeper:
         self.docker_id += 1
         return ret
 
-    def get_accessible_data(self, user_id, api, share_id):
+    @staticmethod
+    def get_accessible_data(user_id, api, share_id):
         accessible_data = policy_broker.get_user_api_info(user_id, api, share_id)
         return accessible_data
 
@@ -130,8 +130,7 @@ class Gatekeeper:
             cur_optimistic_id = optimistic_data.data[i].id
             accessible_data_optimistic.append(cur_optimistic_id)
 
-        # Combine these two types of accessible data elements together
-        # In optimistic execution mode, we include optimistic datasets as well
+        # Combine these two types of accessible data elements together into all_accessible_data_id
         if exec_mode == "optimistic":
             all_accessible_data_id = set(
                 accessible_data_policy + accessible_data_optimistic)
@@ -150,23 +149,26 @@ class Gatekeeper:
             print(err_msg)
             return Response(status=1, message=err_msg)
 
-        accessible_data_set = set()
-        accessible_data_key_dict = {}
+        accessible_de = set()
         for cur_data in get_datasets_by_ids_res.data:
-            cur_data_path = os.path.join("/mnt/data", str(cur_data.id), cur_data.name)
-            accessible_data_set.add(cur_data_path)
-            # if in zero trust mode, send user's symmetric key to interceptor in order to decrypt files
             if self.trust_mode == "no_trust":
                 data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
-                accessible_data_key_dict[cur_data_path] = data_owner_symmetric_key
+            else:
+                data_owner_symmetric_key = None
+            cur_de = DataElement(cur_data.id,
+                                 cur_data.name,
+                                 cur_data.type,
+                                 cur_data.access_param,
+                                 data_owner_symmetric_key)
+            accessible_de.add(cur_de)
 
-        accessible_data_dict = (accessible_data_set, accessible_data_key_dict)
+        # print(accessible_de)
 
         # actual api call
         ret = call_actual_api(api,
                               self.epf_path,
                               self.mount_dir,
-                              accessible_data_dict,
+                              accessible_de,
                               self.get_new_docker_id(),
                               self.server,
                               *args,
@@ -178,7 +180,7 @@ class Gatekeeper:
         for path in data_path_accessed:
             data_ids_accessed.append(int(path.split("/")[-2]))
         api_result = api_result[0]
-        print("API result is", api_result)
+        # print("API result is", api_result)
 
         print("data accessed is", data_ids_accessed)
         print("accessible data by policy is", accessible_data_policy)
@@ -229,7 +231,7 @@ class Gatekeeper:
 def call_actual_api(api_name,
                     epf_path,
                     mount_dir,
-                    accessible_data_dict,
+                    accessible_de,
                     docker_id,
                     server,
                     *args,
@@ -242,7 +244,7 @@ def call_actual_api(api_name,
      api_name: name of API to run on Docker container
      epf_path: path to the epf file
      mount_dir: directory of filesystem mount for Interceptor
-     accessible_data_dict: dictionary of data that API is allowed to access, fed to Interceptor
+     accessible_de: a set of accessible DataElement
      docker_id: id assigned to docker container
      server: flask server to receive communications with docker container
      *args / *kwargs for api
@@ -262,7 +264,7 @@ def call_actual_api(api_name,
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
     docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
 
-    config_dict = {"accessible_data_dict": accessible_data_dict, "docker_id": docker_id}
+    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id}
     print("The real epf path is", epf_realpath)
     session = DSDocker(
         server,
@@ -282,7 +284,7 @@ def call_actual_api(api_name,
             print("call", api_name)
             session.flask_run(api_name, *args, **kwargs)
             ret = server.q.get(block=True)
-            print(ret)
+            # print(ret)
             return ret
 
     # TODO clean up: uncomment line below in production
