@@ -36,4 +36,7 @@ matplotlib~=3.5.1
 torch~=1.10.2
 Pillow~=9.0.1
 keras~=2.8.0
-psycopg2
+psycopg2~=2.9.5
+requests~=2.27.1
+Flask~=2.0.3
+docker~=6.0.1
