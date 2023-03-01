@@ -1,14 +1,11 @@
 import os
 import pathlib
-from dsapplicationregistration.dsar_core import (register_epf,
-                                                 get_api_endpoint_names,
+from dsapplicationregistration.dsar_core import (get_api_endpoint_names,
                                                  get_functions_names,
                                                  get_registered_functions, )
 from dbservice import database_api
 from policybroker import policy_broker
 from common.pydantic_models.api import API
-from common.pydantic_models.api_dependency import APIDependency
-from common.pydantic_models.user import User
 from common.pydantic_models.response import Response, APIExecResponse
 from common.abstraction import DataElement
 
@@ -255,12 +252,6 @@ def call_actual_api(api_name,
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
-    # print(os.path.dirname(os.path.realpath(__file__)))
-    # print(api_name, *args, **kwargs)
-    # print("list_of_apis:", list_of_apis)
-    # time.sleep(1)
-    # print("connector name / module path: ", connector_name, connector_module_path)
-    # print("accessed path: " + os.path.dirname(os.path.realpath(__file__)) + "/../" + connector_module_path,)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
     docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
 
