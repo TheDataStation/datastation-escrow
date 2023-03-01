@@ -38,6 +38,7 @@ def retrieve_data():
     accessible_de = EscrowAPI.get_all_accessible_des()
     res = []
     for cur_de in set(accessible_de):
+        print(cur_de.type)
         if cur_de.type == "file":
             file_name = cur_de.get_data()
             csv_file = open(file_name)

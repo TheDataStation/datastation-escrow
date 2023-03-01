@@ -112,7 +112,7 @@ def main():
 
     # run the function and pickle it
     ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
-    print("Return value is", ret)
+    # print("Return value is", ret)
     print(dict(data_accessed_dict))
 
     if main_pid in dict(data_accessed_dict):
@@ -130,7 +130,7 @@ def main():
                              data=to_send_back,
                              params=send_params,
                              )
-    print(response, response.content)
+    # print(response, response.content)
 
 
 if __name__ == '__main__':

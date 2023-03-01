@@ -34,7 +34,7 @@ if __name__ == '__main__':
     ds.create_user(User(user_name="jerry", password="string"))
     ds.create_user(User(user_name="david", password="123456"))
 
-    # Step 2: Jerry logs in and uploads two datasets, first a file, then a postgres table
+    # Step 2: Jerry logs in and uploads three data elements: a file, a postgres table, and an open data table
     file_path = "integration_new/test_files/plaintext/train-1.csv"
     cur_file = open(file_path, "rb")
     file_bytes = cur_file.read()
@@ -77,10 +77,27 @@ if __name__ == '__main__':
                                de_access_param_2,
                                optimistic_flag_2, )
 
+    de_name_3 = "open_data_table"
+    with open("integration_new/test_files/credentials/nyc.txt", 'r') as file:
+        api_key = file.read()
+    de_access_param_obj_3 = {"api_key": api_key,
+                             "endpoint": "https://data.cityofnewyork.us/resource/ic3t-wcy2.json"}
+    de_access_param_3 = json.dumps(de_access_param_obj_3)
+    optimistic_flag_3 = False
+    register_res = ds.call_api("jerry",
+                               "register_data",
+                               None,
+                               None,
+                               "jerry",
+                               de_name_3,
+                               "opendata",
+                               de_access_param_3,
+                               optimistic_flag_3, )
+
     # Step 3: jerry suggests a share saying david can access these two des.
     agents = [2]
     functions = ["retrieve_data"]
-    data_elements = [1, 2]
+    data_elements = [1, 2, 3]
     ds.call_api("jerry", "suggest_share", None, None, "jerry", agents, functions, data_elements)
 
     # Step 4: jerry acknowledges this share

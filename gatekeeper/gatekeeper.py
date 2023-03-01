@@ -180,7 +180,7 @@ class Gatekeeper:
         for path in data_path_accessed:
             data_ids_accessed.append(int(path.split("/")[-2]))
         api_result = api_result[0]
-        print("API result is", api_result)
+        # print("API result is", api_result)
 
         print("data accessed is", data_ids_accessed)
         print("accessible data by policy is", accessible_data_policy)
@@ -284,7 +284,7 @@ def call_actual_api(api_name,
             print("call", api_name)
             session.flask_run(api_name, *args, **kwargs)
             ret = server.q.get(block=True)
-            print(ret)
+            # print(ret)
             return ret
 
     # TODO clean up: uncomment line below in production

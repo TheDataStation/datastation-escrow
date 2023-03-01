@@ -1,6 +1,7 @@
 import os
 import json
 import psycopg2
+import requests
 
 
 class DataElement:
@@ -21,7 +22,7 @@ class DataElement:
         self.type = type
         self.access_param = access_param
         self.enc_key = enc_key
-        if self.type == "postgres":
+        if self.type != "file":
             self.access_param = json.loads(self.access_param)
 
     def get_data(self):
@@ -44,5 +45,11 @@ class DataElement:
             for row in cursor:
                 res.append(row)
             return res
+        elif self.type == "opendata":
+            api_key = self.access_param["api_key"]
+            endpoint = self.access_param["endpoint"]
+            headers = {'X-App-Token': api_key}
+            result = requests.get(endpoint, headers=headers)
+            return result.json()[0:100]
         else:
             return 0

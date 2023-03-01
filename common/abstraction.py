@@ -73,6 +73,6 @@ if __name__ == "__main__":
     de_access_param_3 = json.dumps(de_access_param_obj_3)
     de_three = DataElement(3, "job_application", "opendata", de_access_param_3)
     data_three = de_three.get_data()
-    print(data_one)
-    print(data_two)
+    # print(data_one)
+    # print(data_two)
     print(data_three)
