@@ -11,6 +11,7 @@ from userregister import user_register
 
 app = Flask(__name__)
 
+
 # call api
 @app.route("/call_api", methods=['post'])
 def call_api():
@@ -30,6 +31,7 @@ def call_api():
 
     return pickle.dumps(ds.call_api(args['username'], args['api'], args['exec_mode'], *args['args'], **args['kwargs']))
 
+
 # create user
 @app.route("/create_user", methods=['post'])
 def create_user():
@@ -47,6 +49,7 @@ def create_user():
 
     return pickle.dumps(ds.create_user(args['user'], args.get('user_sym_key', None), args.get('user_public_key', None)))
 
+
 # log in
 @app.route("/login_user")
 def login_user(username, password):
@@ -56,6 +59,7 @@ def login_user(username, password):
     else:
         # if password cannot correctly be verified, we return -1 to indicate login has failed
         return -1
+
 
 def signal_handler(sig, frame):
     """
@@ -72,16 +76,15 @@ if __name__ == "__main__":
     Initializes an api to communicate by HTTP with a client.
     """
     parser = argparse.ArgumentParser(
-                    prog = 'DSClientAPI',
-                    description = 'A Client API for Data Station',
-                    epilog = 'Text at the bottom of help')
+        prog='DSClientAPI',
+        description='A Client API for Data Station',
+        epilog='Text at the bottom of help')
     parser.add_argument('-c', '--ds_config', default='data_station_config.yaml', type=str)
     parser.add_argument('-a', '--app_config', default='app_connector_config.yaml', type=str)
     parser.add_argument('-p', '--port', default=8080, type=int)
     parser.add_argument('-hs', '--host', default="localhost", type=str)
 
     signal.signal(signal.SIGINT, signal_handler)
-
 
     # TODO: remove these and put them somewhere else
     if os.path.exists("data_station.db"):
@@ -101,7 +104,6 @@ if __name__ == "__main__":
     host = args.host
 
     global ds
-    # ds = initialize_system(args.ds_config, args.app_config)
     ds = initialize_system(args.ds_config, args.app_config)
 
     # TODO: remove these and put them somewhere else
