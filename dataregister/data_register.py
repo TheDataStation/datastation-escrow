@@ -12,30 +12,27 @@ def register_data_in_DB(data_id,
                         data_name,
                         cur_username,
                         data_type,
-                        access_type,
+                        access_param,
                         optimistic,
                         write_ahead_log=None,
-                        key_manager=None,
-                        original_data_size=None):
+                        key_manager=None):
 
-    # check if there is an existing dataset
-
+    # Check if there is an existing dataset
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
     if existed_dataset.status == 1:
         print("same name error")
         return Response(status=1, message="there is a dataset using the same name")
 
-    # We now call DB to register a new dataset in the database
+    # Call DB to register a new dataset in the database
 
-    # check if there is an existing user
+    # Check if there is an existing user
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
-    # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
-    if pathlib.Path(access_type).is_file():
-        access_type = str(pathlib.Path(access_type).absolute())
+    if pathlib.Path(access_param).is_file():
+        access_param = str(pathlib.Path(access_param).absolute())
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log is not None:
@@ -43,20 +40,17 @@ def register_data_in_DB(data_id,
                     + ",name='" + data_name \
                     + "',owner_id=" + str(cur_user_id) \
                     + ",type='" + data_type \
-                    + "',access_type='" + access_type \
+                    + "',access_param='" + access_param \
                     + "',optimistic=" + str(optimistic) \
-                    + "',original_data_size=" + str(original_data_size) \
                     + "))"
-        # If write_ahead_log is not None, key_manager also will not be None
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     new_dataset = Dataset(id=data_id,
                           name=data_name,
                           owner_id=cur_user_id,
                           type=data_type,
-                          access_type=access_type,
-                          optimistic=optimistic,
-                          original_data_size=original_data_size)
+                          access_param=access_param,
+                          optimistic=optimistic)
     database_service_response = database_api.create_dataset(new_dataset)
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
@@ -68,9 +62,8 @@ def remove_data(data_name,
                 write_ahead_log=None,
                 key_manager=None,):
 
-    # Step 1: check if there is an existing dataset
+    # Check if there is an existing dataset
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
-
     if existed_dataset.status == -1:
         return Response(status=1, message="Dataset does not exist.")
 
@@ -80,19 +73,18 @@ def remove_data(data_name,
     dataset_id = existed_dataset.data[0].id
     type_of_data = existed_dataset.data[0].type
 
-    # check if there is an existing user
+    # Check if there is an existing user
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
-    # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
 
-    # Step 2: if exists, check if the dataset owner is the current user
+    # Check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(dataset_id, cur_username)
     if verify_owner_response.status == 1:
         return verify_owner_response
 
-    # Step 3: actually remove the dataset
+    # Actually remove the dataset
     # If in no_trust mode, we need to record this REMOVE_DATA to wal
     if write_ahead_log is not None:
         wal_entry = "database_api.remove_dataset_by_name(Dataset(name='" + data_name \
@@ -119,7 +111,7 @@ def register_staged_in_DB(data_id,
                 + ",caller_id=" + str(caller_id) \
                 + ",api='" + api \
                 + "'))"
-    # If in no_trust mode, we have to record this entry
+    # If in no_trust mode, record this entry
     if write_ahead_log is not None:
         write_ahead_log.log(caller_id, wal_entry, key_manager, )
 
@@ -141,7 +133,7 @@ def register_provenance_in_DB(data_id,
     wal_entry = "database_api.bulk_create_provenance(" + str(data_id) \
                 + ", " + str(list(data_ids_accessed)) \
                 + ")"
-    # If in no_trust mode, we have to record this entry
+    # If in no_trust mode, record this entry
     if write_ahead_log is not None:
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 

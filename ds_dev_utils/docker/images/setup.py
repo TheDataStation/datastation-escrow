@@ -8,6 +8,8 @@ from ast import literal_eval
 
 from run_function import (load_connectors, run_function)
 from Interceptor import interceptor
+from escrow_api_docker import EscrowAPIDocker
+from escrowapi.escrow_api import EscrowAPI
 import multiprocessing
 from dsapplicationregistration.dsar_core import get_registered_functions
 
@@ -26,14 +28,29 @@ def main():
 
     print(config_dict)
 
-    accessible_data_obj = config_dict["accessible_data_dict"]
+    accessible_de = config_dict["accessible_de"]
     docker_id = config_dict["docker_id"]
 
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
     print("setting up...")
 
-    # Setting up the interceptor
+    # Set up escrow_api docker
+    escrow_api_docker = EscrowAPIDocker(accessible_de)
+    EscrowAPI.set_comp(escrow_api_docker)
+
+    # Set up the file interceptor using info from accessible_de
+
+    accessible_data_set = set()
+    accessible_data_key_dict = {}
+    for cur_de in accessible_de:
+        if cur_de.type == "file":
+            cur_data_path = os.path.join("/mnt/data", str(cur_de.id), cur_de.name)
+            accessible_data_set.add(cur_data_path)
+            accessible_data_key_dict[cur_data_path] = cur_de.enc_key
+
+    accessible_data_obj = (accessible_data_set, accessible_data_key_dict)
+
     manager = multiprocessing.Manager()
 
     accessible_data_dict = manager.dict()
@@ -89,16 +106,19 @@ def main():
     print(response.content)
 
     # request function to run
-    response = requests.get('http://host.docker.internal:3030/function', params=send_params)
+    response = requests.get('http://host.docker.internal:3030/get_function_dict', params=send_params)
     function_dict = pickle.loads(response.content)
     print("function dictionary: ", function_dict)
 
     # run the function and pickle it
     ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
-    print("Return value is", ret)
+    # print("Return value is", ret)
     print(dict(data_accessed_dict))
 
-    data_accessed = dict(data_accessed_dict)[main_pid]
+    if main_pid in dict(data_accessed_dict):
+        data_accessed = dict(data_accessed_dict)[main_pid]
+    else:
+        data_accessed = []
     to_send_back = pickle.dumps({"return_value": ret, "data_accessed": data_accessed})
 
     # Before we return the result of the function, look at the data elements accessed
@@ -106,14 +126,11 @@ def main():
     # print(to_send_back)
 
     # send the return value of the function
-    response = requests.post("http://host.docker.internal:3030/function_return",
+    response = requests.post("http://host.docker.internal:3030/send_function_return",
                              data=to_send_back,
                              params=send_params,
-                             # headers={'Content-Type': 'application/octet-stream'},
                              )
-    print(response, response.content)
-
-    # time.sleep(1000000)
+    # print(response, response.content)
 
 
 if __name__ == '__main__':

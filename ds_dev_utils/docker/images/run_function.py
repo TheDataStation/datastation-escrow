@@ -19,8 +19,6 @@ def load_connectors(connector_dir):
     for filename in os.listdir(connector_dir):
         file = os.path.join(connector_dir, filename)
         if os.path.isfile(file):
-            # print(file + " is file")
-
             register_epf(file)
 
 def unpickle(function_name):
@@ -67,7 +65,7 @@ def main():
     load_connectors(connector_dir)
     # unpickle function args and run it
     arg_dict = unpickle(args.function)
-    res = run_function(args.function,*arg_dict["args"], **arg_dict["kwargs"])
+    res = run_function(args.function, *arg_dict["args"], **arg_dict["kwargs"])
     print(res)
 
 

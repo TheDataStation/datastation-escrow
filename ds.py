@@ -10,10 +10,9 @@ from common.pydantic_models.api import API
 from common.pydantic_models.user import User
 from common.pydantic_models.response import Response
 from common.pydantic_models.policy import Policy
-
+from common import common_procedure
 from common.general_utils import parse_config
 
-from dbservice.database_api import set_checkpoint_table_paths, recover_db_from_snapshots
 from storagemanager.storage_manager import StorageManager
 from stagingstorage.staging_storage import StagingStorage
 from policybroker import policy_broker
@@ -26,15 +25,14 @@ from crypto.key_manager import KeyManager
 from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
-from dbservice.database_api import clear_checkpoint_table_paths
 from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
                                                  clear_api_endpoint,
-                                                 clear_function, )
+                                                 clear_function,
+                                                 register_epf, )
 from userregister import user_register
 
 
 class DataStation:
-
     class DSConfig:
         def __init__(self, ds_config):
             """
@@ -63,8 +61,6 @@ class DataStation:
             # interceptor paths
             self.ds_storage_path = str(pathlib.Path(
                 ds_config["storage_path"]).absolute())
-            self.mount_point = str(pathlib.Path(
-                ds_config["mount_path"]).absolute())
 
     def __init__(self, ds_config, app_config, need_to_recover=False):
         """
@@ -100,17 +96,16 @@ class DataStation:
         check_point_freq = self.config.check_point_freq
         self.write_ahead_log = WAL(wal_path, check_point_freq)
 
-        # set up mount point
-        mount_point = self.config.mount_point
-
         # set up an instance of the key manager
         self.key_manager = KeyManager()
 
-        print(mount_point)
         print(storage_path)
-        # set up the gatekeeper
-
         self.epf_path = app_config["epf_path"]
+
+        # register all api_endpoints
+        register_epf(self.epf_path)
+
+        # set up the gatekeeper
         self.gatekeeper = Gatekeeper(
             self.data_station_log,
             self.write_ahead_log,
@@ -122,16 +117,15 @@ class DataStation:
 
         # set up the table_paths in dbservice.check_point
         table_paths = self.config.table_paths
-        set_checkpoint_table_paths(table_paths)
+        database_api.set_checkpoint_table_paths(table_paths)
 
-        # Lastly, if we are in recover mode, we need to call
+        # Lastly, if we are in recover mode, we need to recover the DS database
         if need_to_recover:
             self.load_symmetric_keys()
-            recover_db_from_snapshots(self.key_manager)
+            database_api.recover_db_from_snapshots(self.key_manager)
             self.recover_db_from_wal()
 
-        # The following field decides which data_id we should use when we upload a new DE
-        # Right now we are just incrementing by 1
+        # Decide which data_id to use at new insertion
         data_id_resp = database_api.get_data_with_max_id()
         if data_id_resp.status == 1:
             self.cur_data_id = data_id_resp.data[0].id + 1
@@ -140,21 +134,21 @@ class DataStation:
         # print("Starting data id should be:")
         # print(self.cur_data_id)
 
-        # The following fields decides which staging_data_id we should use at a new insertion
+        # Decide which staging_data_id to use at new insertion
         staging_id_resp = database_api.get_staging_with_max_id()
         if staging_id_resp.status == 1:
             self.cur_staging_data_id = staging_id_resp.data[0].id + 1
         else:
             self.cur_staging_data_id = 1
 
-        # The following field decides which user_id we should use
+        # Decide which user_id to use at new insertion
         user_id_resp = database_api.get_user_with_max_id()
         if user_id_resp.status == 1:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
             self.cur_user_id = 1
 
-        # The following field decides which share_id we should use
+        # Decide which share_id to use at new insertion
         share_id_resp = database_api.get_share_with_max_id()
         if share_id_resp.status == 1:
             self.cur_share_id = share_id_resp.data[0].id + 1
@@ -187,21 +181,20 @@ class DataStation:
         if self.trust_mode == "full_trust":
             response = user_register.create_user(user_id,
                                                  user.user_name,
-                                                 user.password,)
+                                                 user.password, )
         else:
             response = user_register.create_user(user_id,
                                                  user.user_name,
                                                  user.password,
                                                  self.write_ahead_log,
-                                                 self.key_manager,)
+                                                 self.key_manager, )
 
         if response.status == 1:
             return Response(status=response.status, message=response.message)
 
         return Response(status=response.status, message=response.message)
 
-    @staticmethod
-    def get_all_apis():
+    def get_all_apis(self):
         """
         Gets all APIs from the policy broker
 
@@ -214,8 +207,7 @@ class DataStation:
         # Call policy_broker directly
         return policy_broker.get_all_apis()
 
-    @staticmethod
-    def get_all_api_dependencies():
+    def get_all_api_dependencies(self):
         """
         Gets all API dependencies from the policy broker
 
@@ -229,67 +221,71 @@ class DataStation:
         # Call policy_broker directly
         return policy_broker.get_all_dependencies()
 
-    def register_dataset(self,
-                         username,
-                         data_name,
-                         data_in_bytes,
-                         data_type,
-                         optimistic,
-                         original_data_size=None):
+    def register_data(self,
+                      username,
+                      data_name,
+                      data_type,
+                      access_param,
+                      optimistic):
         """
-        Uploads a dataset to DS, tied to a specific user
+        Registers a data element in Data Station's database.
 
         Parameters:
-         username: the unique username identifying which user owns the dataset
-         data_name: name of the data
-         data_in_bytes: size of data to be uploaded
-         data_type: TODO: what types of data are able to be uploaded?
-         optimistic: flag to be included in optimistic data discovery
-
-        Returns:
-         Response of data register
+            username: the unique username identifying which user owns the dataset
+            data_name: name of the data
+            data_type: TODO: what types of data are able to be uploaded?
+            optimistic: flag to be included in optimistic data discovery
+            access_param: additional parameters needed for acccessing the DE
         """
         # Decide which data_id to use from ClientAPI.cur_data_id field
         data_id = self.cur_data_id
         self.cur_data_id += 1
-
-        # We first call SM to store the data
-        # Note that SM needs to return access_type (how can the data element be accessed)
-        # so that data_register can register this info
-
-        storage_manager_response = self.storage_manager.store(data_name,
-                                                              data_id,
-                                                              data_in_bytes,
-                                                              data_type,)
-        if storage_manager_response.status == 1:
-            return storage_manager_response
-
-        # Storing data is successful. We now call data_register to register this data element in DB
-        # Note: for file, access_type is the fullpath to the file
-        access_type = storage_manager_response.access_type
 
         if self.trust_mode == "full_trust":
             data_register_response = data_register.register_data_in_DB(data_id,
                                                                        data_name,
                                                                        username,
                                                                        data_type,
-                                                                       access_type,
+                                                                       access_param,
                                                                        optimistic)
         else:
             data_register_response = data_register.register_data_in_DB(data_id,
                                                                        data_name,
                                                                        username,
                                                                        data_type,
-                                                                       access_type,
+                                                                       access_param,
                                                                        optimistic,
                                                                        self.write_ahead_log,
-                                                                       self.key_manager,
-                                                                       original_data_size)
-        if data_register_response.status != 0:
-            return Response(status=data_register_response.status,
-                            message=data_register_response.message)
-
+                                                                       self.key_manager)
         return data_register_response
+
+    def upload_file(self,
+                    username,
+                    data_id,
+                    data_in_bytes):
+        """
+        Upload a file corresponding to a registered DE.
+
+        Parameters:
+            username: the unique username identifying which user owns the dataset
+            data_id: id of this existing DE
+            data_in_bytes: daat in bytes
+        """
+        # Check if the dataset exists, and whether data owner is the current user
+        verify_owner_response = common_procedure.verify_dataset_owner(data_id, username)
+        if verify_owner_response.status == 1:
+            return verify_owner_response
+
+        # We now get the data_name and data_type from data_id
+        data_res = database_api.get_data_by_id(data_id)
+        if data_res.status == -1:
+            return data_res
+
+        storage_manager_response = self.storage_manager.store(data_res.data[0].name,
+                                                              data_id,
+                                                              data_in_bytes,
+                                                              data_res.data[0].type,)
+        return storage_manager_response
 
     def remove_dataset(self, username, data_name):
         """
@@ -306,12 +302,12 @@ class DataStation:
         # First we call data_register to remove the existing dataset from the database
         if self.trust_mode == "full_trust":
             data_register_response = data_register.remove_data(data_name,
-                                                               username,)
+                                                               username, )
         else:
             data_register_response = data_register.remove_data(data_name,
                                                                username,
                                                                self.write_ahead_log,
-                                                               self.key_manager,)
+                                                               self.key_manager, )
         if data_register_response.status != 0:
             return Response(status=data_register_response.status, message=data_register_response.message)
 
@@ -319,7 +315,7 @@ class DataStation:
         # Now we remove its actual content from SM
         storage_manager_response = self.storage_manager.remove(data_name,
                                                                data_register_response.data_id,
-                                                               data_register_response.type,)
+                                                               data_register_response.type, )
 
         # If SM removal failed
         if storage_manager_response.status == 1:
@@ -333,7 +329,9 @@ class DataStation:
 
         Parameters:
          username: the unique username identifying which user wrote the policy
-         policy: policy to upload
+         user_id: part of policy to upload, the user ID of the policy
+         api: the api the policy refers to
+         data_id: the data id the policy refers to
 
         Returns:
          Response of policy broker
@@ -342,12 +340,12 @@ class DataStation:
 
         if self.trust_mode == "full_trust":
             response = policy_broker.upload_policy(policy,
-                                                   username,)
+                                                   username, )
         else:
             response = policy_broker.upload_policy(policy,
                                                    username,
                                                    self.write_ahead_log,
-                                                   self.key_manager,)
+                                                   self.key_manager, )
 
         return Response(status=response.status, message=response.message)
 
@@ -363,34 +361,37 @@ class DataStation:
             response = policy_broker.bulk_upload_policies(policies,
                                                           username,
                                                           self.write_ahead_log,
-                                                          self.key_manager,)
+                                                          self.key_manager, )
             return response
 
-    def remove_policy(self, username, policy: Policy):
+    def remove_policy(self, username, user_id, api, data_id):
         """
         Removes a policy from DS
 
         Parameters:
          username: the unique username identifying which user wrote the policy
-         policy: policy to remove
+         user_id: part of policy to upload, the user ID of the policy
+         api: the api the policy refers to
+         data_id: the data id the policy refers to
 
         Returns:
          Response of policy broker
         """
 
+        policy = Policy(user_id=user_id, api=api, data_id=data_id)
+
         if self.trust_mode == "full_trust":
             response = policy_broker.remove_policy(policy,
-                                                   username,)
+                                                   username, )
         else:
             response = policy_broker.remove_policy(policy,
                                                    username,
                                                    self.write_ahead_log,
-                                                   self.key_manager,)
+                                                   self.key_manager, )
 
         return Response(status=response.status, message=response.message)
 
-    @staticmethod
-    def get_all_policies():
+    def get_all_policies(self):
         """
         Gets all a policies from DS
 
@@ -430,7 +431,8 @@ class DataStation:
         for a in agents:
             for f in functions:
                 for d in data_elements:
-                    cur_policy = Policy(user_id=a, api=f, data_id=d, share_id=share_id, status=0)
+                    cur_policy = Policy(
+                        user_id=a, api=f, data_id=d, share_id=share_id, status=0)
                     if self.trust_mode == "full_trust":
                         response = policy_broker.upload_policy(cur_policy,
                                                                username, )
@@ -439,7 +441,7 @@ class DataStation:
                                                                username,
                                                                self.write_ahead_log,
                                                                self.key_manager, )
-        return 0
+        return response
 
     def ack_data_in_share(self, username, data_id, share_id):
         """
@@ -451,7 +453,8 @@ class DataStation:
             data_id: id of the data element
         """
         if self.trust_mode == "full_trust":
-            response = policy_broker.ack_data_in_share(username, data_id, share_id)
+            response = policy_broker.ack_data_in_share(
+                username, data_id, share_id)
         else:
             response = policy_broker.ack_data_in_share(username,
                                                        data_id,
@@ -485,7 +488,7 @@ class DataStation:
             return Response(status=1, message="Something wrong with the current user")
         cur_user_id = cur_user.data[0].id
 
-        # Now we need to check if the current API called is a api_endpoint (non-jail) or a function (jail)
+        # Now we need to check if the current API called is an api_endpoint (non-jail) or a function (jail)
         # If it's non-jail, it does not need to go through the gatekeeper
         list_of_api_endpoint = get_registered_api_endpoint()
         for cur_api in list_of_api_endpoint:
@@ -493,8 +496,8 @@ class DataStation:
                 print("user is calling an api_endpoint", api)
                 print("PID: ", os.getpid(), " TID: ", threading.get_native_id())
                 # print(args)
-                cur_api(self, *args, **kwargs)
-                return 0
+                res = cur_api(*args, **kwargs)
+                return res
 
         # If it's jail, it goes to the gatekeeper
         res = self.gatekeeper.call_api(api,
@@ -539,6 +542,8 @@ class DataStation:
 
             staging_storage_response = self.staging_storage.store(staging_data_id,
                                                                   api_result)
+
+            # staging_storage error
             if staging_storage_response.status == 1:
                 return staging_storage_response
 
@@ -550,10 +555,10 @@ class DataStation:
                 # Staged table
                 data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
                                                                                     cur_user_id,
-                                                                                    api,)
+                                                                                    api, )
                 # Provenance table
                 data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
-                                                                                            data_ids_accessed,)
+                                                                                            data_ids_accessed, )
             else:
                 # Staged table
                 data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
@@ -577,108 +582,6 @@ class DataStation:
         else:
             return res.message
 
-    # def call_api(self, username, api: API, exec_mode, *args, **kwargs):
-    #     """
-    #     Calls an API as the given user
-    #
-    #     Parameters:
-    #      username: the unique username identifying which user is calling the api
-    #      api: api to call
-    #      exec_mode: optimistic or pessimistic
-    #      *args, **kwargs: arguments to the API call
-    #
-    #     Returns:
-    #      Response of data register
-    #     """
-    #
-    #     # get caller's UID
-    #     cur_user = database_api.get_user_by_user_name(
-    #         User(user_name=username, ))
-    #     # If the user doesn't exist, something is wrong
-    #     if cur_user.status == -1:
-    #         print("Something wrong with the current user")
-    #         return Response(status=1, message="Something wrong with the current user")
-    #     cur_user_id = cur_user.data[0].id
-    #
-        # res = self.gatekeeper.call_api(api,
-        #                                cur_user_id,
-        #                                exec_mode,
-        #                                *args,
-        #                                **kwargs)
-        # # Only when the returned status is 0 can we release the result
-        # if res.status == 0:
-        #     api_result = res.result
-        #     # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
-        #     if self.trust_mode == "no_trust":
-        #         caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
-        #             cur_user_id)
-        #         api_result = cu.encrypt_data_with_symmetric_key(
-        #             cu.to_bytes(api_result), caller_symmetric_key)
-        #     return api_result
-        # # In this case we need to put result into staging storage, so that they can be released later
-        # elif res.status == -1:
-        #     api_result = res.result[0]
-        #     data_ids_accessed = res.result[1]
-        #     # We first convert api_result to bytes because we need to store it in staging storage
-        #     # In full_trust mode, we convert it to bytes directly
-        #     if self.trust_mode == "full_trust":
-        #         api_result = cu.to_bytes(api_result)
-        #     # In no_trust mode, we encrypt it using caller's symmetric key
-        #     else:
-        #         caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
-        #             cur_user_id)
-        #         api_result = cu.encrypt_data_with_symmetric_key(
-        #             cu.to_bytes(api_result), caller_symmetric_key)
-        #
-        #     # print(api_result)
-        #     # print(data_ids_accessed)
-        #
-        #     # Call staging storage to store the bytes
-        #
-        #     # Decide which data_id to use from ClientAPI.cur_data_id field
-        #     staging_data_id = self.cur_staging_data_id
-        #     self.cur_staging_data_id += 1
-        #
-        #     staging_storage_response = self.staging_storage.store(staging_data_id,
-        #                                                           api_result)
-        #     if staging_storage_response.status == 1:
-        #         return staging_storage_response
-        #
-        #     # Storing into staging storage is successful. We now call data_register to register this staging DE in DB.
-        #     # We need to store to both the staged table and the provenance table.
-        #
-        #     # Full_trust mode
-        #     if self.trust_mode == "full_trust":
-        #         # Staged table
-        #         data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
-        #                                                                             cur_user_id,
-        #                                                                             api,)
-        #         # Provenance table
-        #         data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
-        #                                                                                     data_ids_accessed,)
-        #     else:
-        #         # Staged table
-        #         data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
-        #                                                                             cur_user_id,
-        #                                                                             api,
-        #                                                                             self.write_ahead_log,
-        #                                                                             self.key_manager,
-        #                                                                             )
-        #         # Provenance table
-        #         data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
-        #                                                                                     data_ids_accessed,
-        #                                                                                     cur_user_id,
-        #                                                                                     self.write_ahead_log,
-        #                                                                                     self.key_manager,
-        #                                                                                     )
-        #     if data_register_response_staged.status != 0 or data_register_response_provenance.status != 0:
-        #         return Response(status=data_register_response_staged.status,
-        #                         message="internal database error")
-        #     res_msg = "Staged data ID " + str(staging_data_id)
-        #     return res_msg
-        # else:
-        #     return res.message
-
     # data users gives a staged DE ID and tries to release it
     def release_staged_DE(self, username, staged_ID):
         """
@@ -687,9 +590,7 @@ class DataStation:
 
         Parameters:
          username: the unique username identifying which user is calling the api
-         api: api to call
-         exec_mode: optimistic or pessimistic
-         *args, **kwargs: arguments to the API call
+         staged_ID: id of the staged data element
 
         Returns:
          released data
@@ -747,7 +648,7 @@ class DataStation:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
             self.cur_user_id = 1
-        print("User ID to use after recovering DB is: "+str(self.cur_user_id))
+        print("User ID to use after recovering DB is: " + str(self.cur_user_id))
 
         # Step 3: reset self.cur_data_id from DB
         data_id_resp = database_api.get_data_with_max_id()
@@ -784,21 +685,6 @@ class DataStation:
         Shuts down the DS system. Unmounts the interceptor and stops the process, clears
          the DB, app register, and db.checkpoint, and shuts down the gatekeeper server
         """
-        # # print("shutting down...")
-        # mount_point = self.config.mount_point
-        # # print(mount_point)
-        # unmount_status = os.system("umount " + str(mount_point))
-        # counter = 0
-        # while unmount_status != 0:
-        #     time.sleep(1)
-        #     unmount_status = os.system("umount " + str(mount_point))
-        #     if counter == 10:
-        #         print("Unmount failed")
-        #         exit(1)
-        #
-        # assert os.path.ismount(mount_point) is False
-        # self.interceptor_process.join()
-
         # stop gatekeeper server
         self.gatekeeper.shut_down()
 
@@ -806,7 +692,7 @@ class DataStation:
         engine.dispose()
         clear_function()
         clear_api_endpoint()
-        clear_checkpoint_table_paths()
+        database_api.clear_checkpoint_table_paths()
 
         print("shut down complete")
 

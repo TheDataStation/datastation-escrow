@@ -23,12 +23,6 @@ if __name__ == '__main__':
 
     # Step 0: System initialization
 
-    ds_config = general_utils.parse_config("data_station_config.yaml")
-    app_config = general_utils.parse_config("app_connector_config.yaml")
-
-    ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
-    mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
-
     ds_config = "data_station_config.yaml"
     app_config = "app_connector_config.yaml"
 
@@ -46,22 +40,29 @@ if __name__ == '__main__':
     # He uploads DE1 and DE3 in sealed mode, and uploads DE2 in enclave mode.
     for cur_num in range(3):
         cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "integration_tests/test_file_full_trust/train-" + str(cur_file_index) + ".csv"
+        cur_full_name = "integration_new/test_files/plaintext/train-" + str(cur_file_index) + ".csv"
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic_flag = False
         if cur_num == 1:
             cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
-        cur_res = ds.call_api("jerry",
-                              "register_dataset",
-                              None,
-                              None,
-                              "jerry",
-                              name_to_upload,
-                              cur_file_bytes,
-                              "file",
-                              cur_optimistic_flag,)
+        register_res = ds.call_api("jerry",
+                                   "register_data",
+                                   None,
+                                   None,
+                                   "jerry",
+                                   name_to_upload,
+                                   "file",
+                                   name_to_upload,
+                                   cur_optimistic_flag, )
+        upload_res = ds.call_api("jerry",
+                                 "upload_data",
+                                 None,
+                                 None,
+                                 "jerry",
+                                 register_res.data_id,
+                                 cur_file_bytes, )
 
     # Step 3: jerry suggests a share saying david can discovery how many lines his files have
     # for DE [1, 3].
@@ -80,5 +81,3 @@ if __name__ == '__main__':
 
     # Last step: shut down the Data Station
     ds.shut_down()
-
-

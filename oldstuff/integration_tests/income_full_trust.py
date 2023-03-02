@@ -1,32 +1,35 @@
-# This script loads a state of the data station needed to test out income example in full_trust.
+# This script loads a state of the data station needed to test out ML example
 import pathlib
 import sys
+import main
 import os
 import shutil
 import numpy as np
 
-from common import general_utils
-from ds import DataStation
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
+from common.general_utils import parse_config
 
 if __name__ == '__main__':
 
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
+    # Read in the configuration file
+    test_config = parse_config(sys.argv[1])
+
     # System initialization
 
-    ds_config = general_utils.parse_config("data_station_config.yaml")
-    app_config = general_utils.parse_config("app_connector_config.yaml")
+    ds_config = parse_config("data_station_config.yaml")
+    app_config = parse_config("app_connector_config.yaml")
 
     ds_storage_path = str(pathlib.Path(ds_config["storage_path"]).absolute())
     mount_point = str(pathlib.Path(ds_config["mount_path"]).absolute())
 
-    ds = DataStation(ds_config, app_config)
+    client_api = main.initialize_system(ds_config, app_config)
 
     # Remove the code block below if testing out durability of log
-    log_path = ds.data_station_log.log_path
+    log_path = client_api.log.log_path
     if os.path.exists(log_path):
         os.remove(log_path)
 
@@ -35,7 +38,7 @@ if __name__ == '__main__':
 
     for cur_num in range(num_users):
         cur_uname = "user" + str(cur_num)
-        ds.create_user(User(user_name=cur_uname, password="string"))
+        client_api.create_user(User(user_name=cur_uname, password="string"))
 
     # Clear the storage place
 
@@ -52,8 +55,9 @@ if __name__ == '__main__':
     data_id_counter = 1
     for cur_num in range(num_users):
 
-        # Get the current username
+        # Log in the current user and get a token
         cur_uname = "user" + str(cur_num)
+        cur_token = client_api.login_user(cur_uname, "string")["access_token"]
 
         # We have two types of data: X and y
         train_type = ["X", "y"]
@@ -64,23 +68,22 @@ if __name__ == '__main__':
             cur_optimistic_flag = False
             name_to_upload = "train" + str(cur_num) + "_" + cur_type + ".npy"
             # Upload data
-            ds.register_dataset(cur_uname,
-                                name_to_upload,
-                                cur_file_bytes,
-                              "file",
-                                cur_optimistic_flag,
-                                )
+            client_api.register_data(name_to_upload,
+                                     cur_file_bytes,
+                                      "file",
+                                     cur_optimistic_flag,
+                                     cur_token, )
             cur_file.close()
             # Upload policy
-            ds.upload_policy(cur_uname, Policy(user_id=1, api="train_income_model", data_id=data_id_counter))
+            client_api.upload_policy(Policy(user_id=1, api="train_income_model", data_id=data_id_counter), cur_token)
             data_id_counter += 1
 
     # In here, DB construction is done. We just need to call train_income_model
 
     # Use token for user0
-    res_model = ds.call_api("user0",
-                            "train_income_model",
-                            "optimistic")
+    cur_token = client_api.login_user("user0", "string")["access_token"]
+    res_model = client_api.call_api("train_income_model", cur_token, "optimistic")
+    # print(res_model)
     # print("Model returned is: ")
     # print(res_model.coef_, res_model.intercept_)
 
@@ -90,4 +93,4 @@ if __name__ == '__main__':
     accuracy = res_model.score(x_test, y_test)
     print("Model accuracy is "+str(accuracy))
 
-    ds.shut_down()
+    client_api.shut_down(ds_config)

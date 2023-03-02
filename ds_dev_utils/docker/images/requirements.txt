@@ -1,9 +1,5 @@
-numpy
-scikit-learn
-torch
-torchvision
-
 flask
 requests
 fuse-python
 cryptography
+psycopg2

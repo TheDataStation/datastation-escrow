@@ -1,22 +1,40 @@
-import os
-import pathlib
+class EscrowAPI:
+    __comp = None
 
-# Returns the all the file names that are accessible to the caller (in absolute paths)
-def get_all_files():
-    mount_path = pathlib.Path("/mnt/data_mount")
-    files = []
-    DE_dir_name = os.listdir(mount_path)
-    for i in range(len(DE_dir_name)):
-        DE_dir_name[i] = os.path.join(str(mount_path), str(DE_dir_name[i]))
-        if len(os.listdir(DE_dir_name[i])) > 0:
-            files.append(os.path.join(str(DE_dir_name[i]), str(os.listdir(DE_dir_name[i])[0])))
-    return files
+    @classmethod
+    def set_comp(cls, api_implementation):
+        print("setting escrow api composition to: ", api_implementation)
+        cls.__comp = api_implementation
 
-# Returns the files names accessible to the caller, specified by a list.
-def get_specified_files(DE_id):
-    mount_path = pathlib.Path("/mnt/data_mount")
-    files = []
-    for cur_id in DE_id:
-        DE_dir_name = os.path.join(str(mount_path), str(cur_id))
-        files.append(os.path.join(str(DE_dir_name), str(os.listdir(DE_dir_name)[0])))
-    return files
+    @classmethod
+    def get_all_accessible_des(cls):
+        return cls.__comp.get_all_accessible_des()
+
+    @classmethod
+    def register_data(cls,
+                      username,
+                      data_name,
+                      data_type,
+                      access_param,
+                      optimistic,
+                      ):
+        return cls.__comp.register_data(username, data_name, data_type, access_param, optimistic)
+
+    @classmethod
+    def upload_data(cls,
+                    username,
+                    data_id,
+                    data_in_bytes):
+        return cls.__comp.upload_file(username, data_id, data_in_bytes)
+
+    @classmethod
+    def upload_policy(cls, username, user_id, api, data_id):
+        return cls.__comp.upload_policy(username, user_id, api, data_id)
+
+    @classmethod
+    def suggest_share(cls, username, agents, functions, data_elements):
+        return cls.__comp.suggest_share(username, agents, functions, data_elements)
+
+    @classmethod
+    def ack_data_in_share(cls, username, share_id, data_id):
+        return cls.__comp.ack_data_in_share(username, share_id, data_id)
