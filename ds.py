@@ -118,14 +118,13 @@ class DataStation:
         table_paths = self.config.table_paths
         database_api.set_checkpoint_table_paths(table_paths)
 
-        # Lastly, if we are in recover mode, we need to call
+        # Lastly, if we are in recover mode, we need to recover the DS database
         if need_to_recover:
             self.load_symmetric_keys()
             database_api.recover_db_from_snapshots(self.key_manager)
             self.recover_db_from_wal()
 
-        # The following field decides which data_id we should use when we upload a new DE
-        # Right now we are just incrementing by 1
+        # Decide which data_id to use at new insertion
         data_id_resp = database_api.get_data_with_max_id()
         if data_id_resp.status == 1:
             self.cur_data_id = data_id_resp.data[0].id + 1
@@ -134,21 +133,21 @@ class DataStation:
         # print("Starting data id should be:")
         # print(self.cur_data_id)
 
-        # The following fields decides which staging_data_id we should use at a new insertion
+        # Decide which staging_data_id to use at new insertion
         staging_id_resp = database_api.get_staging_with_max_id()
         if staging_id_resp.status == 1:
             self.cur_staging_data_id = staging_id_resp.data[0].id + 1
         else:
             self.cur_staging_data_id = 1
 
-        # The following field decides which user_id we should use
+        # Decide which user_id to use at new insertion
         user_id_resp = database_api.get_user_with_max_id()
         if user_id_resp.status == 1:
             self.cur_user_id = user_id_resp.data[0].id + 1
         else:
             self.cur_user_id = 1
 
-        # The following field decides which share_id we should use
+        # Decide which share_id to use at new insertion
         share_id_resp = database_api.get_share_with_max_id()
         if share_id_resp.status == 1:
             self.cur_share_id = share_id_resp.data[0].id + 1

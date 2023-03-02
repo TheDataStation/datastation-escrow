@@ -19,8 +19,6 @@ def load_connectors(connector_dir):
     for filename in os.listdir(connector_dir):
         file = os.path.join(connector_dir, filename)
         if os.path.isfile(file):
-            # print(file + " is file")
-
             register_epf(file)
 
 def unpickle(function_name):

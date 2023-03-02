@@ -10,7 +10,7 @@ def initialize_system(ds_config_path, app_config_path, need_to_recover = False):
     Parameters:
         ds_config_path: path to config yaml file
         TODO change the name app_config_path: path to app connector config file
-        need_to_recover: TODO idk what this does
+        need_to_recover: Boolean, are we starting Data Station in recovery mode
 
     Returns:
         newly instantiated DataStation class

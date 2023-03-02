@@ -126,7 +126,7 @@ def main():
     # print(to_send_back)
 
     # send the return value of the function
-    response = requests.post("http://host.docker.internal:3030/get_function_return",
+    response = requests.post("http://host.docker.internal:3030/send_function_return",
                              data=to_send_back,
                              params=send_params,
                              )

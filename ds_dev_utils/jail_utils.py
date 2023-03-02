@@ -8,6 +8,7 @@ import requests
 from multiprocessing import Process, Event, Queue, Manager
 from flask import Flask, request
 
+
 class FlaskDockerServer:
     def __init__(self, host="localhost", port=3030):
         """
@@ -53,6 +54,7 @@ class FlaskDockerServer:
         """
         self.server.terminate()
         self.server.join()
+
 
 def docker_cp(container, src, dst):
     """
@@ -128,8 +130,8 @@ class DSDocker:
 
         print("Created image!")
 
-        # run a container with command. It's detached so it runs in the background
-        #  It is loaded with a setup script that starts the server.
+        # run a container with command. It's detached, so it runs in the background
+        # It is loaded with a setup script that starts the server.
 
         # tty allows commands such as "docker cp" to be run
         # ports define ports. These are arbitrary
@@ -137,9 +139,6 @@ class DSDocker:
                                                        "python setup.py",
                                                        detach=True,
                                                        tty=True,
-                                                    #    ports={
-                                                    #        '80/tcp': self.PORT,
-                                                    #    },
                                                        cap_add=["SYS_ADMIN", "MKNOD"],
                                                        devices=["/dev/fuse:/dev/fuse:rwm"],
                                                        volumes={data_dir: {
@@ -215,8 +214,8 @@ def flask_thread(port, q: Queue, function_dict_to_send):
 
     @app.route("/started")
     def started():
-        id = int(request.args.get('docker_id'))
-        print("received from: ", id)
+        docker_id = int(request.args.get('docker_id'))
+        print("received from: ", docker_id)
         return "Start received!"
 
     @app.route("/get_function_dict")
@@ -225,7 +224,7 @@ def flask_thread(port, q: Queue, function_dict_to_send):
         print("sending function from docker_id: ", docker_id)
         return pickle.dumps(function_dict_to_send[docker_id])
 
-    @app.route("/get_function_return", methods=['post'])
+    @app.route("/send_function_return", methods=['post'])
     def function_return():
         docker_id = int(request.args.get('docker_id'))
 
@@ -251,9 +250,10 @@ if __name__ == "__main__":
     # app.run(debug = True, port = 3000)
     server = FlaskDockerServer()
 
-    config_dict = {'docker_id':1,'accessible_data_dict':{'/mnt/data/hi.txt'}}
+    config_dict = {'docker_id': 1, 'accessible_data_dict': {'/mnt/data/hi.txt'}}
 
     # create a new ds_docker instance
+    # TODO: change the path here
     session = DSDocker(
         server,
         '/Users/christopherzhu/Documents/chidata/DataStation/ds_dev_utils/example_functions/example_one.py',
@@ -267,8 +267,8 @@ if __name__ == "__main__":
     session.flask_run("line_count")
 
     for i in range(2):
-        ret = server.q.get(block=True)
-        print(ret)
+        test_ret = server.q.get(block=True)
+        print(test_ret)
 
     # clean up
     session.stop_and_prune()
