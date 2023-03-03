@@ -32,6 +32,7 @@ def suggest_share(username, agents, functions, data_elements):
 def ack_data_in_share(username, data_id, share_id):
     return EscrowAPI.ack_data_in_share(username, data_id, share_id)
 
+@api_endpoint
 @function
 def retrieve_data():
     """get the content of the data elements"""
@@ -50,6 +51,7 @@ def retrieve_data():
     return res
 
 @function
+@api_endpoint
 def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
