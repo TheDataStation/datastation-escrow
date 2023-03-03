@@ -104,6 +104,10 @@ class DataStation:
         # register all api_endpoints
         register_epf(self.epf_path)
 
+        print("Done epf registration")
+
+        exit()
+
         # set up the gatekeeper
         self.gatekeeper = Gatekeeper(
             self.data_station_log,

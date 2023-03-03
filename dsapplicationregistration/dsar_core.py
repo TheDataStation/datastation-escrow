@@ -67,6 +67,11 @@ def register_epf(epf_path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
+    api_names = get_api_endpoint_names()
+    print(api_names)
+    function_names = get_functions_names()
+    print(function_names)
+
 def get_api_endpoint_names():
     api_endpoint_names = []
     for api in api_endpoint.registered_api_endpoint:
@@ -95,16 +100,3 @@ def clear_function():
 
 def clear_api_endpoint():
     api_endpoint.clear()
-
-# def __test_registration():
-#     print("Any registered?")
-#     funcs_reg = get_registered_functions()
-#     for el in funcs_reg:
-#         print(el)
-#         print(el.__name__)
-#         print(el.__doc__)
-#
-#     deps = get_registered_dependencies()
-#     print(deps)
-
-
