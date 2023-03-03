@@ -50,8 +50,8 @@ def retrieve_data():
             res.append(data)
     return res
 
-@function
 @api_endpoint
+@function
 def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
