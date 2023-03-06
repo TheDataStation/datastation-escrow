@@ -91,3 +91,16 @@ the format provided by `fmt`
 @function
 def suggest_data_format(username, data_id, attr_name, fmt: str):
     pass
+
+@api_endpoint
+@function
+def is_format_compatible(username, data_id, attr_name, my_data_id, my_attr_name):
+    pass
+
+'''
+Request random sample of column from data element; default sample size is 10 rows
+'''
+@api_endpoint
+@function
+def show_sample(username, data_id, attr_name, sample_size=10):
+    pass
