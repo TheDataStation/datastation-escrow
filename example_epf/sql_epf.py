@@ -62,19 +62,10 @@ def show_de_format(user_id, data_id) -> str:
     return de.type
 
 
-# TODO: file name/table name/paths????
+@api_endpoint
 @function
-def get_schema(file_path) -> List[Tuple[str, str]]:
-    con = duckdb.connect()
-    qry = f"DESCRIBE SELECT * FROM '{file_path}'"
-    schemas = con.execute(qry).fetchall()
-    ret: List[Tuple[str, str]] = []
-    for s in schemas:
-        t = (s[0], s[1])
-        ret.append(t)
-    con.close()
-    return ret
-
+def request_de_schema(username, user_id, data_id): 
+    return EscrowAPI.suggest_share(username, user_id, [user_id], ["show_de_schema"], [data_id])    
 
 '''
 Returns schema for DE
@@ -83,10 +74,33 @@ Returns schema for DE
 # know what any types areeeee
 @api_endpoint
 @function
-def show_de_schema(username, user_id, data_id):
+def show_de_schema(user_id, data_id) -> List[Tuple[str, str]]:
     de = EscrowAPI.get_de_by_id(user_id, data_id)
-    return EscrowAPI.suggest_share(username, user_id, [user_id], ["get_schema"], [data_id])    
+    if de.type == "file":
+        con = duckdb.connect()
+        qry = f"DESCRIBE SELECT * FROM '{de.access_param}'"
+        schemas = con.execute(qry).fetchall()
+        ret: List[Tuple[str, str]] = []
+        for s in schemas:
+            t = (s[0], s[1])
+            ret.append(t)
+        con.close()
+        return ret
+    else:
+        raise NotImplementedError(f"Attempting to read schema from unsupported data type: {de.type}")
 
+'''
+Create share to run column_intersection. Add your data in if you want to use it
+in the function execution
+'''
+@api_endpoint
+@function
+def request_column_intersection(username, user_id, data_id, my_data_id=None):
+    data_elements = [data_id]
+    if my_data_id is not None:
+        data_elements.append(my_data_id)
+    return EscrowAPI.suggest_share(username, [user_id], ["column_intersection"],
+                                   data_elements)
 
 '''
 Performs private set intersection between values in column attr_name in DE
@@ -96,15 +110,22 @@ my_attr_name in DE my_data_id
 @api_endpoint
 @function
 def column_intersection(user_id, data_id, attr_name: str, values: List = None,
-                        my_data_id=None, my_attr_name: str = None):
+                        my_data_id=None, my_attr_name: str = None) -> int:
     assert values is not None or (my_data_id is not None and my_attr_name is not None)
+    # TODO assert both data_ids are present in the share?
     de = EscrowAPI.get_de_by_id(user_id, data_id)
 
     if values is not None:
+        con = duckdb.connect()
         qry = f"SELECT COUNT(*) FROM {de.name} WHERE {attr_name} in {values}"
+        results = con.execute(qry).fetchall() # results of the form: [(N,)]
+        return results[0][0]
     else:
         myde = EscrowAPI.get_de_by_id(user_id, my_data_id)
+        con = duckdb.connect()
         qry = f"SELECT COUNT(*) FROM {de.name} WHERE {attr_name} in {myde.name}.{my_attr_name}"
+        results = con.execute(qry).fetchall() # results of the form: [(N,)]
+        return results[0][0]
 
 '''
 Compare distributions between attributes within data elements
