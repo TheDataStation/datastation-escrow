@@ -117,14 +117,16 @@ def column_intersection(user_id, data_id, attr_name: str, values: List = None,
 
     if values is not None:
         con = duckdb.connect()
-        qry = f"SELECT COUNT(*) FROM {de.name} WHERE {attr_name} in {values}"
+        qry = f"SELECT COUNT(*) FROM {de.access_param} WHERE {attr_name} in {values}"
         results = con.execute(qry).fetchall() # results of the form: [(N,)]
+        con.close()
         return results[0][0]
     else:
         myde = EscrowAPI.get_de_by_id(user_id, my_data_id)
         con = duckdb.connect()
-        qry = f"SELECT COUNT(*) FROM {de.name} WHERE {attr_name} in {myde.name}.{my_attr_name}"
+        qry = f"SELECT COUNT(*) FROM {de.access_param} WHERE {attr_name} in {myde.access_param}.{my_attr_name}"
         results = con.execute(qry).fetchall() # results of the form: [(N,)]
+        con.close()
         return results[0][0]
 
 '''
@@ -149,11 +151,30 @@ def suggest_data_format(user_id, data_id, attr_name, fmt: str):
 def is_format_compatible(username, data_id, attr_name, my_data_id, my_attr_name):
     pass
 
+
 '''
-Request random sample of column from data element; default sample size is 10 rows
+Request sample of data 
 '''
 @api_endpoint
 @function
-def show_sample(username, data_id, attr_name, sample_size=10):
-    qry = "SELECT {attr_name} FROM {de.name} LIMIT {sample_size}"
-    pass
+def request_sample(username, user_id, data_id)
+    return EscrowAPI.suggest_share(username, [user_id], ["show_sample"],
+                                   [data_id])
+
+'''
+Return sample of column from data element; default sample size is 10 rows
+'''
+@api_endpoint
+@function
+# NOTE: sample-size has to be fixed or this function could be abused. other
+# situations where that can be the case?
+def show_sample(username, data_id, attr_name):
+    de = EscrowAPI.get_de_by_id(user_id, data_id)
+    con = duckdb.connect()
+    qry = "SELECT {attr_name} FROM {de.access_param} LIMIT 10"
+    results = con.execute(qry).fetchall() # results of the form: [(N,)]
+    con.close()
+    return results
+
+
+
