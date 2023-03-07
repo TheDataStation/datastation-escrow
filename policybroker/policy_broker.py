@@ -20,10 +20,11 @@ def upload_policy(policy: Policy,
                   cur_username,
                   write_ahead_log=None,
                   key_manager=None, ):
-    # First check if the dataset owner is the current user
-    verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
-    if verify_owner_response.status == 1:
-        return verify_owner_response
+    # TODO: think about if the following block needs to be added back later
+    # # First check if the dataset owner is the current user
+    # verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
+    # if verify_owner_response.status == 1:
+    #     return verify_owner_response
 
     # Get caller's id
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
