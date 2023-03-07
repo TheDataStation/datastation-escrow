@@ -31,10 +31,16 @@ def suggest_share(username, agents, functions, data_elements):
 def ack_data_in_share(username, data_id, share_id):
     return EscrowAPI.ack_data_in_share(username, data_id, share_id)
 
+def get_data(de):
+    if de.type == "file":
+        return de.type
+
 @api_endpoint
 @function
-def get_column(data_id, attr_name):
-    return 0
+def get_column(de_id, attr_name):
+    de = EscrowAPI.get_de_by_id(de_id)
+    # TODO: continue from here
+    return de.type
 
 
 # '''
