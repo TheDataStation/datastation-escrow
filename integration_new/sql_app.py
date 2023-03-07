@@ -37,13 +37,13 @@ if __name__ == '__main__':
     test1_name = "integration_new/test_files/sql/test1.csv"
     test1 = open(test1_name, "rb")
     test1_bytes = test1.read()
-    register_res = ds.call_api("jerry", "register_data", None, None, "jerry", "test1", "file", "test1", False, )
+    register_res = ds.call_api("jerry", "register_data", None, None, "jerry", "test1.csv", "file", "test1.csv", False, )
     ds.call_api("jerry", "upload_data", None, None, "jerry", register_res.data_id, test1_bytes, )
 
     test2_name = "integration_new/test_files/sql/test2.csv"
     test2 = open(test2_name, "rb")
     test2_bytes = test2.read()
-    register_res = ds.call_api("david", "register_data", None, None, "david", "test2", "file", "test2", False, )
+    register_res = ds.call_api("david", "register_data", None, None, "david", "test2.csv", "file", "test2.csv", False, )
     ds.call_api("david", "upload_data", None, None, "david", register_res.data_id, test2_bytes, )
 
     # Step 3: jerry suggests a share saying they can both run retrieve_column
@@ -56,9 +56,9 @@ if __name__ == '__main__':
     ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 1, 1)
     ds.call_api("david", "ack_data_in_share", None, None, "david", 2, 1)
 
-    # # Step 5: david calls the API line_count. He runs it in optimistic mode.
-    # line_count_res = ds.call_api("david", "line_count", 1, "pessimistic")
-    # print("The result of line count is:", line_count_res)
-    #
+    # Step 5: david calls the API get_column.
+    get_column_res = ds.call_api("david", "get_column", 1, "pessimistic", 1, "PersonID")
+    print("The result of get column is:", get_column_res)
+
     # Last step: shut down the Data Station
     ds.shut_down()

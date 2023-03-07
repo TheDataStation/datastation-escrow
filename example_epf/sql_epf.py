@@ -1,6 +1,7 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
-from typing import List
+
+import duckdb
 
 
 @api_endpoint
@@ -33,14 +34,16 @@ def ack_data_in_share(username, data_id, share_id):
 
 def get_data(de):
     if de.type == "file":
-        return de.type
+        return de.access_param
 
 @api_endpoint
 @function
 def get_column(de_id, attr_name):
     de = EscrowAPI.get_de_by_id(de_id)
-    # TODO: continue from here
-    return de.type
+    table_name = get_data(de)
+    query = "SELECT " + attr_name + " From '" + table_name + "'"
+    res = duckdb.sql(query).fetchall()
+    return res
 
 
 # '''
