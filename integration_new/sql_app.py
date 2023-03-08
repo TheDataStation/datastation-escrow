@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     # Step 3: jerry suggests a share saying they can both run retrieve_column
     agents = [1, 2]
-    functions = ["column_intersection"]
+    functions = ["column_intersection", "compare_distributions"]
     data_elements = [1, 2]
     ds.call_api("jerry", "suggest_share", None, None, "jerry", agents, functions, data_elements)
 
@@ -56,9 +56,12 @@ if __name__ == '__main__':
     ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 1, 1)
     ds.call_api("david", "ack_data_in_share", None, None, "david", 2, 1)
 
-    # Step 5: david calls the API column_intersection.
-    get_column_res = ds.call_api("david", "column_intersection", 1, "pessimistic", 1, "PersonID", 2, "CustomerID")
-    print("The result of column intersection is:", get_column_res)
+    # Step 5: david calls the SQL sharing APIs.
+    column_intersection_res = ds.call_api("david", "column_intersection", 1, "pessimistic", 1, "PersonID", 2, "CustomerID")
+    print("The result of column intersection is:", column_intersection_res)
+
+    compare_dstr_res = ds.call_api("david", "compare_distributions", 1, "pessimistic", 1, "PersonID", 2, "CustomerID")
+    print("The result of comparing distritbutions is:", compare_dstr_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()

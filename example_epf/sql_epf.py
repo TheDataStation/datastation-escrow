@@ -2,6 +2,7 @@ from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
 
 import duckdb
+import numpy as np
 
 
 @api_endpoint
@@ -51,6 +52,17 @@ def column_intersection(src_de_id, src_attr, tgt_de_id, tgt_attr):
     overlapping_values = set(src_col).intersection(set(tgt_col))
     count = len(overlapping_values)
     return count
+
+
+'''
+Compare distributions between attributes within data elements
+'''
+@api_endpoint
+@function
+def compare_distributions(src_de_id, src_attr, tgt_de_id, tgt_attr):
+    src_col = get_column(src_de_id, src_attr)
+    tgt_col = get_column(tgt_de_id, tgt_attr)
+    return np.mean(src_col), np.std(src_col), np.mean(tgt_col), np.std(tgt_col)
 
 
 # '''
