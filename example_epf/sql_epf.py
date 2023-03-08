@@ -45,6 +45,11 @@ def get_column(de_id, attr_name):
     res = duckdb.sql(query).fetchall()
     return res
 
+@api_endpoint
+@function
+def column_intersection(src_de_id, src_attr, tgt_de_id, tgt_attr):
+    return 0
+
 
 # '''
 # returns all data elements registered in enclave mode with the data station
