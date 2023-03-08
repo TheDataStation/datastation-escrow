@@ -1,6 +1,8 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
 from typing import List, Tuple
+import duckdb
+import numpy as np
 
 
 @api_endpoint
@@ -31,6 +33,7 @@ def suggest_share(user_id, agents, functions, data_elements):
 def ack_data_in_share(user_id, data_id, share_id):
     return EscrowAPI.ack_data_in_share(user_id, data_id, share_id)
 
+<<<<<<< HEAD
 '''
 returns all data elements registered in enclave mode with the data station
 '''
@@ -129,13 +132,25 @@ def column_intersection(user_id, data_id, attr_name: str, values: List = None,
         con.close()
         return results[0][0]
 
-'''
-Compare distributions between attributes within data elements
-'''
+def get_data(de):
+    if de.type == "file":
+        return de.access_param
+
+def get_column(de_id, attr_name):
+    de = EscrowAPI.get_de_by_id(de_id)
+    table_name = get_data(de)
+    query = "SELECT " + attr_name + " From '" + table_name + "'"
+    res = duckdb.sql(query).fetchall()
+    return res
+
 @api_endpoint
 @function
-def compare_distributions(user_id, data_id, attr_name, my_data_id, my_attr_name):
-    pass
+def column_intersection_get_column(src_de_id, src_attr, tgt_de_id, tgt_attr):
+    src_col = get_column(src_de_id, src_attr)
+    tgt_col = get_column(tgt_de_id, tgt_attr)
+    overlapping_values = set(src_col).intersection(set(tgt_col))
+    count = len(overlapping_values)
+    return count
 
 '''
 Suggest that the owner of `data_id` reformat the values in `attr_name` to match
@@ -146,10 +161,15 @@ the format provided by `fmt`
 def suggest_data_format(user_id, data_id, attr_name, fmt: str):
     pass
 
+'''
+Compare distributions between attributes within data elements
+'''
 @api_endpoint
 @function
-def is_format_compatible(username, data_id, attr_name, my_data_id, my_attr_name):
-    pass
+def compare_distributions(src_de_id, src_attr, tgt_de_id, tgt_attr):
+    src_col = get_column(src_de_id, src_attr)
+    tgt_col = get_column(tgt_de_id, tgt_attr)
+    return np.mean(src_col), np.std(src_col), np.mean(tgt_col), np.std(tgt_col)
 
 
 '''
@@ -175,6 +195,4 @@ def show_sample(username, data_id, attr_name):
     results = con.execute(qry).fetchall() # results of the form: [(N,)]
     con.close()
     return results
-
-
 

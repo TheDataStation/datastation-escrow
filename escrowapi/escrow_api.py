@@ -11,6 +11,10 @@ class EscrowAPI:
         return cls.__comp.get_all_accessible_des()
 
     @classmethod
+    def get_de_by_id(cls, de_id):
+        return cls.__comp.get_de_by_id(de_id)
+
+    @classmethod
     def register_data(cls,
                       username,
                       data_name,
