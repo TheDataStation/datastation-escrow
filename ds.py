@@ -432,6 +432,7 @@ class DataStation:
                 for d in data_elements:
                     cur_policy = Policy(
                         user_id=a, api=f, data_id=d, share_id=share_id, status=0)
+                    # print(cur_policy)
                     if self.trust_mode == "full_trust":
                         response = policy_broker.upload_policy(cur_policy,
                                                                username, )
