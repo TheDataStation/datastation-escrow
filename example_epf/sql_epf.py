@@ -36,8 +36,6 @@ def get_data(de):
     if de.type == "file":
         return de.access_param
 
-@api_endpoint
-@function
 def get_column(de_id, attr_name):
     de = EscrowAPI.get_de_by_id(de_id)
     table_name = get_data(de)
@@ -48,7 +46,11 @@ def get_column(de_id, attr_name):
 @api_endpoint
 @function
 def column_intersection(src_de_id, src_attr, tgt_de_id, tgt_attr):
-    return 0
+    src_col = get_column(src_de_id, src_attr)
+    tgt_col = get_column(tgt_de_id, tgt_attr)
+    overlapping_values = set(src_col).intersection(set(tgt_col))
+    count = len(overlapping_values)
+    return count
 
 
 # '''
