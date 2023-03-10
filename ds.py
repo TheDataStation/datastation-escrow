@@ -25,10 +25,12 @@ from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
 from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
+                                                 get_registered_functions,
                                                  clear_api_endpoint,
                                                  clear_function,
                                                  register_epf, )
 from userregister import user_register
+from common.abstraction import DataElement
 
 
 class DataStation:
@@ -83,8 +85,8 @@ class DataStation:
         self.trust_mode = self.config.trust_mode
 
         # set up an instance of the storage_manager
-        storage_path = self.config.storage_path
-        self.storage_manager = StorageManager(storage_path)
+        self.storage_path = self.config.storage_path
+        self.storage_manager = StorageManager(self.storage_path)
 
         # set up an instance of the staging_storage
         staging_path = self.config.staging_path
@@ -104,7 +106,7 @@ class DataStation:
         # set up an instance of the key manager
         self.key_manager = KeyManager()
 
-        print(storage_path)
+        # print(self.storage_path)
         self.epf_path = app_config["epf_path"]
 
         # register all api_endpoints
@@ -504,7 +506,16 @@ class DataStation:
                 res = cur_api(*args, **kwargs)
                 return res
 
-        # If it's jail, it goes to the gatekeeper
+        # If it's jail and in development mode, we run the function without going to the gatekeeper
+        if self.development_mode:
+            list_of_functions = get_registered_functions()
+            for cur_fn in list_of_functions:
+                if api == cur_fn.__name__:
+                    print("user is calling api in development mode", api)
+                    res = cur_fn(*args, **kwargs)
+                    return res
+
+        # If it's jail and not in development mode, it goes to the gatekeeper
         res = self.gatekeeper.call_api(api,
                                        cur_user_id,
                                        share_id,
@@ -632,6 +643,57 @@ class DataStation:
 
     def print_wal(self):
         self.write_ahead_log.read_wal(self.key_manager)
+
+    def get_all_accessible_des(self):
+        """
+        For testing: when in development mode, fetches all DEs.
+
+        Parameters:
+
+        Returns:
+            a list of DataElements
+        """
+
+        if not self.development_mode:
+            return -1
+
+        get_all_data_res = database_api.get_all_datasets()
+        accessible_de = set()
+        for cur_data in get_all_data_res.data:
+            if self.trust_mode == "no_trust":
+                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
+            else:
+                data_owner_symmetric_key = None
+            cur_de = DataElement(cur_data.id,
+                                 cur_data.name,
+                                 cur_data.type,
+                                 cur_data.access_param,
+                                 data_owner_symmetric_key)
+            accessible_de.add(cur_de)
+        for cur_de in accessible_de:
+            if cur_de.type == "file":
+                cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
+        return accessible_de
+
+    def get_de_by_id(self, de_id):
+        """
+        For testing: when in development mode, fetches DE by id.
+
+        Parameters:
+            de_id: id of the DataElement
+
+        Returns:
+            DataElement specified by de_ied
+        """
+
+        if not self.development_mode:
+            print("Something is wrong. Shout not be here if not in dev mode.")
+            return -1
+
+        all_des = self.get_all_accessible_des()
+        for de in all_des:
+            if de.id == de_id:
+                return de
 
     def recover_db_from_wal(self):
         """
