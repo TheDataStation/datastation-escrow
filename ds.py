@@ -61,6 +61,9 @@ class DataStation:
             self.ds_storage_path = str(pathlib.Path(
                 ds_config["storage_path"]).absolute())
 
+            # development mode
+            self.development_mode = ds_config["in_development_mode"]
+
     def __init__(self, ds_config, app_config, need_to_recover=False):
         """
         The general class that creates and initializes a Data Station.
@@ -72,6 +75,9 @@ class DataStation:
         """
         # parse config file
         self.config = self.DSConfig(ds_config)
+
+        # set up development mode
+        self.development_mode = self.config.development_mode
 
         # set up trust mode
         self.trust_mode = self.config.trust_mode

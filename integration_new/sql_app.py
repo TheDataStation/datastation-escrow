@@ -56,6 +56,8 @@ if __name__ == '__main__':
     ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 1, 1)
     ds.call_api("david", "ack_data_in_share", None, None, "david", 2, 1)
 
+    exit()
+
     # Step 5: david calls the SQL sharing APIs.
     column_intersection_res = ds.call_api("david", "column_intersection", 1, "pessimistic", 1, "PersonID", 2, "CustomerID")
     print("The result of column intersection is:", column_intersection_res)
