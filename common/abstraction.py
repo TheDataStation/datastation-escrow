@@ -21,7 +21,7 @@ class DataElement:
         self.access_param = access_param
         self.enc_key = enc_key
         if self.type == "file":
-            self.access_param = os.path.join("/mnt/data_mount", str(self.id), str(self.access_param))
+            self.access_param = os.path.join(str(self.id), str(self.access_param))
         else:
             self.access_param = json.loads(self.access_param)
 

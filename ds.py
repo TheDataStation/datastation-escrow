@@ -25,10 +25,12 @@ from gatekeeper.gatekeeper import Gatekeeper
 from dbservice import database_api
 from dbservice.database import engine
 from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
+                                                 get_registered_functions,
                                                  clear_api_endpoint,
                                                  clear_function,
                                                  register_epf, )
 from userregister import user_register
+from common.abstraction import DataElement
 
 
 class DataStation:
@@ -61,6 +63,9 @@ class DataStation:
             self.ds_storage_path = str(pathlib.Path(
                 ds_config["storage_path"]).absolute())
 
+            # development mode
+            self.development_mode = ds_config["in_development_mode"]
+
     def __init__(self, ds_config, app_config, need_to_recover=False):
         """
         The general class that creates and initializes a Data Station.
@@ -73,12 +78,18 @@ class DataStation:
         # parse config file
         self.config = self.DSConfig(ds_config)
 
+        # set up development mode
+        self.development_mode = self.config.development_mode
+
+        # for development mode
+        self.accessible_de_development = None
+
         # set up trust mode
         self.trust_mode = self.config.trust_mode
 
         # set up an instance of the storage_manager
-        storage_path = self.config.storage_path
-        self.storage_manager = StorageManager(storage_path)
+        self.storage_path = self.config.storage_path
+        self.storage_manager = StorageManager(self.storage_path)
 
         # set up an instance of the staging_storage
         staging_path = self.config.staging_path
@@ -98,7 +109,7 @@ class DataStation:
         # set up an instance of the key manager
         self.key_manager = KeyManager()
 
-        print(storage_path)
+        # print(self.storage_path)
         self.epf_path = app_config["epf_path"]
 
         # register all api_endpoints
@@ -488,6 +499,11 @@ class DataStation:
             return Response(status=1, message="Something wrong with the current user")
         cur_user_id = cur_user.data[0].id
 
+        # First we check if we are in development mode, if true, call call_api_development
+        if self.development_mode:
+            res = self.call_api_development(api, cur_user_id, share_id, exec_mode, *args, **kwargs)
+            return res
+
         # Now we need to check if the current API called is an api_endpoint (non-jail) or a function (jail)
         # If it's non-jail, it does not need to go through the gatekeeper
         list_of_api_endpoint = get_registered_api_endpoint()
@@ -626,6 +642,104 @@ class DataStation:
 
     def print_wal(self):
         self.write_ahead_log.read_wal(self.key_manager)
+
+    def call_api_development(self, api, user_id, share_id, exec_mode, *args, **kwargs):
+        """
+        For testing: handling api calls in development mode
+        """
+        # Case 1: calling non-jail function
+        list_of_api_endpoint = get_registered_api_endpoint()
+        for cur_api in list_of_api_endpoint:
+            if api == cur_api.__name__:
+                print("user is calling an api_endpoint in development", api)
+                res = cur_api(*args, **kwargs)
+                return res
+
+        # Case 2: calling jail function: we mimic the behaviour of gatekeeper here
+        accessible_data_policy = policy_broker.get_user_api_info(user_id, api, share_id)
+
+        # get all optimistic data from the DB
+        optimistic_data = database_api.get_all_optimistic_datasets()
+        accessible_data_optimistic = []
+        for i in range(len(optimistic_data.data)):
+            cur_optimistic_id = optimistic_data.data[i].id
+            accessible_data_optimistic.append(cur_optimistic_id)
+
+        # Combine these two types of accessible data elements together into all_accessible_data_id
+        if exec_mode == "optimistic":
+            all_accessible_data_id = set(
+                accessible_data_policy + accessible_data_optimistic)
+        # In pessimistic execution mode, we only include data that are allowed by policies
+        else:
+            all_accessible_data_id = set(accessible_data_policy)
+        print("all accessible data elements are: ", all_accessible_data_id)
+
+        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
+        if get_datasets_by_ids_res.status == -1:
+            err_msg = "No accessible data for " + api
+            print(err_msg)
+            return Response(status=1, message=err_msg)
+
+        accessible_de = set()
+        for cur_data in get_datasets_by_ids_res.data:
+            if self.trust_mode == "no_trust":
+                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
+            else:
+                data_owner_symmetric_key = None
+            cur_de = DataElement(cur_data.id,
+                                 cur_data.name,
+                                 cur_data.type,
+                                 cur_data.access_param,
+                                 data_owner_symmetric_key)
+            accessible_de.add(cur_de)
+
+        for cur_de in accessible_de:
+            if cur_de.type == "file":
+                cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
+
+        self.accessible_de_development = accessible_de
+
+        list_of_function = get_registered_functions()
+        for cur_fn in list_of_function:
+            if api == cur_fn.__name__:
+                print("user is calling a jail function in development", api)
+                res = cur_fn(*args, **kwargs)
+                return res
+
+    def get_all_accessible_des(self):
+        """
+        For testing: when in development mode, fetches all DEs.
+
+        Parameters:
+
+        Returns:
+            a list of DataElements
+        """
+
+        if not self.development_mode:
+            return -1
+
+        return self.accessible_de_development
+
+    def get_de_by_id(self, de_id):
+        """
+        For testing: when in development mode, fetches DE by id.
+
+        Parameters:
+            de_id: id of the DataElement
+
+        Returns:
+            DataElement specified by de_ied
+        """
+
+        if not self.development_mode:
+            print("Something is wrong. Shout not be here if not in dev mode.")
+            return -1
+
+        all_des = self.get_all_accessible_des()
+        for de in all_des:
+            if de.id == de_id:
+                return de
 
     def recover_db_from_wal(self):
         """

@@ -138,8 +138,7 @@ class Gatekeeper:
             all_accessible_data_id = data_aware_DE
         print("all accessible data elements are: ", all_accessible_data_id)
 
-        get_datasets_by_ids_res = database_api.get_datasets_by_ids(
-            all_accessible_data_id)
+        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
         if get_datasets_by_ids_res.status == -1:
             err_msg = "No accessible data for " + api
             print(err_msg)
