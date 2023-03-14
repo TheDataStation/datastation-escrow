@@ -10,6 +10,10 @@ RUN mkdir /usr/src/ds/connectors
 RUN mkdir -p /mnt/data_mount
 
 COPY ds_dev_utils/docker/image .
+COPY common common
+COPY crypto crypto
+COPY escrowapi escrowapi
+COPY dsapplicationregistration dsapplicationregistration
 
 RUN apt-get clean && apt-get update && apt-get install -y fuse && apt-get install libfuse-dev && rm -rf /var/lib/apt/lists/*
 
