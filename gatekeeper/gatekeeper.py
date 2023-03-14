@@ -251,7 +251,7 @@ def call_actual_api(api_name,
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
-    docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
+    docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/.."
 
     config_dict = {"accessible_de": accessible_de, "docker_id": docker_id}
     print("The real epf path is", epf_realpath)
