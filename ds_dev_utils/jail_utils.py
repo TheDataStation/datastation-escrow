@@ -95,7 +95,7 @@ class DSDocker:
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
     PORT = 3000  # The port used by the server
 
-    def __init__(self, server: FlaskDockerServer, function_file, data_dir, config_dict, dockerfile):
+    def __init__(self, server: FlaskDockerServer, dockerfile):
         """
         Initializes a docker container with mount point data_dir, with
         image given. Loads function file into container.
@@ -111,14 +111,6 @@ class DSDocker:
         Returns:
         """
 
-        print("config_dict contents: ", config_dict)
-
-        # save variables for docker container
-        self.function_file = function_file
-        self.data_dir = data_dir
-
-        # In here we convert the accessible_data_dict to paths that Docker sees
-        self.docker_id = config_dict["docker_id"]
         self.server = server
 
         # cur_dir = os.path.dirname(os.path.realpath(__file__))
@@ -149,7 +141,7 @@ class DSDocker:
         self.container.stop()
         self.client.containers.prune()
 
-    def flask_run(self, function_name, *args, **kwargs):
+    def flask_run(self, function_name, function_file, data_dir, config_dict, *args, **kwargs):
         """
         utilizes a flask server to send functions
 
@@ -160,6 +152,10 @@ class DSDocker:
         Returns:
          function return value
         """
+        print("config_dict contents: ", config_dict)
+
+        # In here we convert the accessible_data_dict to paths that Docker sees
+        self.docker_id = config_dict["docker_id"]
 
         # run a container with command. It's detached, so it runs in the background
         # It is loaded with a setup script that starts the server.
@@ -172,7 +168,7 @@ class DSDocker:
                                                        tty=True,
                                                        cap_add=["SYS_ADMIN", "MKNOD"],
                                                        devices=["/dev/fuse:/dev/fuse:rwm"],
-                                                       volumes={self.data_dir: {
+                                                       volumes={data_dir: {
                                                            'bind': '/mnt/data', 'mode': 'rw'}},
                                                        )
 
@@ -190,7 +186,7 @@ class DSDocker:
 
         # copy the function file into the container
         docker_cp(self.container,
-                  self.function_file,
+                  function_file,
                   "/usr/src/ds/functions")
 
         # create a dictionary to pickle
