@@ -8,10 +8,25 @@ class EscrowAPI:
 
     @classmethod
     def get_all_accessible_des(cls):
+        """
+        Returns all accessible data elements.
+
+        Returns:
+            A list of DataElements.
+        """
         return cls.__comp.get_all_accessible_des()
 
     @classmethod
     def get_de_by_id(cls, de_id):
+        """
+        Returns a data element, specified by de_id
+
+        Parameters:
+            de_id: id of the DataElement to be returned.
+
+        Returns:
+            a DataElement object.
+        """
         return cls.__comp.get_de_by_id(de_id)
 
     @classmethod
