@@ -121,7 +121,7 @@ class DSDocker:
 
         # create image from dockerfile
         self.image, log = self.client.images.build(
-            path=dockerfile, tag="ds_docker")
+            path=dockerfile, dockerfile="../../../Dockerfile", tag="ds_docker", timeout=10)
         # print(self.image, log)
 
         print("Created image!")
