@@ -60,13 +60,52 @@ class EscrowAPI:
         return cls.__comp.upload_file(username, data_id, data_in_bytes)
 
     @classmethod
-    def upload_policy(cls, username, user_id, api, data_id):
-        return cls.__comp.upload_policy(username, user_id, api, data_id)
+    def upload_policy(cls, username, user_id, api, data_id, share_id):
+        """
+        Uploads a policy written by the given user to DS
+
+        Parameters:
+            username: the unique username identifying which user wrote the policy
+            user_id: part of policy to upload, the user ID of the policy
+            api: the api the policy refers to
+            data_id: the data id the policy refers to
+            share_id: to which share does this policy apply.
+
+        Returns:
+        A response object with the following fields:
+            status: status of uploading policy. 0: success, 1: failure.
+        """
+        return cls.__comp.upload_policy(username, user_id, api, data_id, share_id)
 
     @classmethod
     def suggest_share(cls, username, agents, functions, data_elements):
+        """
+        Propose a share. This leads to the creation of a share, which is just a list of policies.
+
+        Parameters:
+            username: the unique username identifying which user is calling the api
+            agents: list of user ids
+            functions: list of functions
+            data_elements: list of data elements
+
+        Returns:
+        A response object with the following fields:
+            status: status of suggesting share. 0: success, 1: failure.
+        """
         return cls.__comp.suggest_share(username, agents, functions, data_elements)
 
     @classmethod
     def ack_data_in_share(cls, username, share_id, data_id):
+        """
+        Updates a policy's status to ready
+
+        Parameters:
+            username: the unique username identifying which user is calling the api
+            share_id: id of the share
+            data_id: id of the data element
+
+        Returns:
+        A response object with the following fields:
+            status: status of acknowledging share. 0: success, 1: failure.
+        """
         return cls.__comp.ack_data_in_share(username, share_id, data_id)

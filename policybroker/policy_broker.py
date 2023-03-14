@@ -45,7 +45,10 @@ def upload_policy(policy: Policy,
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     response = database_api.create_policy(policy)
-    return Response(status=response.status, message=response.msg)
+    if response.status == -1:
+        return Response(status=1, message="Upload policy failed")
+    else:
+        return Response(status=0, message="Upload policy success")
 
 
 # upload policies in bulk fashion
@@ -145,7 +148,9 @@ def ack_data_in_share(cur_username,
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     response = database_api.ack_data_in_share(data_id, share_id)
-    return response
+    if response is not None:
+        return Response(status=0, message="Acknowledge share success.")
+    return Response(status=1, message="Acknowledge share failure.")
 
 
 # get all policies from DB
