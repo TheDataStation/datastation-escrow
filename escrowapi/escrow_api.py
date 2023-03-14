@@ -22,6 +22,21 @@ class EscrowAPI:
                       access_param,
                       optimistic,
                       ):
+        """
+        Registers a data element in Data Station's database.
+
+        Parameters:
+            username: the unique username identifying which user owns the dataset
+            data_name: name of the data
+            data_type: type of DE. e.g: file.
+            access_param: additional parameters needed for acccessing the DE
+            optimistic: flag to be included in optimistic data discovery
+
+        Returns:
+        A response object with the following fields:
+            status: status of registering DE. 0: success, 1: failure.
+            data_id: if success, a data_id is returned for this registered DE.
+        """
         return cls.__comp.register_data(username, data_name, data_type, access_param, optimistic)
 
     @classmethod
@@ -29,6 +44,19 @@ class EscrowAPI:
                     username,
                     data_id,
                     data_in_bytes):
+        """
+        Upload data in bytes corresponding to a registered DE. These bytes will be written to a file
+        in DataStation's storage manager.
+
+        Parameters:
+            username: the unique username identifying which user owns the dataset
+            data_id: id of this existing DE
+            data_in_bytes: daat in bytes
+
+        Returns:
+        A response object with the following fields:
+            status: status of uploading data. 0: success, 1: failure.
+        """
         return cls.__comp.upload_file(username, data_id, data_in_bytes)
 
     @classmethod
