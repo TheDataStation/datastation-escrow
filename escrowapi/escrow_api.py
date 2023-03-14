@@ -9,6 +9,7 @@ class EscrowAPI:
     @classmethod
     def get_all_accessible_des(cls):
         """
+        to be run WITHIN a function.
         Returns all accessible data elements.
 
         Returns:
@@ -19,6 +20,7 @@ class EscrowAPI:
     @classmethod
     def get_de_by_id(cls, de_id):
         """
+        to be run WITHIN a function.
         Returns a data element, specified by de_id
 
         Parameters:
@@ -38,6 +40,7 @@ class EscrowAPI:
                       optimistic,
                       ):
         """
+        to be run OUTSIDE a function.
         Registers a data element in Data Station's database.
 
         Parameters:
@@ -60,6 +63,7 @@ class EscrowAPI:
                     data_id,
                     data_in_bytes):
         """
+        to be run OUTSIDE a function.
         Upload data in bytes corresponding to a registered DE. These bytes will be written to a file
         in DataStation's storage manager.
 
@@ -77,6 +81,7 @@ class EscrowAPI:
     @classmethod
     def upload_policy(cls, username, user_id, api, data_id, share_id):
         """
+        to be run OUTSIDE a function.
         Uploads a policy written by the given user to DS
 
         Parameters:
@@ -95,6 +100,7 @@ class EscrowAPI:
     @classmethod
     def suggest_share(cls, username, agents, functions, data_elements):
         """
+        to be run OUTSIDE a function.
         Propose a share. This leads to the creation of a share, which is just a list of policies.
 
         Parameters:
@@ -112,6 +118,7 @@ class EscrowAPI:
     @classmethod
     def ack_data_in_share(cls, username, share_id, data_id):
         """
+        to be run OUTSIDE a function.
         Updates a policy's status to ready
 
         Parameters:
