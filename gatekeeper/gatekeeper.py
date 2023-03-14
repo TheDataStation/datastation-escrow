@@ -25,7 +25,8 @@ class Gatekeeper:
                  mount_dir,
                  ):
         """
-        The general class for the gatekeeper, which brokers access to data elements
+        The general class for the gatekeeper, which brokers access to data elements and
+         runs jail functions
         """
 
         print("Start setting up the gatekeeper")
