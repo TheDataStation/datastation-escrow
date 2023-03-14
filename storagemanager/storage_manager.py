@@ -1,5 +1,5 @@
 from os import path, remove, makedirs, removedirs
-from common.pydantic_models.response import Response, StoreDataResponse, RetrieveDataResponse
+from common.pydantic_models.response import Response, RetrieveDataResponse
 
 # TODO: Right now, we give SM the responsibility to determine how it wants to store different types of data
 class StorageManager:
@@ -12,28 +12,22 @@ class StorageManager:
         return dir_path
 
     def store(self, data_name, data_id, data, data_type):
-        if data_type == "file":
-            file_name = path.basename(data_name)
-            dir_path = self.get_dir_path(data_id)
-            # Specify path for file
-            dst_file_path = path.join(dir_path, file_name)
+        file_name = path.basename(data_name)
+        dir_path = self.get_dir_path(data_id)
+        # Specify path for file
+        dst_file_path = path.join(dir_path, file_name)
 
-            try:
-                # if dir already exists, data with the same id has already been stored
-                makedirs(dir_path, exist_ok=False)
-                # Store the file
-                f = open(dst_file_path, 'wb')
-                f.write(data)
-                f.close()
-            except OSError as error:
-                return Response(status=1,
-                                message="data id=" + str(data_id) + "already exists")
-            return StoreDataResponse(status=0,
-                                     message="success",
-                                     access_type=dst_file_path,)
-
-        # Other types of data elements are not currently supported
-        return Response(status=1, message="data type not currently supported")
+        try:
+            # if dir already exists, data with the same id has already been stored
+            makedirs(dir_path, exist_ok=False)
+            # Store the file
+            f = open(dst_file_path, 'wb')
+            f.write(data)
+            f.close()
+        except OSError as error:
+            return Response(status=1,
+                            message="data id=" + str(data_id) + "already exists")
+        return Response(status=0, message="success", )
 
     def remove(self, data_name, data_id, data_type):
         if data_type == "file":
