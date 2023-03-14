@@ -113,6 +113,10 @@ class DSDocker:
 
         print("config_dict contents: ", config_dict)
 
+        # save variables for docker container
+        self.function_file = function_file
+        self.data_dir = data_dir
+
         # In here we convert the accessible_data_dict to paths that Docker sees
         self.docker_id = config_dict["docker_id"]
         self.server = server
@@ -130,37 +134,6 @@ class DSDocker:
 
         print("Created image!")
 
-        # run a container with command. It's detached, so it runs in the background
-        # It is loaded with a setup script that starts the server.
-
-        # tty allows commands such as "docker cp" to be run
-        # ports define ports. These are arbitrary
-        self.container = self.client.containers.create(self.image,
-                                                       "python setup.py",
-                                                       detach=True,
-                                                       tty=True,
-                                                       cap_add=["SYS_ADMIN", "MKNOD"],
-                                                       devices=["/dev/fuse:/dev/fuse:rwm"],
-                                                       volumes={data_dir: {
-                                                           'bind': '/mnt/data', 'mode': 'rw'}},
-                                                       )
-
-        cur_dir = os.path.dirname(os.path.realpath(__file__))
-        config_dict_file = os.path.join(cur_dir, "args.pkl")
-
-        config_dict_file_pkl = pickle.dumps(config_dict)
-        f = open(config_dict_file, "wb")
-        f.write(config_dict_file_pkl)
-        f.close()
-
-        docker_cp(self.container,
-                  config_dict_file,
-                  "/usr/src/ds")
-
-        # copy the function file into the container
-        docker_cp(self.container,
-                  function_file,
-                  "/usr/src/ds/functions")
 
     def stop_and_prune(self):
         """
@@ -187,6 +160,38 @@ class DSDocker:
         Returns:
          function return value
         """
+
+        # run a container with command. It's detached, so it runs in the background
+        # It is loaded with a setup script that starts the server.
+
+        # tty allows commands such as "docker cp" to be run
+        # ports define ports. These are arbitrary
+        self.container = self.client.containers.create(self.image,
+                                                       "python setup.py",
+                                                       detach=True,
+                                                       tty=True,
+                                                       cap_add=["SYS_ADMIN", "MKNOD"],
+                                                       devices=["/dev/fuse:/dev/fuse:rwm"],
+                                                       volumes={self.data_dir: {
+                                                           'bind': '/mnt/data', 'mode': 'rw'}},
+                                                       )
+
+        cur_dir = os.path.dirname(os.path.realpath(__file__))
+        config_dict_file = os.path.join(cur_dir, "args.pkl")
+
+        config_dict_file_pkl = pickle.dumps(config_dict)
+        f = open(config_dict_file, "wb")
+        f.write(config_dict_file_pkl)
+        f.close()
+
+        docker_cp(self.container,
+                  config_dict_file,
+                  "/usr/src/ds")
+
+        # copy the function file into the container
+        docker_cp(self.container,
+                  self.function_file,
+                  "/usr/src/ds/functions")
 
         # create a dictionary to pickle
         func_dict = {"function": function_name, "args": args, "kwargs": kwargs}
