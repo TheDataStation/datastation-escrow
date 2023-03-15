@@ -58,7 +58,6 @@ class Gatekeeper:
         api_res = database_api.get_all_apis()
         print("all apis uploaded, with pid: ", os.getpid(), api_res)
 
-        docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "ds_dev_utils/docker/image")
         docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".")
         print("docker image path: ",docker_image_realpath)
         self.docker_session = DSDocker(
