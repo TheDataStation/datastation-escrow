@@ -122,7 +122,8 @@ class DataStation:
             self.key_manager,
             self.trust_mode,
             self.epf_path,
-            self.config.ds_storage_path
+            self.config.ds_storage_path,
+            self.development_mode,
         )
 
         # set up the table_paths in dbservice.check_point
@@ -704,6 +705,7 @@ class DataStation:
                                  data_owner_symmetric_key)
             accessible_de.add(cur_de)
 
+        # Change "file"'s access_param to their actual storage path
         for cur_de in accessible_de:
             if cur_de.type == "file":
                 cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)

@@ -23,6 +23,7 @@ class Gatekeeper:
                  trust_mode: str,
                  epf_path,
                  mount_dir,
+                 development_mode,
                  ):
         """
         The general class for the gatekeeper, which brokers access to data elements and
@@ -58,12 +59,13 @@ class Gatekeeper:
         api_res = database_api.get_all_apis()
         print("all apis uploaded, with pid: ", os.getpid(), api_res)
 
-        docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".")
-        print("docker image path: ",docker_image_realpath)
-        self.docker_session = DSDocker(
-            self.server,
-            docker_image_realpath,
-        )
+        if not development_mode:
+            docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".")
+            print("docker image path: ", docker_image_realpath)
+            self.docker_session = DSDocker(
+                self.server,
+                docker_image_realpath,
+            )
 
         print("Gatekeeper setup success")
 

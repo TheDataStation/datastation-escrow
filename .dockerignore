@@ -16,4 +16,5 @@ storagemanager/*
 userregister/*
 verifiability/*
 writeaheadlog/*
+venv/*
 data_station.db
