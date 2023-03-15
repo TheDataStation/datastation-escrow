@@ -95,7 +95,7 @@ class DSDocker:
     HOST = socket.gethostbyname("")  # The server's hostname or IP address
     PORT = 3000  # The port used by the server
 
-    def __init__(self, server: FlaskDockerServer, function_file, data_dir, config_dict, dockerfile):
+    def __init__(self, server: FlaskDockerServer, dockerfile):
         """
         Initializes a docker container with mount point data_dir, with
         image given. Loads function file into container.
@@ -111,10 +111,6 @@ class DSDocker:
         Returns:
         """
 
-        print("config_dict contents: ", config_dict)
-
-        # In here we convert the accessible_data_dict to paths that Docker sees
-        self.docker_id = config_dict["docker_id"]
         self.server = server
 
         # cur_dir = os.path.dirname(os.path.realpath(__file__))
@@ -125,10 +121,41 @@ class DSDocker:
 
         # create image from dockerfile
         self.image, log = self.client.images.build(
-            path=dockerfile, tag="ds_docker")
+            path=dockerfile, dockerfile="./Dockerfile", rm=True, tag="ds_docker")
         # print(self.image, log)
 
         print("Created image!")
+
+
+    def stop_and_prune(self):
+        """
+        Stops the given Docker container instance and removes any non-running containers
+
+        Parameters:
+        client: the docker client to prune
+        container: container to stop
+
+        Returns:
+        Nothing
+        """
+        self.container.stop()
+        self.client.containers.prune()
+
+    def flask_run(self, function_name, function_file, data_dir, config_dict, *args, **kwargs):
+        """
+        utilizes a flask server to send functions
+
+        Parameters:
+         function_name: name of function to run
+         args, kwargs: arguments for the function
+
+        Returns:
+         function return value
+        """
+        print("config_dict contents: ", config_dict)
+
+        # In here we convert the accessible_data_dict to paths that Docker sees
+        self.docker_id = config_dict["docker_id"]
 
         # run a container with command. It's detached, so it runs in the background
         # It is loaded with a setup script that starts the server.
@@ -161,32 +188,6 @@ class DSDocker:
         docker_cp(self.container,
                   function_file,
                   "/usr/src/ds/functions")
-
-    def stop_and_prune(self):
-        """
-        Stops the given Docker container instance and removes any non-running containers
-
-        Parameters:
-        client: the docker client to prune
-        container: container to stop
-
-        Returns:
-        Nothing
-        """
-        self.container.stop()
-        self.client.containers.prune()
-
-    def flask_run(self, function_name, *args, **kwargs):
-        """
-        utilizes a flask server to send functions
-
-        Parameters:
-         function_name: name of function to run
-         args, kwargs: arguments for the function
-
-        Returns:
-         function return value
-        """
 
         # create a dictionary to pickle
         func_dict = {"function": function_name, "args": args, "kwargs": kwargs}

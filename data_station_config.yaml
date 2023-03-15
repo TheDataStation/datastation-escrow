@@ -9,4 +9,4 @@ table_paths: ["users.pkl", "dataelements.pkl", "policies.pkl", "stagings.pkl", "
 mount_path: "./SM_storage_mount/"
 database_url: "sqlite:///./data_station.db"
 trust_mode: "full_trust"
-in_development_mode: True
+in_development_mode: False
