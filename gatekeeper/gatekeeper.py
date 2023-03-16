@@ -23,9 +23,11 @@ class Gatekeeper:
                  trust_mode: str,
                  epf_path,
                  mount_dir,
+                 development_mode,
                  ):
         """
-        The general class for the gatekeeper, which brokers access to data elements
+        The general class for the gatekeeper, which brokers access to data elements and
+         runs jail functions
         """
 
         print("Start setting up the gatekeeper")
@@ -56,6 +58,14 @@ class Gatekeeper:
 
         api_res = database_api.get_all_apis()
         print("all apis uploaded, with pid: ", os.getpid(), api_res)
+
+        if not development_mode:
+            docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".")
+            print("docker image path: ", docker_image_realpath)
+            self.docker_session = DSDocker(
+                self.server,
+                docker_image_realpath,
+            )
 
         print("Gatekeeper setup success")
 
@@ -165,7 +175,7 @@ class Gatekeeper:
                               self.mount_dir,
                               accessible_de,
                               self.get_new_docker_id(),
-                              self.server,
+                              self.docker_session,
                               *args,
                               )
 
@@ -228,7 +238,7 @@ def call_actual_api(api_name,
                     mount_dir,
                     accessible_de,
                     docker_id,
-                    server,
+                    docker_session:DSDocker,
                     *args,
                     **kwargs,
                     ):
@@ -251,17 +261,9 @@ def call_actual_api(api_name,
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
-    docker_image_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + "ds_dev_utils/docker/images"
 
     config_dict = {"accessible_de": accessible_de, "docker_id": docker_id}
     print("The real epf path is", epf_realpath)
-    session = DSDocker(
-        server,
-        epf_realpath,
-        mount_dir,
-        config_dict,
-        docker_image_realpath,
-    )
 
     # print(session.container.top())
 
@@ -271,8 +273,8 @@ def call_actual_api(api_name,
     for cur_f in list_of_functions:
         if api_name == cur_f.__name__:
             print("call", api_name)
-            session.flask_run(api_name, *args, **kwargs)
-            ret = server.q.get(block=True)
+            docker_session.flask_run(api_name, epf_realpath, mount_dir, config_dict, *args, **kwargs)
+            ret = docker_session.server.q.get(block=True)
             # print(ret)
             return ret
 

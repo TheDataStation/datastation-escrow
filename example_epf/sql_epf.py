@@ -33,7 +33,6 @@ def suggest_share(user_id, agents, functions, data_elements):
 def ack_data_in_share(user_id, data_id, share_id):
     return EscrowAPI.ack_data_in_share(user_id, data_id, share_id)
 
-<<<<<<< HEAD
 '''
 returns all data elements registered in enclave mode with the data station
 '''
@@ -145,7 +144,10 @@ def get_column(de_id, attr_name):
 
 @api_endpoint
 @function
-def column_intersection_get_column(src_de_id, src_attr, tgt_de_id, tgt_attr):
+def column_intersection(src_de_id, src_attr, tgt_de_id, tgt_attr):
+    """
+    Get column intersection between attributes within data elements
+    """
     src_col = get_column(src_de_id, src_attr)
     tgt_col = get_column(tgt_de_id, tgt_attr)
     overlapping_values = set(src_col).intersection(set(tgt_col))
@@ -161,16 +163,15 @@ the format provided by `fmt`
 def suggest_data_format(user_id, data_id, attr_name, fmt: str):
     pass
 
-'''
-Compare distributions between attributes within data elements
-'''
 @api_endpoint
 @function
 def compare_distributions(src_de_id, src_attr, tgt_de_id, tgt_attr):
+    """
+    Compare distributions between attributes within data elements
+    """
     src_col = get_column(src_de_id, src_attr)
     tgt_col = get_column(tgt_de_id, tgt_attr)
     return np.mean(src_col), np.std(src_col), np.mean(tgt_col), np.std(tgt_col)
-
 
 '''
 Request sample of data 

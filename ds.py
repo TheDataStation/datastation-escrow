@@ -122,7 +122,8 @@ class DataStation:
             self.key_manager,
             self.trust_mode,
             self.epf_path,
-            self.config.ds_storage_path
+            self.config.ds_storage_path,
+            self.development_mode,
         )
 
         # set up the table_paths in dbservice.check_point
@@ -333,20 +334,21 @@ class DataStation:
 
         return Response(status=data_register_response.status, message=data_register_response.message)
 
-    def upload_policy(self, username, user_id, api, data_id):
+    def upload_policy(self, username, user_id, api, data_id, share_id):
         """
         Uploads a policy written by the given user to DS
 
         Parameters:
-         username: the unique username identifying which user wrote the policy
-         user_id: part of policy to upload, the user ID of the policy
-         api: the api the policy refers to
-         data_id: the data id the policy refers to
+            username: the unique username identifying which user wrote the policy
+            user_id: part of policy to upload, the user ID of the policy
+            api: the api the policy refers to
+            data_id: the data id the policy refers to
+            share_id: to which share does this policy apply.
 
         Returns:
-         Response of policy broker
+            Response of policy broker
         """
-        policy = Policy(user_id=user_id, api=api, data_id=data_id)
+        policy = Policy(user_id=user_id, api=api, data_id=data_id, share_id=share_id, status=1)
 
         if self.trust_mode == "full_trust":
             response = policy_broker.upload_policy(policy,
@@ -422,6 +424,10 @@ class DataStation:
             agents: list of user ids
             functions: list of functions
             data_elements: list of data elements
+
+        Returns:
+        A response object with the following fields:
+            status: status of suggesting share. 0: success, 1: failure.
         """
         # We first register the share in the DB
         # Decide which share_id to use from self.cur_share_id
@@ -452,7 +458,9 @@ class DataStation:
                                                                username,
                                                                self.write_ahead_log,
                                                                self.key_manager, )
-        return response
+                    if response.status == 1:
+                        return response
+        return Response(status=0, message="Suggest share success.")
 
     def ack_data_in_share(self, username, data_id, share_id):
         """
@@ -462,6 +470,10 @@ class DataStation:
             username: the unique username identifying which user is calling the api
             share_id: id of the share
             data_id: id of the data element
+
+        Returns:
+        A response object with the following fields:
+            status: status of acknowledging share. 0: success, 1: failure.
         """
         if self.trust_mode == "full_trust":
             response = policy_broker.ack_data_in_share(
@@ -693,6 +705,7 @@ class DataStation:
                                  data_owner_symmetric_key)
             accessible_de.add(cur_de)
 
+        # Change "file"'s access_param to their actual storage path
         for cur_de in accessible_de:
             if cur_de.type == "file":
                 cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
