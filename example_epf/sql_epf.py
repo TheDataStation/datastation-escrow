@@ -3,7 +3,40 @@ from escrowapi.escrow_api import EscrowAPI
 from typing import List, Tuple
 import duckdb
 import numpy as np
+from scipy.stats import mannwhitneyu
+import csv
 
+def get_data(de):
+    if de.type == "file":
+        return f"'{de.access_param}'"
+
+def get_column(de_id, attr_name) -> List:
+    de = EscrowAPI.get_de_by_id(de_id)
+    table_name = get_data(de)
+    query = f"SELECT {attr_name} FROM {table_name}"
+    res = duckdb.sql(query).fetchall()
+    return res
+
+def cast_colummn(de_id, attr_name, cast_type) -> List:
+    de = EscrowAPI.get_de_by_id(de_id)
+    table_name = get_data(de)
+    query = f"SELECT CAST({attr_name} AS {cast_type}) FROM {table_name}"
+    try:
+        res = duckdb.sql(query).fetchall()
+        return res
+    except duckdb.ConversionException:
+        # cast was not possible
+        return None
+
+def get_column_type(de_id, attr_name) -> str:
+    de = EscrowAPI.get_de_by_id(de_id)
+    table_name = get_data(de)
+    con = duckdb.connect()
+    qry = f"DESCRIBE SELECT {attr_name} FROM '{de.access_param}'"
+    schemas = con.execute(qry).fetchall()
+    assert len(schemas) == 1
+    con.close()
+    return schemas[0][0][1]
 
 @api_endpoint
 def register_data(user_id,
@@ -21,7 +54,7 @@ def upload_data(user_id,
     return EscrowAPI.upload_data(user_id, data_id, data_in_bytes)
 
 @api_endpoint
-def upload_policy(user_id, user_id, api, data_id):
+def upload_policy(user_id, api, data_id):
     print("This is a customized upload policy!")
     return EscrowAPI.upload_policy(user_id, user_id, api, data_id)
 
@@ -72,8 +105,6 @@ def request_de_schema(username, user_id, data_id):
 '''
 Returns schema for DE
 '''
-# TODO: does this return anything?? what does suggest_share return!!!!! i dont
-# know what any types areeeee
 @api_endpoint
 @function
 def show_de_schema(user_id, data_id) -> List[Tuple[str, str]]:
@@ -111,49 +142,60 @@ my_attr_name in DE my_data_id
 '''
 @api_endpoint
 @function
-def column_intersection(user_id, data_id, attr_name: str, values: List = None,
-                        my_data_id=None, my_attr_name: str = None) -> int:
-    assert values is not None or (my_data_id is not None and my_attr_name is not None)
-    # TODO assert both data_ids are present in the share?
-    de = EscrowAPI.get_de_by_id(user_id, data_id)
-
+def column_intersection(src_de_id, src_attr: str, values: List = None, 
+                                   tgt_de_id=None, tgt_attr: str = None) -> int:
+    assert values is not None or (tgt_de_id is not None and tgt_attr is not None)
+    src_col = get_column(src_de_id, src_attr)
     if values is not None:
-        con = duckdb.connect()
-        qry = f"SELECT COUNT(*) FROM {de.access_param} WHERE {attr_name} in {values}"
-        results = con.execute(qry).fetchall() # results of the form: [(N,)]
-        con.close()
-        return results[0][0]
+        overlapping_values = set(src_col).intersection(set(values))
+        return len(overlapping_values)
     else:
-        myde = EscrowAPI.get_de_by_id(user_id, my_data_id)
-        con = duckdb.connect()
-        qry = f"SELECT COUNT(*) FROM {de.access_param} WHERE {attr_name} in {myde.access_param}.{my_attr_name}"
-        results = con.execute(qry).fetchall() # results of the form: [(N,)]
-        con.close()
-        return results[0][0]
-
-def get_data(de):
-    if de.type == "file":
-        return de.access_param
-
-def get_column(de_id, attr_name):
-    de = EscrowAPI.get_de_by_id(de_id)
-    table_name = get_data(de)
-    query = "SELECT " + attr_name + " From '" + table_name + "'"
-    res = duckdb.sql(query).fetchall()
-    return res
+        tgt_col = get_column(tgt_de_id, tgt_attr)
+        overlapping_values = set(src_col).intersection(set(tgt_col))
+        return len(overlapping_values)
 
 @api_endpoint
 @function
-def column_intersection(src_de_id, src_attr, tgt_de_id, tgt_attr):
-    """
-    Get column intersection between attributes within data elements
-    """
-    src_col = get_column(src_de_id, src_attr)
-    tgt_col = get_column(tgt_de_id, tgt_attr)
-    overlapping_values = set(src_col).intersection(set(tgt_col))
-    count = len(overlapping_values)
-    return count
+def request_compatibility_check(username, user_id, src_de_id, tgt_de_id):
+    return EscrowAPI.suggest_share(username, [user_id], ["is_format_compatible"],
+                                   [src_de_id, tgt_de_id])
 
+@api_endpoint
+@function
+def is_format_compatible(src_de_id, src_attr, tgt_de_id, tgt_attr) -> bool, str:
+    # try cast one to the other
+    # try cast other to one
+    # if so, compare distrib, pix, use basic guidelines ( >= smaller relation?)
+    src_type = get_column_type(src_de_id, src_attr)
+    tgt_type = get_column_type(tgt_de_id, tgt_attr)
+
+    src_col, tgt_col = None, None
+    src_cast = cast_colummn(src_de_id, src_attr, tgt_type)
+    if src_cast is None:
+        tgt_cast = cast_colummn(tgt_de_id, tgt_attr, src_type)
+        if tgt_cast is None:
+            return False, "Columns cannot be made to be the same type"
+        else:
+            src_col = get_column(src_de_id, src_attr)
+            tgt_col = tgt_cast
+    else:
+        src_col = src_cast
+        tgt_col = get_column(tgt_de_id, tgt_attr)
+
+    smaller_column_size = min(len(src_col), len(tgt_col))
+    U1, p = mannwhitneyu(src_col, tgt_col) 
+    len_intersection = len(set(src_col).intersection(set(tgt_col)))
+    if p < 0.05:
+        if len_intersection >= 0.5 * smaller_column_size:
+            return True, "Similar formats, distributions, and large intersection of values"
+        else:
+            return False, "Similar formats, distributions, but intersection is small"
+    else:
+        if len_intersection >= 0.5 * smaller_column_size:
+            return False, "Similar formats, different distributions, but large intersection of values"
+        else:
+            return False, "Similar formats, but different distributions and small intersection"
+    
 '''
 Suggest that the owner of `data_id` reformat the values in `attr_name` to match
 the format provided by `fmt`
@@ -165,20 +207,37 @@ def suggest_data_format(user_id, data_id, attr_name, fmt: str):
 
 @api_endpoint
 @function
-def compare_distributions(src_de_id, src_attr, tgt_de_id, tgt_attr):
-    """
-    Compare distributions between attributes within data elements
-    """
+def reformat_data(user_id, de_id, attr_name, fmt: str):
+    pass
+
+
+@api_endpoint
+@function
+def request_compare_distrib(username, user_id, src_data_id, tgt_data_id):
+    return EscrowAPI.suggest_share(username, [user_id], ["compare_distributions"],
+                                   [src_data_id, tgt_data_id])
+
+'''
+Compare distributions between attributes within data elements
+'''
+@api_endpoint
+@function
+def compare_distributions(src_de_id, src_attr, tgt_de_id, tgt_attr) -> Tuple:
     src_col = get_column(src_de_id, src_attr)
     tgt_col = get_column(tgt_de_id, tgt_attr)
-    return np.mean(src_col), np.std(src_col), np.mean(tgt_col), np.std(tgt_col)
+    U1, p = mannwhitneyu(src_col, tgt_col)
+    if p < 0.05:
+        return False
+    else:
+        return True
+    # return U1, p, np.mean(src_col), np.std(src_col), np.mean(tgt_col), np.std(tgt_col)
 
 '''
 Request sample of data 
 '''
 @api_endpoint
 @function
-def request_sample(username, user_id, data_id)
+def request_sample(username, user_id, data_id):
     return EscrowAPI.suggest_share(username, [user_id], ["show_sample"],
                                    [data_id])
 
@@ -187,8 +246,8 @@ Return sample of column from data element; default sample size is 10 rows
 '''
 @api_endpoint
 @function
-# NOTE: sample-size has to be fixed or this function could be abused. other
-# situations where that can be the case?
+# NOTE: sample-size has to be fixed or this function could be abused. 
+# are there other situations where that can be the case?
 def show_sample(username, data_id, attr_name):
     de = EscrowAPI.get_de_by_id(user_id, data_id)
     con = duckdb.connect()
@@ -196,4 +255,19 @@ def show_sample(username, data_id, attr_name):
     results = con.execute(qry).fetchall() # results of the form: [(N,)]
     con.close()
     return results
+
+@api_endpoint
+@function
+def line_count():
+    """count number of lines in a file"""
+    print("starting counting line numbers")
+    accessible_de = EscrowAPI.get_all_accessible_des()
+    res = []
+    for cur_de in set(accessible_de):
+        file_name = get_data(cur_de)
+        csv_file = open(file_name)
+        reader = csv.reader(csv_file)
+        res.append(len(list(reader)))
+    return res
+
 

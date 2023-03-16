@@ -132,9 +132,6 @@ class EscrowAPI:
         """
         return cls.__comp.ack_data_in_share(username, share_id, data_id)
 
-    @classmethod
-    def get_de_by_id(cls, user_id, data_id) -> DataElement:
-        pass
     
 
 
