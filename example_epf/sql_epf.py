@@ -98,7 +98,6 @@ def show_de_format(user_id, data_id) -> str:
 
 
 @api_endpoint
-@function
 def request_de_schema(username, user_id, data_id): 
     return EscrowAPI.suggest_share(username, user_id, [user_id], ["show_de_schema"], [data_id])    
 
@@ -127,7 +126,6 @@ Create share to run column_intersection. Add your data in if you want to use it
 in the function execution
 '''
 @api_endpoint
-@function
 def request_column_intersection(username, user_id, data_id, my_data_id=None):
     data_elements = [data_id]
     if my_data_id is not None:
@@ -155,14 +153,13 @@ def column_intersection(src_de_id, src_attr: str, values: List = None,
         return len(overlapping_values)
 
 @api_endpoint
-@function
 def request_compatibility_check(username, user_id, src_de_id, tgt_de_id):
     return EscrowAPI.suggest_share(username, [user_id], ["is_format_compatible"],
                                    [src_de_id, tgt_de_id])
 
 @api_endpoint
 @function
-def is_format_compatible(src_de_id, src_attr, tgt_de_id, tgt_attr) -> bool, str:
+def is_format_compatible(src_de_id, src_attr, tgt_de_id, tgt_attr) -> Tuple[bool, str]:
     # try cast one to the other
     # try cast other to one
     # if so, compare distrib, pix, use basic guidelines ( >= smaller relation?)
@@ -212,7 +209,6 @@ def reformat_data(user_id, de_id, attr_name, fmt: str):
 
 
 @api_endpoint
-@function
 def request_compare_distrib(username, user_id, src_data_id, tgt_data_id):
     return EscrowAPI.suggest_share(username, [user_id], ["compare_distributions"],
                                    [src_data_id, tgt_data_id])
@@ -236,7 +232,6 @@ def compare_distributions(src_de_id, src_attr, tgt_de_id, tgt_attr) -> Tuple:
 Request sample of data 
 '''
 @api_endpoint
-@function
 def request_sample(username, user_id, data_id):
     return EscrowAPI.suggest_share(username, [user_id], ["show_sample"],
                                    [data_id])
