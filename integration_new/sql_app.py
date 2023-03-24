@@ -34,33 +34,53 @@ if __name__ == '__main__':
     ds.create_user(User(user_name="david", password="123456"))
 
     # Step 2: Jerry and David each uploads their dataset.
-    test1_name = "integration_new/test_files/sql/test1.csv"
-    test1 = open(test1_name, "rb")
-    test1_bytes = test1.read()
-    register_res = ds.call_api("jerry", "register_data", None, None, "jerry", "test1.csv", "file", "test1.csv", False, )
-    ds.call_api("jerry", "upload_data", None, None, "jerry", register_res.data_id, test1_bytes, )
+    print("creating tables")
+    jerry_tables = ["customer", "lineitem", "partsupp", "region", "supplier"]
+    for tbl in jerry_tables:
+        filename = f"data/{tbl}.csv"
+        f = open(filename, "rb")
+        file_bytes = f.read()
+        register_res = ds.call_api("jerry", "register_data", None, None, "jerry",
+                                   f"{tbl}.csv", "file", f"{tbl}.csv", False, )
+        ds.call_api("jerry", "upload_data", None, None, "jerry",
+                    register_res.data_id, file_bytes, )
 
-    test2_name = "integration_new/test_files/sql/test2.csv"
-    test2 = open(test2_name, "rb")
-    test2_bytes = test2.read()
-    register_res = ds.call_api("david", "register_data", None, None, "david", "test2.csv", "file", "test2.csv", False, )
-    ds.call_api("david", "upload_data", None, None, "david", register_res.data_id, test2_bytes, )
+    david_tables = ["nation", "orders", "part"]
+    for tbl in david_tables:
+        filename = f"data/{tbl}.csv"
+        f = open(filename, "rb")
+        file_bytes = f.read()
+        register_res = ds.call_api("david", "register_data", None, None, "david",
+                                   f"{tbl}.csv", "file", f"{tbl}.csv", False, )
+        ds.call_api("david", "upload_data", None, None, "david",
+                    register_res.data_id, file_bytes, )
+    print("created tables")
 
     # Step 3: jerry suggests a share saying they can both run retrieve_column
     agents = [1, 2]
     functions = ["column_intersection", "compare_distributions"]
-    data_elements = [1, 2]
-    ds.call_api("jerry", "suggest_share", None, None, "jerry", agents, functions, data_elements)
+    data_elements = [1, 2, 3, 4, 5, 6, 7, 8]
+    ds.call_api("jerry", "suggest_share", None, None, "jerry", agents,
+                functions, data_elements)
 
     # Step 4: they both acknowledge this share
     ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 1, 1)
-    ds.call_api("david", "ack_data_in_share", None, None, "david", 2, 1)
+    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 2, 1)
+    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 3, 1)
+    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 4, 1)
+    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 5, 1)
+    ds.call_api("david", "ack_data_in_share", None, None, "david", 6, 1)
+    ds.call_api("david", "ack_data_in_share", None, None, "david", 7, 1)
+    ds.call_api("david", "ack_data_in_share", None, None, "david", 8, 1)
 
     # Step 5: david calls the SQL sharing APIs.
-    column_intersection_res = ds.call_api("david", "column_intersection", 1, "pessimistic", 1, "PersonID", 2, "CustomerID")
-    print("The result of column intersection is:", column_intersection_res)
+    ix = ds.call_api("david", "column_intersection", 1, "pessimistic", 1,
+                     "column0", None, 1, "column0")
+    print("The result of column intersection is:", ix)
 
-    compare_dstr_res = ds.call_api("david", "compare_distributions", 1, "pessimistic", 1, "PersonID", 2, "CustomerID")
+    compare_dstr_res = ds.call_api("jerry", "compare_distributions", 1,
+                                   "pessimistic", 2, "column00", 2,
+                                   "column00")
     print("The result of comparing distritbutions is:", compare_dstr_res)
 
     # Last step: shut down the Data Station
