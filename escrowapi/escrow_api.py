@@ -131,7 +131,3 @@ class EscrowAPI:
             status: status of acknowledging share. 0: success, 1: failure.
         """
         return cls.__comp.ack_data_in_share(username, share_id, data_id)
-
-    
-
-

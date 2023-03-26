@@ -39,39 +39,34 @@ def get_column_type(de_id, attr_name) -> str:
     return schemas[0][0][1]
 
 @api_endpoint
-def register_data(user_id,
+def register_data(username,
                   data_name,
                   data_type,
                   access_param,
                   optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_data(user_id, data_name, data_type, access_param, optimistic)
+    return EscrowAPI.register_data(username, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
-def upload_data(user_id,
+def upload_data(username,
                 data_id,
                 data_in_bytes):
-    return EscrowAPI.upload_data(user_id, data_id, data_in_bytes)
+    return EscrowAPI.upload_data(username, data_id, data_in_bytes)
 
 @api_endpoint
-def upload_policy(user_id, api, data_id):
-    print("This is a customized upload policy!")
-    return EscrowAPI.upload_policy(user_id, user_id, api, data_id)
+def suggest_share(username, agents, functions, data_elements):
+    return EscrowAPI.suggest_share(username, agents, functions, data_elements)
 
 @api_endpoint
-def suggest_share(user_id, agents, functions, data_elements):
-    return EscrowAPI.suggest_share(user_id, agents, functions, data_elements)
-
-@api_endpoint
-def ack_data_in_share(user_id, data_id, share_id):
-    return EscrowAPI.ack_data_in_share(user_id, data_id, share_id)
+def ack_data_in_share(username, data_id, share_id):
+    return EscrowAPI.ack_data_in_share(username, data_id, share_id)
 
 '''
 returns all data elements registered in enclave mode with the data station
 '''
 @api_endpoint
 @function
-def show_data_in_ds(user_id) -> List[Tuple]:
+def show_data_in_ds() -> List[Tuple]:
     data_elements = EscrowAPI.get_all_accessible_des()
     ret: List[Tuple] = []
     for de in data_elements:
@@ -83,8 +78,8 @@ Returns description for DE provided during register
 '''
 @api_endpoint
 @function
-def show_de_description(user_id, data_id) -> str:
-    de = EscrowAPI.get_de_by_id(user_id, data_id)
+def show_de_description(de_id) -> str:
+    de = EscrowAPI.get_de_by_id(de_id)
     return de.desc
 
 '''
@@ -92,8 +87,8 @@ Returns format for DE
 '''
 @api_endpoint
 @function
-def show_de_format(user_id, data_id) -> str:
-    de = EscrowAPI.get_de_by_id(user_id, data_id)
+def show_de_format(de_id) -> str:
+    de = EscrowAPI.get_de_by_id(de_id)
     return de.type
 
 
@@ -106,8 +101,8 @@ Returns schema for DE
 '''
 @api_endpoint
 @function
-def show_de_schema(user_id, data_id) -> List[Tuple[str, str]]:
-    de = EscrowAPI.get_de_by_id(user_id, data_id)
+def show_de_schema(de_id) -> List[Tuple[str, str]]:
+    de = EscrowAPI.get_de_by_id(de_id)
     if de.type == "file":
         con = duckdb.connect()
         qry = f"DESCRIBE SELECT * FROM '{de.access_param}'"
@@ -243,8 +238,8 @@ Return sample of column from data element; default sample size is 10 rows
 @function
 # NOTE: sample-size has to be fixed or this function could be abused. 
 # are there other situations where that can be the case?
-def show_sample(username, data_id, attr_name):
-    de = EscrowAPI.get_de_by_id(user_id, data_id)
+def show_sample(de_id, attr_name):
+    de = EscrowAPI.get_de_by_id(de_id)
     con = duckdb.connect()
     qry = "SELECT {attr_name} FROM {de.access_param} LIMIT 10"
     results = con.execute(qry).fetchall() # results of the form: [(N,)]
