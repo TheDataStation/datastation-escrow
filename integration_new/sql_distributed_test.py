@@ -28,14 +28,16 @@ if __name__ == '__main__':
     if os.path.exists(log_path):
         os.remove(log_path)
 
-    # Step 1: We create two new users of the Data Station: jerry and david
-    ds.create_user("user0", "string")
-    ds.create_user("user1", "123456")
+    # Step 1: We create two new users of the Data Station
+    num_users = 2
+    for i in range(num_users):
+        ds.create_user(f"user{i}", "string")
 
-    # Step 2: Jerry and David each uploads their dataset.
+    # Step 2: Each user uploads their share of the dataset.
+    num_tables = 2
     table_names = ["salary", "customer"]
-    for tbl in table_names:
-        for i in range(2):
+    for i in range(num_users):
+        for tbl in table_names:
             filename = f"integration_new/test_files/sql/{tbl}{i}.csv"
             f = open(filename, "rb")
             file_bytes = f.read()
@@ -43,6 +45,19 @@ if __name__ == '__main__':
                                        f"{tbl}{i}.csv", "file", f"{tbl}{i}.csv", False, )
             ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
                         register_res.de_id, file_bytes, )
+
+    # Step 3: user0 suggests a share saying all users can run all functions in share
+    agents = [1, 2]
+    functions = ["select_star"]
+    data_elements = list(range(1, 5))
+    ds.call_api("user0", "suggest_share", None, None, "user0", agents, functions, data_elements)
+
+    # Step 4: all users acknowledge the share
+    cur_de_id = 1
+    for i in range(num_users):
+        for j in range(num_tables):
+            ds.call_api(f"user{i}", "ack_data_in_share", None, None, f"user{i}", cur_de_id, 1)
+            cur_de_id += 1
 
     # Last step: shut down the Data Station
     ds.shut_down()
