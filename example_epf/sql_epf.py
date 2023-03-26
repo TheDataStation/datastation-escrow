@@ -245,19 +245,3 @@ def show_sample(de_id, attr_name):
     results = con.execute(qry).fetchall() # results of the form: [(N,)]
     con.close()
     return results
-
-@api_endpoint
-@function
-def line_count():
-    """count number of lines in a file"""
-    print("starting counting line numbers")
-    accessible_de = EscrowAPI.get_all_accessible_des()
-    res = []
-    for cur_de in set(accessible_de):
-        file_name = get_data(cur_de)
-        csv_file = open(file_name)
-        reader = csv.reader(csv_file)
-        res.append(len(list(reader)))
-    return res
-
-
