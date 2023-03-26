@@ -57,7 +57,7 @@ if __name__ == '__main__':
                                  None,
                                  None,
                                  "jerry",
-                                 register_res.data_id,
+                                 register_res.de_id,
                                  cur_file_bytes, )
 
     # Step 3: jerry suggests a share saying david can discovery how many lines his files have

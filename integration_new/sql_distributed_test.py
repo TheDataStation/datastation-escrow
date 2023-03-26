@@ -29,8 +29,20 @@ if __name__ == '__main__':
         os.remove(log_path)
 
     # Step 1: We create two new users of the Data Station: jerry and david
-    ds.create_user("jerry", "string")
-    ds.create_user("david", "123456")
+    ds.create_user("user0", "string")
+    ds.create_user("user1", "123456")
+
+    # Step 2: Jerry and David each uploads their dataset.
+    table_names = ["salary", "customer"]
+    for tbl in table_names:
+        for i in range(2):
+            filename = f"integration_new/test_files/sql/{tbl}{i}.csv"
+            f = open(filename, "rb")
+            file_bytes = f.read()
+            register_res = ds.call_api(f"user{i}", "register_data", None, None, f"user{i}",
+                                       f"{tbl}{i}.csv", "file", f"{tbl}{i}.csv", False, )
+            ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
+                        register_res.de_id, file_bytes, )
 
     # Last step: shut down the Data Station
     ds.shut_down()

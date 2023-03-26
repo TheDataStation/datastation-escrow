@@ -54,7 +54,7 @@ def register_data_in_DB(data_id,
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
 
-    return UploadDataResponse(status=0, message="success", data_id=data_id)
+    return UploadDataResponse(status=0, message="success", de_id=data_id)
 
 def remove_data(data_name,
                 cur_username,

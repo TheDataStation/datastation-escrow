@@ -17,7 +17,7 @@ class UploadUserResponse(Response):
     user_id: int
 
 class UploadDataResponse(Response):
-    data_id: int
+    de_id: int
 
 class UploadShareResponse(Response):
     share_id: int
