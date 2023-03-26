@@ -166,12 +166,13 @@ class DataStation:
         else:
             self.cur_share_id = 1
 
-    def create_user(self, user: User, user_sym_key=None, user_public_key=None):
+    def create_user(self, username, password, user_sym_key=None, user_public_key=None):
         """
         Creates a user in DS
 
         Parameters:
-         user: user model
+         username: username
+         password: password
          user_sym_key: for no trust
          user_public_key: for no trust
 
@@ -191,12 +192,12 @@ class DataStation:
         # Part two: Call the user_register to register the user in the DB
         if self.trust_mode == "full_trust":
             response = user_register.create_user(user_id,
-                                                 user.user_name,
-                                                 user.password, )
+                                                 username,
+                                                 password, )
         else:
             response = user_register.create_user(user_id,
-                                                 user.user_name,
-                                                 user.password,
+                                                 username,
+                                                 password,
                                                  self.write_ahead_log,
                                                  self.key_manager, )
 
