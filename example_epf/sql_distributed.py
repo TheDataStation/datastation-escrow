@@ -2,10 +2,6 @@ from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
 import duckdb
 
-def get_data(de):
-    if de.type == "file":
-        return f"'{de.access_param}'"
-
 @api_endpoint
 def register_data(username,
                   data_name,
@@ -29,9 +25,31 @@ def suggest_share(username, agents, functions, data_elements):
 def ack_data_in_share(username, data_id, share_id):
     return EscrowAPI.ack_data_in_share(username, data_id, share_id)
 
+def get_data(de):
+    if de.type == "file":
+        return f"'{de.access_param}'"
+
+def assemble_table(conn, table_name):
+    accessible_de = EscrowAPI.get_all_accessible_des()
+    first_partition_flag = True
+    for de in accessible_de:
+        if de.name == f"{table_name}.csv":
+            table_path = get_data(de)
+            if first_partition_flag:
+                query = f"CREATE TABLE {table_name} AS SELECT * FROM {table_path}"
+                conn.execute(query)
+                first_partition_flag = False
+            else:
+                query = f"INSERT INTO {table_name} SELECT * FROM {table_path}"
+                conn.execute(query)
+
 @api_endpoint
 @function
-def select_star():
-    """get the content of the data elements"""
-    accessible_de = EscrowAPI.get_all_accessible_des()
-    return 0
+def select_star(table_name):
+    """run select * from a table"""
+    # Note: creating conn here, so we are talking to the same in-memory database
+    conn = duckdb.connect()
+    assemble_table(conn, table_name)
+    query = f"SELECT * FROM {table_name}"
+    res = conn.execute(query).fetchall()
+    return res

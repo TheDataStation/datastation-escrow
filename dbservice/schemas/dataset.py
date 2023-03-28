@@ -8,7 +8,7 @@ class Dataset(Base):
     __tablename__ = "datasets"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True)
+    name = Column(String)
     description = Column(String)
     type = Column(String)
     access_param = Column(String)

@@ -42,7 +42,7 @@ if __name__ == '__main__':
             f = open(filename, "rb")
             file_bytes = f.read()
             register_res = ds.call_api(f"user{i}", "register_data", None, None, f"user{i}",
-                                       f"{tbl}{i}.csv", "file", f"{tbl}{i}.csv", False, )
+                                       f"{tbl}.csv", "file", f"{tbl}.csv", False, )
             ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
                         register_res.de_id, file_bytes, )
 
@@ -58,6 +58,10 @@ if __name__ == '__main__':
         for j in range(num_tables):
             ds.call_api(f"user{i}", "ack_data_in_share", None, None, f"user{i}", cur_de_id, 1)
             cur_de_id += 1
+
+    # Step 5: user0 calls select_star
+    select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "salary")
+    print("The result of select star is:", select_star_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()
