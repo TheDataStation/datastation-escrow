@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     # Step 3: user0 suggests a share saying all users can run all functions in share
     agents = [1, 2]
-    functions = ["select_star"]
+    functions = ["select_star", "join_table"]
     data_elements = list(range(1, 5))
     ds.call_api("user0", "suggest_share", None, None, "user0", agents, functions, data_elements)
 
@@ -59,9 +59,11 @@ if __name__ == '__main__':
             ds.call_api(f"user{i}", "ack_data_in_share", None, None, f"user{i}", cur_de_id, 1)
             cur_de_id += 1
 
-    # Step 5: user0 calls select_star
+    # Step 5: user0 calls functions
     select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "salary")
-    print("The result of select star is:", select_star_res)
+    print("Result of select star:", select_star_res)
+    join_table_res = ds.call_api("user0", "join_table", 1, "pessimistic")
+    print("Result of join table:", join_table_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()

@@ -47,9 +47,22 @@ def assemble_table(conn, table_name):
 @function
 def select_star(table_name):
     """run select * from a table"""
-    # Note: creating conn here, so we are talking to the same in-memory database
+    # Note: creating conn here, because we need to the same in-memory database
     conn = duckdb.connect()
     assemble_table(conn, table_name)
     query = f"SELECT * FROM {table_name}"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def join_table():
+    """perform a join between two tables"""
+    conn = duckdb.connect()
+    assemble_table(conn, "salary")
+    assemble_table(conn, "customer")
+    query = "SELECT PersonID, Department, Gender " \
+            "FROM salary, customer " \
+            "WHERE salary.PersonID = customer.CustomerID"
     res = conn.execute(query).fetchall()
     return res
