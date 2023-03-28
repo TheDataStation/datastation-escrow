@@ -43,7 +43,7 @@ if __name__ == '__main__':
         register_res = ds.call_api("jerry", "register_data", None, None, "jerry",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
         ds.call_api("jerry", "upload_data", None, None, "jerry",
-                    register_res.data_id, file_bytes, )
+                    register_res.de_id, file_bytes, )
 
     david_tables = ["nation", "orders", "part"]
     for tbl in david_tables:
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         register_res = ds.call_api("david", "register_data", None, None, "david",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
         ds.call_api("david", "upload_data", None, None, "david",
-                    register_res.data_id, file_bytes, )
+                    register_res.de_id, file_bytes, )
     print("created tables")
 
     # Step 3: jerry suggests a share saying they can both run retrieve_column

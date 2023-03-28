@@ -2,7 +2,6 @@ import os
 import shutil
 
 from main import initialize_system
-from common.pydantic_models.user import User
 
 if __name__ == '__main__':
 
@@ -30,8 +29,8 @@ if __name__ == '__main__':
         os.remove(log_path)
 
     # Step 1: We create two new users of the Data Station: jerry and david
-    ds.create_user(User(user_name="jerry", password="string"))
-    ds.create_user(User(user_name="david", password="123456"))
+    ds.create_user("jerry", "string")
+    ds.create_user("david", "123456")
 
     # Step 2: Jerry logs in and uploads three datasets
     # He uploads DE1 and DE3 in sealed mode, and uploads DE2 in enclave mode.
@@ -58,7 +57,7 @@ if __name__ == '__main__':
                                  None,
                                  None,
                                  "jerry",
-                                 register_res.data_id,
+                                 register_res.de_id,
                                  cur_file_bytes, )
 
     # Step 3: jerry suggests a share saying david can discovery how many lines his files have

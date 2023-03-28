@@ -17,11 +17,6 @@ def register_data_in_DB(data_id,
                         write_ahead_log=None,
                         key_manager=None):
 
-    # Check if there is an existing dataset
-    existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
-    if existed_dataset.status == 1:
-        return Response(status=1, message="there is a dataset using the same name")
-
     # Call DB to register a new dataset in the database
 
     # Check if there is an existing user
@@ -50,11 +45,12 @@ def register_data_in_DB(data_id,
                           type=data_type,
                           access_param=access_param,
                           optimistic=optimistic)
+
     database_service_response = database_api.create_dataset(new_dataset)
     if database_service_response.status == -1:
         return Response(status=1, message="internal database error")
 
-    return UploadDataResponse(status=0, message="success", data_id=data_id)
+    return UploadDataResponse(status=0, message="success", de_id=data_id)
 
 def remove_data(data_name,
                 cur_username,
