@@ -56,13 +56,17 @@ def select_star(table_name):
 
 @api_endpoint
 @function
-def join_table():
-    """perform a join between two tables"""
+def tpch_1():
     conn = duckdb.connect()
-    assemble_table(conn, "salary")
-    assemble_table(conn, "customer")
-    query = "SELECT PersonID, Department, Gender " \
-            "FROM salary, customer " \
-            "WHERE salary.PersonID = customer.CustomerID"
+    assemble_table(conn, "lineitem")
+    query = f"SELECT l_returnflag, l_linestatus, sum(l_quantity) as sum_qty, sum(l_extendedprice) as sum_base_price, " \
+            f"sum(l_extendedprice * (1-l_discount)) as sum_disc_price, " \
+            f"sum(l_extendedprice * (1-l_discount) * (1+l_tax)) as sum_charge, " \
+            f"avg(l_quantity) as avg_qty, avg(l_extendedprice) as avg_price, " \
+            f"avg(l_discount) as avg_disc, count(*) as count_order " \
+            f"FROM lineitem " \
+            f"WHERE l_shipdate <= date '1998-12-01' - interval '84' day " \
+            f"GROUP BY l_returnflag, l_linestatus " \
+            f"ORDER BY l_returnflag, l_linestatus"
     res = conn.execute(query).fetchall()
     return res
