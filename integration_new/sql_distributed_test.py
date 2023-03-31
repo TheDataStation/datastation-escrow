@@ -34,8 +34,8 @@ if __name__ == '__main__':
         ds.create_user(f"user{i}", "string")
 
     # Step 2: Each user uploads their share of the dataset.
-    num_tables = 2
-    table_names = ["salary", "customer"]
+    table_names = ["customer", "lineitem", "nation", "orders", "part", "partsupp", "region", "supplier"]
+    num_tables = len(table_names)
     for i in range(num_users):
         for tbl in table_names:
             filename = f"integration_new/test_files/sql/{tbl}{i}.csv"
@@ -49,7 +49,8 @@ if __name__ == '__main__':
     # Step 3: user0 suggests a share saying all users can run all functions in share
     agents = [1, 2]
     functions = ["select_star", "join_table"]
-    data_elements = list(range(1, 5))
+    total_des = num_users * num_tables
+    data_elements = list(range(1, total_des + 1))
     ds.call_api("user0", "suggest_share", None, None, "user0", agents, functions, data_elements)
 
     # Step 4: all users acknowledge the share
@@ -60,10 +61,10 @@ if __name__ == '__main__':
             cur_de_id += 1
 
     # Step 5: user0 calls functions
-    select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "salary")
-    print("Result of select star:", select_star_res)
-    join_table_res = ds.call_api("user0", "join_table", 1, "pessimistic")
-    print("Result of join table:", join_table_res)
+    select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
+    print("Result of select star from nation is:", select_star_res)
+    # join_table_res = ds.call_api("user0", "join_table", 1, "pessimistic")
+    # print("Result of join table:", join_table_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()
