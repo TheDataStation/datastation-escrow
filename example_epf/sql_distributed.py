@@ -70,3 +70,24 @@ def tpch_1():
             f"ORDER BY l_returnflag, l_linestatus"
     res = conn.execute(query).fetchall()
     return res
+
+@api_endpoint
+@function
+def tpch_2():
+    conn = duckdb.connect()
+    assemble_table(conn, "part")
+    assemble_table(conn, "supplier")
+    assemble_table(conn, "partsupp")
+    assemble_table(conn, "nation")
+    assemble_table(conn, "region")
+    query = f"SELECT s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment " \
+            f"FROM part, supplier, partsupp, nation, region " \
+            f"WHERE p_partkey = ps_partkey and s_suppkey = ps_suppkey and p_size = 16 " \
+            f"and p_type like '%STEEL' and s_nationkey = n_nationkey and n_regionkey = r_regionkey " \
+            f"and r_name = 'AFRICA' and ps_supplycost = (" \
+            f"SELECT MIN(ps_supplycost) FROM partsupp, supplier, nation, region " \
+            f"WHERE p_partkey = ps_partkey and s_suppkey = ps_suppkey and s_nationkey = n_nationkey " \
+            f"and n_regionkey = r_regionkey and r_name = 'AFRICA') " \
+            f"order by s_acctbal desc, n_name, s_name, p_partkey limit 100"
+    res = conn.execute(query).fetchall()
+    return res
