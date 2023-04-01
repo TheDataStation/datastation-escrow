@@ -140,3 +140,35 @@ def tpch_5():
             f"GROUP BY n_name ORDER BY revenue DESC"
     res = conn.execute(query).fetchall()
     return res
+
+@api_endpoint
+@function
+def tpch_6():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    query = f"SELECT SUM(l_extendedprice * l_discount) AS revenue FROM lineitem " \
+            f"where l_shipdate >= date '1996-01-01' and l_shipdate < date '1996-01-01' + interval '1' year " \
+            f"and l_discount between 0.05 - 0.01 and 0.05 + 0.01 and l_quantity < 25"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_7():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "supplier")
+    assemble_table(conn, "orders")
+    assemble_table(conn, "customer")
+    assemble_table(conn, "nation")
+    query = f"SELECT supp_nation, cust_nation, l_year, SUM(volume) AS revenue FROM ( " \
+            f"SELECT n1.n_name AS supp_nation, n2.n_name AS cust_nation, extract(year from l_shipdate) AS l_year, " \
+            f"l_extendedprice * (1 - l_discount) AS volume " \
+            f"FROM supplier, lineitem, orders, customer, nation n1, nation n2 " \
+            f"WHERE s_suppkey = l_suppkey AND o_orderkey = l_orderkey AND c_custkey = o_custkey " \
+            f"AND s_nationkey = n1.n_nationkey AND c_nationkey = n2.n_nationkey AND (" \
+            f"(n1.n_name = 'IRAN' AND n2.n_name = 'ROMANIA') OR (n1.n_name = 'ROMANIA' AND n2.n_name = 'IRAN')) " \
+            f"AND l_shipdate BETWEEN date '1995-01-01' AND date '1996-12-31') AS shipping " \
+            f"GROUP BY supp_nation, cust_nation, l_year ORDER BY supp_nation, cust_nation, l_year"
+    res = conn.execute(query).fetchall()
+    return res
