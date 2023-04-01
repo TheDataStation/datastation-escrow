@@ -91,3 +91,52 @@ def tpch_2():
             f"order by s_acctbal desc, n_name, s_name, p_partkey limit 100"
     res = conn.execute(query).fetchall()
     return res
+
+@api_endpoint
+@function
+def tpch_3():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "customer")
+    assemble_table(conn, "orders")
+    query = f"select l_orderkey, sum(l_extendedprice * (1 - l_discount)) as revenue, o_orderdate, o_shippriority " \
+            f"from customer, orders, lineitem " \
+            f"where c_mktsegment = 'MACHINERY' and c_custkey = o_custkey and l_orderkey = o_orderkey " \
+            f"and o_orderdate < date '1995-03-06' and l_shipdate > date '1995-03-06' " \
+            f"group by l_orderkey, o_orderdate, o_shippriority order by revenue desc, o_orderdate limit 10"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_4():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "orders")
+    query = f"SELECT o_orderpriority, count(*) as order_count from orders " \
+            f"where o_orderdate >= date '1993-10-01' " \
+            f"and o_orderdate < date '1993-10-01' + interval '3' month and exists " \
+            f"(SELECT * FROM lineitem WHERE l_orderkey = o_orderkey AND l_commitdate < l_receiptdate) " \
+            f"GROUP BY o_orderpriority ORDER BY o_orderpriority"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_5():
+    conn = duckdb.connect()
+    assemble_table(conn, "customer")
+    assemble_table(conn, "orders")
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "supplier")
+    assemble_table(conn, "nation")
+    assemble_table(conn, "region")
+    query = f"SELECT n_name, SUM(l_extendedprice * (1 - l_discount)) AS revenue " \
+            f"FROM customer, orders, lineitem, supplier, nation, region " \
+            f"WHERE c_custkey = o_custkey AND l_orderkey = o_orderkey AND l_suppkey = s_suppkey " \
+            f"AND c_nationkey = s_nationkey AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey " \
+            f"AND r_name = 'AMERICA' and o_orderdate >= date '1996-01-01' " \
+            f"and o_orderdate < date '1996-01-01' + interval '1' year " \
+            f"GROUP BY n_name ORDER BY revenue DESC"
+    res = conn.execute(query).fetchall()
+    return res
