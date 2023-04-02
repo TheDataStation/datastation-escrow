@@ -331,3 +331,105 @@ def tpch_16():
             f"group by p_brand, p_type, p_size order by supplier_cnt desc, p_brand, p_type, p_size"
     res = conn.execute(query).fetchall()
     return res
+
+@api_endpoint
+@function
+def tpch_17():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "part")
+    query = f"select sum(l_extendedprice) / 7.0 as avg_yearly " \
+            f"from lineitem, part where p_partkey = l_partkey and p_brand = 'Brand#23' and p_container = 'WRAP CASE' " \
+            f"and l_quantity < " \
+            f"( select 0.2 * avg(l_quantity) from lineitem where l_partkey = p_partkey )"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_18():
+    conn = duckdb.connect()
+    assemble_table(conn, "customer")
+    assemble_table(conn, "orders")
+    assemble_table(conn, "lineitem")
+    query = f"select c_name, c_custkey, o_orderkey, o_orderdate, o_totalprice, sum(l_quantity) " \
+            f"from customer, orders, lineitem where o_orderkey in " \
+            f"( select l_orderkey from lineitem group by l_orderkey having sum(l_quantity) > 314 ) " \
+            f"and c_custkey = o_custkey and o_orderkey = l_orderkey " \
+            f"group by c_name, c_custkey, o_orderkey, o_orderdate, o_totalprice " \
+            f"order by o_totalprice desc, o_orderdate limit 100"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_19():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "part")
+    query = f"select sum(l_extendedprice* (1 - l_discount)) as revenue from lineitem, part " \
+            f"where ( p_partkey = l_partkey and p_brand = 'Brand#54' and p_container in " \
+            f"('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG') and l_quantity >= 5 and l_quantity <= 5 + 10 and " \
+            f"p_size between 1 and 5 and l_shipmode in ('AIR', 'AIR REG') and l_shipinstruct = 'DELIVER IN PERSON' ) " \
+            f"or ( p_partkey = l_partkey and p_brand = 'Brand#25' and p_container in " \
+            f"('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK') and l_quantity >= 19 and l_quantity <= 19 + 10 " \
+            f"and p_size between 1 and 10 and l_shipmode in ('AIR', 'AIR REG') " \
+            f"and l_shipinstruct = 'DELIVER IN PERSON' ) or ( p_partkey = l_partkey " \
+            f"and p_brand = 'Brand#42' and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG') " \
+            f"and l_quantity >= 24 and l_quantity <= 24 + 10 and p_size between 1 and 15 " \
+            f"and l_shipmode in ('AIR', 'AIR REG') and l_shipinstruct = 'DELIVER IN PERSON' )"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_20():
+    conn = duckdb.connect()
+    assemble_table(conn, "nation")
+    assemble_table(conn, "supplier")
+    assemble_table(conn, "partsupp")
+    assemble_table(conn, "part")
+    assemble_table(conn, "lineitem")
+    query = f"select s_name, s_address from supplier, nation " \
+            f"where s_suppkey in ( select ps_suppkey from partsupp where ps_partkey in " \
+            f"( select p_partkey from part where p_name like 'purple%' ) and " \
+            f"ps_availqty > ( select 0.5 * sum(l_quantity) from lineitem where l_partkey = ps_partkey " \
+            f"and l_suppkey = ps_suppkey and l_shipdate >= date '1994-01-01' " \
+            f"and l_shipdate < date '1994-01-01' + interval '1' year ) ) and s_nationkey = n_nationkey " \
+            f"and n_name = 'UNITED KINGDOM' order by s_name"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_21():
+    conn = duckdb.connect()
+    assemble_table(conn, "supplier")
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "orders")
+    assemble_table(conn, "nation")
+    query = f"select s_name, count(*) as numwait from supplier, lineitem l1, orders, nation " \
+            f"where s_suppkey = l1.l_suppkey and o_orderkey = l1.l_orderkey and o_orderstatus = 'F' " \
+            f"and l1.l_receiptdate > l1.l_commitdate and exists " \
+            f"( select * from lineitem l2 where l2.l_orderkey = l1.l_orderkey and l2.l_suppkey <> l1.l_suppkey ) " \
+            f"and not exists " \
+            f"( select * from lineitem l3 where l3.l_orderkey = l1.l_orderkey and l3.l_suppkey <> l1.l_suppkey " \
+            f"and l3.l_receiptdate > l3.l_commitdate ) and s_nationkey = n_nationkey and n_name = 'FRANCE' " \
+            f"group by s_name order by numwait desc, s_name limit 100"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_22():
+    conn = duckdb.connect()
+    assemble_table(conn, "customer")
+    assemble_table(conn, "orders")
+    query = f"select cntrycode, count(*) as numcust, sum(c_acctbal) as totacctbal from " \
+            f"( select substring(c_phone from 1 for 2) as cntrycode, c_acctbal from customer " \
+            f"where substring(c_phone from 1 for 2) in ('33', '25', '16', '23', '32', '13', '19') " \
+            f"and c_acctbal > ( select avg(c_acctbal) from customer where c_acctbal > 0.00 " \
+            f"and substring(c_phone from 1 for 2) in ('33', '25', '16', '23', '32', '13', '19') ) and not exists " \
+            f"( select * from orders where o_custkey = c_custkey ) ) as custsale group by cntrycode order by cntrycode"
+    res = conn.execute(query).fetchall()
+    return res
