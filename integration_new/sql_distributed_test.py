@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # Step 3: user0 suggests a share saying all users can run all functions in share
     agents = [1, 2]
     functions = ["select_star", "tpch_1", "tpch_2", "tpch_3", "tpch_4", "tpch_5", "tpch_6", "tpch_7",
-                 "tpch_8"]
+                 "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15", "tpch_16"]
     total_des = num_users * num_tables
     data_elements = list(range(1, total_des + 1))
     ds.call_api("user0", "suggest_share", None, None, "user0", agents, functions, data_elements)
@@ -64,9 +64,11 @@ if __name__ == '__main__':
     # Step 5: user0 calls functions
     select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
     print("Result of select star from nation is:", select_star_res)
-    for i in range(1, len(functions)):
-        tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
-        print(f"Result of TPC_H {i} is:", tpch_res)
+    # for i in range(1, len(functions)):
+    #     tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
+    #     print(f"Result of TPC_H {i} is:", tpch_res)
+    tpch_res = ds.call_api("user0", f"tpch_16", 1, "pessimistic")
+    print(f"Result is:", tpch_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()

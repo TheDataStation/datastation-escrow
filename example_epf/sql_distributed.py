@@ -194,3 +194,140 @@ def tpch_8():
             f"group by o_year order by o_year"
     res = conn.execute(query).fetchall()
     return res
+
+@api_endpoint
+@function
+def tpch_9():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "part")
+    assemble_table(conn, "supplier")
+    assemble_table(conn, "partsupp")
+    assemble_table(conn, "orders")
+    assemble_table(conn, "nation")
+    query = f"select nation, o_year, sum(amount) as sum_profit from " \
+            f"( select n_name as nation, extract(year from o_orderdate) as o_year, " \
+            f"l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount " \
+            f"from part, supplier, lineitem, partsupp, orders, nation " \
+            f"where s_suppkey = l_suppkey and ps_suppkey = l_suppkey and ps_partkey = l_partkey " \
+            f"and p_partkey = l_partkey and o_orderkey = l_orderkey and s_nationkey = n_nationkey " \
+            f"and p_name like '%aquamarine%' ) as profit " \
+            f"group by nation, o_year order by nation, o_year desc"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_10():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "customer")
+    assemble_table(conn, "orders")
+    assemble_table(conn, "nation")
+    query = f"select c_custkey, c_name, sum(l_extendedprice * (1 - l_discount)) as revenue, c_acctbal, " \
+            f"n_name, c_address, c_phone, c_comment " \
+            f"from customer, orders, lineitem, nation " \
+            f"where c_custkey = o_custkey and l_orderkey = o_orderkey and o_orderdate >= date '1994-03-01' " \
+            f"and o_orderdate < date '1994-03-01' + interval '3' month and l_returnflag = 'R' " \
+            f"and c_nationkey = n_nationkey " \
+            f"group by c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment " \
+            f"order by revenue desc limit 20"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_11():
+    conn = duckdb.connect()
+    assemble_table(conn, "partsupp")
+    assemble_table(conn, "supplier")
+    assemble_table(conn, "nation")
+    query = f"select ps_partkey, sum(ps_supplycost * ps_availqty) as v " \
+            f"from partsupp, supplier, nation " \
+            f"where ps_suppkey = s_suppkey and s_nationkey = n_nationkey and n_name = 'PERU' " \
+            f"group by ps_partkey having sum(ps_supplycost * ps_availqty) > " \
+            f"( select sum(ps_supplycost * ps_availqty) * 0.0001000000 from partsupp, supplier, nation " \
+            f"where ps_suppkey = s_suppkey and s_nationkey = n_nationkey and n_name = 'PERU' ) " \
+            f"order by v desc"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_12():
+    conn = duckdb.connect()
+    assemble_table(conn, "orders")
+    assemble_table(conn, "lineitem")
+    query = f"select l_shipmode, " \
+            f"sum(case when o_orderpriority = '1-URGENT' or o_orderpriority = '2-HIGH' then 1 else 0 end) " \
+            f"as high_line_count, " \
+            f"sum(case when o_orderpriority <> '1-URGENT' and o_orderpriority <> '2-HIGH' then 1 else 0 end) " \
+            f"as low_line_count " \
+            f"from orders, lineitem " \
+            f"where o_orderkey = l_orderkey and l_shipmode in ('RAIL', 'SHIP') and l_commitdate < l_receiptdate " \
+            f"and l_shipdate < l_commitdate and l_receiptdate >= date '1993-01-01' " \
+            f"and l_receiptdate < date '1993-01-01' + interval '1' year " \
+            f"group by l_shipmode order by l_shipmode"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_13():
+    conn = duckdb.connect()
+    assemble_table(conn, "customer")
+    assemble_table(conn, "orders")
+    query = f"select c_count, count(*) as custdist from " \
+            f"( select c_custkey, count(o_orderkey) as c_count from customer left outer join orders " \
+            f"on c_custkey = o_custkey and o_comment not like '%pending%deposits%' group by c_custkey ) as c_orders " \
+            f"group by c_count order by custdist desc, c_count desc"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_14():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "part")
+    query = f"select 100.00 * " \
+            f"sum(case when p_type like 'PROMO%' then l_extendedprice * (1 - l_discount) else 0 end) / " \
+            f"sum(l_extendedprice * (1 - l_discount)) as promo_revenue " \
+            f"from lineitem, part " \
+            f"where l_partkey = p_partkey and l_shipdate >= date '1997-12-01' " \
+            f"and l_shipdate < date '1997-12-01' + interval '1' month"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_15():
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    assemble_table(conn, "supplier")
+    query = f"with revenue_view as " \
+            f"(select l_suppkey as supplier_no, sum(l_extendedprice * (1 - l_discount)) as total_revenue " \
+            f"from lineitem where l_shipdate >= '1996-01-01' and l_shipdate < '1996-04-01' group by l_suppkey) " \
+            f"select s_suppkey, s_name, s_address, s_phone, total_revenue " \
+            f"from supplier, revenue_view " \
+            f"where s_suppkey = supplier_no and total_revenue = " \
+            f"(select max(total_revenue) from revenue_view) " \
+            f"order by s_suppkey"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def tpch_16():
+    conn = duckdb.connect()
+    assemble_table(conn, "partsupp")
+    assemble_table(conn, "part")
+    assemble_table(conn, "supplier")
+    query = f"select p_brand, p_type, p_size, count(distinct ps_suppkey) as supplier_cnt " \
+            f"from partsupp, part " \
+            f"where p_partkey = ps_partkey and p_brand <> 'Brand#52' and p_type not like 'LARGE ANODIZED%' " \
+            f"and p_size in (42, 38, 15, 48, 33, 3, 27, 45) and ps_suppkey not in " \
+            f"( select s_suppkey from supplier where s_comment like '%Customer%Complaints%' ) " \
+            f"group by p_brand, p_type, p_size order by supplier_cnt desc, p_brand, p_type, p_size"
+    res = conn.execute(query).fetchall()
+    return res
