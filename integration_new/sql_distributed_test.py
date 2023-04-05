@@ -1,14 +1,66 @@
 import os
 import shutil
+import csv
+import math
 
 from main import initialize_system
+
+def data_gen(num_partitions):
+    """
+    This function generates tpch data for testing different silos.
+    Output goes to integration_new/test_files/sql.
+    """
+    # Define input/output directories
+    input_dir = "/Users/kos/Desktop/TPCH-data/tpch-1MB/"
+    output_dir = "integration_new/test_files/sql/"
+    # Create a dictionary to store the schemas
+    tpch_schemas = {"customer": ["c_custkey", "c_name", "c_address", "c_nationkey", "c_phone", "c_acctbal",
+                                 "c_mktsegment", "c_comment"],
+                    "lineitem": ["l_orderkey", "l_partkey", "l_suppkey", "l_linenumber", "l_quantity",
+                                 "l_extendedprice", "l_discount", "l_tax", "l_returnflag", "l_linestatus",
+                                 "l_shipdate", "l_commitdate", "l_receiptdate", "l_shipinstruct",
+                                 "l_shipmode", "l_comment"],
+                    "nation": ["n_nationkey", "n_name", "n_regionkey", "n_comment"],
+                    "orders": ["o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice", "o_orderdate",
+                               "o_orderpriority", "o_clerk", "o_shippriority", "o_comment"],
+                    "part": ["p_partkey", "p_name", "p_mfgr", "p_brand", "p_type", "p_size",
+                             "p_container", "p_retailprice", "p_comment"],
+                    "partsupp": ["ps_partkey", "ps_suppkey", "ps_availqty", "ps_supplycost", "ps_comment"],
+                    "region": ["r_regionkey", "r_name", "r_comment"],
+                    "supplier": ["s_suppkey", "s_name", "s_address", "s_nationkey", "s_phone", "s_acctbal",
+                                 "s_comment"]}
+    table_names = ["customer", "lineitem", "nation", "orders", "part", "partsupp", "region", "supplier"]
+    small_tables = ["nation", "region"]
+    for cur_table in table_names:
+        if cur_table in small_tables:
+            cur_partitions = 1
+        else:
+            cur_partitions = num_partitions
+        with open(f"{input_dir}{cur_table}.csv", 'r') as f:
+            reader = csv.reader(f)
+            total_rows = sum(1 for row in reader)
+            rows_per_file = int(math.ceil(total_rows / cur_partitions))
+            f.seek(0)
+            for i in range(cur_partitions):
+                output_file = f"{output_dir}{cur_table}{i}.csv"
+                with open(output_file, 'w', newline='') as f_out:
+                    writer = csv.writer(f_out)
+                    cur_schema = tpch_schemas[cur_table]
+                    writer.writerow(cur_schema)
+                    for j in range(rows_per_file):
+                        try:
+                            row = next(reader)
+                            writer.writerow(row)
+                        except StopIteration:
+                            break
+
 
 if __name__ == '__main__':
 
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
-    folders = ['SM_storage', 'Staging_storage']
+    folders = ['SM_storage', 'Staging_storage', "integration_new/test_files/sql"]
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
@@ -16,6 +68,10 @@ if __name__ == '__main__':
                 os.unlink(file_path)
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
+
+    data_gen(3)
+
+    exit()
 
     # Step 0: System initialization
 
