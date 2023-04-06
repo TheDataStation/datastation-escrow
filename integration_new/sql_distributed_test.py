@@ -4,6 +4,7 @@ import csv
 import math
 
 from main import initialize_system
+from crypto import cryptoutils as cu
 
 def data_gen(num_partitions):
     """
@@ -71,12 +72,32 @@ if __name__ == '__main__':
     if os.path.exists(log_path):
         os.remove(log_path)
 
+    wal_path = ds.write_ahead_log.wal_path
+    if os.path.exists(log_path):
+        os.remove(log_path)
+
+    ds_public_key = ds.key_manager.ds_public_key
+    # print(ds_public_key)
+
     # Step 1: We create two new users of the Data Station
     num_users = 3
     data_gen(num_users)
 
+    # We generate keys for the users
+    cipher_sym_key_list = []
+    public_key_list = []
+
     for i in range(num_users):
-        ds.create_user(f"user{i}", "string")
+        sym_key = cu.generate_symmetric_key()
+        cipher_sym_key = cu.encrypt_data_with_public_key(sym_key, ds_public_key)
+        cipher_sym_key_list.append(cipher_sym_key)
+        cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
+        public_key_list.append(cur_public_key)
+        ds.create_user(f"user{i}", "string", cipher_sym_key_list[i], public_key_list[i], )
+
+    # print(ds.key_manager.agents_symmetric_key)
+
+    exit()
 
     # Step 2: Each user uploads their share of the dataset.
     partitioned_tables = ["customer", "lineitem", "orders", "part", "partsupp", "supplier"]
@@ -127,7 +148,8 @@ if __name__ == '__main__':
     #     print(f"Result of TPC_H {i} is:", tpch_res)
 
     # Clean up
-    folders = ['SM_storage', 'Staging_storage', "integration_new/test_files/sql_plain"]
+    folders = ['SM_storage', 'Staging_storage',
+               "integration_new/test_files/sql_plain", "integration_new/test_files/sql_cipher"]
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
