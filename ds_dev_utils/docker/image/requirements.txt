@@ -3,4 +3,4 @@ requests
 fuse-python
 cryptography
 numpy
-psycopg2
+duckdb
