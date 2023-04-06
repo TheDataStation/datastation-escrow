@@ -9,9 +9,9 @@ ds_config = general_utils.parse_config(os.path.join(ds_path, "data_station_confi
 
 DATABASE_URL = ds_config["database_url"]
 
-# if in no trust mode, create in memory db
-if ds_config["trust_mode"] == "no_trust":
-    DATABASE_URL = "sqlite://"
+# # if in no trust mode, create in memory db
+# if ds_config["trust_mode"] == "no_trust":
+#     DATABASE_URL = "sqlite://"
 
 # on disk global engine
 engine = create_engine(DATABASE_URL)

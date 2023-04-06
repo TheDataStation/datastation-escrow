@@ -81,9 +81,8 @@ if __name__ == '__main__':
 
     # Step 1: We create two new users of the Data Station
     num_users = 3
-    data_gen(num_users)
 
-    # We generate keys for the users
+    # Generate keys for the users
     cipher_sym_key_list = []
     public_key_list = []
 
@@ -97,28 +96,44 @@ if __name__ == '__main__':
 
     # print(ds.key_manager.agents_symmetric_key)
 
-    exit()
-
     # Step 2: Each user uploads their share of the dataset.
+    data_gen(num_users)
+
+    # Create the encrypted TPCH files, and upload them.
+
     partitioned_tables = ["customer", "lineitem", "orders", "part", "partsupp", "supplier"]
     small_tables = ["nation", "region"]
     for tbl in small_tables:
         filename = f"integration_new/test_files/sql_plain/{tbl}0.csv"
         f = open(filename, "rb")
-        file_bytes = f.read()
+        plaintext_bytes = f.read()
+        f.close()
+        cur_user_sym_key = ds.key_manager.agents_symmetric_key[1]
+        ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
+        cur_cipher_name = f"integration_new/test_files/sql_cipher/{tbl}0.csv"
+        cur_cipher_file = open(cur_cipher_name, "wb")
+        cur_cipher_file.write(ciphertext_bytes)
+        cur_cipher_file.close()
         register_res = ds.call_api(f"user0", "register_data", None, None, f"user0",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
         ds.call_api(f"user0", "upload_data", None, None, f"user0",
-                    register_res.de_id, file_bytes, )
+                    register_res.de_id, ciphertext_bytes, )
     for i in range(num_users):
         for tbl in partitioned_tables:
             filename = f"integration_new/test_files/sql_plain/{tbl}{i}.csv"
             f = open(filename, "rb")
-            file_bytes = f.read()
+            plaintext_bytes = f.read()
+            f.close()
+            cur_user_sym_key = ds.key_manager.agents_symmetric_key[i+1]
+            ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
+            cur_cipher_name = f"integration_new/test_files/sql_cipher/{tbl}{i}.csv"
+            cur_cipher_file = open(cur_cipher_name, "wb")
+            cur_cipher_file.write(ciphertext_bytes)
+            cur_cipher_file.close()
             register_res = ds.call_api(f"user{i}", "register_data", None, None, f"user{i}",
                                        f"{tbl}.csv", "file", f"{tbl}.csv", False, )
             ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
-                        register_res.de_id, file_bytes, )
+                        register_res.de_id, ciphertext_bytes, )
 
     # Step 3: user0 suggests a share saying he can run all functions in share
     agents = [1]
@@ -140,16 +155,19 @@ if __name__ == '__main__':
             ds.call_api(f"user{i}", "ack_data_in_share", None, None, f"user{i}", cur_de_id, 1)
             cur_de_id += 1
 
-    # Step 5: user0 calls functions
-    select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
-    print("Result of select star from nation is:", select_star_res)
-    # for i in range(1, len(functions)):
-    #     tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
-    #     print(f"Result of TPC_H {i} is:", tpch_res)
+    # # Step 5: user0 calls functions
+    # select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
+    # print("Result of select star from nation is:", select_star_res)
+    # # for i in range(1, len(functions)):
+    # #     tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
+    # #     print(f"Result of TPC_H {i} is:", tpch_res)
 
     # Clean up
-    folders = ['SM_storage', 'Staging_storage',
-               "integration_new/test_files/sql_plain", "integration_new/test_files/sql_cipher"]
+    folders = ['SM_storage',
+               'Staging_storage',
+               "integration_new/test_files/sql_plain",
+               "integration_new/test_files/sql_cipher",
+               ]
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
