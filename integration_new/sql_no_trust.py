@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import csv
 import math
@@ -97,8 +98,8 @@ if __name__ == '__main__':
     # print(ds_public_key)
 
     # Step 0: Set some configs, and generate data
-    num_users = 3
-    data_dir = "tpch-1MB"
+    num_users = int(sys.argv[1])
+    data_dir = sys.argv[2]
     data_gen(num_users, data_dir)
 
     # Step 1: We create two new users of the Data Station
@@ -188,11 +189,12 @@ if __name__ == '__main__':
         tpch_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(tpch_res,
                                                                     ds.key_manager.get_agent_symmetric_key(1)))
         query_time = time.time() - start_time
-        with open(f"numbers/{data_dir}.csv", "a") as file:
+        with open(f"numbers/{data_dir}_{num_users}.csv", "a") as file:
             writer = csv.writer(file)
             writer.writerow([i, query_time])
         start_time = time.time()
-        print(f"Result of TPC_H {i} is:", tpch_res)
+        # print(f"Result of TPC_H {i} is:", tpch_res)
+        print(f"TPC_H {i} done.")
 
     # Last step: shut down the Data Station
     ds.shut_down()

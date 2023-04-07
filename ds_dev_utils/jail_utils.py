@@ -152,7 +152,7 @@ class DSDocker:
         Returns:
          function return value
         """
-        print("config_dict contents: ", config_dict)
+        # print("config_dict contents: ", config_dict)
 
         # In here we convert the accessible_data_dict to paths that Docker sees
         self.docker_id = config_dict["docker_id"]
