@@ -55,11 +55,27 @@ def data_gen(num_partitions):
                         except StopIteration:
                             break
 
+def cleanup():
+    folders = ['SM_storage',
+               'Staging_storage',
+               "integration_new/test_files/sql_plain",
+               "integration_new/test_files/sql_cipher",
+               ]
+    for folder in folders:
+        for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
 
 if __name__ == '__main__':
 
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
+
+    # Clean up
+    cleanup()
 
     # Step 0: System initialization
 
@@ -160,25 +176,11 @@ if __name__ == '__main__':
     select_star_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(select_star_res,
                                                                        ds.key_manager.get_agent_symmetric_key(1)))
     print("Result of select star from nation is:", select_star_res)
-    for i in range(1, 5):
+    for i in range(1, 7):
         tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
         tpch_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(tpch_res,
                                                                     ds.key_manager.get_agent_symmetric_key(1)))
         print(f"Result of TPC_H {i} is:", tpch_res)
-
-    # Clean up
-    folders = ['SM_storage',
-               'Staging_storage',
-               "integration_new/test_files/sql_plain",
-               "integration_new/test_files/sql_cipher",
-               ]
-    for folder in folders:
-        for filename in os.listdir(folder):
-            file_path = os.path.join(folder, filename)
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
 
     # Last step: shut down the Data Station
     ds.shut_down()
