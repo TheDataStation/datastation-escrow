@@ -2,17 +2,18 @@ import os
 import shutil
 import csv
 import math
+import time
 
 from main import initialize_system
 from crypto import cryptoutils as cu
 
-def data_gen(num_partitions):
+def data_gen(num_partitions, data_dir):
     """
     This function generates tpch data for testing different silos.
     Output goes to integration_new/test_files/sql_plain.
     """
     # Define input/output directories
-    input_dir = "/Users/kos/Desktop/TPCH-data/tpch-1MB/"
+    input_dir = f"/Users/kos/Desktop/TPCH-data/{data_dir}/"
     output_dir = "integration_new/test_files/sql_plain/"
     # Create a dictionary to store the schemas
     tpch_schemas = {"customer": ["c_custkey", "c_name", "c_address", "c_nationkey", "c_phone", "c_acctbal",
@@ -95,8 +96,12 @@ if __name__ == '__main__':
     ds_public_key = ds.key_manager.ds_public_key
     # print(ds_public_key)
 
-    # Step 1: We create two new users of the Data Station
+    # Step 0: Set some configs, and generate data
     num_users = 3
+    data_dir = "tpch-1MB"
+    data_gen(num_users, data_dir)
+
+    # Step 1: We create two new users of the Data Station
 
     # Generate keys for the users
     cipher_sym_key_list = []
@@ -113,7 +118,6 @@ if __name__ == '__main__':
     # print(ds.key_manager.agents_symmetric_key)
 
     # Step 2: Each user uploads their share of the dataset.
-    data_gen(num_users)
 
     # Create the encrypted TPCH files, and upload them.
 
@@ -176,10 +180,18 @@ if __name__ == '__main__':
     select_star_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(select_star_res,
                                                                        ds.key_manager.get_agent_symmetric_key(1)))
     print("Result of select star from nation is:", select_star_res)
-    for i in range(1, 7):
+
+    start_time = time.time()
+
+    for i in range(1, len(functions)):
         tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
         tpch_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(tpch_res,
                                                                     ds.key_manager.get_agent_symmetric_key(1)))
+        query_time = time.time() - start_time
+        with open("numbers/tpch_time.csv", "w") as file:
+            writer = csv.writer(file)
+            writer.writerow([i, query_time])
+        start_time = time.time()
         print(f"Result of TPC_H {i} is:", tpch_res)
 
     # Last step: shut down the Data Station
