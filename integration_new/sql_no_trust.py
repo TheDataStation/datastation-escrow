@@ -188,7 +188,7 @@ if __name__ == '__main__':
         tpch_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(tpch_res,
                                                                     ds.key_manager.get_agent_symmetric_key(1)))
         query_time = time.time() - start_time
-        with open("numbers/tpch_time.csv", "w") as file:
+        with open(f"numbers/{data_dir}.csv", "a") as file:
             writer = csv.writer(file)
             writer.writerow([i, query_time])
         start_time = time.time()
