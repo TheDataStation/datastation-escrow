@@ -42,7 +42,7 @@ def data_gen(num_partitions, data_dir):
         with open(f"{input_dir}{cur_table}.csv", 'r') as f:
             reader = csv.reader(f)
             total_rows = sum(1 for row in reader)
-            rows_per_file = int(math.ceil(total_rows / cur_partitions))
+            rows_per_file = int(math.floor(total_rows / cur_partitions))
             f.seek(0)
             for i in range(cur_partitions):
                 output_file = f"{output_dir}{cur_table}{i}.csv"
@@ -79,6 +79,11 @@ if __name__ == '__main__':
     # Clean up
     cleanup()
 
+    # Step 0: Set some configs, and generate data
+    num_users = int(sys.argv[1])
+    data_dir = sys.argv[2]
+    data_gen(num_users, data_dir)
+
     # Step 0: System initialization
 
     ds_config = "data_station_config.yaml"
@@ -96,11 +101,6 @@ if __name__ == '__main__':
 
     ds_public_key = ds.key_manager.ds_public_key
     # print(ds_public_key)
-
-    # Step 0: Set some configs, and generate data
-    num_users = int(sys.argv[1])
-    data_dir = sys.argv[2]
-    data_gen(num_users, data_dir)
 
     # Step 1: We create two new users of the Data Station
 
@@ -158,9 +158,9 @@ if __name__ == '__main__':
 
     # Step 3: user0 suggests a share saying he can run all functions in share
     agents = [1]
-    functions = ["select_star", "tpch_1", "tpch_2", "tpch_3", "tpch_4", "tpch_5", "tpch_6", "tpch_7",
-                 "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15", "tpch_16",
-                 "tpch_17", "tpch_18", "tpch_19", "tpch_20", "tpch_21", "tpch_22"]
+    functions = ["select_star", "tpch_1", "tpch_2", "tpch_3", "tpch_4", "tpch_5", "tpch_6",
+                 "tpch_7", "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15",
+                 "tpch_16", "tpch_17", "tpch_18", "tpch_19", "tpch_20", "tpch_21", "tpch_22"]
     total_des = num_users * len(partitioned_tables) + len(small_tables)
     data_elements = list(range(1, total_des + 1))
     ds.call_api("user0", "suggest_share", None, None, "user0", agents, functions, data_elements)
@@ -177,14 +177,14 @@ if __name__ == '__main__':
             cur_de_id += 1
 
     # Step 5: user0 calls functions
-    select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
-    select_star_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(select_star_res,
-                                                                       ds.key_manager.get_agent_symmetric_key(1)))
-    print("Result of select star from nation is:", select_star_res)
-
     start_time = time.time()
 
-    for i in range(1, len(functions)):
+    # select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
+    # select_star_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(select_star_res,
+    #                                                                    ds.key_manager.get_agent_symmetric_key(1)))
+    # print("Result of select star from nation is:", select_star_res)
+
+    for i in range(10, len(functions)):
         tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
         tpch_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(tpch_res,
                                                                     ds.key_manager.get_agent_symmetric_key(1)))
