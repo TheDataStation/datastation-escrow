@@ -36,11 +36,13 @@ def assemble_table(conn, table_name):
         if de.name == f"{table_name}.csv":
             table_path = get_data(de)
             if first_partition_flag:
-                query = f"CREATE TABLE {table_name} AS SELECT * FROM {table_path}"
+                query = f"CREATE TABLE {table_name} AS SELECT * FROM read_csv({table_path}, " \
+                        f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
                 first_partition_flag = False
             else:
-                query = f"INSERT INTO {table_name} SELECT * FROM {table_path}"
+                query = f"INSERT INTO {table_name} SELECT * FROM read_csv({table_path}, " \
+                        f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
 
 @api_endpoint

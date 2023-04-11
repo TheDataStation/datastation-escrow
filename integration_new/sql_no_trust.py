@@ -179,22 +179,22 @@ if __name__ == '__main__':
     # Step 5: user0 calls functions
     start_time = time.time()
 
-    # select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
-    # select_star_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(select_star_res,
-    #                                                                    ds.key_manager.get_agent_symmetric_key(1)))
-    # print("Result of select star from nation is:", select_star_res)
+    select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
+    select_star_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(select_star_res,
+                                                                       ds.key_manager.get_agent_symmetric_key(1)))
+    print("Result of select star from nation is:", select_star_res)
 
-    for i in range(10, len(functions)):
-        tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
-        tpch_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(tpch_res,
-                                                                    ds.key_manager.get_agent_symmetric_key(1)))
-        query_time = time.time() - start_time
-        with open(f"numbers/{data_dir}_{num_users}.csv", "a") as file:
-            writer = csv.writer(file)
-            writer.writerow([i, query_time])
-        start_time = time.time()
-        # print(f"Result of TPC_H {i} is:", tpch_res)
-        print(f"TPC_H {i} done.")
+    # for i in range(10, len(functions)):
+    #     tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
+    #     tpch_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(tpch_res,
+    #                                                                 ds.key_manager.get_agent_symmetric_key(1)))
+    #     query_time = time.time() - start_time
+    #     with open(f"numbers/{data_dir}_{num_users}.csv", "a") as file:
+    #         writer = csv.writer(file)
+    #         writer.writerow([i, query_time])
+    #     start_time = time.time()
+    #     # print(f"Result of TPC_H {i} is:", tpch_res)
+    #     print(f"TPC_H {i} done.")
 
     # Last step: shut down the Data Station
     ds.shut_down()

@@ -166,6 +166,8 @@ class DSDocker:
                                                        "python setup.py",
                                                        detach=True,
                                                        tty=True,
+                                                       privileged=True,
+                                                       network="host",
                                                        cap_add=["SYS_ADMIN", "MKNOD"],
                                                        devices=["/dev/fuse:/dev/fuse:rwm"],
                                                        volumes={data_dir: {
@@ -196,6 +198,8 @@ class DSDocker:
 
         # time.sleep(1)
         self.container.start()
+
+        print("Container start success")
 
 
 def flask_thread(port, q: Queue, function_dict_to_send):
