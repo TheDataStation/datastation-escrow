@@ -83,6 +83,7 @@ if __name__ == '__main__':
     num_users = int(sys.argv[1])
     data_dir = sys.argv[2]
     workload = sys.argv[3]
+    iterations = int(sys.argv[4])
     data_gen(num_users, data_dir)
 
     # Step 0: System initialization
@@ -192,15 +193,17 @@ if __name__ == '__main__':
     # print("Result of select star from nation is:", select_star_res)
 
     for i in range(1, len(functions) + 1):
-        query_res = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
-        query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
-                                                                     ds.key_manager.get_agent_symmetric_key(1)))
-        query_time = time.time() - start_time
-        with open(f"numbers/{workload}/{data_dir}_{num_users}.csv", "a") as file:
-            writer = csv.writer(file)
-            writer.writerow([i, query_time])
-        start_time = time.time()
-        print(f"Result of {workload}{i} is:", query_res)
+        for j in range(iterations):
+            query_res = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
+            query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
+                                                                         ds.key_manager.get_agent_symmetric_key(1)))
+            query_time = time.time() - start_time
+            with open(f"numbers/{workload}/{data_dir}_{num_users}.csv", "a") as file:
+                writer = csv.writer(file)
+                writer.writerow([i, query_time])
+            start_time = time.time()
+            print(f"{workload}{i} done.")
+            # print(f"Result of {workload }{i} is:", query_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()
