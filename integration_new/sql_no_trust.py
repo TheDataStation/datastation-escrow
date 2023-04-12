@@ -82,6 +82,7 @@ if __name__ == '__main__':
     # Step 0: Set some configs, and generate data
     num_users = int(sys.argv[1])
     data_dir = sys.argv[2]
+    workload = sys.argv[3]
     data_gen(num_users, data_dir)
 
     # Step 0: System initialization
@@ -158,9 +159,12 @@ if __name__ == '__main__':
 
     # Step 3: user0 suggests a share saying he can run all functions in share
     agents = [1]
-    functions = ["tpch_1", "tpch_2", "tpch_3", "tpch_4", "tpch_5", "tpch_6",
-                 "tpch_7", "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15",
-                 "tpch_16", "tpch_17", "tpch_18", "tpch_19", "tpch_20", "tpch_21", "tpch_22"]
+    if workload == "tpch":
+        functions = ["tpch_1", "tpch_2", "tpch_3", "tpch_4", "tpch_5", "tpch_6",
+                     "tpch_7", "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15",
+                     "tpch_16", "tpch_17", "tpch_18", "tpch_19", "tpch_20", "tpch_21", "tpch_22"]
+    else:
+        functions = ["conclave_1", "conclave_2"]
     # functions = ["conclave_1", "conclave_2"]
     total_des = num_users * len(partitioned_tables) + len(small_tables)
     data_elements = list(range(1, total_des + 1))
@@ -185,29 +189,16 @@ if __name__ == '__main__':
     #                                                                    ds.key_manager.get_agent_symmetric_key(1)))
     # print("Result of select star from nation is:", select_star_res)
 
-    for i in range(1, len(functions)+1):
-        tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
-        tpch_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(tpch_res,
-                                                                    ds.key_manager.get_agent_symmetric_key(1)))
+    for i in range(1, len(functions) + 1):
+        query_res = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
+        query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
+                                                                     ds.key_manager.get_agent_symmetric_key(1)))
         query_time = time.time() - start_time
-        with open(f"numbers/tpch/{data_dir}_{num_users}.csv", "a") as file:
+        with open(f"numbers/{workload}/{data_dir}_{num_users}.csv", "a") as file:
             writer = csv.writer(file)
             writer.writerow([i, query_time])
         start_time = time.time()
-        # print(f"Result of TPC_H {i} is:", tpch_res)
-        print(f"TPC_H {i} done.")
-
-    # for i in range(1, len(functions)+1):
-    #     query_res = ds.call_api("user0", f"conclave_{i}", 1, "pessimistic")
-    #     query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
-    #                                                                  ds.key_manager.get_agent_symmetric_key(1)))
-    #     query_time = time.time() - start_time
-    #     with open(f"numbers/conclave/{data_dir}_{num_users}.csv", "a") as file:
-    #         writer = csv.writer(file)
-    #         writer.writerow([i, query_time])
-    #     start_time = time.time()
-    #     # print(f"Result of Conclave {i} is:", tpch_res)
-    #     print(f"Conclave {i} done.")
+        print(f"Result of {workload}{i} is:", query_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()
