@@ -80,6 +80,36 @@ def conclave_2():
 
 @api_endpoint
 @function
+def secyan_1():
+    res = tpch_3()
+    return res
+
+@api_endpoint
+@function
+def secyan_2():
+    res = tpch_10()
+    return res
+
+@api_endpoint
+@function
+def secyan_3():
+    res = tpch_18()
+    return res
+
+@api_endpoint
+@function
+def secyan_4():
+    res = tpch_8()
+    return res
+
+@api_endpoint
+@function
+def secyan_5():
+    res = tpch_9()
+    return res
+
+@api_endpoint
+@function
 def tpch_1():
     conn = duckdb.connect()
     assemble_table(conn, "lineitem")

@@ -163,8 +163,10 @@ if __name__ == '__main__':
         functions = ["tpch_1", "tpch_2", "tpch_3", "tpch_4", "tpch_5", "tpch_6",
                      "tpch_7", "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15",
                      "tpch_16", "tpch_17", "tpch_18", "tpch_19", "tpch_20", "tpch_21", "tpch_22"]
-    else:
+    elif workload == "conclave":
         functions = ["conclave_1", "conclave_2"]
+    else:
+        functions = ["secyan_1", "secyan_2", "secyan_3", "secyan_4", "secyan_5"]
     # functions = ["conclave_1", "conclave_2"]
     total_des = num_users * len(partitioned_tables) + len(small_tables)
     data_elements = list(range(1, total_des + 1))
