@@ -58,6 +58,17 @@ def select_star(table_name):
 
 @api_endpoint
 @function
+def conclave_1():
+    """SELECT COUNT(*) AS by_quantity FROM lineitem GROUPBY l_quantity ORDER BY l_quantity"""
+    # Note: creating conn here, because we need to the same in-memory database
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    query = f"SELECT COUNT(*) AS by_quantity FROM lineitem GROUP BY l_quantity ORDER BY l_quantity"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
 def tpch_1():
     conn = duckdb.connect()
     assemble_table(conn, "lineitem")
