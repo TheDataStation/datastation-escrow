@@ -69,6 +69,17 @@ def conclave_1():
 
 @api_endpoint
 @function
+def conclave_2():
+    """SELECT (l_extendedprice * l_discount) AS revenue FROM lineitem WHERE l_quantity == 24"""
+    # Note: creating conn here, because we need to the same in-memory database
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    query = f"SELECT (l_extendedprice * l_discount) AS revenue FROM lineitem WHERE l_quantity == 24"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
 def tpch_1():
     conn = duckdb.connect()
     assemble_table(conn, "lineitem")
