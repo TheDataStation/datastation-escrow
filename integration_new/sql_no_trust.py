@@ -8,13 +8,14 @@ import time
 from main import initialize_system
 from crypto import cryptoutils as cu
 
+
 def data_gen(num_partitions, data_dir):
     """
     This function generates tpch data for testing different silos.
     Output goes to integration_new/test_files/sql_plain.
     """
     # Define input/output directories
-    input_dir = f"/Users/kos/Desktop/TPCH-data/{data_dir}/"
+    input_dir = f"tpch_data/{data_dir}/"
     output_dir = "integration_new/test_files/sql_plain/"
     # Create a dictionary to store the schemas
     tpch_schemas = {"customer": ["c_custkey", "c_name", "c_address", "c_nationkey", "c_phone", "c_acctbal",
@@ -37,32 +38,41 @@ def data_gen(num_partitions, data_dir):
     for cur_table in table_names:
         if cur_table in small_tables:
             cur_partitions = 1
+            num_writes = 1
         else:
             cur_partitions = num_partitions
+            num_writes = 2
         with open(f"{input_dir}{cur_table}.csv", 'r') as f:
             reader = csv.reader(f)
             total_rows = sum(1 for row in reader)
-            rows_per_file = int(math.floor(total_rows / cur_partitions))
+            print(f"{cur_table}")
+            print(total_rows)
+            rows_per_file_per_write = int(math.floor(total_rows / cur_partitions / num_writes))
+            print(rows_per_file_per_write)
             f.seek(0)
             for i in range(cur_partitions):
                 output_file = f"{output_dir}{cur_table}{i}.csv"
-                with open(output_file, 'w', newline='') as f_out:
-                    writer = csv.writer(f_out)
-                    cur_schema = tpch_schemas[cur_table]
-                    writer.writerow(cur_schema)
-                    for j in range(rows_per_file):
-                        try:
-                            row = next(reader)
-                            writer.writerow(row)
-                        except StopIteration:
-                            break
+                for j in range(num_writes):
+                    with open(output_file, 'a+', newline='') as f_out:
+                        writer = csv.writer(f_out)
+                        if j == 0:
+                            cur_schema = tpch_schemas[cur_table]
+                            writer.writerow(cur_schema)
+                        for k in range(rows_per_file_per_write):
+                            try:
+                                row = next(reader)
+                                writer.writerow(row)
+                            except StopIteration:
+                                break
+
 
 def cleanup():
-    folders = ['SM_storage',
-               'Staging_storage',
-               "integration_new/test_files/sql_plain",
-               "integration_new/test_files/sql_cipher",
-               ]
+    folders = [
+        'SM_storage',
+        'Staging_storage',
+        "integration_new/test_files/sql_plain",
+        "integration_new/test_files/sql_cipher",
+    ]
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
@@ -70,6 +80,7 @@ def cleanup():
                 os.unlink(file_path)
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
+
 
 if __name__ == '__main__':
 
@@ -133,10 +144,6 @@ if __name__ == '__main__':
         f.close()
         cur_user_sym_key = ds.key_manager.agents_symmetric_key[1]
         ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
-        cur_cipher_name = f"integration_new/test_files/sql_cipher/{tbl}0.csv"
-        cur_cipher_file = open(cur_cipher_name, "wb")
-        cur_cipher_file.write(ciphertext_bytes)
-        cur_cipher_file.close()
         register_res = ds.call_api(f"user0", "register_data", None, None, f"user0",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
         ds.call_api(f"user0", "upload_data", None, None, f"user0",
@@ -147,12 +154,11 @@ if __name__ == '__main__':
             f = open(filename, "rb")
             plaintext_bytes = f.read()
             f.close()
-            cur_user_sym_key = ds.key_manager.agents_symmetric_key[i+1]
+            print(f"{tbl}")
+            print(f"Plaintext size is {len(plaintext_bytes)}")
+            cur_user_sym_key = ds.key_manager.agents_symmetric_key[i + 1]
             ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
-            cur_cipher_name = f"integration_new/test_files/sql_cipher/{tbl}{i}.csv"
-            cur_cipher_file = open(cur_cipher_name, "wb")
-            cur_cipher_file.write(ciphertext_bytes)
-            cur_cipher_file.close()
+            print(f"Ciphertext size is {len(ciphertext_bytes)}")
             register_res = ds.call_api(f"user{i}", "register_data", None, None, f"user{i}",
                                        f"{tbl}.csv", "file", f"{tbl}.csv", False, )
             ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
@@ -168,7 +174,6 @@ if __name__ == '__main__':
         functions = ["conclave_1", "conclave_2"]
     else:
         functions = ["secyan_1", "secyan_2", "secyan_3", "secyan_4", "secyan_5"]
-    # functions = ["conclave_1", "conclave_2"]
     total_des = num_users * len(partitioned_tables) + len(small_tables)
     data_elements = list(range(1, total_des + 1))
     ds.call_api("user0", "suggest_share", None, None, "user0", agents, functions, data_elements)
@@ -192,7 +197,8 @@ if __name__ == '__main__':
     #                                                                    ds.key_manager.get_agent_symmetric_key(1)))
     # print("Result of select star from nation is:", select_star_res)
 
-    for i in range(1, len(functions) + 1):
+    # for i in range(1, len(functions)+1):
+    for i in range(1, 2):
         for j in range(iterations):
             query_res = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
             query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
