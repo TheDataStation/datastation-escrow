@@ -18,3 +18,4 @@ verifiability/*
 writeaheadlog/*
 venv/*
 data_station.db
+tpch_data/*
