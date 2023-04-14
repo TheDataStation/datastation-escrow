@@ -265,10 +265,10 @@ class Xmp(Fuse):
                                 start = time.perf_counter()
 
                                 file_size = os.stat(self.file_path).st_size
-                                print(f"File size is {file_size}")
+                                # print(f"File size is {file_size}")
                                 chunk_size = 2000000000
                                 num_reads = int(math.ceil(file_size / chunk_size))
-                                print(f"Number of reads is {num_reads}")
+                                # print(f"Number of reads is {num_reads}")
                                 bytes_read = 0
                                 encrypted_bytes = bytes()
                                 for i in range(num_reads):
@@ -283,8 +283,8 @@ class Xmp(Fuse):
                                         bytes_read += chunk_size
                                         print(bytes_read)
                                 print("Decryption starting......")
-                                print(len(encrypted_bytes))
-                                print(type(encrypted_bytes))
+                                # print(len(encrypted_bytes))
+                                # print(type(encrypted_bytes))
                                 self.decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                                     ciphertext=encrypted_bytes,
                                     key=self.symmetric_key)
