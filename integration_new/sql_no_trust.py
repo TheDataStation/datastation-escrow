@@ -190,7 +190,6 @@ if __name__ == '__main__':
             cur_de_id += 1
 
     # Step 5: user0 calls functions
-    start_time = time.time()
 
     # select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
     # select_star_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(select_star_res,
@@ -199,7 +198,9 @@ if __name__ == '__main__':
 
     for i in range(1, len(functions)+1):
         for j in range(iterations):
+            start_time = time.time()
             query_res = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
+            print(time.time() - start_time)
             query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
                                                                          ds.key_manager.get_agent_symmetric_key(1)))
             query_time = time.time() - start_time
@@ -209,7 +210,6 @@ if __name__ == '__main__':
             print(f"{workload}{i} done.")
             if j == 0:
                 print(f"Result of {workload }{i} is:", query_res)
-            start_time = time.time()
 
     # Last step: shut down the Data Station
     ds.shut_down()

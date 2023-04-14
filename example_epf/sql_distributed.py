@@ -52,11 +52,15 @@ def assemble_orders(conn):
         if de.name == f"orders.csv":
             table_path = get_data(de)
             if first_table_flag:
+                print("Creating o1")
+                print(table_path)
                 query = f"CREATE TABLE o1 AS SELECT * FROM read_csv({table_path}, " \
                         f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
                 first_table_flag = False
             else:
+                print("Creating o2")
+                print(table_path)
                 query = f"CREATE TABLE o2 AS SELECT * FROM read_csv({table_path}, " \
                         f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
