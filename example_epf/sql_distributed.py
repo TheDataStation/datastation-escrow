@@ -45,6 +45,26 @@ def assemble_table(conn, table_name):
                         f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
 
+def assemble_orders(conn):
+    accessible_de = EscrowAPI.get_all_accessible_des()
+    first_table_flag = True
+    for de in accessible_de:
+        if de.name == f"orders.csv":
+            table_path = get_data(de)
+            if first_table_flag:
+                print("Creating o1")
+                print(table_path)
+                query = f"CREATE TABLE o1 AS SELECT * FROM read_csv({table_path}, " \
+                        f"ignore_errors=1, auto_detect=1)"
+                conn.execute(query)
+                first_table_flag = False
+            else:
+                print("Creating o2")
+                print(table_path)
+                query = f"CREATE TABLE o2 AS SELECT * FROM read_csv({table_path}, " \
+                        f"ignore_errors=1, auto_detect=1)"
+                conn.execute(query)
+
 @api_endpoint
 @function
 def select_star(table_name):
@@ -75,6 +95,17 @@ def conclave_2():
     conn = duckdb.connect()
     assemble_table(conn, "lineitem")
     query = f"SELECT (l_extendedprice * l_discount) AS revenue FROM lineitem WHERE l_quantity == 24"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def conclave_3():
+    """SELECT * FROM orders o1 JOIN orders o2 ON o1.o_custkey = o2.o_custkey"""
+    # Note: creating conn here, because we need to the same in-memory database
+    conn = duckdb.connect()
+    assemble_orders(conn)
+    query = f"SELECT * FROM o1 JOIN o2 ON o1.o_custkey = o2.o_custkey"
     res = conn.execute(query).fetchall()
     return res
 

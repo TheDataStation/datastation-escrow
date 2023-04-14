@@ -1,6 +1,8 @@
 from os import path, remove, makedirs, removedirs
 from common.pydantic_models.response import Response, RetrieveDataResponse
 
+import math
+
 # TODO: Right now, we give SM the responsibility to determine how it wants to store different types of data
 class StorageManager:
 
@@ -21,9 +23,17 @@ class StorageManager:
             # if dir already exists, data with the same id has already been stored
             makedirs(dir_path, exist_ok=False)
             # Store the file
-            f = open(dst_file_path, 'wb')
-            f.write(data)
-            f.close()
+            iters = 3
+            bytes_written = 0
+            bytes_per_write = int(math.floor(len(data) / iters))
+            print(bytes_per_write)
+            for j in range(iters):
+                with open(dst_file_path, 'ab+') as file:
+                    if j != iters - 1:
+                        file.write(data[bytes_written: bytes_written + bytes_per_write])
+                        bytes_written += bytes_per_write
+                    else:
+                        file.write(data[bytes_written:])
         except OSError as error:
             return Response(status=1,
                             message="data id=" + str(data_id) + "already exists")

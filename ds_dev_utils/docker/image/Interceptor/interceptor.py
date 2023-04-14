@@ -9,6 +9,7 @@
 
 import os, sys
 import pathlib
+import math
 import socket
 import time
 from errno import *
@@ -251,17 +252,46 @@ class Xmp(Fuse):
                                 self.iolock.acquire()
                                 try:
                                     encrypted_bytes = self.file.read()
+                                    print("Decryption starting......")
+                                    print(len(encrypted_bytes))
                                     self.decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                                         ciphertext=encrypted_bytes,
                                         key=self.symmetric_key)
+                                    print("Decrypted bytes are:")
+                                    print(self.decrypted_bytes[:100])
                                 finally:
                                     self.iolock.release()
                             else:
-                                encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
+                                start = time.perf_counter()
+
+                                file_size = os.stat(self.file_path).st_size
+                                # print(f"File size is {file_size}")
+                                chunk_size = 2000000000
+                                num_reads = int(math.ceil(file_size / chunk_size))
+                                # print(f"Number of reads is {num_reads}")
+                                bytes_read = 0
+                                encrypted_bytes = bytes()
+                                for i in range(num_reads):
+                                    if i != num_reads - 1:
+                                        cur_chunk_bytes = os.pread(self.fd, chunk_size, bytes_read)
+                                        encrypted_bytes += cur_chunk_bytes
+                                        bytes_read += chunk_size
+                                        print(bytes_read)
+                                    else:
+                                        cur_chunk_bytes = os.pread(self.fd, file_size - bytes_read, bytes_read)
+                                        encrypted_bytes += cur_chunk_bytes
+                                        bytes_read += chunk_size
+                                        print(bytes_read)
+                                print("Decryption starting......")
                                 # print(len(encrypted_bytes))
+                                # print(type(encrypted_bytes))
                                 self.decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                                     ciphertext=encrypted_bytes,
                                     key=self.symmetric_key)
+                                print("Decrypted bytes are:")
+                                print(self.decrypted_bytes[:100])
+                                end = time.perf_counter()
+                                print(f"{end-start} seconds for decryption")
 
             def read(self, length, offset):
                 # print("Interceptor: I am reading " + str(self.file_path))
