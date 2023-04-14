@@ -80,6 +80,17 @@ def conclave_2():
 
 @api_endpoint
 @function
+def conclave_3():
+    """SELECT * FROM orders o1 JOIN orders o2 ON o1.o_custkey = o2.o_custkey"""
+    # Note: creating conn here, because we need to the same in-memory database
+    conn = duckdb.connect()
+    assemble_table(conn, "orders")
+    query = f"SELECT * FROM orders o1 JOIN orders o2 ON o1.o_custkey = o2.o_custkey"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
 def secyan_1():
     res = tpch_3()
     return res

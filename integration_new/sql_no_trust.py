@@ -171,7 +171,7 @@ if __name__ == '__main__':
                      "tpch_7", "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15",
                      "tpch_16", "tpch_17", "tpch_18", "tpch_19", "tpch_20", "tpch_21", "tpch_22"]
     elif workload == "conclave":
-        functions = ["conclave_1", "conclave_2"]
+        functions = ["conclave_1", "conclave_2", "conclave_3"]
     else:
         functions = ["secyan_1", "secyan_2", "secyan_3", "secyan_4", "secyan_5"]
     total_des = num_users * len(partitioned_tables) + len(small_tables)
