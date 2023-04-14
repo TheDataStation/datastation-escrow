@@ -206,10 +206,10 @@ if __name__ == '__main__':
             with open(f"numbers/{workload}/{data_dir}_{num_users}.csv", "a") as file:
                 writer = csv.writer(file)
                 writer.writerow([i, query_time])
-            start_time = time.time()
             print(f"{workload}{i} done.")
             if j == 0:
                 print(f"Result of {workload }{i} is:", query_res)
+            start_time = time.time()
 
     # Last step: shut down the Data Station
     ds.shut_down()
