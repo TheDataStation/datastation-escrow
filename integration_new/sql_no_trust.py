@@ -122,7 +122,7 @@ if __name__ == '__main__':
     public_key_list = []
 
     for i in range(num_users):
-        sym_key = cu.generate_symmetric_key()
+        sym_key = b'oHRZBUvF_jn4N3GdUpnI6mW8mts-EB7atAUjhVNMI58='
         cipher_sym_key = cu.encrypt_data_with_public_key(sym_key, ds_public_key)
         cipher_sym_key_list.append(cipher_sym_key)
         cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
