@@ -197,8 +197,7 @@ if __name__ == '__main__':
     #                                                                    ds.key_manager.get_agent_symmetric_key(1)))
     # print("Result of select star from nation is:", select_star_res)
 
-    # for i in range(1, len(functions)+1):
-    for i in range(1, 2):
+    for i in range(1, len(functions)+1):
         for j in range(iterations):
             query_res = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
             query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
@@ -209,7 +208,7 @@ if __name__ == '__main__':
                 writer.writerow([i, query_time])
             start_time = time.time()
             print(f"{workload}{i} done.")
-            # print(f"Result of {workload }{i} is:", query_res)
+            print(f"Result of {workload }{i} is:", query_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()

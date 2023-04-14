@@ -416,7 +416,7 @@ class DataStation:
 
         return policy_broker.get_all_policies()
 
-    def suggest_share(self, username, agents: list[int], functions: list[str], data_elements: list[int]):
+    def suggest_share(self, username, agents, functions, data_elements):
         """
         Propose a share. This leads to the creation of a share.
 
