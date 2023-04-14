@@ -1,5 +1,5 @@
 from crypto import cryptoutils as cu
-
+from cryptography.hazmat.primitives import serialization
 
 class KeyManager:
     """
@@ -28,8 +28,19 @@ class KeyManager:
         """
         # Generate public private key pair at runtime and store them in memory
         private_key, public_key = cu.generate_private_public_key_pair()
-        self.ds_private_key = private_key
-        self.ds_public_key = public_key
+        # self.ds_private_key = private_key
+        # self.ds_public_key = public_key
+        # Load private key from file
+        with open('private_key.pem', 'rb') as f:
+            private_pem = f.read()
+            self.ds_private_key = serialization.load_pem_private_key(
+                private_pem,
+                password=None
+            )
+        # Load public key from file
+        with open('public_key.pem', 'rb') as f:
+            public_pem = f.read()
+            self.ds_public_key = serialization.load_pem_public_key(public_pem)
 
     def store_agent_symmetric_key(self, agent_id, ciphertext_symmetric_key):
         """
