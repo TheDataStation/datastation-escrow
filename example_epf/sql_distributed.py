@@ -57,7 +57,7 @@ def assemble_orders(conn):
                 conn.execute(query)
                 first_table_flag = False
             else:
-                query = f"CREATE TABLE o2 SELECT * FROM read_csv({table_path}, " \
+                query = f"CREATE TABLE o2 AS SELECT * FROM read_csv({table_path}, " \
                         f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
 
