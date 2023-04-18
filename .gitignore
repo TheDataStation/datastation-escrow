@@ -38,6 +38,7 @@ demofile.txt
 *.tar
 ds_dev_utils/args.pkl
 integration_new/test_files
+tpch_data/*
 
 # C extensions
 *.so
