@@ -209,7 +209,7 @@ if __name__ == '__main__':
                 writer.writerow([i, query_time])
             print(f"{workload}{i} done.")
             if j == 0:
-                print(f"Result of {workload }{i} is:", query_res)
+                print(f"Result of {workload }{i} is:", query_res[:10])
 
     # Last step: shut down the Data Station
     ds.shut_down()
