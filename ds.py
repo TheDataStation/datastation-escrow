@@ -539,7 +539,7 @@ class DataStation:
             api_result = res.result
             # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
             if self.trust_mode == "no_trust":
-                print("Encrypting returneed response......")
+                print("Encrypting returned response......")
                 start = time.time()
                 caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
                     cur_user_id)
