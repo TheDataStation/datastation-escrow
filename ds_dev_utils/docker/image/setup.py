@@ -121,6 +121,7 @@ def main():
     print(dict(data_accessed_dict))
     print("Got function return......")
     print(time.time() - start)
+    print(f"Size of returned value is {sys.getsizeof(ret)}")
     start = time.time()
 
     if main_pid in dict(data_accessed_dict):
