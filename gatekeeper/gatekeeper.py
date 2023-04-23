@@ -179,10 +179,9 @@ class Gatekeeper:
                               *args,
                               )
 
-        api_result = ret["return_value"]
-        api_result = api_result[0]
-        data_path_accessed = api_result[1]
-        decryption_time = api_result[2]
+        api_result = ret["return_info"][0]
+        data_path_accessed = ret["return_info"][1]
+        decryption_time = ret["return_info"][2]
 
         data_ids_accessed = []
         for path in data_path_accessed:

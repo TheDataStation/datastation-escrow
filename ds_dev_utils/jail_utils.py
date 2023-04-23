@@ -243,7 +243,7 @@ def flask_thread(port, q: Queue, function_dict_to_send):
         # print("Child Thread, return value: ", ret)
 
         # add to shared queue
-        q.put({"docker_id": docker_id, "return_value": ret})
+        q.put({"docker_id": docker_id, "return_info": ret})
         return "Received return value from container."
 
     # run the flask app
