@@ -200,11 +200,11 @@ if __name__ == '__main__':
         for j in range(iterations):
             start_time = time.time()
             query_res, dec_time = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
-            print(time.time() - start_time)
-            print(dec_time)
             query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
                                                                          ds.key_manager.get_agent_symmetric_key(1)))
             query_time = time.time() - start_time
+            print(f"Total query time is {query_time}")
+            print(f"Time spent for decryption is {dec_time}")
             with open(f"numbers/{workload}/{data_dir}_{num_users}.csv", "a") as file:
                 writer = csv.writer(file)
                 writer.writerow([i, query_time])

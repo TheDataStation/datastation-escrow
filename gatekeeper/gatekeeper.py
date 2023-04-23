@@ -191,7 +191,7 @@ class Gatekeeper:
         print("data accessed is", data_ids_accessed)
         print("accessible data by policy is", accessible_data_policy)
         print("all accessible data is", all_accessible_data_id)
-        print("Decryption time is", decryption_time)
+        # print("Decryption time is", decryption_time)
 
         if set(data_ids_accessed).issubset(set(accessible_data_policy)):
             # print("All data access allowed by policy.")
