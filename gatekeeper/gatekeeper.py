@@ -180,12 +180,10 @@ class Gatekeeper:
                               )
 
         api_result = ret["return_value"]
-        print(api_result)
-        exit()
-
         api_result = api_result[0]
         data_path_accessed = api_result[1]
         decryption_time = api_result[2]
+
         data_ids_accessed = []
         for path in data_path_accessed:
             data_ids_accessed.append(int(path.split("/")[-2]))
