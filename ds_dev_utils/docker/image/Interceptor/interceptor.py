@@ -253,7 +253,6 @@ class Xmp(Fuse):
                                 try:
                                     encrypted_bytes = self.file.read()
                                     print("Decryption starting......")
-                                    print(len(encrypted_bytes))
                                     self.decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                                         ciphertext=encrypted_bytes,
                                         key=self.symmetric_key)

@@ -539,13 +539,13 @@ class DataStation:
             api_result = res.result
             # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
             if self.trust_mode == "no_trust":
-                print("Encrypting returned response......")
-                start = time.time()
+                # print("Encrypting returned response......")
+                # start = time.time()
                 caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
                     cur_user_id)
                 api_result = cu.encrypt_data_with_symmetric_key(
                     cu.to_bytes(api_result), caller_symmetric_key)
-                print(time.time() - start)
+                # print(time.time() - start)
             return api_result
         # In this case we need to put result into staging storage, so that they can be released later
         elif res.status == -1:
