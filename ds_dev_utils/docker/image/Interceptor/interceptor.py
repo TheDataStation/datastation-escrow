@@ -275,12 +275,12 @@ class Xmp(Fuse):
                                         cur_chunk_bytes = os.pread(self.fd, chunk_size, bytes_read)
                                         encrypted_bytes += cur_chunk_bytes
                                         bytes_read += chunk_size
-                                        print(bytes_read)
+                                        # print(bytes_read)
                                     else:
                                         cur_chunk_bytes = os.pread(self.fd, file_size - bytes_read, bytes_read)
                                         encrypted_bytes += cur_chunk_bytes
                                         bytes_read += chunk_size
-                                        print(bytes_read)
+                                        # print(bytes_read)
                                 print("Decryption starting......")
                                 # print(len(encrypted_bytes))
                                 # print(type(encrypted_bytes))
