@@ -121,7 +121,7 @@ def main():
     ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
     # print("Return value is", ret)
     # print(dict(data_accessed_dict))
-    print(dict(decryption_time_dict))
+    # print(dict(decryption_time_dict))
     # print("Got function return......")
     # print(time.time() - start)
     # print(f"Size of returned value is {sys.getsizeof(ret)}")
@@ -131,7 +131,11 @@ def main():
         data_accessed = dict(data_accessed_dict)[main_pid]
     else:
         data_accessed = []
-    to_send_back = pickle.dumps({"return_value": ret, "data_accessed": data_accessed})
+    decryption_time = dict(decryption_time_dict)["total_time"]
+
+    to_send_back = pickle.dumps({"return_value": ret,
+                                 "data_accessed": data_accessed,
+                                 "decryption_time": decryption_time})
     # print("To send back pickle constructed......")
     # print(time.time() - start)
     # start = time.time()

@@ -180,16 +180,18 @@ class Gatekeeper:
                               )
 
         api_result = ret["return_value"]
+        api_result = api_result[0]
         data_path_accessed = api_result[1]
+        decryption_time = api_result[2]
         data_ids_accessed = []
         for path in data_path_accessed:
             data_ids_accessed.append(int(path.split("/")[-2]))
-        api_result = api_result[0]
         # print("API result is", api_result)
 
         print("data accessed is", data_ids_accessed)
         print("accessible data by policy is", accessible_data_policy)
         print("all accessible data is", all_accessible_data_id)
+        print("Decryption time is", decryption_time)
 
         if set(data_ids_accessed).issubset(set(accessible_data_policy)):
             # print("All data access allowed by policy.")
@@ -201,7 +203,7 @@ class Gatekeeper:
             # In this case, we can return the result to caller.
             response = APIExecResponse(status=0,
                                        message="API result can be released",
-                                       result=api_result,
+                                       result=[api_result, decryption_time]
                                        )
         elif set(data_ids_accessed).issubset(all_accessible_data_id):
             # print("Some access to optimistic data not allowed by policy.")
