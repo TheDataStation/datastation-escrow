@@ -207,7 +207,7 @@ if __name__ == '__main__':
             print(f"Time spent for decryption is {dec_time}")
             with open(f"numbers/{workload}/{data_dir}_{num_users}.csv", "a") as file:
                 writer = csv.writer(file)
-                writer.writerow([i, query_time])
+                writer.writerow([i, query_time, dec_time])
             print(f"{workload}{i} done.")
             if j == 0:
                 print(f"Result of {workload }{i} is:", query_res[:10])

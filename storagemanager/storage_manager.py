@@ -26,7 +26,7 @@ class StorageManager:
             iters = 3
             bytes_written = 0
             bytes_per_write = int(math.floor(len(data) / iters))
-            print(bytes_per_write)
+            # print(bytes_per_write)
             for j in range(iters):
                 with open(dst_file_path, 'ab+') as file:
                     if j != iters - 1:
