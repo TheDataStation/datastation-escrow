@@ -55,6 +55,7 @@ def main():
 
     accessible_data_dict = manager.dict()
     data_accessed_dict = manager.dict()
+    decryption_time_dict = manager.dict()
 
     accessible_data_dict[main_pid] = accessible_data_obj
 
@@ -65,7 +66,8 @@ def main():
                                                   args=(storage_path,
                                                         mount_path,
                                                         accessible_data_dict,
-                                                        data_accessed_dict))
+                                                        data_accessed_dict,
+                                                        decryption_time_dict,))
 
     interceptor_process.start()
 
@@ -119,6 +121,7 @@ def main():
     ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
     # print("Return value is", ret)
     # print(dict(data_accessed_dict))
+    print(dict(decryption_time_dict))
     # print("Got function return......")
     # print(time.time() - start)
     # print(f"Size of returned value is {sys.getsizeof(ret)}")
@@ -134,7 +137,7 @@ def main():
     # start = time.time()
 
     # Before we return the result of the function, look at the data elements accessed
-    print("In setup.py: data accessed is", data_accessed_dict)
+    # print("In setup.py: data accessed is", data_accessed_dict)
     # print(to_send_back)
 
     # send the return value of the function

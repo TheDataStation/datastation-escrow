@@ -275,12 +275,10 @@ class Xmp(Fuse):
                                         cur_chunk_bytes = os.pread(self.fd, chunk_size, bytes_read)
                                         encrypted_bytes += cur_chunk_bytes
                                         bytes_read += chunk_size
-                                        # print(bytes_read)
                                     else:
                                         cur_chunk_bytes = os.pread(self.fd, file_size - bytes_read, bytes_read)
                                         encrypted_bytes += cur_chunk_bytes
                                         bytes_read += chunk_size
-                                        # print(bytes_read)
                                 print("Decryption starting......")
                                 # print(len(encrypted_bytes))
                                 # print(type(encrypted_bytes))
@@ -290,7 +288,9 @@ class Xmp(Fuse):
                                 print("Decrypted bytes are:")
                                 print(self.decrypted_bytes[:100])
                                 end = time.perf_counter()
-                                print(f"{end-start} seconds for decryption")
+                                decryption_time = end - start
+                                print(f"{decryption_time} seconds for decryption")
+                                decryption_time_dict_global["total_time"] += decryption_time
 
             def read(self, length, offset):
                 # print("Interceptor: I am reading " + str(self.file_path))
@@ -546,7 +546,7 @@ class Xmp(Fuse):
         return Fuse.main(self, *a, **kw)
 
 
-def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict):
+def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict, decryption_time_dict):
     # engine.dispose()
 
     global args
@@ -559,6 +559,9 @@ def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict):
     accessible_data_dict_global = accessible_data_dict
     global data_accessed_dict_global
     data_accessed_dict_global = data_accessed_dict
+    global decryption_time_dict_global
+    decryption_time_dict_global = decryption_time_dict
+    decryption_time_dict_global["total_time"] = 0
 
     usage = """
 Userspace nullfs-alike: mirror the filesystem tree from some point on.
