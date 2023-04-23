@@ -154,11 +154,11 @@ if __name__ == '__main__':
             f = open(filename, "rb")
             plaintext_bytes = f.read()
             f.close()
-            print(f"{tbl}")
-            print(f"Plaintext size is {len(plaintext_bytes)}")
+            # print(f"{tbl}")
+            # print(f"Plaintext size is {len(plaintext_bytes)}")
             cur_user_sym_key = ds.key_manager.agents_symmetric_key[i + 1]
             ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
-            print(f"Ciphertext size is {len(ciphertext_bytes)}")
+            # print(f"Ciphertext size is {len(ciphertext_bytes)}")
             register_res = ds.call_api(f"user{i}", "register_data", None, None, f"user{i}",
                                        f"{tbl}.csv", "file", f"{tbl}.csv", False, )
             ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
