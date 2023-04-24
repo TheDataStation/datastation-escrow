@@ -154,11 +154,11 @@ if __name__ == '__main__':
             f = open(filename, "rb")
             plaintext_bytes = f.read()
             f.close()
-            print(f"{tbl}")
-            print(f"Plaintext size is {len(plaintext_bytes)}")
+            # print(f"{tbl}")
+            # print(f"Plaintext size is {len(plaintext_bytes)}")
             cur_user_sym_key = ds.key_manager.agents_symmetric_key[i + 1]
             ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
-            print(f"Ciphertext size is {len(ciphertext_bytes)}")
+            # print(f"Ciphertext size is {len(ciphertext_bytes)}")
             register_res = ds.call_api(f"user{i}", "register_data", None, None, f"user{i}",
                                        f"{tbl}.csv", "file", f"{tbl}.csv", False, )
             ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
@@ -199,14 +199,15 @@ if __name__ == '__main__':
     for i in range(1, len(functions)+1):
         for j in range(iterations):
             start_time = time.time()
-            query_res = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
-            print(time.time() - start_time)
+            query_res, dec_time = ds.call_api("user0", f"{workload}_{i}", 1, "pessimistic")
             query_res = cu.from_bytes(cu.decrypt_data_with_symmetric_key(query_res,
                                                                          ds.key_manager.get_agent_symmetric_key(1)))
             query_time = time.time() - start_time
+            print(f"Total query time is {query_time}")
+            print(f"Time spent for decryption is {dec_time}")
             with open(f"numbers/{workload}/{data_dir}_{num_users}.csv", "a") as file:
                 writer = csv.writer(file)
-                writer.writerow([i, query_time])
+                writer.writerow([i, query_time, dec_time])
             print(f"{workload}{i} done.")
             if j == 0:
                 print(f"Result of {workload }{i} is:", query_res[:10])

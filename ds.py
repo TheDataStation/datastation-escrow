@@ -536,7 +536,7 @@ class DataStation:
                                        **kwargs)
         # Only when the returned status is 0 can we release the result
         if res.status == 0:
-            api_result = res.result
+            api_result = res.result[0]
             # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
             if self.trust_mode == "no_trust":
                 # print("Encrypting returned response......")
@@ -546,7 +546,7 @@ class DataStation:
                 api_result = cu.encrypt_data_with_symmetric_key(
                     cu.to_bytes(api_result), caller_symmetric_key)
                 # print(time.time() - start)
-            return api_result
+            return api_result, res.result[1]
         # In this case we need to put result into staging storage, so that they can be released later
         elif res.status == -1:
             api_result = res.result[0]
