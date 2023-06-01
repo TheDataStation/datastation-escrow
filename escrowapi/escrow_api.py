@@ -70,7 +70,7 @@ class EscrowAPI:
         Parameters:
             username: the unique username identifying which user owns the dataset
             data_id: id of this existing DE
-            data_in_bytes: daat in bytes
+            data_in_bytes: data in bytes
 
         Returns:
         A response object with the following fields:

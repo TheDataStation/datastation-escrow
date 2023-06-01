@@ -1,6 +1,8 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
 import duckdb
+from diffprivlib.mechanisms import Laplace
+import numpy as np
 
 @api_endpoint
 def register_data(username,
@@ -31,15 +33,15 @@ def get_data(de):
 
 def assemble_table(conn, table_name):
     accessible_de = EscrowAPI.get_all_accessible_des()
-    first_partition_flag = True
+    new_table_flag = True
     for de in accessible_de:
         if de.name == f"{table_name}.csv":
             table_path = get_data(de)
-            if first_partition_flag:
+            if new_table_flag:
                 query = f"CREATE TABLE {table_name} AS SELECT * FROM read_csv({table_path}, " \
                         f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
-                first_partition_flag = False
+                new_table_flag = False
             else:
                 query = f"INSERT INTO {table_name} SELECT * FROM read_csv({table_path}, " \
                         f"ignore_errors=1, auto_detect=1)"
@@ -76,9 +78,31 @@ def select_star(table_name):
     res = conn.execute(query).fetchall()
     return res
 
+def assemble_table_in_duckdb(conn, accessible_de, joint_table_name):
+    new_table_flag = True
+    for de in accessible_de:
+        table_path = get_data(de)
+        if new_table_flag:
+            query = f"CREATE TABLE {joint_table_name} AS SELECT * FROM read_csv({table_path}"
+            new_table_flag = False
+        else:
+            query = f"INSERT INTO {joint_table_name} SELECT * FROM read_csv({table_path}"
+        conn.execute(query)
+
+@api_endpoint
+@function
+def run_actual_query(query, joint_table_name):
+    conn = duckdb.connect()
+    accessible_de = EscrowAPI.get_all_accessible_des()
+    assemble_table_in_duckdb(conn, accessible_de, joint_table_name)
+    query_result = conn.execute(query).fetchall()
+    return query_result
+
+
 @api_endpoint
 @function
 def conclave_1():
+    # can change this to count(*) to count(*), l_quantity
     """SELECT COUNT(*) AS by_quantity FROM lineitem GROUPBY l_quantity ORDER BY l_quantity"""
     # Note: creating conn here, because we need to the same in-memory database
     conn = duckdb.connect()
