@@ -109,6 +109,7 @@ def conclave_1():
     assemble_table(conn, "lineitem")
     query = f"SELECT COUNT(*) AS by_quantity FROM lineitem GROUP BY l_quantity ORDER BY l_quantity"
     res = conn.execute(query).fetchall()
+
     return res
 
 @api_endpoint
