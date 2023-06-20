@@ -11,7 +11,7 @@ def data_gen(num_partitions):
     Output goes to integration_new/test_files/sql_plain.
     """
     # Define input/output directories
-    input_dir = "/Users/kos/Desktop/TPCH-data/tpch-10MB/"
+    input_dir = "tpch_data/1MB/"
     output_dir = "integration_new/test_files/sql_plain/"
     # Create a dictionary to store the schemas
     tpch_schemas = {"customer": ["c_custkey", "c_name", "c_address", "c_nationkey", "c_phone", "c_acctbal",
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     # Step 2: Each user uploads their share of the dataset.
     data_gen(num_users)
 
-    # Create the encrypted TPCH files, and upload them.
+    # Create the TPCH files, and upload them.
 
     partitioned_tables = ["customer", "lineitem", "orders", "part", "partsupp", "supplier"]
     small_tables = ["nation", "region"]
