@@ -6,27 +6,55 @@ from common.pydantic_models.response import Response, UploadShareResponse
 
 def register_share_in_DB(cur_username,
                          share_id,
-                         write_ahead_log=None,
-                         key_manager=None,
+                         template,
+                         *args,
+                         **kwargs
                          ):
-
     # check if there is an existing user
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
         return Response(status=1, message="Something wrong with the current user")
     cur_user_id = cur_user.data[0].id
+    print(cur_user_id)
+    print(share_id)
+    print(template)
+    print(args)
+    print(kwargs)
+    exit()
 
-    # If in no_trust mode, we need to record this ADD_DATA to wal
-    if write_ahead_log is not None:
-        wal_entry = "database_api.create_share(Share(id=" + str(share_id) \
-                    + "))"
-        # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+    # TODO: dump args and kwargs into a json
 
-    new_share = Share(id=share_id)
-    database_service_response = database_api.create_share(new_share)
-    if database_service_response.status == -1:
-        return Response(status=1, message="internal database error")
+    # database_service_response = database_api.create_share(share_id, template, param)
+    # if database_service_response.status == -1:
+    #     return Response(status=1, message="internal database error")
+    #
+    # return UploadShareResponse(status=0, message="success", share_id=share_id)
 
-    return UploadShareResponse(status=0, message="success", share_id=share_id)
+
+# def register_share_in_DB_no_trust(cur_username,
+#                                   share_id,
+#                                   template,
+#                                   write_ahead_log,
+#                                   key_manager,
+#                                   args,
+#                                   kwargs,
+#                                   ):
+#     # check if there is an existing user
+#     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+#     # If the user doesn't exist, something is wrong
+#     if cur_user.status == -1:
+#         return Response(status=1, message="Something wrong with the current user")
+#     cur_user_id = cur_user.data[0].id
+#
+#     # If in no_trust mode, we need to record this CREATE_SHARE to wal
+#     if write_ahead_log is not None:
+#         wal_entry = f"database_api.create_share({str(share_id)}, {template}, {param})"
+#         # If write_ahead_log is not None, key_manager also will not be None
+#         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+#
+#     database_service_response = database_api.create_share(share_id, template, param)
+#     if database_service_response.status == -1:
+#         return Response(status=1, message="internal database error")
+#
+#     return UploadShareResponse(status=0, message="success", share_id=share_id)

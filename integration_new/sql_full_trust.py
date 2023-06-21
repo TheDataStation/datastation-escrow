@@ -117,12 +117,11 @@ if __name__ == '__main__':
 
     # Step 3: user0 suggests a share saying he can run all functions in share
     agents = [1]
-    functions = ["select_star", "tpch_1", "tpch_2", "tpch_3", "tpch_4", "tpch_5", "tpch_6", "tpch_7",
-                 "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15", "tpch_16",
-                 "tpch_17", "tpch_18", "tpch_19", "tpch_20", "tpch_21", "tpch_22"]
+    template = "select_star"
     total_des = num_users * len(partitioned_tables) + len(small_tables)
     data_elements = list(range(1, total_des + 1))
-    ds.call_api("user0", "suggest_share", None, None, "user0", agents, functions, data_elements)
+    ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, template,
+                "nation", message="hello select star")
 
     # Step 4: all users acknowledge the share
     cur_de_id = 1

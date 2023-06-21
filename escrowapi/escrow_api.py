@@ -112,22 +112,30 @@ class EscrowAPI:
         return cls.__comp.upload_policy(username, user_id, api, data_id, share_id)
 
     @classmethod
-    def suggest_share(cls, username, agents, functions, data_elements):
+    def suggest_share(cls,
+                      username,
+                      dest_agents,
+                      data_elements,
+                      template,
+                      *args,
+                      **kwargs,):
         """
         Used by non-template functions.
         Propose a share. This leads to the creation of a share, which is just a list of policies.
 
         Parameters:
             username: the unique username identifying which user is calling the api
-            agents: list of user ids
-            functions: list of functions
+            dest_agents: list of user ids
             data_elements: list of data elements
+            template: template function
+            args: input args to the template function
+            kwargs: input kwargs to the template funciton
 
         Returns:
         A response object with the following fields:
             status: status of suggesting share. 0: success, 1: failure.
         """
-        return cls.__comp.suggest_share(username, agents, functions, data_elements)
+        return cls.__comp.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
 
     @classmethod
     def ack_data_in_share(cls, username, share_id, data_id):

@@ -320,9 +320,9 @@ def bulk_create_provenance(child_id, provenances):
         else:
             return 1
 
-def create_share(request):
+def create_share(share_id, share_template, share_param):
     with get_db() as session:
-        share = share_repo.create_share(session, request)
+        share = share_repo.create_share(session, share_id, share_template, share_param)
         if share:
             return response.ShareResponse(status=1, msg="success", data=[share])
         else:

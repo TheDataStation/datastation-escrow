@@ -429,15 +429,22 @@ class DataStation:
 
         return policy_broker.get_all_policies()
 
-    def suggest_share(self, username, agents, functions, data_elements):
+    def suggest_share(self,
+                      username,
+                      dest_agents,
+                      data_elements,
+                      template,
+                      *args,
+                      **kwargs):
         """
         Propose a share. This leads to the creation of a share.
 
         Parameters:
             username: the unique username identifying which user is calling the api
-            agents: list of user ids
-            functions: list of functions
+            dest_agents: list of user ids
             data_elements: list of data elements
+            template: template function
+            param: input parameters to the template function
 
         Returns:
         A response object with the following fields:
@@ -450,31 +457,36 @@ class DataStation:
 
         if self.trust_mode == "full_trust":
             response = share_manager.register_share_in_DB(username,
-                                                          share_id, )
-        else:
-            response = share_manager.register_share_in_DB(username,
                                                           share_id,
-                                                          self.write_ahead_log,
-                                                          self.key_manager, )
+                                                          template,
+                                                          *args,
+                                                          **kwargs,)
+        # else:
+        #     response = share_manager.register_share_in_DB(username,
+        #                                                   share_id,
+        #                                                   template,
+        #                                                   args,
+        #                                                   kwargs,
+        #                                                   self.write_ahead_log,
+        #                                                   self.key_manager, )
 
-        # We now create the policies with status 0.
-        for a in agents:
-            for f in functions:
-                for d in data_elements:
-                    cur_policy = Policy(
-                        user_id=a, api=f, data_id=d, share_id=share_id, status=0)
-                    # print(cur_policy)
-                    if self.trust_mode == "full_trust":
-                        response = policy_broker.upload_policy(cur_policy,
-                                                               username, )
-                    else:
-                        response = policy_broker.upload_policy(cur_policy,
-                                                               username,
-                                                               self.write_ahead_log,
-                                                               self.key_manager, )
-                    if response.status == 1:
-                        return response
-        return Response(status=0, message="Suggest share success.")
+        # # We now create the policies with status 0.
+        # for a in dest_agents:
+        #     for d in data_elements:
+        #         cur_policy = Policy(
+        #             user_id=a, api=template, data_id=d, share_id=share_id, status=0)
+        #         # print(cur_policy)
+        #         if self.trust_mode == "full_trust":
+        #             response = policy_broker.upload_policy(cur_policy,
+        #                                                    username, )
+        #         else:
+        #             response = policy_broker.upload_policy(cur_policy,
+        #                                                    username,
+        #                                                    self.write_ahead_log,
+        #                                                    self.key_manager, )
+        #         if response.status == 1:
+        #             return response
+        # return Response(status=0, message="Suggest share success.")
 
     def ack_data_in_share(self, username, data_id, share_id):
         """
@@ -680,7 +692,10 @@ class DataStation:
         list_of_api_endpoint = get_registered_api_endpoint()
         for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
-                print("user is calling an api_endpoint in development", api)
+                print(f"Calling in development mode: {api}")
+                if api == "suggest_share":
+                    print(args)
+                    print(kwargs)
                 res = cur_api(*args, **kwargs)
                 return res
 

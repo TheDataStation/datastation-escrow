@@ -22,8 +22,8 @@ def list_discoverable_des(username,):
     return EscrowAPI.list_discoverable_des(username)
 
 @api_endpoint
-def suggest_share(username, agents, functions, data_elements):
-    return EscrowAPI.suggest_share(username, agents, functions, data_elements)
+def suggest_share(username, dest_agents, data_elements, template, *args, **kwargs):
+    return EscrowAPI.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
 
 @api_endpoint
 def ack_data_in_share(username, data_id, share_id):
@@ -71,8 +71,9 @@ def assemble_orders(conn):
 
 @api_endpoint
 @function
-def select_star(table_name):
-    """run select * from a table"""
+def select_star(table_name, message):
+    """run select * from a table, and print a message"""
+    print(message)
     # Note: creating conn here, because we need to the same in-memory database
     conn = duckdb.connect()
     assemble_table(conn, table_name)

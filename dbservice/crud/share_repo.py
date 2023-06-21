@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
 from ..schemas.share import Share
-from common.pydantic_models.share import ShareCreate
+# from common.pydantic_models.share import ShareCreate
 
 # The following function returns the share with the max ID
 def get_share_with_max_id(db: Session):
@@ -14,8 +14,8 @@ def get_share_with_max_id(db: Session):
     else:
         return None
 
-def create_share(db: Session, share: ShareCreate):
-    db_share = Share(id=share.id)
+def create_share(db: Session, share_id, share_template, share_param):
+    db_share = Share(id=share_id, template=share_template, param=share_param)
     try:
         db.add(db_share)
         db.commit()
