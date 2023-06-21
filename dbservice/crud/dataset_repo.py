@@ -16,6 +16,10 @@ def get_all_optimistic_datasets(db: Session):
     all_optimistic_data = db.query(Dataset).filter(Dataset.optimistic == True).all()
     return all_optimistic_data
 
+def list_discoverable_des(db: Session):
+    all_optimistic_data = db.query(Dataset.id).filter(Dataset.optimistic == True).all()
+    return all_optimistic_data
+
 def get_data_by_id(db: Session, dataset_id: int):
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
     if dataset:

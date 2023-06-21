@@ -105,6 +105,11 @@ def get_dataset_by_access_type(request):
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
+def list_discoverable_des():
+    with get_db() as session:
+        discoverable_des = dataset_repo.list_discoverable_des(session)
+        return discoverable_des
+
 def get_datasets_by_paths(request):
     with get_db() as session:
         datasets = dataset_repo.get_datasets_by_paths(session, request)

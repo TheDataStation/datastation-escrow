@@ -101,7 +101,7 @@ if __name__ == '__main__':
         plaintext_bytes = f.read()
         f.close()
         register_res = ds.call_api(f"user0", "register_de", None, None, f"user0",
-                                   f"{tbl}.csv", "file", f"{tbl}.csv", False, )
+                                   f"{tbl}.csv", "file", f"{tbl}.csv", True, )
         ds.call_api(f"user0", "upload_de", None, None, f"user0",
                     register_res.de_id, plaintext_bytes, )
     for i in range(num_users):
