@@ -42,7 +42,7 @@ def register_data(username,
 def upload_data(username,
                 data_id,
                 data_in_bytes):
-    return EscrowAPI.upload_data(username, data_id, data_in_bytes)
+    return EscrowAPI.upload_de(username, data_id, data_in_bytes)
 
 @api_endpoint
 def upload_policy(username, user_id, api, data_id):

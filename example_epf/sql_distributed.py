@@ -12,10 +12,10 @@ def register_de(username,
     return EscrowAPI.register_de(username, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
-def upload_data(username,
-                data_id,
-                data_in_bytes):
-    return EscrowAPI.upload_data(username, data_id, data_in_bytes)
+def upload_de(username,
+              data_id,
+              data_in_bytes):
+    return EscrowAPI.upload_de(username, data_id, data_in_bytes)
 
 @api_endpoint
 def suggest_share(username, agents, functions, data_elements):

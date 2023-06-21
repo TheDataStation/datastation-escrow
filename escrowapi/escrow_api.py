@@ -9,7 +9,7 @@ class EscrowAPI:
     @classmethod
     def get_all_accessible_des(cls):
         """
-        to be run WITHIN a function.
+        Used by a template function.
         Returns all accessible data elements.
 
         Returns:
@@ -20,7 +20,7 @@ class EscrowAPI:
     @classmethod
     def get_de_by_id(cls, de_id):
         """
-        to be run WITHIN a function.
+        Used by a template function.
         Returns a data element, specified by de_id
 
         Parameters:
@@ -40,7 +40,7 @@ class EscrowAPI:
                     optimistic,
                     ):
         """
-        to be run OUTSIDE a function.
+        Used by a non-template function.
         Registers a data element in Data Station's database.
 
         Parameters:
@@ -58,12 +58,12 @@ class EscrowAPI:
         return cls.__comp.register_de(username, data_name, data_type, access_param, optimistic)
 
     @classmethod
-    def upload_data(cls,
-                    username,
-                    data_id,
-                    data_in_bytes):
+    def upload_de(cls,
+                  username,
+                  data_id,
+                  data_in_bytes):
         """
-        to be run OUTSIDE a function.
+        Used by a non-template function.
         Upload data in bytes corresponding to a registered DE. These bytes will be written to a file
         in DataStation's storage manager.
 
@@ -81,7 +81,7 @@ class EscrowAPI:
     @classmethod
     def upload_policy(cls, username, user_id, api, data_id, share_id):
         """
-        to be run OUTSIDE a function.
+        Used by a non-template function.
         Uploads a policy written by the given user to DS
 
         Parameters:
@@ -100,7 +100,7 @@ class EscrowAPI:
     @classmethod
     def suggest_share(cls, username, agents, functions, data_elements):
         """
-        to be run OUTSIDE a function.
+        Used by a non-template function.
         Propose a share. This leads to the creation of a share, which is just a list of policies.
 
         Parameters:
@@ -118,7 +118,7 @@ class EscrowAPI:
     @classmethod
     def ack_data_in_share(cls, username, share_id, data_id):
         """
-        to be run OUTSIDE a function.
+        Used by a non-template function.
         Updates a policy's status to ready
 
         Parameters:

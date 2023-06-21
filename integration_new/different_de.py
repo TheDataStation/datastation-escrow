@@ -52,7 +52,7 @@ if __name__ == '__main__':
                                optimistic_flag_1, )
 
     upload_res = ds.call_api("jerry",
-                             "upload_data",
+                             "upload_de",
                              None,
                              None,
                              "jerry",

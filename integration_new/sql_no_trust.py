@@ -146,7 +146,7 @@ if __name__ == '__main__':
         ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
         register_res = ds.call_api(f"user0", "register_de", None, None, f"user0",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
-        ds.call_api(f"user0", "upload_data", None, None, f"user0",
+        ds.call_api(f"user0", "upload_de", None, None, f"user0",
                     register_res.de_id, ciphertext_bytes, )
     for i in range(num_users):
         for tbl in partitioned_tables:
@@ -161,7 +161,7 @@ if __name__ == '__main__':
             # print(f"Ciphertext size is {len(ciphertext_bytes)}")
             register_res = ds.call_api(f"user{i}", "register_de", None, None, f"user{i}",
                                        f"{tbl}.csv", "file", f"{tbl}.csv", False, )
-            ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
+            ds.call_api(f"user{i}", "upload_de", None, None, f"user{i}",
                         register_res.de_id, ciphertext_bytes, )
 
     # Step 3: user0 suggests a share saying he can run all functions in share
