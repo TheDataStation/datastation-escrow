@@ -18,6 +18,10 @@ def upload_de(username,
     return EscrowAPI.upload_de(username, data_id, data_in_bytes)
 
 @api_endpoint
+def list_discoverable_des(username,):
+    return EscrowAPI.list_discoverable_des(username)
+
+@api_endpoint
 def suggest_share(username, agents, functions, data_elements):
     return EscrowAPI.suggest_share(username, agents, functions, data_elements)
 

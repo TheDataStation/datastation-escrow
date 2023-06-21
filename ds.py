@@ -271,10 +271,10 @@ class DataStation:
                                                                  self.key_manager)
         return de_manager_response
 
-    def upload_file(self,
-                    username,
-                    data_id,
-                    data_in_bytes):
+    def upload_de(self,
+                  username,
+                  data_id,
+                  data_in_bytes):
         """
         Upload a file corresponding to a registered DE.
 
@@ -334,6 +334,19 @@ class DataStation:
             return storage_manager_response
 
         return Response(status=de_manager_response.status, message=de_manager_response.message)
+
+    def list_discoverable_des(self, username):
+        """
+        List IDs of all des in discoverable mode.
+
+        Parameters:
+            username: caller username
+
+        Returns:
+        A list containing IDs of all discoverable des.
+        """
+        de_manager_response = de_manager.list_discoverable_des(username)
+        return de_manager_response
 
     def upload_policy(self, username, user_id, api, data_id, share_id):
         """

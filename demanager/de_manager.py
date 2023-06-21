@@ -137,3 +137,10 @@ def register_provenance_in_DB(data_id,
         return Response(status=1, message="internal database error")
 
     return Response(status=0, message="success")
+
+def list_discoverable_des(username):
+    # Check if there is an existing user
+    cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
+    if cur_user.status == -1:
+        return Response(status=1, message="Something wrong with the current user")
+    return 0

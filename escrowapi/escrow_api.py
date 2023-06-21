@@ -76,11 +76,21 @@ class EscrowAPI:
         A response object with the following fields:
             status: status of uploading data. 0: success, 1: failure.
         """
-        return cls.__comp.upload_file(username, data_id, data_in_bytes)
+        return cls.__comp.upload_de(username, data_id, data_in_bytes)
 
     @classmethod
     def list_discoverable_des(cls, username):
-        return
+        """
+        Used by non-template functions.
+        List IDs of all des in discoverable mode.
+
+        Parameters:
+            username: caller username
+
+        Returns:
+        A list containing IDs of all discoverable des.
+        """
+        return cls.__comp.list_discoverable_des(username)
 
     @classmethod
     def upload_policy(cls, username, user_id, api, data_id, share_id):
