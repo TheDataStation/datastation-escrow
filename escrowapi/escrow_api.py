@@ -9,7 +9,7 @@ class EscrowAPI:
     @classmethod
     def get_all_accessible_des(cls):
         """
-        Used by a template function.
+        Used by template functions.
         Returns all accessible data elements.
 
         Returns:
@@ -20,7 +20,7 @@ class EscrowAPI:
     @classmethod
     def get_de_by_id(cls, de_id):
         """
-        Used by a template function.
+        Used by template functions.
         Returns a data element, specified by de_id
 
         Parameters:
@@ -40,7 +40,7 @@ class EscrowAPI:
                     optimistic,
                     ):
         """
-        Used by a non-template function.
+        Used by non-template functions.
         Registers a data element in Data Station's database.
 
         Parameters:
@@ -63,9 +63,9 @@ class EscrowAPI:
                   data_id,
                   data_in_bytes):
         """
-        Used by a non-template function.
-        Upload data in bytes corresponding to a registered DE. These bytes will be written to a file
-        in DataStation's storage manager.
+        Used by non-template functions.
+        Upload data in bytes corresponding to a registered DE. These bytes will be written to a file in DataStation's
+        storage manager.
 
         Parameters:
             username: the unique username identifying which user owns the dataset
@@ -79,9 +79,13 @@ class EscrowAPI:
         return cls.__comp.upload_file(username, data_id, data_in_bytes)
 
     @classmethod
+    def list_discoverable_des(cls, username):
+        return
+
+    @classmethod
     def upload_policy(cls, username, user_id, api, data_id, share_id):
         """
-        Used by a non-template function.
+        Used by non-template functions.
         Uploads a policy written by the given user to DS
 
         Parameters:
@@ -100,7 +104,7 @@ class EscrowAPI:
     @classmethod
     def suggest_share(cls, username, agents, functions, data_elements):
         """
-        Used by a non-template function.
+        Used by non-template functions.
         Propose a share. This leads to the creation of a share, which is just a list of policies.
 
         Parameters:
@@ -118,7 +122,7 @@ class EscrowAPI:
     @classmethod
     def ack_data_in_share(cls, username, share_id, data_id):
         """
-        Used by a non-template function.
+        Used by non-template functions.
         Updates a policy's status to ready
 
         Parameters:

@@ -15,7 +15,7 @@ from common.general_utils import parse_config
 from storagemanager.storage_manager import StorageManager
 from stagingstorage.staging_storage import StagingStorage
 from policybroker import policy_broker
-from dataregister import data_register
+from demanager import de_manager
 from sharemanager import share_manager
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
@@ -254,22 +254,22 @@ class DataStation:
         self.cur_data_id += 1
 
         if self.trust_mode == "full_trust":
-            data_register_response = data_register.register_data_in_DB(data_id,
-                                                                       data_name,
-                                                                       username,
-                                                                       data_type,
-                                                                       access_param,
-                                                                       optimistic)
+            de_manager_response = de_manager.register_data_in_DB(data_id,
+                                                                 data_name,
+                                                                 username,
+                                                                 data_type,
+                                                                 access_param,
+                                                                 optimistic)
         else:
-            data_register_response = data_register.register_data_in_DB(data_id,
-                                                                       data_name,
-                                                                       username,
-                                                                       data_type,
-                                                                       access_param,
-                                                                       optimistic,
-                                                                       self.write_ahead_log,
-                                                                       self.key_manager)
-        return data_register_response
+            de_manager_response = de_manager.register_data_in_DB(data_id,
+                                                                 data_name,
+                                                                 username,
+                                                                 data_type,
+                                                                 access_param,
+                                                                 optimistic,
+                                                                 self.write_ahead_log,
+                                                                 self.key_manager)
+        return de_manager_response
 
     def upload_file(self,
                     username,
@@ -296,7 +296,7 @@ class DataStation:
         storage_manager_response = self.storage_manager.store(data_res.data[0].name,
                                                               data_id,
                                                               data_in_bytes,
-                                                              data_res.data[0].type,)
+                                                              data_res.data[0].type, )
         return storage_manager_response
 
     def remove_dataset(self, username, data_name):
@@ -311,29 +311,29 @@ class DataStation:
          Response of data register
         """
 
-        # First we call data_register to remove the existing dataset from the database
+        # First we call de_manager to remove the existing dataset from the database
         if self.trust_mode == "full_trust":
-            data_register_response = data_register.remove_data(data_name,
-                                                               username, )
+            de_manager_response = de_manager.remove_data(data_name,
+                                                         username, )
         else:
-            data_register_response = data_register.remove_data(data_name,
-                                                               username,
-                                                               self.write_ahead_log,
-                                                               self.key_manager, )
-        if data_register_response.status != 0:
-            return Response(status=data_register_response.status, message=data_register_response.message)
+            de_manager_response = de_manager.remove_data(data_name,
+                                                         username,
+                                                         self.write_ahead_log,
+                                                         self.key_manager, )
+        if de_manager_response.status != 0:
+            return Response(status=de_manager_response.status, message=de_manager_response.message)
 
         # At this step we have removed the record about the dataset from DB
         # Now we remove its actual content from SM
         storage_manager_response = self.storage_manager.remove(data_name,
-                                                               data_register_response.data_id,
-                                                               data_register_response.type, )
+                                                               de_manager_response.data_id,
+                                                               de_manager_response.type, )
 
         # If SM removal failed
         if storage_manager_response.status == 1:
             return storage_manager_response
 
-        return Response(status=data_register_response.status, message=data_register_response.message)
+        return Response(status=de_manager_response.status, message=de_manager_response.message)
 
     def upload_policy(self, username, user_id, api, data_id, share_id):
         """
@@ -578,35 +578,35 @@ class DataStation:
             if staging_storage_response.status == 1:
                 return staging_storage_response
 
-            # Storing into staging storage is successful. We now call data_register to register this staging DE in DB.
+            # Storing into staging storage is successful. We now call de_manager to register this staging DE in DB.
             # We need to store to both the staged table and the provenance table.
 
             # Full_trust mode
             if self.trust_mode == "full_trust":
                 # Staged table
-                data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
-                                                                                    cur_user_id,
-                                                                                    api, )
+                de_manager_response_staged = de_manager.register_staged_in_DB(staging_data_id,
+                                                                              cur_user_id,
+                                                                              api, )
                 # Provenance table
-                data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
-                                                                                            data_ids_accessed, )
+                de_manager_response_provenance = de_manager.register_provenance_in_DB(staging_data_id,
+                                                                                      data_ids_accessed, )
             else:
                 # Staged table
-                data_register_response_staged = data_register.register_staged_in_DB(staging_data_id,
-                                                                                    cur_user_id,
-                                                                                    api,
-                                                                                    self.write_ahead_log,
-                                                                                    self.key_manager,
-                                                                                    )
+                de_manager_response_staged = de_manager.register_staged_in_DB(staging_data_id,
+                                                                              cur_user_id,
+                                                                              api,
+                                                                              self.write_ahead_log,
+                                                                              self.key_manager,
+                                                                              )
                 # Provenance table
-                data_register_response_provenance = data_register.register_provenance_in_DB(staging_data_id,
-                                                                                            data_ids_accessed,
-                                                                                            cur_user_id,
-                                                                                            self.write_ahead_log,
-                                                                                            self.key_manager,
-                                                                                            )
-            if data_register_response_staged.status != 0 or data_register_response_provenance.status != 0:
-                return Response(status=data_register_response_staged.status,
+                de_manager_response_provenance = de_manager.register_provenance_in_DB(staging_data_id,
+                                                                                      data_ids_accessed,
+                                                                                      cur_user_id,
+                                                                                      self.write_ahead_log,
+                                                                                      self.key_manager,
+                                                                                      )
+            if de_manager_response_staged.status != 0 or de_manager_response_provenance.status != 0:
+                return Response(status=de_manager_response_staged.status,
                                 message="internal database error")
             res_msg = "Staged data ID " + str(staging_data_id)
             return res_msg
