@@ -1,17 +1,15 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
 import duckdb
-from diffprivlib.mechanisms import Laplace
-import numpy as np
 
 @api_endpoint
-def register_data(username,
-                  data_name,
-                  data_type,
-                  access_param,
-                  optimistic):
+def register_de(username,
+                data_name,
+                data_type,
+                access_param,
+                optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_data(username, data_name, data_type, access_param, optimistic)
+    return EscrowAPI.register_de(username, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
 def upload_data(username,

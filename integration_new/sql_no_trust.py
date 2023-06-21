@@ -144,7 +144,7 @@ if __name__ == '__main__':
         f.close()
         cur_user_sym_key = ds.key_manager.agents_symmetric_key[1]
         ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
-        register_res = ds.call_api(f"user0", "register_data", None, None, f"user0",
+        register_res = ds.call_api(f"user0", "register_de", None, None, f"user0",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
         ds.call_api(f"user0", "upload_data", None, None, f"user0",
                     register_res.de_id, ciphertext_bytes, )
@@ -159,7 +159,7 @@ if __name__ == '__main__':
             cur_user_sym_key = ds.key_manager.agents_symmetric_key[i + 1]
             ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
             # print(f"Ciphertext size is {len(ciphertext_bytes)}")
-            register_res = ds.call_api(f"user{i}", "register_data", None, None, f"user{i}",
+            register_res = ds.call_api(f"user{i}", "register_de", None, None, f"user{i}",
                                        f"{tbl}.csv", "file", f"{tbl}.csv", False, )
             ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
                         register_res.de_id, ciphertext_bytes, )

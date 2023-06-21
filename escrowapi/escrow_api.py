@@ -32,13 +32,13 @@ class EscrowAPI:
         return cls.__comp.get_de_by_id(de_id)
 
     @classmethod
-    def register_data(cls,
-                      username,
-                      data_name,
-                      data_type,
-                      access_param,
-                      optimistic,
-                      ):
+    def register_de(cls,
+                    username,
+                    data_name,
+                    data_type,
+                    access_param,
+                    optimistic,
+                    ):
         """
         to be run OUTSIDE a function.
         Registers a data element in Data Station's database.
@@ -55,7 +55,7 @@ class EscrowAPI:
             status: status of registering DE. 0: success, 1: failure.
             data_id: if success, a data_id is returned for this registered DE.
         """
-        return cls.__comp.register_data(username, data_name, data_type, access_param, optimistic)
+        return cls.__comp.register_de(username, data_name, data_type, access_param, optimistic)
 
     @classmethod
     def upload_data(cls,

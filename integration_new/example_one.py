@@ -44,7 +44,7 @@ if __name__ == '__main__':
             cur_optimistic_flag = True
         name_to_upload = "file-" + str(cur_num + 1)
         register_res = ds.call_api("jerry",
-                                   "register_data",
+                                   "register_de",
                                    None,
                                    None,
                                    "jerry",

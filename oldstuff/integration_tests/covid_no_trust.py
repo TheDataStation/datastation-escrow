@@ -115,11 +115,11 @@ if __name__ == '__main__':
             # pkl bytes encrypted
             ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
             # Upload the current encrypted file to the DS
-            cur_upload_res = client_api.register_data(cur_username,
-                                                      ciphertext_bytes,
+            cur_upload_res = client_api.register_de(cur_username,
+                                                    ciphertext_bytes,
                                                        "file",
-                                                      False,
-                                                      cur_token, )
+                                                    False,
+                                                    cur_token, )
             # Add a policy saying user with id==1 can call train_covid_model on the uploaded dataset
             client_api.upload_policy(Policy(user_id=1, api="train_covid_model", data_id=cur_upload_res.data_id),
                                      cur_token)
@@ -146,11 +146,11 @@ if __name__ == '__main__':
     cur_user_sym_key = client_api.key_manager.agents_symmetric_key[cur_user_index]
     cur_pkl_obj = pickle.dumps(cur_user_dict)
     ciphertext_bytes = cu.encrypt_data_with_symmetric_key(cur_pkl_obj, cur_user_sym_key)
-    cur_upload_res = client_api.register_data(cur_username,
-                                              ciphertext_bytes,
+    cur_upload_res = client_api.register_de(cur_username,
+                                            ciphertext_bytes,
                                                "file",
-                                              False,
-                                              cur_token, )
+                                            False,
+                                            cur_token, )
     client_api.upload_policy(Policy(user_id=1, api="train_covid_model", data_id=cur_upload_res.data_id),
                              cur_token)
 

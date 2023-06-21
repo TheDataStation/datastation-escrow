@@ -118,11 +118,11 @@ if __name__ == '__main__':
         cur_file_bytes = cur_file_t.read()
         cur_optimistic_flag = False
         name_to_upload = "train" + str(cur_num) + ".pkl"
-        cur_res = client_api.register_data(name_to_upload,
-                                           cur_file_bytes,
+        cur_res = client_api.register_de(name_to_upload,
+                                         cur_file_bytes,
                                             "file",
-                                           cur_optimistic_flag,
-                                           cur_token, )
+                                         cur_optimistic_flag,
+                                         cur_token, )
         cur_file_t.close()
 
         # Add a policy saying user with id==1 can call train_cifar_model on the datasets

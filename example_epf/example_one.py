@@ -36,7 +36,7 @@ def register_data(username,
                   access_param,
                   optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_data(username, data_name, data_type, access_param, optimistic)
+    return EscrowAPI.register_de(username, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
 def upload_data(username,

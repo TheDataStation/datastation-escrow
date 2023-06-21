@@ -42,7 +42,7 @@ if __name__ == '__main__':
     de_name_1 = "file-1"
     de_access_param_1 = "file-1"
     register_res = ds.call_api("jerry",
-                               "register_data",
+                               "register_de",
                                None,
                                None,
                                "jerry",
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     de_access_param_2 = json.dumps(de_access_param_obj)
     optimistic_flag_2 = False
     register_res = ds.call_api("jerry",
-                               "register_data",
+                               "register_de",
                                None,
                                None,
                                "jerry",
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     de_access_param_3 = json.dumps(de_access_param_obj_3)
     optimistic_flag_3 = False
     register_res = ds.call_api("jerry",
-                               "register_data",
+                               "register_de",
                                None,
                                None,
                                "jerry",

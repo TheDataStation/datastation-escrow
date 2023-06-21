@@ -145,11 +145,11 @@ if __name__ == '__main__':
             if random.random() < opt_data_proportion:
                 cur_optimistic_flag = True
             name_to_upload = "file-" + str(cur_num + 1)
-            cur_res = client_api.register_data(name_to_upload,
-                                               cur_file_bytes,
+            cur_res = client_api.register_de(name_to_upload,
+                                             cur_file_bytes,
                                                 "file",
-                                               cur_optimistic_flag,
-                                               cur_token, )
+                                             cur_optimistic_flag,
+                                             cur_token, )
             if cur_res.status == 0:
                 list_of_data_ids.append(cur_res.data_id)
             cur_file.close()

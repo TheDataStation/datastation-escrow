@@ -40,7 +40,7 @@ if __name__ == '__main__':
         filename = f"data/{tbl}.csv"
         f = open(filename, "rb")
         file_bytes = f.read()
-        register_res = ds.call_api("jerry", "register_data", None, None, "jerry",
+        register_res = ds.call_api("jerry", "register_de", None, None, "jerry",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
         ds.call_api("jerry", "upload_data", None, None, "jerry",
                     register_res.de_id, file_bytes, )
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         filename = f"data/{tbl}.csv"
         f = open(filename, "rb")
         file_bytes = f.read()
-        register_res = ds.call_api("david", "register_data", None, None, "david",
+        register_res = ds.call_api("david", "register_de", None, None, "david",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
         ds.call_api("david", "upload_data", None, None, "david",
                     register_res.de_id, file_bytes, )
