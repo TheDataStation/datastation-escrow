@@ -9,7 +9,7 @@ from .crud import (user_repo,
                    policy_repo,
                    staged_repo,
                    provenance_repo,
-                   share_repo,)
+                   share_repo, )
 from .responses import response
 from contextlib import contextmanager
 from dbservice.checkpoint.check_point import check_point
@@ -335,6 +335,22 @@ def get_share_with_max_id():
             return response.ShareResponse(status=1, msg="success", data=[share])
         else:
             return response.ShareResponse(status=-1, msg="internal database error", data=[])
+
+def create_share_dest(share_id, dest_agent_id):
+    with get_db() as session:
+        share_dest = share_repo.create_share_dest(session, share_id, dest_agent_id)
+        if share_dest:
+            return response.Response(status=1, msg="success")
+        else:
+            return response.Response(status=-1, msg="Create Share Dest Agent failed")
+
+def create_share_de(share_id, de_id):
+    with get_db() as session:
+        share_de = share_repo.create_share_de(session, share_id, de_id)
+        if share_de:
+            return response.Response(status=1, msg="success")
+        else:
+            return response.Response(status=-1, msg="Create Share Data Element failed")
 
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)

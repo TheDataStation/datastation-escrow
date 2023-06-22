@@ -245,7 +245,7 @@ class DataStation:
         Parameters:
             username: the unique username identifying which user owns the dataset
             data_name: name of the data
-            data_type: TODO: what types of data are able to be uploaded?
+            data_type: what types of data can be uploaded?
             optimistic: flag to be included in optimistic data discovery
             access_param: additional parameters needed for acccessing the DE
         """
@@ -444,7 +444,8 @@ class DataStation:
             dest_agents: list of user ids
             data_elements: list of data elements
             template: template function
-            param: input parameters to the template function
+            args: args to the template function
+            kwargs: kwargs to the template function
 
         Returns:
         A response object with the following fields:
@@ -458,17 +459,21 @@ class DataStation:
         if self.trust_mode == "full_trust":
             response = share_manager.register_share_in_DB(username,
                                                           share_id,
+                                                          dest_agents,
+                                                          data_elements,
                                                           template,
                                                           *args,
-                                                          **kwargs,)
-        # else:
-        #     response = share_manager.register_share_in_DB(username,
-        #                                                   share_id,
-        #                                                   template,
-        #                                                   args,
-        #                                                   kwargs,
-        #                                                   self.write_ahead_log,
-        #                                                   self.key_manager, )
+                                                          **kwargs, )
+        else:
+            response = share_manager.register_share_in_DB_no_trust(username,
+                                                                   share_id,
+                                                                   dest_agents,
+                                                                   data_elements,
+                                                                   template,
+                                                                   self.write_ahead_log,
+                                                                   self.key_manager,
+                                                                   args,
+                                                                   kwargs, )
 
         # # We now create the policies with status 0.
         # for a in dest_agents:

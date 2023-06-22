@@ -3,8 +3,8 @@ from sqlalchemy import Column, Integer
 from ..database import Base
 
 
-class ShareDest(Base):
-    __tablename__ = "sharedest"
+class ShareDE(Base):
+    __tablename__ = "sharede"
 
     s_id = Column(Integer, primary_key=True, index=True)
-    u_id = Column(Integer, primary_key=True)
+    de_id = Column(Integer, primary_key=True)
