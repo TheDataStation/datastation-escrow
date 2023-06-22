@@ -123,6 +123,10 @@ if __name__ == '__main__':
     ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, template,
                 "nation", message="hello select star")
 
+    exit()
+
+    # from here: create the share_agent table, and the policy table, then do show_share(), then continue from here
+
     # Step 4: all users acknowledge the share
     cur_de_id = 1
     for i in range(num_users):
