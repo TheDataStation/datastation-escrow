@@ -3,7 +3,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
 from ..schemas.share import Share
-# from common.pydantic_models.share import ShareCreate
 
 # The following function returns the share with the max ID
 def get_share_with_max_id(db: Session):
