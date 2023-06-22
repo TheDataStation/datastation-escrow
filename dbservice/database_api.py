@@ -134,9 +134,9 @@ def remove_dataset_by_name(request):
         else:
             return response.DatasetResponse(status=-1, msg="fail", data=[])
 
-def get_dataset_owner(request):
+def get_de_owner(request):
     with get_db() as session:
-        owner = dataset_repo.get_dataset_owner(session, request.id)
+        owner = dataset_repo.get_de_owner(session, request)
         if owner:
             return response.UserResponse(status=1, msg="success", data=[owner])
         else:
@@ -351,6 +351,14 @@ def create_share_de(share_id, de_id):
             return response.Response(status=1, msg="success")
         else:
             return response.Response(status=-1, msg="Create Share Data Element failed")
+
+def create_share_policy(share_id, approval_agent_id, status):
+    with get_db() as session:
+        share_policy = share_repo.create_share_policy(session, share_id, approval_agent_id, status)
+        if share_policy:
+            return response.Response(status=1, msg="success")
+        else:
+            return response.Response(status=-1, msg="Create Share Policy failed")
 
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)

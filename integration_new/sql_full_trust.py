@@ -125,7 +125,7 @@ if __name__ == '__main__':
 
     exit()
 
-    # from here: create the share_agent table, and the policy table, then do show_share(), then continue from here
+    # from here: create the policy table, then do show_share(), then continue from here
 
     # Step 4: all users acknowledge the share
     cur_de_id = 1

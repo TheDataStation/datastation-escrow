@@ -1,7 +1,6 @@
 import json
 
 from dbservice import database_api
-from common.pydantic_models.share import Share
 from common.pydantic_models.user import User
 from common.pydantic_models.response import Response, UploadShareResponse
 
@@ -24,12 +23,23 @@ def register_share_in_DB(cur_username,
     param_json = {"args": args, "kwargs": kwargs}
     param_str = json.dumps(param_json)
 
-    database_service_response = database_api.create_share(share_id, template, param_str)
-    if database_service_response.status == -1:
+    db_res = database_api.create_share(share_id, template, param_str)
+    if db_res.status == -1:
         return Response(status=1, message="internal database error")
 
     # Then add to ShareDest table and ShareDE table
-    # TODO: from here
+    for a_id in dest_agents:
+        db_res = database_api.create_share_dest(share_id, a_id)
+        if db_res.status == -1:
+            return Response(status=1, message="internal database error")
+
+    for de_id in data_elements:
+        db_res = database_api.create_share_de(share_id, de_id)
+        if db_res.status == -1:
+            return Response(status=1, message="internal database error")
+
+    # Then add to SharePolicy table. First get the approval agents, default to DE owners.
+    # TODO: just need to make a call to get_de_owner
 
     return UploadShareResponse(status=0, message="success", share_id=share_id)
 
@@ -54,11 +64,27 @@ def register_share_in_DB_no_trust(cur_username,
     param_json = {"args": args, "kwargs": kwargs}
     param_str = json.dumps(param_json)
 
-    wal_entry = f"database_api.create_share({str(share_id)}, {template}, {param_str})"
+    # First add to the Share table
+    wal_entry = f"database_api.create_share({share_id}, {template}, {param_str})"
     write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
-    database_service_response = database_api.create_share(share_id, template, param_str)
-    if database_service_response.status == -1:
+    db_res = database_api.create_share(share_id, template, param_str)
+    if db_res.status == -1:
         return Response(status=1, message="internal database error")
+
+    # Then add to ShareDest table and ShareDE table
+    for a_id in dest_agents:
+        wal_entry = f"database_api.create_share_dest({share_id}, {a_id})"
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+        db_res = database_api.create_share_dest(share_id, a_id)
+        if db_res.status == -1:
+            return Response(status=1, message="internal database error")
+
+    for de_id in data_elements:
+        wal_entry = f"database_api.create_share_de({share_id}, {de_id})"
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+        db_res = database_api.create_share_de(share_id, de_id)
+        if db_res.status == -1:
+            return Response(status=1, message="internal database error")
 
     return UploadShareResponse(status=0, message="success", share_id=share_id)

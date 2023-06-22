@@ -82,7 +82,7 @@ def create_dataset(db: Session, dataset: DatasetCreate):
 
 
 # The following function returns the owner, given a dataset ID.
-def get_dataset_owner(db: Session, dataset_id: int):
+def get_de_owner(db: Session, dataset_id: int):
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
     if dataset:
         user = db.query(User).filter(User.id == dataset.owner_id).first()

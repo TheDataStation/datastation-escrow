@@ -5,6 +5,7 @@ from sqlalchemy import func
 from ..schemas.share import Share
 from ..schemas.share_dest import ShareDest
 from ..schemas.share_de import ShareDE
+from ..schemas.share_policy import SharePolicy
 
 # The following function returns the share with the max ID
 def get_share_with_max_id(db: Session):
@@ -27,8 +28,8 @@ def create_share(db: Session, share_id, share_template, share_param):
 
     return db_share
 
-def create_share_dest(db: Session, s_id, u_id):
-    db_share_dest = ShareDest(s_id=s_id, u_id=u_id)
+def create_share_dest(db: Session, s_id, a_id):
+    db_share_dest = ShareDest(s_id=s_id, a_id=a_id)
     try:
         db.add(db_share_dest)
         db.commit()
@@ -50,3 +51,15 @@ def create_share_de(db: Session, s_id, de_id):
         return None
 
     return db_share_de
+
+def create_share_policy(db: Session, s_id, a_id, status):
+    db_share_policy = SharePolicy(s_id=s_id, a_id=a_id, status=status)
+    try:
+        db.add(db_share_policy)
+        db.commit()
+        db.refresh(db_share_policy)
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+
+    return db_share_policy
