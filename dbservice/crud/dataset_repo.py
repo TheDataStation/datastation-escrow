@@ -85,9 +85,9 @@ def create_dataset(db: Session, dataset: DatasetCreate):
 def get_de_owner(db: Session, dataset_id: int):
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
     if dataset:
-        user = db.query(User).filter(User.id == dataset.owner_id).first()
-        if user:
-            return user
+        owner_id = db.query(User.id).filter(User.id == dataset.owner_id).first()[0]
+        if owner_id:
+            return owner_id
     return None
 
 # The following function returns the dataset with the max ID

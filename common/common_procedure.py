@@ -6,10 +6,9 @@ from common.pydantic_models.response import Response
 
 def verify_dataset_owner(dataset_id, cur_username):
     # get data element owner id
-    dataset_owner = database_api.get_de_owner(dataset_id)
-    if dataset_owner.status == -1:
+    dataset_owner_id = database_api.get_de_owner(dataset_id)
+    if dataset_owner_id is None:
         return Response(status=1, message="Error retrieving data owner.")
-    dataset_owner_id = dataset_owner.data[0].id
     # print("Dataset owner id is: " + str(dataset_owner_id))
 
     # get current user id

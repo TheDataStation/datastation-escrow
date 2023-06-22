@@ -136,11 +136,7 @@ def remove_dataset_by_name(request):
 
 def get_de_owner(request):
     with get_db() as session:
-        owner = dataset_repo.get_de_owner(session, request)
-        if owner:
-            return response.UserResponse(status=1, msg="success", data=[owner])
-        else:
-            return response.UserResponse(status=-1, msg="fail", data=[])
+        return dataset_repo.get_de_owner(session, request)
 
 def get_all_datasets():
     with get_db() as session:

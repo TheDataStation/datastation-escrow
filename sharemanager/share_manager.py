@@ -39,7 +39,14 @@ def register_share_in_DB(cur_username,
             return Response(status=1, message="internal database error")
 
     # Then add to SharePolicy table. First get the approval agents, default to DE owners.
-    # TODO: just need to make a call to get_de_owner
+    approval_agent_set = set()
+    for de_id in data_elements:
+        owner_id = database_api.get_de_owner(de_id)
+        approval_agent_set.add(owner_id)
+    for a_id in approval_agent_set:
+        db_res = database_api.create_share_policy(share_id, a_id, 0)
+        if db_res.status == -1:
+            return Response(status=1, message="internal database error")
 
     return UploadShareResponse(status=0, message="success", share_id=share_id)
 
@@ -84,6 +91,18 @@ def register_share_in_DB_no_trust(cur_username,
         wal_entry = f"database_api.create_share_de({share_id}, {de_id})"
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
         db_res = database_api.create_share_de(share_id, de_id)
+        if db_res.status == -1:
+            return Response(status=1, message="internal database error")
+
+    # Then add to SharePolicy table. First get the approval agents, default to DE owners.
+    approval_agent_set = set()
+    for de_id in data_elements:
+        owner_id = database_api.get_de_owner(de_id)
+        approval_agent_set.add(owner_id)
+    for a_id in approval_agent_set:
+        wal_entry = f"database_api.create_share_policy({share_id}, {a_id}, 0)"
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+        db_res = database_api.create_share_policy(share_id, a_id, 0)
         if db_res.status == -1:
             return Response(status=1, message="internal database error")
 
