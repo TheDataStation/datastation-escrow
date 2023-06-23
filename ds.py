@@ -698,9 +698,6 @@ class DataStation:
         for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
                 print(f"Calling in development mode: {api}")
-                if api == "suggest_share":
-                    print(args)
-                    print(kwargs)
                 res = cur_api(*args, **kwargs)
                 return res
 
