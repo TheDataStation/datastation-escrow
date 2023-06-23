@@ -110,7 +110,32 @@ def register_share_in_DB_no_trust(cur_username,
 
 def show_share(cur_username, share_id):
     # First check if the caller is one of the approval agents
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+    # If the user doesn't exist, something is wrong
+    if cur_user.status == -1:
+        return Response(status=1, message="Something wrong with the current user")
+    cur_user_id = cur_user.data[0].id
+
     approval_agents = database_api.get_approval_for_share(share_id)
     approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
-    print(approval_agents_list)
-    return 0
+    if cur_user_id not in approval_agents_list:
+        return None
+
+    # Get the destination agents, the data elements, the template and its args
+    des_in_share = database_api.get_de_for_share(share_id)
+    des_list = list(map(lambda ele: ele[0], des_in_share))
+    dest_agents = database_api.get_dest_for_share(share_id)
+    dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
+    share_db_res = database_api.get_share(share_id)
+
+    share_param = json.loads(share_db_res.param)
+    share_obj = {
+        "a_dest": des_list,
+        "des": dest_agents_list,
+        "template": share_db_res.template,
+        "args": share_param["args"],
+        "kwargs": share_param["kwargs"],
+    }
+    # print(share_obj)
+
+    return share_obj

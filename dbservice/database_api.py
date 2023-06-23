@@ -360,6 +360,18 @@ def get_approval_for_share(share_id):
     with get_db() as session:
         return share_repo.get_approval_for_share(session, share_id)
 
+def get_dest_for_share(share_id):
+    with get_db() as session:
+        return share_repo.get_dest_for_share(session, share_id)
+
+def get_de_for_share(share_id):
+    with get_db() as session:
+        return share_repo.get_de_for_share(session, share_id)
+
+def get_share(share_id):
+    with get_db() as session:
+        return share_repo.get_share(session, share_id)
+
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)
 

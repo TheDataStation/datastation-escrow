@@ -69,3 +69,15 @@ def get_share_with_max_id(db: Session):
 def get_approval_for_share(db: Session, share_id):
     approval_agents = db.query(SharePolicy.a_id).filter(SharePolicy.s_id == share_id).all()
     return approval_agents
+
+def get_de_for_share(db: Session, share_id):
+    de_in_share = db.query(ShareDE.de_id).filter(ShareDE.s_id == share_id).all()
+    return de_in_share
+
+def get_dest_for_share(db: Session, share_id):
+    dest_agents = db.query(ShareDest.a_id).filter(ShareDest.s_id == share_id).all()
+    return dest_agents
+
+def get_share(db: Session, share_id):
+    share = db.query(Share).filter(Share.id == share_id).first()
+    return share

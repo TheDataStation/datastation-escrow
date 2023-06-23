@@ -124,7 +124,8 @@ if __name__ == '__main__':
                 "nation", message="hello select star")
 
     # User1 calls show_share() to see what's the content of share 1
-    ds.call_api("user1", "show_share", None, None, "user0", 1)
+    share_obj = ds.call_api("user1", "show_share", None, None, "user0", 1)
+    print(share_obj)
 
     exit()
 
