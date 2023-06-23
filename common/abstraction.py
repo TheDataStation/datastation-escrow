@@ -10,8 +10,8 @@ class DataElement:
 
         Parameters:
             id: id of data element
-            nameP name of data element
-            type: type of data element. We support a fixed set
+            name: name of data element
+            type: type of data element
             access_param: parameters needed to retrive this DE
             enc_key: for no trust mode, the symmetric encryption key
         """

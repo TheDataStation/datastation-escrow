@@ -9,7 +9,7 @@ class EscrowAPI:
     @classmethod
     def get_all_accessible_des(cls):
         """
-        Used by template functions.
+        For use by template functions.
         Returns all accessible data elements.
 
         Returns:
@@ -20,7 +20,7 @@ class EscrowAPI:
     @classmethod
     def get_de_by_id(cls, de_id):
         """
-        Used by template functions.
+        For use by template functions.
         Returns a data element, specified by de_id
 
         Parameters:
@@ -40,11 +40,11 @@ class EscrowAPI:
                     optimistic,
                     ):
         """
-        Used by non-template functions.
+        API Endpoint.
         Registers a data element in Data Station's database.
 
         Parameters:
-            username: the unique username identifying which user owns the dataset
+            username: caller username (owner of the data element)
             data_name: name of the data
             data_type: type of DE. e.g: file.
             access_param: additional parameters needed for acccessing the DE
@@ -63,12 +63,12 @@ class EscrowAPI:
                   data_id,
                   data_in_bytes):
         """
-        Used by non-template functions.
+        API Endpoint.
         Upload data in bytes corresponding to a registered DE. These bytes will be written to a file in DataStation's
         storage manager.
 
         Parameters:
-            username: the unique username identifying which user owns the dataset
+            username: caller username (owner of the data element)
             data_id: id of this existing DE
             data_in_bytes: data in bytes
 
@@ -81,7 +81,7 @@ class EscrowAPI:
     @classmethod
     def list_discoverable_des(cls, username):
         """
-        Used by non-template functions.
+        API Endpoint.
         List IDs of all des in discoverable mode.
 
         Parameters:
@@ -95,11 +95,11 @@ class EscrowAPI:
     @classmethod
     def upload_policy(cls, username, user_id, api, data_id, share_id):
         """
-        Used by non-template functions.
+        API Endpoint.
         Uploads a policy written by the given user to DS
 
         Parameters:
-            username: the unique username identifying which user wrote the policy
+            username: caller username
             user_id: part of policy to upload, the user ID of the policy
             api: the api the policy refers to
             data_id: the data id the policy refers to
@@ -120,11 +120,11 @@ class EscrowAPI:
                       *args,
                       **kwargs,):
         """
-        Used by non-template functions.
+        API Endpoint.
         Propose a share. This leads to the creation of a share, which is just a list of policies.
 
         Parameters:
-            username: the unique username identifying which user is calling the api
+            username: caller username
             dest_agents: list of user ids
             data_elements: list of data elements
             template: template function
@@ -138,13 +138,33 @@ class EscrowAPI:
         return cls.__comp.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
 
     @classmethod
-    def ack_data_in_share(cls, username, share_id, data_id):
+    def show_share(cls, username, share_id):
         """
-        Used by non-template functions.
-        Updates a policy's status to ready
+        API Endpoint.
+        Display the content of a share.
 
         Parameters:
-            username: the unique username identifying which user is calling the api
+            username: caller username
+            share_id: id of the share that the caller wants to see
+
+        Returns:
+        An object with the following fields:
+            a_dest: a list of ids of the destination agents
+            de: a list of ids of the data elements
+            template: which template function
+            args: arguments to the template function
+            kwargs: kwargs to the template function
+        """
+        return cls.__comp.show_share(username, share_id)
+
+    @classmethod
+    def ack_data_in_share(cls, username, share_id, data_id):
+        """
+        API Endpoint.
+        Updates a share policy's status to ready
+
+        Parameters:
+            username: caller username
             share_id: id of the share
             data_id: id of the data element
 

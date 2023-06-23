@@ -475,23 +475,25 @@ class DataStation:
                                                                    args,
                                                                    kwargs, )
 
-        # # We now create the policies with status 0.
-        # for a in dest_agents:
-        #     for d in data_elements:
-        #         cur_policy = Policy(
-        #             user_id=a, api=template, data_id=d, share_id=share_id, status=0)
-        #         # print(cur_policy)
-        #         if self.trust_mode == "full_trust":
-        #             response = policy_broker.upload_policy(cur_policy,
-        #                                                    username, )
-        #         else:
-        #             response = policy_broker.upload_policy(cur_policy,
-        #                                                    username,
-        #                                                    self.write_ahead_log,
-        #                                                    self.key_manager, )
-        #         if response.status == 1:
-        #             return response
-        # return Response(status=0, message="Suggest share success.")
+        return response
+
+    def show_share(self, username, share_id):
+        """
+        Display the content of a share.
+
+        Parameters:
+            username: caller username
+            share_id: id of the share that the caller wants to see
+
+        Returns:
+        An object with the following fields:
+            a_dest: a list of ids of the destination agents
+            de: a list of ids of the data elements
+            template: which template function
+            args: arguments to the template function
+            kwargs: kwargs to the template function
+        """
+        return share_manager.show_share(username, share_id)
 
     def ack_data_in_share(self, username, data_id, share_id):
         """

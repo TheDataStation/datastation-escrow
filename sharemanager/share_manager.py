@@ -107,3 +107,6 @@ def register_share_in_DB_no_trust(cur_username,
             return Response(status=1, message="internal database error")
 
     return UploadShareResponse(status=0, message="success", share_id=share_id)
+
+def show_share(cur_username, share_id):
+    return 0
