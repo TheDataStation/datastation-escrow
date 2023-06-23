@@ -109,4 +109,8 @@ def register_share_in_DB_no_trust(cur_username,
     return UploadShareResponse(status=0, message="success", share_id=share_id)
 
 def show_share(cur_username, share_id):
+    # First check if the caller is one of the approval agents
+    approval_agents = database_api.get_approval_for_share(share_id)
+    approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
+    print(approval_agents_list)
     return 0

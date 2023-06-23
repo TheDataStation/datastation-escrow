@@ -26,6 +26,10 @@ def suggest_share(username, dest_agents, data_elements, template, *args, **kwarg
     return EscrowAPI.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
 
 @api_endpoint
+def show_share(username, share_id):
+    return EscrowAPI.show_share(username, share_id)
+
+@api_endpoint
 def ack_data_in_share(username, data_id, share_id):
     return EscrowAPI.ack_data_in_share(username, data_id, share_id)
 

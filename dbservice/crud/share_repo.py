@@ -7,15 +7,6 @@ from ..schemas.share_dest import ShareDest
 from ..schemas.share_de import ShareDE
 from ..schemas.share_policy import SharePolicy
 
-# The following function returns the share with the max ID
-def get_share_with_max_id(db: Session):
-    max_id = db.query(func.max(Share.id)).scalar_subquery()
-    share = db.query(Share).filter(Share.id == max_id).first()
-    if share:
-        return share
-    else:
-        return None
-
 def create_share(db: Session, share_id, share_template, share_param):
     db_share = Share(id=share_id, template=share_template, param=share_param)
     try:
@@ -63,3 +54,18 @@ def create_share_policy(db: Session, s_id, a_id, status):
         return None
 
     return db_share_policy
+
+def get_share_with_max_id(db: Session):
+    """
+    Get the share with the max ID.
+    """
+    max_id = db.query(func.max(Share.id)).scalar_subquery()
+    share = db.query(Share).filter(Share.id == max_id).first()
+    if share:
+        return share
+    else:
+        return None
+
+def get_approval_for_share(db: Session, share_id):
+    approval_agents = db.query(SharePolicy.a_id).filter(SharePolicy.s_id == share_id).all()
+    return approval_agents

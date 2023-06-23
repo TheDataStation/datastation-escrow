@@ -123,7 +123,8 @@ if __name__ == '__main__':
     ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, template,
                 "nation", message="hello select star")
 
-    # TODO: show_share(), then continue from here
+    # User1 calls show_share() to see what's the content of share 1
+    ds.call_api("user1", "show_share", None, None, "user0", 1)
 
     exit()
 
