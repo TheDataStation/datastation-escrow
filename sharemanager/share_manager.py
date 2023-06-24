@@ -139,7 +139,11 @@ def show_share(cur_username, share_id):
 
     return share_obj
 
-def approve_share(cur_username, share_id):
+def approve_share(cur_username,
+                  share_id,
+                  write_ahead_log=None,
+                  key_manager=None,
+                  ):
     # First check if the caller is one of the approval agents
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     # If the user doesn't exist, something is wrong
@@ -152,6 +156,10 @@ def approve_share(cur_username, share_id):
     if cur_user_id not in approval_agents_list:
         return None
 
-    print("Valid approval agent")
+    # If in no_trust mode, we need to record this in wal
+    if write_ahead_log is not None:
+        wal_entry = f"database_api.approve_share({cur_user_id}, {share_id})"
+        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
-    return 0
+    db_res = database_api.approve_share(cur_user_id, share_id)
+    return db_res

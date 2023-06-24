@@ -507,7 +507,14 @@ class DataStation:
         A response object with the following fields:
             status: status of approving share. 0: success, 1: failure.
         """
-        return share_manager.approve_share(username, share_id)
+        if self.trust_mode == "full_trust":
+            return share_manager.approve_share(username,
+                                               share_id, )
+        else:
+            return share_manager.approve_share(username,
+                                               share_id,
+                                               self.write_ahead_log,
+                                               self.key_manager, )
 
     def ack_data_in_share(self, username, data_id, share_id):
         """
