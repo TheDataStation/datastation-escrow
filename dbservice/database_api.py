@@ -372,6 +372,10 @@ def get_share(share_id):
     with get_db() as session:
         return share_repo.get_share(session, share_id)
 
+def approve_share(a_id, share_id):
+    with get_db() as session:
+        return share_repo.approve_share(session, a_id, share_id)
+
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)
 

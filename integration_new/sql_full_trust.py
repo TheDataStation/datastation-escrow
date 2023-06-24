@@ -115,6 +115,9 @@ if __name__ == '__main__':
             ds.call_api(f"user{i}", "upload_de", None, None, f"user{i}",
                         register_res.de_id, plaintext_bytes, )
 
+    res = ds.call_api("user0", "list_discoverable_des", None, None, "user0")
+    print(f"Result of listing discoverable data elements is {res}")
+
     # Step 3: user0 suggests a share saying he can run all functions in share
     agents = [1]
     template = "select_star"
@@ -127,21 +130,11 @@ if __name__ == '__main__':
     share_obj = ds.call_api("user1", "show_share", None, None, "user0", 1)
     print(share_obj)
 
-    exit()
-
     # Step 4: all users acknowledge the share
-    cur_de_id = 1
     for i in range(num_users):
-        if i == 0:
-            cur_user_de_count = len(partitioned_tables) + len(small_tables)
-        else:
-            cur_user_de_count = len(partitioned_tables)
-        for j in range(cur_user_de_count):
-            ds.call_api(f"user{i}", "ack_data_in_share", None, None, f"user{i}", cur_de_id, 1)
-            cur_de_id += 1
+        ds.call_api(f"user{i}", "approve_share", None, None, f"user{i}", 1)
 
-    res = ds.call_api("user0", "list_discoverable_des", None, None, "user0")
-    print(f"Result of listing discoverable data elements is {res}")
+    exit()
 
     # # Step 5: user0 calls functions
     # select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")

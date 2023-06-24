@@ -81,3 +81,12 @@ def get_dest_for_share(db: Session, share_id):
 def get_share(db: Session, share_id):
     share = db.query(Share).filter(Share.id == share_id).first()
     return share
+
+def approve_share(db: Session, a_id, share_id):
+    try:
+        db.query(SharePolicy).filter(SharePolicy.a_id == a_id, SharePolicy.s_id == share_id).update({'status': 1})
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+    return "update success"

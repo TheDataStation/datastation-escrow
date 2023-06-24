@@ -30,8 +30,8 @@ def show_share(username, share_id):
     return EscrowAPI.show_share(username, share_id)
 
 @api_endpoint
-def ack_data_in_share(username, data_id, share_id):
-    return EscrowAPI.ack_data_in_share(username, data_id, share_id)
+def approve_share(username, share_id):
+    return EscrowAPI.approve_share(username, share_id)
 
 def get_data(de):
     if de.type == "file":

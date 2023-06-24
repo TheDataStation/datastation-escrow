@@ -136,9 +136,22 @@ def show_share(cur_username, share_id):
         "args": share_param["args"],
         "kwargs": share_param["kwargs"],
     }
-    # print(share_obj)
 
     return share_obj
 
-def approve_share(username, share_id):
+def approve_share(cur_username, share_id):
+    # First check if the caller is one of the approval agents
+    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+    # If the user doesn't exist, something is wrong
+    if cur_user.status == -1:
+        return Response(status=1, message="Something wrong with the current user")
+    cur_user_id = cur_user.data[0].id
+
+    approval_agents = database_api.get_approval_for_share(share_id)
+    approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
+    if cur_user_id not in approval_agents_list:
+        return None
+
+    print("Valid approval agent")
+
     return 0
