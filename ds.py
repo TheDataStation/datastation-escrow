@@ -495,9 +495,23 @@ class DataStation:
         """
         return share_manager.show_share(username, share_id)
 
+    def approve_share(self, username, share_id):
+        """
+        Update a share's status to ready, for approval agent <username>.
+
+        Parameters:
+            username: caller username
+            share_id: id of the share
+
+        Returns:
+        A response object with the following fields:
+            status: status of approving share. 0: success, 1: failure.
+        """
+        return share_manager.approve_share(username, share_id)
+
     def ack_data_in_share(self, username, data_id, share_id):
         """
-        Updates a policy's status to ready (1)
+        (Outdated)
 
         Parameters:
             username: the unique username identifying which user is calling the api

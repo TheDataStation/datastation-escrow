@@ -158,10 +158,25 @@ class EscrowAPI:
         return cls.__comp.show_share(username, share_id)
 
     @classmethod
-    def ack_data_in_share(cls, username, share_id, data_id):
+    def approve_share(cls, username, share_id):
         """
         API Endpoint.
-        Updates a share policy's status to ready
+        Update a share's status to ready, for approval agent <username>.
+
+        Parameters:
+            username: caller username
+            share_id: id of the share
+
+        Returns:
+        A response object with the following fields:
+            status: status of approving share. 0: success, 1: failure.
+        """
+        return cls.__comp.approve_share(username, share_id)
+
+    @classmethod
+    def ack_data_in_share(cls, username, share_id, data_id):
+        """
+        API Endpoint. (Outdated)
 
         Parameters:
             username: caller username

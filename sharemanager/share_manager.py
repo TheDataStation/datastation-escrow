@@ -139,3 +139,6 @@ def show_share(cur_username, share_id):
     # print(share_obj)
 
     return share_obj
+
+def approve_share(username, share_id):
+    return 0
