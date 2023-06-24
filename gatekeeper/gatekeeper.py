@@ -118,8 +118,11 @@ class Gatekeeper:
         # print(data_aware_flag)
         # print(data_aware_DE)
 
-        # look at the accessible data by policy for current (user, api)
-        # print(cur_user_id, api)
+        # TODO: get the accessible data element for the current share being executed
+        print(cur_user_id, api, share_id)
+
+        exit()
+
         accessible_data_policy = self.get_accessible_data(cur_user_id, api, share_id)
 
         # Note: In data-aware-functions, if accessible_data_policy does not include data_aware_DE,

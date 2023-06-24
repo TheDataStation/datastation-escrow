@@ -133,11 +133,9 @@ if __name__ == '__main__':
     for i in range(num_users):
         ds.call_api(f"user{i}", "approve_share", None, None, f"user{i}", 1)
 
-    exit()
-
-    # # Step 5: user0 calls functions
-    # select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
-    # print("Result of select star from nation is:", select_star_res)
+    # Step 5: user0 calls functions
+    select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation", "hello")
+    print("Result of select star from nation is:", select_star_res)
     # for i in range(1, 5):
     #     tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
     #     print(f"Result of TPC_H {i} is:", tpch_res)
