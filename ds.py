@@ -729,38 +729,18 @@ class DataStation:
         # First check if the share has been approved by all approval agents
         share_ready_flag = share_manager.check_share_ready(share_id)
         if not share_ready_flag:
+            print("This share has not been approved to execute yet.")
             return None
-        print("Share ready to be executed")
-        exit()
 
         # If yes, set the accessible_de to be the entirety of P
+        all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
+        # print(f"all accessible data elements are: {all_accessible_de_id}")
 
-
-        # accessible_data_policy = policy_broker.get_user_api_info(user_id, api, share_id)
-        #
-        # # get all optimistic data from the DB
-        # optimistic_data = database_api.get_all_optimistic_datasets()
-        # accessible_data_optimistic = []
-        # for i in range(len(optimistic_data.data)):
-        #     cur_optimistic_id = optimistic_data.data[i].id
-        #     accessible_data_optimistic.append(cur_optimistic_id)
-        #
-        # # Combine these two types of accessible data elements together into all_accessible_data_id
-        # if exec_mode == "optimistic":
-        #     all_accessible_data_id = set(
-        #         accessible_data_policy + accessible_data_optimistic)
-        # # In pessimistic execution mode, we only include data that are allowed by policies
-        # else:
-        #     all_accessible_data_id = set(accessible_data_policy)
-        # print("all accessible data elements are: ", all_accessible_data_id)
-        #
-        # get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
-        # if get_datasets_by_ids_res.status == -1:
-        #     err_msg = "No accessible data for " + api
-        #     print(err_msg)
-        #     return Response(status=1, message=err_msg)
-
-        # TODO
+        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
+        if get_datasets_by_ids_res.status == -1:
+            err_msg = "No accessible data for " + api
+            print(err_msg)
+            return Response(status=1, message=err_msg)
 
         accessible_de = set()
         for cur_data in get_datasets_by_ids_res.data:

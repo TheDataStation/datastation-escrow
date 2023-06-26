@@ -4,6 +4,7 @@ from dsapplicationregistration.dsar_core import (get_api_endpoint_names,
                                                  get_functions_names,
                                                  get_registered_functions, )
 from dbservice import database_api
+from sharemanager import share_manager
 from policybroker import policy_broker
 from common.pydantic_models.api import API
 from common.pydantic_models.response import Response, APIExecResponse
@@ -118,42 +119,17 @@ class Gatekeeper:
         # print(data_aware_flag)
         # print(data_aware_DE)
 
-        # TODO: make sure to also update this code block in gatekeeper
+        # First check if the share has been approved by all approval agents
+        share_ready_flag = share_manager.check_share_ready(share_id)
+        if not share_ready_flag:
+            print("This share has not been approved to execute yet.")
+            return None
 
-        # TODO: get the accessible data element for the current share being executed
-        print(cur_user_id, api, share_id)
+        # If yes, set the accessible_de to be the entirety of P
+        all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
+        # print(f"all accessible data elements are: {all_accessible_de_id}")
 
-        exit()
-
-        accessible_data_policy = self.get_accessible_data(cur_user_id, api, share_id)
-
-        # Note: In data-aware-functions, if accessible_data_policy does not include data_aware_DE,
-        # we end the execution immediately
-        if not data_aware_DE.issubset(set(accessible_data_policy)):
-            err_msg = "Attempted to access data not allowed by policies. Execution stops."
-            print(err_msg)
-            return Response(status=1, message=err_msg)
-
-        # look at all optimistic data from the DB
-        optimistic_data = database_api.get_all_optimistic_datasets()
-        accessible_data_optimistic = []
-        for i in range(len(optimistic_data.data)):
-            cur_optimistic_id = optimistic_data.data[i].id
-            accessible_data_optimistic.append(cur_optimistic_id)
-
-        # Combine these two types of accessible data elements together into all_accessible_data_id
-        if exec_mode == "optimistic":
-            all_accessible_data_id = set(
-                accessible_data_policy + accessible_data_optimistic)
-        # In pessimistic execution mode, we only include data that are allowed by policies
-        elif not data_aware_flag:
-            all_accessible_data_id = set(accessible_data_policy)
-        # Lastly, in data-aware execution, all_accessible_data_id should be data_aware_DE
-        else:
-            all_accessible_data_id = data_aware_DE
-        print("all accessible data elements are: ", all_accessible_data_id)
-
-        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
+        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
         if get_datasets_by_ids_res.status == -1:
             err_msg = "No accessible data for " + api
             print(err_msg)
@@ -194,11 +170,11 @@ class Gatekeeper:
         # print("API result is", api_result)
 
         print("data accessed is", data_ids_accessed)
-        print("accessible data by policy is", accessible_data_policy)
-        print("all accessible data is", all_accessible_data_id)
+        # print("accessible data by policy is", accessible_data_policy)
+        print("all accessible data is", all_accessible_de_id)
         # print("Decryption time is", decryption_time)
 
-        if set(data_ids_accessed).issubset(set(accessible_data_policy)):
+        if set(data_ids_accessed).issubset(set(all_accessible_de_id)):
             # print("All data access allowed by policy.")
             # log operation: logging intent_policy match
             self.data_station_log.log_intent_policy_match(cur_user_id,
@@ -210,17 +186,17 @@ class Gatekeeper:
                                        message="API result can be released",
                                        result=[api_result, decryption_time]
                                        )
-        elif set(data_ids_accessed).issubset(all_accessible_data_id):
-            # print("Some access to optimistic data not allowed by policy.")
-            # log operation: logging intent_policy mismatch
-            self.data_station_log.log_intent_policy_mismatch(cur_user_id,
-                                                             api,
-                                                             data_ids_accessed,
-                                                             set(accessible_data_policy),
-                                                             self.key_manager, )
-            response = APIExecResponse(status=-1,
-                                       message="Some access to optimistic data not allowed by policy.",
-                                       result=[api_result, data_ids_accessed], )
+        # elif set(data_ids_accessed).issubset(all_accessible_de_id):
+        #     # print("Some access to optimistic data not allowed by policy.")
+        #     # log operation: logging intent_policy mismatch
+        #     self.data_station_log.log_intent_policy_mismatch(cur_user_id,
+        #                                                      api,
+        #                                                      data_ids_accessed,
+        #                                                      set(accessible_de_policy),
+        #                                                      self.key_manager, )
+        #     response = APIExecResponse(status=-1,
+        #                                message="Some access to optimistic data not allowed by policy.",
+        #                                result=[api_result, data_ids_accessed], )
         else:
             # TODO: illegal access can still happen since interceptor does not block access
             #  (except filter out inaccessible data when list dir)
@@ -229,7 +205,7 @@ class Gatekeeper:
             self.data_station_log.log_intent_policy_mismatch(cur_user_id,
                                                              api,
                                                              data_ids_accessed,
-                                                             set(accessible_data_policy),
+                                                             set(all_accessible_de_id),
                                                              self.key_manager, )
             response = Response(
                 status=1, message="Access to illegal data happened. Something went wrong.")

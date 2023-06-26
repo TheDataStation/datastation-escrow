@@ -170,3 +170,8 @@ def check_share_ready(share_id):
     if 0 in status_list:
         return False
     return True
+
+def get_de_ids_for_share(share_id):
+    des_in_share = database_api.get_de_for_share(share_id)
+    des_list = list(map(lambda ele: ele[0], des_in_share))
+    return des_list

@@ -136,6 +136,8 @@ if __name__ == '__main__':
     # Step 5: user0 calls functions
     select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation", "hello")
     print("Result of select star from nation is:", select_star_res)
+
+    exit()
     # for i in range(1, 5):
     #     tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
     #     print(f"Result of TPC_H {i} is:", tpch_res)
