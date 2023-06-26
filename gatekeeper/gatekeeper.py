@@ -118,6 +118,8 @@ class Gatekeeper:
         # print(data_aware_flag)
         # print(data_aware_DE)
 
+        # TODO: make sure to also update this code block in gatekeeper
+
         # TODO: get the accessible data element for the current share being executed
         print(cur_user_id, api, share_id)
 

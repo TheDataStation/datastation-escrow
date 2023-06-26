@@ -70,6 +70,10 @@ def get_approval_for_share(db: Session, share_id):
     approval_agents = db.query(SharePolicy.a_id).filter(SharePolicy.s_id == share_id).all()
     return approval_agents
 
+def get_status_for_share(db: Session, share_id):
+    share_status = db.query(SharePolicy.status).filter(SharePolicy.s_id == share_id).all()
+    return share_status
+
 def get_de_for_share(db: Session, share_id):
     de_in_share = db.query(ShareDE.de_id).filter(ShareDE.s_id == share_id).all()
     return de_in_share

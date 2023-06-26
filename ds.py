@@ -725,11 +725,15 @@ class DataStation:
                 return res
 
         # Case 2: calling jail function: we mimic the behaviour of gatekeeper here
-        # TODO: change the code block below to use SharePolicy
 
         # First check if the share has been approved by all approval agents
+        share_ready_flag = share_manager.check_share_ready(share_id)
+        if not share_ready_flag:
+            return None
+        print("Share ready to be executed")
+        exit()
 
-
+        # If yes, set the accessible_de to be the entirety of P
 
 
         # accessible_data_policy = policy_broker.get_user_api_info(user_id, api, share_id)

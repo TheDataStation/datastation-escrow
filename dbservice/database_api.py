@@ -360,6 +360,10 @@ def get_approval_for_share(share_id):
     with get_db() as session:
         return share_repo.get_approval_for_share(session, share_id)
 
+def get_status_for_share(share_id):
+    with get_db() as session:
+        return share_repo.get_status_for_share(session, share_id)
+
 def get_dest_for_share(share_id):
     with get_db() as session:
         return share_repo.get_dest_for_share(session, share_id)

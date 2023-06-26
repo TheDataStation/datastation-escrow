@@ -163,3 +163,10 @@ def approve_share(cur_username,
 
     db_res = database_api.approve_share(cur_user_id, share_id)
     return db_res
+
+def check_share_ready(share_id):
+    db_res = database_api.get_status_for_share(share_id)
+    status_list = list(map(lambda ele: ele[0], db_res))
+    if 0 in status_list:
+        return False
+    return True
