@@ -174,6 +174,21 @@ class EscrowAPI:
         return cls.__comp.approve_share(username, share_id)
 
     @classmethod
+    def execute_share(cls, username, share_id):
+        """
+        API Endpoint.
+        Execute a share.
+
+        Parameters:
+            username: caller username (should be one of the dest agents)
+            share_id: id of the share
+
+        Returns:
+            The result of executing the share (f(P))
+        """
+        return cls.__comp.execute_share(username, share_id)
+
+    @classmethod
     def ack_data_in_share(cls, username, share_id, data_id):
         """
         API Endpoint. (Outdated)

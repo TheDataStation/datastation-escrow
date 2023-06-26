@@ -516,6 +516,22 @@ class DataStation:
                                                self.write_ahead_log,
                                                self.key_manager, )
 
+    def execute_share(self, username, share_id):
+        """
+        Execute a share.
+
+        Parameters:
+            username: caller username (should be one of the dest agents)
+            share_id: id of the share
+
+        Returns:
+            The result of executing the share (f(P))
+        """
+        # TODO: check username, its implementation will look similar to call_api
+        # TODO: First do the development version, then do the gatekeeper version
+        # TODO: first check destination agent, then check share status, then fetch arguments, then run
+        return 0
+
     def ack_data_in_share(self, username, data_id, share_id):
         """
         (Outdated)
