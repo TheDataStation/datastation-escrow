@@ -1,5 +1,6 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
+import csv
 
 @api_endpoint
 def register_de(username, data_name, data_type, access_param, optimistic):
@@ -25,3 +26,17 @@ def approve_share(username, share_id):
 @api_endpoint
 def execute_share(username, share_id):
     return EscrowAPI.execute_share(username, share_id)
+
+def get_data(de):
+    if de.type == "file":
+        return f"'{de.access_param}'"
+
+@api_endpoint
+@function
+def print_de(de_id):
+    de = EscrowAPI.get_de_by_id(de_id)
+    file_path = get_data(de)
+    with open(file_path, 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        first_row = next(reader)
+    return first_row
