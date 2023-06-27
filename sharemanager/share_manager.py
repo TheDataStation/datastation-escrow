@@ -175,3 +175,8 @@ def get_de_ids_for_share(share_id):
     des_in_share = database_api.get_de_for_share(share_id)
     des_list = list(map(lambda ele: ele[0], des_in_share))
     return des_list
+
+def get_dest_ids_for_share(share_id):
+    dest_agents = database_api.get_dest_for_share(share_id)
+    dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
+    return dest_agents_list

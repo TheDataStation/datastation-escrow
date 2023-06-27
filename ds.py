@@ -535,10 +535,22 @@ class DataStation:
             return Response(status=1, message="Something wrong with the current user")
         cur_user_id = cur_user.data[0].id
 
-        print(cur_user_id)
+        if self.development_mode:
+            # Check destination agent
+            dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
+            if cur_user_id not in dest_a_ids:
+                return None
 
-        # TODO: First do the development version, then do the gatekeeper version
-        # TODO: first check destination agent, then check share status, then fetch arguments, then run
+            # Check share status
+            share_ready_flag = share_manager.check_share_ready(share_id)
+            if not share_ready_flag:
+                print("This share has not been approved to execute yet.")
+                return None
+
+            # fetch arguments
+            print("Fetching arguments...")
+
+            # execute share
         return 0
 
     def ack_data_in_share(self, username, data_id, share_id):
