@@ -46,9 +46,9 @@ if __name__ == '__main__':
         ds.call_api(f"user{u_id}", "upload_de", None, None,
                     f"user{u_id}", register_res.de_id, plaintext_bytes, )
 
-    # res = ds.call_api("user0", "list_discoverable_des", None, None, "user0")
-    # print(f"Result of listing discoverable data elements is {res}")
-    #
+    res = ds.call_api("user0", "list_discoverable_des", None, None, "user0")
+    print(f"Result of listing discoverable data elements is {res}")
+
     # # Step 3: user0 suggests a share saying he can run all functions in share
     # agents = [1]
     # total_des = num_users * len(partitioned_tables) + len(small_tables)

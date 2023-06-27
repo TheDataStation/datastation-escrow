@@ -798,13 +798,31 @@ class DataStation:
         """
         For testing: handling api calls in development mode
         """
-        # Case 1: calling non-jail function
+
+        # Check if api called is valid (either a function or an api_endpoint)
+        api_type = None
         list_of_api_endpoint = get_registered_api_endpoint()
+        list_of_function = get_registered_functions()
         for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
-                print(f"Calling in development mode: {api}")
-                res = cur_api(*args, **kwargs)
-                return res
+                api_type = "api_endpoint"
+                break
+        for cur_fn in list_of_function:
+            if api == cur_fn.__name__:
+                api_type = "function"
+                break
+
+        if api_type is None:
+            print("Not a valid API endpoint to call.")
+            return None
+
+        # Case 1: calling non-jail function
+        if api_type == "api_endpoint":
+            for cur_api in list_of_api_endpoint:
+                if api == cur_api.__name__:
+                    print(f"Calling api_endpoint in dev mode: {api}")
+                    res = cur_api(*args, **kwargs)
+                    return res
 
         # Case 2: calling jail function: we mimic the behaviour of gatekeeper here
 
