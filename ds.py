@@ -548,7 +548,9 @@ class DataStation:
                 return None
 
             # fetch arguments
-            print("Fetching arguments...")
+            share_template, share_param = share_manager.get_share_template_and_param(share_id)
+            print(share_template)
+            print(share_param)
 
             # execute share
         return 0

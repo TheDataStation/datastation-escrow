@@ -180,3 +180,9 @@ def get_dest_ids_for_share(share_id):
     dest_agents = database_api.get_dest_for_share(share_id)
     dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
     return dest_agents_list
+
+def get_share_template_and_param(share_id):
+    share_db_res = database_api.get_share(share_id)
+    share_template = share_db_res.template
+    share_param = json.loads(share_db_res.param)
+    return share_template, share_param
