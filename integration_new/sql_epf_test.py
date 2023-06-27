@@ -64,14 +64,14 @@ if __name__ == '__main__':
                 functions, data_elements)
 
     # Step 4: they both acknowledge this share
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 1, 1)
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 2, 1)
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 3, 1)
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 4, 1)
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 5, 1)
-    ds.call_api("david", "ack_data_in_share", None, None, "david", 6, 1)
-    ds.call_api("david", "ack_data_in_share", None, None, "david", 7, 1)
-    ds.call_api("david", "ack_data_in_share", None, None, "david", 8, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 1, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 2, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 3, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 4, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 5, 1)
+    ds.call_api("david", "approve_share", None, None, "david", 6, 1)
+    ds.call_api("david", "approve_share", None, None, "david", 7, 1)
+    ds.call_api("david", "approve_share", None, None, "david", 8, 1)
 
     # Step 5: david calls the SQL sharing APIs.
     ix = ds.call_api("david", "column_intersection", 1, "pessimistic", 1,

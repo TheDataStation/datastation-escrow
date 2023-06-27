@@ -1,4 +1,4 @@
-epf_path: "example_epf/sql_distributed.py"
+epf_path: "example_epf/general_test_epf.py"
 
 
 

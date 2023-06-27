@@ -68,10 +68,10 @@ class Log:
                     log.flush()
                     os.fsync(log)
             # case 2: durable, encrypted log: need to encrypt the content part
-            # note: we still keep the caller ID field as plaintext
+            # note: we still keep the caller ID field as titanic_p
             else:
                 with open(self.log_path, 'ab') as log:
-                    # Look at plaintext fields
+                    # Look at titanic_p fields
                     # print(entry.caller_id)
                     # print(entry.content)
                     # First convert entry.content to bytes
@@ -109,7 +109,7 @@ class Log:
                 print("Caller ID is: ")
                 print(cur_entry.caller_id)
                 print("Entry content is: ")
-                # Case 2.1: log is in plaintext
+                # Case 2.1: log is in titanic_p
                 if not self.encrypted:
                     print(cur_entry.content)
                 # Case 2.2: log is encrypted (no_trust mode)

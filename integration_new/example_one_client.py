@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # He uploads DE1 and DE3 in sealed mode, and uploads DE2 in enclave mode.
     for cur_num in range(3):
         cur_file_index = (cur_num % 6) + 1
-        cur_full_name = "integration_new/test_files/plaintext/train-" + str(cur_file_index) + ".csv"
+        cur_full_name = "integration_new/test_files/titanic_p/train-" + str(cur_file_index) + ".csv"
         cur_file = open(cur_full_name, "rb")
         cur_file_bytes = cur_file.read()
         cur_optimistic_flag = False
@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     # Step 4: jerry acknowledges this share
     for data_id in data_elements:
-        call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
+        call_api("jerry", "approve_share", None, None, "jerry", data_id, 1)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
     line_count_res = call_api("david", "line_count", 1, "pessimistic")

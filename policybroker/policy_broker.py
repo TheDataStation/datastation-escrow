@@ -141,7 +141,7 @@ def ack_data_in_share(cur_username,
 
     # If in no_trust mode, we need to record this UPDATE_POLICY_STATUS to wal
     if write_ahead_log is not None:
-        wal_entry = "database_api.ack_data_in_share(data_id=" + str(data_id) \
+        wal_entry = "database_api.approve_share(data_id=" + str(data_id) \
                     + ",share_id=" + str(share_id) \
                     + "))"
         # If write_ahead_log is not None, key_manager also will not be None

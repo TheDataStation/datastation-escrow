@@ -35,7 +35,7 @@ if __name__ == '__main__':
     ds.create_user(User(user_name="david", password="123456"))
 
     # Step 2: Jerry logs in and uploads three data elements: a file, a postgres table, and an open data table
-    file_path = "integration_new/test_files/plaintext/train-1.csv"
+    file_path = "integration_new/test_files/titanic_p/f0.csv"
     cur_file = open(file_path, "rb")
     file_bytes = cur_file.read()
     optimistic_flag_1 = False
@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
     # Step 4: jerry acknowledges this share
     for data_id in data_elements:
-        ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
+        ds.call_api("jerry", "approve_share", None, None, "jerry", data_id, 1)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
     line_count_res = ds.call_api("david", "retrieve_data", 1, "pessimistic")

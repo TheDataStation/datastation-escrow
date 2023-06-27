@@ -202,4 +202,4 @@ class EscrowAPI:
         A response object with the following fields:
             status: status of acknowledging share. 0: success, 1: failure.
         """
-        return cls.__comp.ack_data_in_share(username, share_id, data_id)
+        return cls.__comp.approve_share(username, share_id, data_id)

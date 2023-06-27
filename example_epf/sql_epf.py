@@ -59,7 +59,7 @@ def suggest_share(username, agents, functions, data_elements):
 
 @api_endpoint
 def ack_data_in_share(username, data_id, share_id):
-    return EscrowAPI.ack_data_in_share(username, data_id, share_id)
+    return EscrowAPI.approve_share(username, data_id, share_id)
 
 '''
 returns all data elements registered in enclave mode with the data station

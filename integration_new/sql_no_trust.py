@@ -186,7 +186,7 @@ if __name__ == '__main__':
         else:
             cur_user_de_count = len(partitioned_tables)
         for j in range(cur_user_de_count):
-            ds.call_api(f"user{i}", "ack_data_in_share", None, None, f"user{i}", cur_de_id, 1)
+            ds.call_api(f"user{i}", "approve_share", None, None, f"user{i}", cur_de_id, 1)
             cur_de_id += 1
 
     # Step 5: user0 calls functions
