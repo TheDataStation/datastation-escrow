@@ -132,21 +132,20 @@ if __name__ == '__main__':
         share_obj = ds.call_api("user1", "show_share", None, None, "user0", i)
         print(share_obj)
 
-    # # Step 4: all users acknowledge the share
-    # for i in range(num_users):
-    #     ds.call_api(f"user{i}", "approve_share", None, None, f"user{i}", 1)
-    #
-    # # Step 5: user calls execute share
-    # select_star_res = ds.call_api("user0", "execute_share", None, None, "user0", 1)
-    # print("Result of select star from nation is:", select_star_res)
-    #
-    # # Step 5: user0 calls functions
-    # select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation", "hello")
-    # print("Result of select star from nation is:", select_star_res)
-    #
-    # for i in range(1, 5):
-    #     tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
-    #     print(f"Result of TPC_H {i} is:", tpch_res)
+    # Step 4: all users acknowledge the share
+    for i in range(num_users):
+        for j in range(1, 4):
+            ds.call_api(f"user{i}", "approve_share", None, None, f"user{i}", j)
+
+    # Step 5: user calls execute share
+    select_star_res = ds.call_api("user0", "execute_share", None, None, "user0", 1)
+    print("Result of select star from nation is:", select_star_res)
+
+    tpch_1_res = ds.call_api("user0", "execute_share", None, None, "user0", 2)
+    print("Result of TPCH 1 is", tpch_1_res)
+
+    tpch_2_res = ds.call_api("user0", "execute_share", None, None, "user0", 3)
+    print("Result of TPCH 2 is", tpch_2_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()
