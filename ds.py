@@ -535,6 +535,7 @@ class DataStation:
             return Response(status=1, message="Something wrong with the current user")
         cur_user_id = cur_user.data[0].id
 
+        # Case 1: in development mode, we mimic the behaviour of Gatekeeper
         if self.development_mode:
             # Check destination agent
             dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
@@ -549,10 +550,47 @@ class DataStation:
 
             # fetch arguments
             share_template, share_param = share_manager.get_share_template_and_param(share_id)
-            print(share_template)
-            print(share_param)
+            args = share_param["args"]
+            kwargs = share_param["kwargs"]
 
-            # execute share
+            # Get accessible data elements
+            all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
+            # print(f"all accessible data elements are: {all_accessible_de_id}")
+
+            get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
+            if get_datasets_by_ids_res.status == -1:
+                print("Something wrong with getting accessible DE for share.")
+                return None
+
+            accessible_de = set()
+            for cur_data in get_datasets_by_ids_res.data:
+                if self.trust_mode == "no_trust":
+                    data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
+                else:
+                    data_owner_symmetric_key = None
+                cur_de = DataElement(cur_data.id,
+                                     cur_data.name,
+                                     cur_data.type,
+                                     cur_data.access_param,
+                                     data_owner_symmetric_key)
+                accessible_de.add(cur_de)
+
+            for cur_de in accessible_de:
+                if cur_de.type == "file":
+                    cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
+
+            self.accessible_de_development = accessible_de
+
+            # Execute share
+            list_of_function = get_registered_functions()
+            for cur_fn in list_of_function:
+                if share_template == cur_fn.__name__:
+                    print("Calling a template function in development", share_template)
+                    res = cur_fn(*args, **kwargs)
+                    return res
+
+        # Case 2: Sending to Gatekeeper
+
         return 0
 
     def ack_data_in_share(self, username, data_id, share_id):

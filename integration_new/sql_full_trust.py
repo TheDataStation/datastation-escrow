@@ -134,7 +134,8 @@ if __name__ == '__main__':
         ds.call_api(f"user{i}", "approve_share", None, None, f"user{i}", 1)
 
     # Step 5: user calls execute share
-    ds.call_api("user0", "execute_share", None, None, "user0", 1)
+    select_star_res = ds.call_api("user0", "execute_share", None, None, "user0", 1)
+    print("Result of select star from nation is:", select_star_res)
 
     # # Step 5: user0 calls functions
     # select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation", "hello")
