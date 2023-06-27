@@ -119,7 +119,13 @@ class Gatekeeper:
         # print(data_aware_flag)
         # print(data_aware_DE)
 
-        # First check if the share has been approved by all approval agents
+        # Check if call is in destination agent
+        dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
+        if cur_user_id not in dest_a_ids:
+            print("Caller not a destination agent")
+            return None
+
+        # Check if the share has been approved by all approval agents
         share_ready_flag = share_manager.check_share_ready(share_id)
         if not share_ready_flag:
             print("This share has not been approved to execute yet.")

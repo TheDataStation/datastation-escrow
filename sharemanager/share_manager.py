@@ -130,8 +130,8 @@ def show_share(cur_username, share_id):
 
     share_param = json.loads(share_db_res.param)
     share_obj = {
-        "a_dest": des_list,
-        "des": dest_agents_list,
+        "a_dest": dest_agents_list,
+        "des": des_list,
         "template": share_db_res.template,
         "args": share_param["args"],
         "kwargs": share_param["kwargs"],

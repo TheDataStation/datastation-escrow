@@ -535,11 +535,17 @@ class DataStation:
             return Response(status=1, message="Something wrong with the current user")
         cur_user_id = cur_user.data[0].id
 
+        # fetch arguments
+        share_template, share_param = share_manager.get_share_template_and_param(share_id)
+        args = share_param["args"]
+        kwargs = share_param["kwargs"]
+
         # Case 1: in development mode, we mimic the behaviour of Gatekeeper
         if self.development_mode:
             # Check destination agent
             dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
             if cur_user_id not in dest_a_ids:
+                print("Caller not a destination agent")
                 return None
 
             # Check share status
@@ -547,11 +553,6 @@ class DataStation:
             if not share_ready_flag:
                 print("This share has not been approved to execute yet.")
                 return None
-
-            # fetch arguments
-            share_template, share_param = share_manager.get_share_template_and_param(share_id)
-            args = share_param["args"]
-            kwargs = share_param["kwargs"]
 
             # Get accessible data elements
             all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
@@ -590,8 +591,13 @@ class DataStation:
                     return res
 
         # Case 2: Sending to Gatekeeper
-
-        return 0
+        res = self.gatekeeper.call_api(share_template,
+                                       cur_user_id,
+                                       share_id,
+                                       "pessimistic",
+                                       *args,
+                                       **kwargs)
+        return res
 
     def ack_data_in_share(self, username, data_id, share_id):
         """
