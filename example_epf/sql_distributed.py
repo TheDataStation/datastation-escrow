@@ -33,6 +33,10 @@ def show_share(username, share_id):
 def approve_share(username, share_id):
     return EscrowAPI.approve_share(username, share_id)
 
+@api_endpoint
+def execute_share(username, share_id):
+    return EscrowAPI.execute_share(username, share_id)
+
 def get_data(de):
     if de.type == "file":
         return f"'{de.access_param}'"

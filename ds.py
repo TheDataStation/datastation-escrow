@@ -527,7 +527,16 @@ class DataStation:
         Returns:
             The result of executing the share (f(P))
         """
-        # TODO: check username, its implementation will look similar to call_api
+        # get caller's UID
+        cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
+        # If the user doesn't exist, something is wrong
+        if cur_user.status == -1:
+            print("Something wrong with the current user")
+            return Response(status=1, message="Something wrong with the current user")
+        cur_user_id = cur_user.data[0].id
+
+        print(cur_user_id)
+
         # TODO: First do the development version, then do the gatekeeper version
         # TODO: first check destination agent, then check share status, then fetch arguments, then run
         return 0
@@ -573,8 +582,7 @@ class DataStation:
         """
 
         # get caller's UID
-        cur_user = database_api.get_user_by_user_name(
-            User(user_name=username, ))
+        cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
         # If the user doesn't exist, something is wrong
         if cur_user.status == -1:
             print("Something wrong with the current user")
