@@ -41,6 +41,9 @@ def print_first_row(de_id):
     de = EscrowAPI.get_de_by_id(de_id)
     file_path = get_data(de)
     with open(file_path, 'r') as csvfile:
-        reader = csv.reader(csvfile)
-        first_row = next(reader)
-    return first_row
+        with open("output.csv", 'w', newline='') as outfile:
+            reader = csv.reader(csvfile)
+            writer = csv.writer(outfile)
+            for row in reader:
+                writer.writerow(row)
+    return "write finished"

@@ -472,8 +472,8 @@ class DataStation:
                                                                    template,
                                                                    self.write_ahead_log,
                                                                    self.key_manager,
-                                                                   args,
-                                                                   kwargs, )
+                                                                   *args,
+                                                                   **kwargs, )
 
         return response
 
@@ -587,6 +587,8 @@ class DataStation:
             for cur_fn in list_of_function:
                 if share_template == cur_fn.__name__:
                     print("Calling a template function in development", share_template)
+                    print(args)
+                    print(kwargs)
                     res = cur_fn(*args, **kwargs)
                     return res
 
