@@ -71,7 +71,7 @@ if __name__ == '__main__':
     # Step 3: Agent suggesting shares
     agents = [1]
     data_elements = [4]
-    ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, "print_first_row",
+    ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, "write_first_row",
                 4)
 
     # Approval agent calls show_share() to see content of the share
