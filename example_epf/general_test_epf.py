@@ -33,11 +33,11 @@ def execute_share(username, share_id):
 
 def get_data(de):
     if de.type == "file":
-        return f"'{de.access_param}'"
+        return f"{de.access_param}"
 
 @api_endpoint
 @function
-def print_de(de_id):
+def print_first_row(de_id):
     de = EscrowAPI.get_de_by_id(de_id)
     file_path = get_data(de)
     with open(file_path, 'r') as csvfile:
