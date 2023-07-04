@@ -4,22 +4,14 @@ from common.pydantic_models.user import User
 from common.pydantic_models.response import Response
 
 
-def verify_dataset_owner(dataset_id, cur_username):
+def verify_dataset_owner(dataset_id, user_id):
     # get data element owner id
     dataset_owner_id = database_api.get_de_owner(dataset_id)
     if dataset_owner_id is None:
         return Response(status=1, message="Error retrieving data owner.")
     # print("Dataset owner id is: " + str(dataset_owner_id))
 
-    # get current user id
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
-    # If the user doesn't exist, something is wrong
-    if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
-    cur_user_id = cur_user.data[0].id
-    # print("Current user id is: "+str(cur_user_id))
-
-    if cur_user_id != dataset_owner_id:
+    if user_id != dataset_owner_id:
         return Response(status=1, message="Current user is not owner of dataset")
 
     return Response(status=0, message="verification success")

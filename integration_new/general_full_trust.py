@@ -40,9 +40,11 @@ if __name__ == '__main__':
         f.close()
         u_id = i // 3
         register_res = ds.call_api(f"user{u_id}", "register_de",
-                                   f"user{u_id}", f"f{i}.csv", "file", f"f{i}.csv", True, )
+                                   f"f{i}.csv", "file", f"f{i}.csv", True, )
         ds.call_api(f"user{u_id}", "upload_de",
-                    f"user{u_id}", register_res.de_id, plaintext_bytes, )
+                    register_res.de_id, plaintext_bytes, )
+
+    exit()
 
     res = ds.call_api("user0", "list_discoverable_des", "user0")
     print(f"Result of listing discoverable data elements is {res}")

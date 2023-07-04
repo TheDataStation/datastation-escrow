@@ -10,7 +10,7 @@ from common.pydantic_models.response import Response, UploadDataResponse, Remove
 
 def register_data_in_DB(data_id,
                         data_name,
-                        cur_username,
+                        user_id,
                         data_type,
                         access_param,
                         optimistic,
@@ -19,12 +19,6 @@ def register_data_in_DB(data_id,
 
     # Call DB to register a new dataset in the database
 
-    # Check if there is an existing user
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
-    if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
-    cur_user_id = cur_user.data[0].id
-
     if pathlib.Path(access_param).is_file():
         access_param = str(pathlib.Path(access_param).absolute())
 
@@ -32,16 +26,16 @@ def register_data_in_DB(data_id,
     if write_ahead_log is not None:
         wal_entry = "database_api.create_dataset(Dataset(id=" + str(data_id) \
                     + ",name='" + data_name \
-                    + "',owner_id=" + str(cur_user_id) \
+                    + "',owner_id=" + str(user_id) \
                     + ",type='" + data_type \
                     + "',access_param='" + access_param \
                     + "',optimistic=" + str(optimistic) \
                     + "))"
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
+        write_ahead_log.log(user_id, wal_entry, key_manager, )
 
     new_dataset = Dataset(id=data_id,
                           name=data_name,
-                          owner_id=cur_user_id,
+                          owner_id=user_id,
                           type=data_type,
                           access_param=access_param,
                           optimistic=optimistic)
