@@ -37,13 +37,11 @@ def get_data(de):
 
 @api_endpoint
 @function
-def write_first_row(de_id):
+def print_first_row(de_id):
     de = EscrowAPI.get_de_by_id(de_id)
     file_path = get_data(de)
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         first_row = next(reader)
-    with open("/mnt/data/output.csv", 'w', newline='') as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(first_row)
-    return "write finished"
+        print(first_row)
+    return 0

@@ -626,19 +626,17 @@ class DataStation:
 
         return response
 
-    def call_api(self, username, api: API, share_id=None, exec_mode=None, *args, **kwargs):
+    def call_api(self, username, api: API, *args, **kwargs):
         """
         Calls an API as the given user
 
         Parameters:
          username: the unique username identifying which user is calling the api
          api: api to call
-         share_id: from which share is this being called
-         exec_mode: optimistic or pessimistic
          *args, **kwargs: arguments to the API call
 
         Returns:
-         Response of data register
+         result of calling the API
         """
 
         # get caller's UID
@@ -651,7 +649,7 @@ class DataStation:
 
         # First we check if we are in development mode, if true, call call_api_development
         if self.development_mode:
-            res = self.call_api_development(api, cur_user_id, share_id, exec_mode, *args, **kwargs)
+            res = self.call_api_development(api, *args, **kwargs)
             return res
 
         # Now we need to check if the current API called is an api_endpoint (non-jail) or a function (jail)
@@ -664,91 +662,92 @@ class DataStation:
                 res = cur_api(*args, **kwargs)
                 return res
 
-        # If it's jail, it goes to the gatekeeper
-        res = self.gatekeeper.call_api(api,
-                                       cur_user_id,
-                                       share_id,
-                                       exec_mode,
-                                       *args,
-                                       **kwargs)
-        # Only when the returned status is 0 can we release the result
-        if res.status == 0:
-            api_result = res.result[0]
-            # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
-            if self.trust_mode == "no_trust":
-                # print("Encrypting returned response......")
-                # start = time.time()
-                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
-                    cur_user_id)
-                api_result = cu.encrypt_data_with_symmetric_key(
-                    cu.to_bytes(api_result), caller_symmetric_key)
-                # print(time.time() - start)
-            return api_result, res.result[1]
-        # In this case we need to put result into staging storage, so that they can be released later
-        elif res.status == -1:
-            api_result = res.result[0]
-            data_ids_accessed = res.result[1]
-            # We first convert api_result to bytes because we need to store it in staging storage
-            # In full_trust mode, we convert it to bytes directly
-            if self.trust_mode == "full_trust":
-                api_result = cu.to_bytes(api_result)
-            # In no_trust mode, we encrypt it using caller's symmetric key
-            else:
-                caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
-                    cur_user_id)
-                api_result = cu.encrypt_data_with_symmetric_key(
-                    cu.to_bytes(api_result), caller_symmetric_key)
-
-            # print(api_result)
-            # print(data_ids_accessed)
-
-            # Call staging storage to store the bytes
-
-            # Decide which data_id to use from ClientAPI.cur_data_id field
-            staging_data_id = self.cur_staging_data_id
-            self.cur_staging_data_id += 1
-
-            staging_storage_response = self.staging_storage.store(staging_data_id,
-                                                                  api_result)
-
-            # staging_storage error
-            if staging_storage_response.status == 1:
-                return staging_storage_response
-
-            # Storing into staging storage is successful. We now call de_manager to register this staging DE in DB.
-            # We need to store to both the staged table and the provenance table.
-
-            # Full_trust mode
-            if self.trust_mode == "full_trust":
-                # Staged table
-                de_manager_response_staged = de_manager.register_staged_in_DB(staging_data_id,
-                                                                              cur_user_id,
-                                                                              api, )
-                # Provenance table
-                de_manager_response_provenance = de_manager.register_provenance_in_DB(staging_data_id,
-                                                                                      data_ids_accessed, )
-            else:
-                # Staged table
-                de_manager_response_staged = de_manager.register_staged_in_DB(staging_data_id,
-                                                                              cur_user_id,
-                                                                              api,
-                                                                              self.write_ahead_log,
-                                                                              self.key_manager,
-                                                                              )
-                # Provenance table
-                de_manager_response_provenance = de_manager.register_provenance_in_DB(staging_data_id,
-                                                                                      data_ids_accessed,
-                                                                                      cur_user_id,
-                                                                                      self.write_ahead_log,
-                                                                                      self.key_manager,
-                                                                                      )
-            if de_manager_response_staged.status != 0 or de_manager_response_provenance.status != 0:
-                return Response(status=de_manager_response_staged.status,
-                                message="internal database error")
-            res_msg = "Staged data ID " + str(staging_data_id)
-            return res_msg
-        else:
-            return res.message
+        # # If it's jail, it goes to the gatekeeper
+        # # Note: code below is outdated
+        # res = self.gatekeeper.call_api(api,
+        #                                cur_user_id,
+        #                                share_id,
+        #                                exec_mode,
+        #                                *args,
+        #                                **kwargs)
+        # # Only when the returned status is 0 can we release the result
+        # if res.status == 0:
+        #     api_result = res.result[0]
+        #     # We still need to encrypt the results using the caller's symmetric key if in no_trust_mode.
+        #     if self.trust_mode == "no_trust":
+        #         # print("Encrypting returned response......")
+        #         # start = time.time()
+        #         caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
+        #             cur_user_id)
+        #         api_result = cu.encrypt_data_with_symmetric_key(
+        #             cu.to_bytes(api_result), caller_symmetric_key)
+        #         # print(time.time() - start)
+        #     return api_result, res.result[1]
+        # # In this case we need to put result into staging storage, so that they can be released later
+        # elif res.status == -1:
+        #     api_result = res.result[0]
+        #     data_ids_accessed = res.result[1]
+        #     # We first convert api_result to bytes because we need to store it in staging storage
+        #     # In full_trust mode, we convert it to bytes directly
+        #     if self.trust_mode == "full_trust":
+        #         api_result = cu.to_bytes(api_result)
+        #     # In no_trust mode, we encrypt it using caller's symmetric key
+        #     else:
+        #         caller_symmetric_key = self.key_manager.get_agent_symmetric_key(
+        #             cur_user_id)
+        #         api_result = cu.encrypt_data_with_symmetric_key(
+        #             cu.to_bytes(api_result), caller_symmetric_key)
+        #
+        #     # print(api_result)
+        #     # print(data_ids_accessed)
+        #
+        #     # Call staging storage to store the bytes
+        #
+        #     # Decide which data_id to use from ClientAPI.cur_data_id field
+        #     staging_data_id = self.cur_staging_data_id
+        #     self.cur_staging_data_id += 1
+        #
+        #     staging_storage_response = self.staging_storage.store(staging_data_id,
+        #                                                           api_result)
+        #
+        #     # staging_storage error
+        #     if staging_storage_response.status == 1:
+        #         return staging_storage_response
+        #
+        #     # Storing into staging storage is successful. We now call de_manager to register this staging DE in DB.
+        #     # We need to store to both the staged table and the provenance table.
+        #
+        #     # Full_trust mode
+        #     if self.trust_mode == "full_trust":
+        #         # Staged table
+        #         de_manager_response_staged = de_manager.register_staged_in_DB(staging_data_id,
+        #                                                                       cur_user_id,
+        #                                                                       api, )
+        #         # Provenance table
+        #         de_manager_response_provenance = de_manager.register_provenance_in_DB(staging_data_id,
+        #                                                                               data_ids_accessed, )
+        #     else:
+        #         # Staged table
+        #         de_manager_response_staged = de_manager.register_staged_in_DB(staging_data_id,
+        #                                                                       cur_user_id,
+        #                                                                       api,
+        #                                                                       self.write_ahead_log,
+        #                                                                       self.key_manager,
+        #                                                                       )
+        #         # Provenance table
+        #         de_manager_response_provenance = de_manager.register_provenance_in_DB(staging_data_id,
+        #                                                                               data_ids_accessed,
+        #                                                                               cur_user_id,
+        #                                                                               self.write_ahead_log,
+        #                                                                               self.key_manager,
+        #                                                                               )
+        #     if de_manager_response_staged.status != 0 or de_manager_response_provenance.status != 0:
+        #         return Response(status=de_manager_response_staged.status,
+        #                         message="internal database error")
+        #     res_msg = "Staged data ID " + str(staging_data_id)
+        #     return res_msg
+        # else:
+        #     return res.message
 
     # data users gives a staged DE ID and tries to release it
     def release_staged_DE(self, username, staged_ID):
@@ -796,7 +795,7 @@ class DataStation:
     def print_wal(self):
         self.write_ahead_log.read_wal(self.key_manager)
 
-    def call_api_development(self, api, user_id, share_id, exec_mode, *args, **kwargs):
+    def call_api_development(self, api, *args, **kwargs):
         """
         For testing: handling api calls in development mode
         """
@@ -826,50 +825,51 @@ class DataStation:
                     res = cur_api(*args, **kwargs)
                     return res
 
-        # Case 2: calling jail function: we mimic the behaviour of gatekeeper here
-
-        # First check if the share has been approved by all approval agents
-        share_ready_flag = share_manager.check_share_ready(share_id)
-        if not share_ready_flag:
-            print("This share has not been approved to execute yet.")
-            return None
-
-        # If yes, set the accessible_de to be the entirety of P
-        all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
-        # print(f"all accessible data elements are: {all_accessible_de_id}")
-
-        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
-        if get_datasets_by_ids_res.status == -1:
-            err_msg = "No accessible data for " + api
-            print(err_msg)
-            return Response(status=1, message=err_msg)
-
-        accessible_de = set()
-        for cur_data in get_datasets_by_ids_res.data:
-            if self.trust_mode == "no_trust":
-                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
-            else:
-                data_owner_symmetric_key = None
-            cur_de = DataElement(cur_data.id,
-                                 cur_data.name,
-                                 cur_data.type,
-                                 cur_data.access_param,
-                                 data_owner_symmetric_key)
-            accessible_de.add(cur_de)
-
-        # Change "file"'s access_param to their actual storage path
-        for cur_de in accessible_de:
-            if cur_de.type == "file":
-                cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
-
-        self.accessible_de_development = accessible_de
-
-        list_of_function = get_registered_functions()
-        for cur_fn in list_of_function:
-            if api == cur_fn.__name__:
-                print("user is calling a jail function in development", api)
-                res = cur_fn(*args, **kwargs)
-                return res
+        # # Case 2: calling jail function: we mimic the behaviour of gatekeeper here
+        # # Note: code below is outdated, and shouldn't be got to
+        #
+        # # First check if the share has been approved by all approval agents
+        # share_ready_flag = share_manager.check_share_ready(share_id)
+        # if not share_ready_flag:
+        #     print("This share has not been approved to execute yet.")
+        #     return None
+        #
+        # # If yes, set the accessible_de to be the entirety of P
+        # all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
+        # # print(f"all accessible data elements are: {all_accessible_de_id}")
+        #
+        # get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
+        # if get_datasets_by_ids_res.status == -1:
+        #     err_msg = "No accessible data for " + api
+        #     print(err_msg)
+        #     return Response(status=1, message=err_msg)
+        #
+        # accessible_de = set()
+        # for cur_data in get_datasets_by_ids_res.data:
+        #     if self.trust_mode == "no_trust":
+        #         data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
+        #     else:
+        #         data_owner_symmetric_key = None
+        #     cur_de = DataElement(cur_data.id,
+        #                          cur_data.name,
+        #                          cur_data.type,
+        #                          cur_data.access_param,
+        #                          data_owner_symmetric_key)
+        #     accessible_de.add(cur_de)
+        #
+        # # Change "file"'s access_param to their actual storage path
+        # for cur_de in accessible_de:
+        #     if cur_de.type == "file":
+        #         cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
+        #
+        # self.accessible_de_development = accessible_de
+        #
+        # list_of_function = get_registered_functions()
+        # for cur_fn in list_of_function:
+        #     if api == cur_fn.__name__:
+        #         print("user is calling a jail function in development", api)
+        #         res = cur_fn(*args, **kwargs)
+        #         return res
 
     def get_all_accessible_des(self):
         """

@@ -9,7 +9,7 @@ import pickle
 from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
-from clientapi.client_api import ClientAPI
+from clientapi.flask_client import ClientAPI
 from ds import DataStation
 
 if __name__ == '__main__':

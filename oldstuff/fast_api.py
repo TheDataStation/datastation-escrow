@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from clientapi.client_api import ClientAPI
+from clientapi.flask_client import ClientAPI
 # from pydantic_models.api import *
 # from pydantic_models.api_dependency import *
 # from pydantic_models.response import *
