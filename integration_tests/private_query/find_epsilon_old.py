@@ -1,0 +1,916 @@
+import itertools
+import math
+import random
+import re
+
+import numpy as np
+import pandas as pd
+from scipy import stats
+import tqdm
+import time
+import warnings
+import snsql
+from snsql import Privacy
+from snsql._ast.expressions.date import parse_datetime
+from snsql._ast.expressions import sql as ast
+from snsql.sql.reader.base import SortKey
+from snsql._ast.ast import Top
+from sqlalchemy import create_engine
+from pandas.io.sql import to_sql, read_sql
+import matplotlib.pyplot as plt
+from statsmodels.stats.multitest import fdrcorrection
+from sql_metadata import Parser
+from sklearn import preprocessing
+# import multiprocessing as mp
+import pathos.multiprocessing as mp
+from collections import defaultdict
+
+
+def get_metadata(df: pd.DataFrame, name: str):
+    metadata = {}
+    metadata[name] = {}  # collection
+    metadata[name][name] = {}  # db
+    metadata[name][name][name] = {}  # table
+
+    t = metadata[name][name][name]
+    t["row_privacy"] = True
+    t["rows"] = len(df)
+
+    df_inferred = df.convert_dtypes()
+    # print(df_inferred.dtypes)
+
+    for col in df_inferred:
+        t[str(col)] = {}
+        c = t[str(col)]
+        if pd.api.types.is_string_dtype(df_inferred[col]):
+            c["type"] = "string"
+        elif pd.api.types.is_bool_dtype(df_inferred[col]):
+            c["type"] = "boolean"
+        elif pd.api.types.is_datetime64_any_dtype(df_inferred[col]):
+            c["type"] = "datetime"
+        # elif pd.api.types.is_numeric_dtype(df_inferred[col]):
+        #     if (df[col].fillna(-9999) % 1  == 0).all():
+        #         c["type"] = "int"
+        #     else:
+        #         c["type"] = "float"
+        elif pd.api.types.is_integer_dtype(df_inferred[col]) or pd.api.types.is_timedelta64_dtype(df_inferred[col]):
+            c["type"] = "int"
+            c["upper"] = str(df_inferred[col].max())
+            c["lower"] = str(df_inferred[col].min())
+        elif pd.api.types.is_float_dtype(df_inferred[col]):
+            c["type"] = "float"
+            c["upper"] = str(df_inferred[col].max())
+            c["lower"] = str(df_inferred[col].min())
+        else:
+            raise ValueError("Unknown column type for column {0}".format(col))
+
+    return metadata
+
+
+def fdr(p_values, q):
+    rejected, pvalue_corrected = fdrcorrection(p_values, alpha=q)
+    # print(any(rejected))
+    return any(rejected)
+
+    # # Based on https://matthew-brett.github.io/teaching/fdr.html
+    #
+    # # q = 0.1 # proportion of false positives we will accept
+    # N = len(p_values)
+    # sorted_p_values = np.sort(p_values)  # sort p-values ascended
+    # i = np.arange(1, N + 1)  # the 1-based i index of the p values, as in p(i)
+    # below = (sorted_p_values < (q * i / N))  # True where p(i)<q*i/N
+    # if len(np.where(below)[0]) == 0:
+    #     return False
+    # max_below = np.max(np.where(below)[0])  # max index where p(i)<q*i/N
+    # print('p*:', sorted_p_values[max_below])
+    #
+    # # num_discoveries = 0
+    # for p in p_values:
+    #     if p < sorted_p_values[max_below]:
+    #         print("Discovery: " + str(p))
+    #         return True
+    #         # num_discoveries += 1
+    # # print("num_discoveries =", num_discoveries)
+    # return False
+
+
+def execute_rewritten_ast(sqlite_connection, table_name, row_num_col, row_num_to_exclude,
+                          private_reader, subquery, query, *ignore, accuracy: bool = False, pre_aggregated=None,
+                          postprocess=True):
+    # if isinstance(query, str):
+    #     raise ValueError("Please pass AST to _execute_ast.")
+    #
+    # subquery, query = self._rewrite_ast(query)
+
+    if pre_aggregated is not None:
+        exact_aggregates = private_reader._check_pre_aggregated_columns(pre_aggregated, subquery)
+    else:
+        # exact_aggregates = private_reader._get_reader(subquery)._execute_ast(subquery)
+        reader = private_reader._get_reader(subquery)
+        # if isinstance(query, str):
+        #     raise ValueError("Please pass ASTs to execute_ast.  To execute strings, use execute.")
+        if hasattr(reader, "serializer") and reader.serializer is not None:
+            query_string = reader.serializer.serialize(subquery)
+        else:
+            query_string = str(subquery)
+        # exact_aggregates = reader.execute(query_string, accuracy=accuracy)
+
+        # print(read_sql(sql=f"SELECT * FROM {table_name}", con=sqlite_connection))
+
+        # print(query_string)
+        query_string = re.sub(f" FROM {table_name}.{table_name}", f" FROM {table_name}", query_string,
+                       flags=re.IGNORECASE)
+
+        if row_num_to_exclude != -1:
+            pos = query_string.rfind(" WHERE ")  # last pos of WHERE
+            if pos == -1:
+                # query_string = f"{query_string} WHERE {row_num_col} != {row_num_to_exclude}"
+                pos2 = query_string.rfind(f" FROM {table_name}")
+                pos2 += len(f" FROM {table_name}")
+                query_string = query_string[:pos2] + f" WHERE {row_num_col} != {row_num_to_exclude} " + query_string[pos2:]
+            else:
+                # print(pos)
+                pos += len(" WHERE ")
+                # print(query_string[:pos])
+                query_string = query_string[:pos] + f"{row_num_col} != {row_num_to_exclude} AND " + query_string[pos:]
+
+        # print(query_string)
+        q_result = read_sql(sql=query_string, con=sqlite_connection)
+        # print(q_result)
+        exact_aggregates = [tuple([col for col in q_result.columns])] + [val[1:] for val in q_result.itertuples()]
+        # print(exact_aggregates)
+
+    _accuracy = None
+    if accuracy:
+        raise NotImplementedError(
+            "Simple accuracy has been removed.  Please see documentation for information on estimating accuracy.")
+
+    syms = subquery._select_symbols
+    source_col_names = [s.name for s in syms]
+
+    # tell which are counts, in column order
+    is_count = [s.expression.is_count for s in syms]
+
+    # get a list of mechanisms in column order
+    mechs = private_reader._get_mechanisms(subquery)
+    check_sens = [m for m in mechs if m]
+    if any([m.sensitivity is np.inf for m in check_sens]):
+        raise ValueError(f"Attempting to query an unbounded column")
+
+    kc_pos = private_reader._get_keycount_position(subquery)
+
+    def randomize_row_values(row_in):
+        row = [v for v in row_in]
+        # set null to 0 before adding noise
+        for idx in range(len(row)):
+            if mechs[idx] and row[idx] is None:
+                row[idx] = 0.0
+        # call all mechanisms to add noise
+        return [
+            mech.release([v])[0] if mech is not None else v
+            for mech, v in zip(mechs, row)
+        ]
+
+    if hasattr(exact_aggregates, "rdd"):
+        # it's a dataframe
+        out = exact_aggregates.rdd.map(randomize_row_values)
+    elif hasattr(exact_aggregates, "map"):
+        # it's an RDD
+        out = exact_aggregates.map(randomize_row_values)
+    elif isinstance(exact_aggregates, list):
+        out = map(randomize_row_values, exact_aggregates[1:])
+    elif isinstance(exact_aggregates, np.ndarray):
+        out = map(randomize_row_values, exact_aggregates)
+    else:
+        raise ValueError("Unexpected type for exact_aggregates")
+
+    # print(list(out))
+
+    # censor infrequent dimensions
+    # if private_reader._options.censor_dims:
+    #     if kc_pos is None:
+    #         raise ValueError("Query needs a key count column to censor dimensions")
+    #     else:
+    #         thresh_mech = mechs[kc_pos]
+    #         private_reader.tau = thresh_mech.threshold
+    #         # print("xxx")
+    #     if hasattr(out, "filter"):
+    #         # it's an RDD
+    #         tau = private_reader.tau
+    #         out = out.filter(lambda row: row[kc_pos] > tau)
+    #         # print("yyy")
+    #     else:
+    #         # print(kc_pos)
+    #         # print(private_reader.tau)
+    #         out = filter(lambda row: row[kc_pos] > private_reader.tau, out)
+    #         # print("zzz")
+
+    # print(list(out))
+
+    if not postprocess:
+        return out
+
+    # print(list(out))
+
+    def process_clamp_counts(row_in):
+        # clamp counts to be non-negative
+        row = [v for v in row_in]
+        for idx in range(len(row)):
+            if is_count[idx] and row[idx] < 0:
+                row[idx] = 0
+        return row
+
+    clamp_counts = private_reader._options.clamp_counts
+    if clamp_counts:
+        if hasattr(out, "rdd"):
+            # it's a dataframe
+            out = out.rdd.map(process_clamp_counts)
+        elif hasattr(out, "map"):
+            # it's an RDD
+            out = out.map(process_clamp_counts)
+        else:
+            out = map(process_clamp_counts, out)
+
+    # get column information for outer query
+    out_syms = query._select_symbols
+    out_types = [s.expression.type() for s in out_syms]
+    out_col_names = [s.name for s in out_syms]
+
+    def convert(val, type):
+        if val is None:
+            return None  # all columns are nullable
+        if type == "string" or type == "unknown":
+            return str(val)
+        elif type == "int":
+            return int(float(str(val).replace('"', "").replace("'", "")))
+        elif type == "float":
+            return float(str(val).replace('"', "").replace("'", ""))
+        elif type == "boolean":
+            if isinstance(val, int):
+                return val != 0
+            else:
+                return bool(str(val).replace('"', "").replace("'", ""))
+        elif type == "datetime":
+            v = parse_datetime(val)
+            if v is None:
+                raise ValueError(f"Could not parse datetime: {val}")
+            return v
+        else:
+            raise ValueError("Can't convert type " + type)
+
+    alphas = [alpha for alpha in private_reader.privacy.alphas]
+
+    def process_out_row(row):
+        bindings = dict((name.lower(), val) for name, val in zip(source_col_names, row))
+        out_row = [c.expression.evaluate(bindings) for c in query.select.namedExpressions]
+        try:
+            out_row = [convert(val, type) for val, type in zip(out_row, out_types)]
+        except Exception as e:
+            raise ValueError(
+                f"Error converting output row: {e}\n"
+                f"Expecting types {out_types}"
+            )
+
+        # compute accuracies
+        if accuracy == True and alphas:
+            accuracies = [_accuracy.accuracy(row=list(row), alpha=alpha) for alpha in alphas]
+            return tuple([out_row, accuracies])
+        else:
+            return tuple([out_row, []])
+
+    if hasattr(out, "map"):
+        # it's an RDD
+        out = out.map(process_out_row)
+    else:
+        out = map(process_out_row, out)
+
+    def filter_aggregate(row, condition):
+        bindings = dict((name.lower(), val) for name, val in zip(out_col_names, row[0]))
+        keep = condition.evaluate(bindings)
+        return keep
+
+    if query.having is not None:
+        condition = query.having.condition
+        if hasattr(out, "filter"):
+            # it's an RDD
+            out = out.filter(lambda row: filter_aggregate(row, condition))
+        else:
+            out = filter(lambda row: filter_aggregate(row, condition), out)
+
+    # sort it if necessary
+    if query.order is not None:
+        sort_fields = []
+        for si in query.order.sortItems:
+            if type(si.expression) is not ast.Column:
+                raise ValueError("We only know how to sort by column names right now")
+            colname = si.expression.name.lower()
+            if colname not in out_col_names:
+                raise ValueError(
+                    "Can't sort by {0}, because it's not in output columns: {1}".format(
+                        colname, out_col_names
+                    )
+                )
+            colidx = out_col_names.index(colname)
+            desc = False
+            if si.order is not None and si.order.lower() == "desc":
+                desc = True
+            if desc and not (out_types[colidx] in ["int", "float", "boolean", "datetime"]):
+                raise ValueError("We don't know how to sort descending by " + out_types[colidx])
+            sf = (desc, colidx)
+            sort_fields.append(sf)
+
+        def sort_func(row):
+            # use index 0, since index 1 is accuracy
+            return SortKey(row[0], sort_fields)
+
+        if hasattr(out, "sortBy"):
+            out = out.sortBy(sort_func)
+        else:
+            out = sorted(out, key=sort_func)
+
+    # check for LIMIT or TOP
+    limit_rows = None
+    if query.limit is not None:
+        if query.select.quantifier is not None:
+            raise ValueError("Query cannot have both LIMIT and TOP set")
+        limit_rows = query.limit.n
+    elif query.select.quantifier is not None and isinstance(query.select.quantifier, Top):
+        limit_rows = query.select.quantifier.n
+    if limit_rows is not None:
+        if hasattr(out, "rdd"):
+            # it's a dataframe
+            out = out.limit(limit_rows)
+        elif hasattr(out, "map"):
+            # it's an RDD
+            out = out.take(limit_rows)
+        else:
+            out = itertools.islice(out, limit_rows)
+
+    # drop empty accuracy if no accuracy requested
+    def drop_accuracy(row):
+        return row[0]
+
+    if accuracy == False:
+        if hasattr(out, "rdd"):
+            # it's a dataframe
+            out = out.rdd.map(drop_accuracy)
+        elif hasattr(out, "map"):
+            # it's an RDD
+            out = out.map(drop_accuracy)
+        else:
+            out = map(drop_accuracy, out)
+
+    # print(list(out))
+
+    # increment odometer
+    for mech in mechs:
+        if mech:
+            private_reader.odometer.spend(Privacy(epsilon=mech.epsilon, delta=mech.delta))
+
+    # output it
+    if accuracy == False and hasattr(out, "toDF"):
+        # Pipeline RDD
+        if not out.isEmpty():
+            return out.toDF(out_col_names)
+        else:
+            return out
+    elif hasattr(out, "map"):
+        # Bare RDD
+        return out
+    else:
+        row0 = [out_col_names]
+        if accuracy == True:
+            row0 = [[out_col_names,
+                     [[col_name + '_' + str(1 - alpha).replace('0.', '') for col_name in out_col_names] for alpha in
+                      private_reader.privacy.alphas]]]
+        out_rows = row0 + list(out)
+        return out_rows
+
+
+def compute_original_risks(df, query_string, idx_to_compute, table_name, row_num_col, original_result):
+
+    original_risks = []
+    # risk_score_cache = {}
+
+    query_string = re.sub(f" WHERE ", f" WHERE ", query_string, flags=re.IGNORECASE)
+    query_string = re.sub(f" FROM ", f" FROM ", query_string, flags=re.IGNORECASE)
+
+    where_pos = query_string.rfind(" WHERE ")  # last pos of WHERE
+    table_name_pos = None
+    # no_where_clause = False
+    if where_pos == -1:
+        # no_where_clause = True
+        table_name_pos = query_string.rfind(f" FROM {table_name}")
+        table_name_pos += len(f" FROM {table_name}")
+    else:
+        where_pos += len(" WHERE ")
+
+    engine = create_engine("sqlite:///:memory:")
+    # engine = create_engine(f"sqlite:///file:memdb{num}?mode=memory&cache=shared&uri=true")
+
+
+    with engine.connect() as conn:
+
+        # start_time = time.time()
+
+        num_rows = to_sql(df, name=table_name, con=conn,
+                          # index=not any(name is None for name in df.index.names),
+                          if_exists="replace")  # load index into db if all levels are named
+        if num_rows != len(df):
+            print("error when loading to sqlite")
+            return None
+
+        # insert_db_time = time.time() - start_time
+        # print(f"time to insert to db: {insert_db_time} s")
+
+        for i in tqdm.tqdm(idx_to_compute):
+
+            if i == -1:
+                original_risks.append(None)
+                continue
+
+            # column_values = tuple(df.iloc[i][query_columns].values)
+            # print(column_values)
+            # if column_values not in risk_score_cache.keys():
+
+            if where_pos == -1:
+                cur_query = query_string[:table_name_pos] + f" WHERE {row_num_col} != {i} " + query_string[
+                                                                                              table_name_pos:]
+            else:
+                cur_query = query_string[:where_pos] + f"{row_num_col} != {i} AND " + query_string[where_pos:]
+
+            # print(cur_query)
+            cur_result = read_sql(sql=cur_query, con=conn)
+            # print(cur_result.sum(numeric_only=True).sum())
+
+            risk_score = abs(
+                cur_result.sum(numeric_only=True).sum() - original_result.sum(numeric_only=True).sum())
+
+            # risk_score_cache[column_values] = risk_score
+            # else:
+            #     risk_score = risk_score_cache[column_values]
+
+            original_risks.append(risk_score)
+
+    # engine.dispose()
+    # original_risks_dict[num] = original_risks
+    # mp_queue.put((num, original_risks))
+
+    return original_risks
+
+
+def compute_dp_risks(indices_to_compute, risk_score_cache_dp, inv_cache, dp_result, sqlite_connection, table_name, row_num_col,
+                     private_reader, subquery, query):
+    dp_risks = []
+
+    for i in indices_to_compute:
+
+        columns_value = inv_cache[i]
+
+        if columns_value in risk_score_cache_dp:
+            # print("in")
+            dp_risks.append(risk_score_cache_dp[columns_value])
+            continue
+
+        cur_result = execute_rewritten_ast(sqlite_connection, table_name, row_num_col, i,
+                                           private_reader, subquery, query)
+        cur_result = private_reader._to_df(cur_result)
+
+        # change = abs(cur_result - dp_result).to_numpy().sum()
+        risk_score = 0
+        if len(cur_result) > 0 and len(dp_result) > 0:
+            risk_score = abs(
+                cur_result.sum(numeric_only=True).sum() - dp_result.sum(numeric_only=True).sum())
+
+        dp_risks.append(risk_score)
+        risk_score_cache_dp[columns_value] = risk_score
+
+    # print(risk_score_cache_dp)
+
+    return dp_risks
+
+
+def extract_table_names(query):
+    """ Extract table names from an SQL query. """
+    # a good old fashioned regex. turns out this worked better than actually parsing the code
+    tables_blocks = re.findall(r'(?:FROM|JOIN)\s+(\w+(?:\s*,\s*\w+)*)', query, re.IGNORECASE)
+    tables = [tbl
+              for block in tables_blocks
+              for tbl in re.findall(r'\w+', block)]
+    return set(tables)
+
+
+def find_epsilon(df: pd.DataFrame,
+                 query_string: str,
+                 risk_group_percentile: int,
+                 risk_group_size: int,
+                 eps_to_test: list,
+                 num_runs: int,
+                 q: float,
+                 test: str = "mw",
+                 num_parallel_processes: int = 8):
+
+    with warnings.catch_warnings():
+        warnings.simplefilter(action="ignore")
+
+        table_names = extract_table_names(query_string)
+        if len(table_names) != 1:
+            print("error: can only query on one table")
+            return None
+        if query_string.count("SELECT ") > 1:
+            # there's subquery
+            print("error: can't have subquery")
+            return None
+        table_name = table_names.pop()
+        # print(table_name)
+
+        start_time = time.time()
+
+        # dfs_one_off = []  # cache
+        # for i in range(len(df)):
+        #     cur_df = df.copy()
+        #     cur_df = cur_df.drop([i])
+        #     dfs_one_off.append(cur_df)
+
+        # TODO: cache risk scores by first finding the relevant columns in query, and save the risk score of each set of column values
+        sql_parser = Parser(query_string)
+        query_columns = sql_parser.columns
+        # print(query_columns)
+        df_copy = df.copy()
+        df_copy = df_copy[query_columns]
+
+        metadata = get_metadata(df_copy, table_name)
+
+        # just needed to create a row_num col that doesn't already exist
+        row_num_col = f"row_num_{random.randint(0, 10000)}"
+        while row_num_col in df_copy.columns:
+            row_num_col = f"row_num_{random.randint(0, 10000)}"
+        df_copy[row_num_col] = df_copy.reset_index().index
+
+        # original_risks, original_result = compute_original_risks(df, query_string, metadata, dfs_one_off)
+
+        start_time = time.time()
+
+        engine = create_engine("sqlite:///:memory:")
+        sqlite_connection = engine.connect()
+
+        num_rows = to_sql(df_copy, name=table_name, con=sqlite_connection,
+                          # index=not any(name is None for name in df_copy.index.names),
+                          if_exists="replace")  # load index into db if all levels are named
+        if num_rows != len(df_copy):
+            print("error when loading to sqlite")
+            return None
+
+        insert_db_time = time.time() - start_time
+        print(f"time to insert to db: {insert_db_time} s")
+
+        start_time = time.time()
+
+        original_result = read_sql(sql=query_string, con=sqlite_connection)
+
+        if len(original_result.select_dtypes(include=np.number).columns) > 1:
+            print("error: can only have one numerical column in the query result")
+            return None
+
+        # print("original_result")
+        # print(original_result)
+
+        original_risks = []
+
+        # start_time = time.time()
+
+        cache = defaultdict(list)
+
+        columns_values = list(df[query_columns].itertuples(index=False, name=None))
+
+        for i in range(len(columns_values)):
+            cache[columns_values[i]].append(i)
+
+        # elapsed = time.time() - start_time
+        # print(f"time to create cache: {elapsed} s")
+
+        inv_cache = {}
+        indices = np.arange(len(df_copy))
+        indices_to_ignore = []
+
+        for k, v in cache.items():
+
+            indices_to_ignore += v[1:] # only need to compute risk for one
+
+            for i in v:
+                inv_cache[i] = k
+
+        np.put(indices, indices_to_ignore, [-1] * len(indices_to_ignore))
+
+        idx_split = np.array_split(indices, num_parallel_processes)
+
+        # if num_parallel_processes > 0:
+
+        # def initializer():
+        #     """ensure the parent proc's database connections are not touched
+        #     in the new connection pool"""
+        #     engine.dispose(close=False)
+
+        with mp.Pool(processes=num_parallel_processes) as mp_pool:
+
+            args = [(df_copy, query_string, idx_to_compute, table_name, row_num_col, original_result)
+                    for idx_to_compute in idx_split]
+
+            for cur_original_risks in mp_pool.starmap(compute_original_risks, args):
+                original_risks += cur_original_risks
+
+        # with mp.Manager() as mp_manager:
+        #
+        #     # risk_score_cache = mp_manager.dict()
+        #     original_risks_dict = mp_manager.dict()
+        #     processes = []
+        #
+        #     for i in range(num_parallel_processes):
+        #
+        #         p = mp.Process(target=compute_original_risks,
+        #                        args=(df_copy, query_string, idx_split[i], table_name, row_num_col, original_result, original_risks_dict, i))
+        #         p.start()
+        #
+        #         processes.append(p)
+        #
+        #     for p in processes:
+        #         p.join()
+        #
+        #     for i in range(num_parallel_processes):
+        #         original_risks += original_risks_dict[i]
+
+        for i in range(len(original_risks)):
+            if original_risks[i] is None:
+                idx_computed = cache[inv_cache[i]][0]
+                original_risks[i] = original_risks[idx_computed]
+
+        # else:
+        #
+        # query_string = re.sub(f" WHERE ", f" WHERE ", query_string, flags=re.IGNORECASE)
+        # query_string = re.sub(f" FROM ", f" FROM ", query_string, flags=re.IGNORECASE)
+        #
+        # where_pos = query_string.rfind(" WHERE ")  # last pos of WHERE
+        # # no_where_clause = False
+        # if where_pos == -1:
+        #     # no_where_clause = True
+        #     table_name_pos = query_string.rfind(f" FROM {table_name}")
+        #     table_name_pos += len(f" FROM {table_name}")
+        # else:
+        #     where_pos += len(" WHERE ")
+        #
+        # original_risks_t = []
+        # risk_score_cache = {}
+        #
+        # for i in range(len(df_copy)):
+        #
+        #     column_values = tuple(df_copy.iloc[i][query_columns].values)
+        #     # print(column_values)
+        #     if column_values not in risk_score_cache.keys():
+        #
+        #         if where_pos == -1:
+        #             cur_query = query_string[:table_name_pos] + f" WHERE {row_num_col} != {i} " + query_string[table_name_pos:]
+        #         else:
+        #             cur_query = query_string[:where_pos] + f"{row_num_col} != {i} AND " + query_string[where_pos:]
+        #
+        #         # print(cur_query)
+        #         cur_result = read_sql(sql=cur_query, con=sqlite_connection)
+        #         # print(cur_result.sum(numeric_only=True).sum())
+        #         # if cur_result.sum(numeric_only=True).sum() != 14:
+        #         #     print(cur_result)
+        #         #     exit()
+        #
+        #         risk_score = abs(cur_result.sum(numeric_only=True).sum() - original_result.sum(numeric_only=True).sum())
+        #         # if risk_score > 0:
+        #         #     print(risk_score)
+        #         #     exit()
+        #
+        #         risk_score_cache[column_values] = risk_score
+        #     else:
+        #         risk_score = risk_score_cache[column_values]
+        #
+        #     original_risks_t.append(risk_score)
+        #
+        # assert original_risks == original_risks_t
+
+        # print(original_risks)
+        elapsed = time.time() - start_time
+        print(f"time to compute original risk: {elapsed} s")
+
+        # print(pd.DataFrame(original_risks).describe())
+
+        # return None
+
+        # Select groups we want to equalize risks
+        # for now use the default strategy - high risk (upper x% quantile) and low risk (lower x% quantile) group
+        sorted_original_risks = list(np.sort(original_risks))
+        # print(sorted_original_risks)
+        sorted_original_risks_idx = np.argsort(original_risks)
+        # idx1 = sorted_original_risks.index(
+        #     np.percentile(sorted_original_risks, risk_group_percentile, interpolation='nearest'))
+
+        if risk_group_percentile > 0:
+
+            if risk_group_percentile > 50:
+                risk_group_percentile = 100 - risk_group_percentile
+
+            val1 = np.percentile(sorted_original_risks, risk_group_percentile, interpolation='nearest')
+            # last index of val1
+            idx1 = max(loc for loc, val in enumerate(sorted_original_risks) if abs(val - val1) <= 10e-8)
+
+            # idx2 = sorted_original_risks.index(
+            #     np.percentile(sorted_original_risks, 100 - risk_group_percentile, interpolation='nearest'))
+            val2 = np.percentile(sorted_original_risks, 100 - risk_group_percentile, interpolation='nearest')
+            # first index of val2
+            idx2 = sorted_original_risks.index(val2)
+
+        else:
+
+            if risk_group_size > len(sorted_original_risks):
+                print("risk_group_size larger than total size")
+                return None
+
+            idx1 = risk_group_size - 1
+            idx2 = len(sorted_original_risks) - risk_group_size
+
+        # print(val1, val2)
+        # if idx1 > idx2:
+        #     idx1, idx2 = idx2, idx1
+        # print("risk group idx:", idx1, idx2)
+
+        # sample1 = sorted_original_risks[:idx1 + 1]
+        # sample2 = sorted_original_risks[idx2:]
+        # print(sample1)
+        # print(sample2)
+        sample_idx1 = sorted_original_risks_idx[:idx1 + 1]
+        sample_idx2 = sorted_original_risks_idx[idx2:]
+        # print(sample_idx1, sample_idx2)
+
+        # Check whether the samples come from the same distribution (null hypothesis)
+        # Reject the null if p-value is less than some threshold
+        # for now we don't care even if the samples already come from the same distribution
+        # res = stats.ks_2samp(sample1, sample2)
+        # p_value = res[1]
+        # print(f"p_value: {p_value}")
+
+        # Now we test different epsilons
+        # For each epsilon, we run n times, with the goal of finding the largest epsilon
+        # that can constantly stay in null for all n runs
+
+        best_eps = None
+
+        # We start from the largest epsilon to the smallest
+        sorted_eps_to_test = np.sort(eps_to_test)[::-1]
+        # print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        # print(sorted_eps_to_test)
+        # return None
+
+        compute_risk_time = 0.0
+        test_equal_distrbution_time = 0.0
+
+        # query_string = query_string.replace(f" {table_name} ", f" {table_name}.{table_name} ")
+        query_string = re.sub(f" FROM {table_name}", f" FROM {table_name}.{table_name}", query_string, flags=re.IGNORECASE)
+
+        for eps in sorted_eps_to_test:
+
+            print(f"epsilon = {eps}")
+
+            # reject_null = False
+            p_values = []
+
+            # For each run, we compute the risks again
+            # New risk = DP result - DP result when removing one record
+
+            privacy = Privacy(epsilon=eps)
+            private_reader = snsql.from_df(df_copy, metadata=metadata, privacy=privacy)
+            # dp_result = private_reader.execute_df(query)
+            # rewrite the query ast once for every epsilon
+            query_ast = private_reader.parse_query_string(query_string)
+            # print(query_ast)
+            subquery, query = private_reader._rewrite_ast(query_ast)
+            # print(subquery)
+            # print(query)
+
+            for j in range(num_runs):
+
+                # if reject_null:
+                #     continue # this eps does not equalize risks, skip
+
+                start_time = time.time()
+
+                # better to compute a new DP result each run
+                # dp_result = private_reader.execute_df(query)
+                # query_ast = private_reader.parse_query_string(query_string)
+                # subquery, query = private_reader._rewrite_ast(query_ast)
+                dp_result = execute_rewritten_ast(sqlite_connection, table_name, row_num_col, -1, private_reader, subquery, query)
+                dp_result = private_reader._to_df(dp_result)
+                # print(dp_result)
+
+                # We get the same samples based on individuals who are present in the original chosen samples
+                # we only need to compute risks for those samples
+                #
+                risk_score_cache_dp = {}
+
+                dp_risks1 = compute_dp_risks(sample_idx1, risk_score_cache_dp, inv_cache, dp_result, sqlite_connection, table_name, row_num_col, private_reader, subquery, query)
+                dp_risks2 = compute_dp_risks(sample_idx2, risk_score_cache_dp, inv_cache, dp_result, sqlite_connection, table_name, row_num_col, private_reader, subquery, query)
+
+                # normalize
+                dp_risks1 = preprocessing.normalize([dp_risks1])[0]
+                dp_risks2 = preprocessing.normalize([dp_risks2])[0]
+
+                elapsed = time.time() - start_time
+                # print(f"{j}th compute risk time: {elapsed} s")
+                compute_risk_time += elapsed
+
+                # We perform the test and record the p-value for each run
+                start_time = time.time()
+
+                if test == "mw":
+                    cur_res = stats.mannwhitneyu(dp_risks1, dp_risks2)
+                elif test == "ks":
+                    cur_res = stats.ks_2samp(dp_risks1, dp_risks2)  # , method="exact")
+                elif test == "es":
+                    for i1 in range(len(dp_risks1)):
+                        if dp_risks1[i1] == 0.0:
+                            dp_risks1[i1] += 1e-100
+                    cur_res = stats.epps_singleton_2samp(dp_risks1, dp_risks2)
+
+                p_value = cur_res[1]
+                # if p_value < 0.01:
+                #     reject_null = True # early stopping
+                p_values.append(p_value)
+
+                # print(pd.DataFrame(new_risks1).describe())
+                # print(pd.DataFrame(new_risks2).describe())
+                # print(f"p_value: {p_value}")
+
+                elapsed = time.time() - start_time
+                test_equal_distrbution_time += elapsed
+
+            # Now we have n p-values for the current epsilon, we use multiple comparisons' technique
+            # to determine if this epsilon is good enough
+            # For now we use false discovery rate
+            # print(p_values)
+            if num_runs > 1:
+                if not fdr(p_values, q):  # q = proportion of false positives we will accept
+                    # We want no discovery (fail to reject null) for all n runs
+                    # If we fail to reject the null, then we break the loop.
+                    # The current epsilon is the one we choose
+                    best_eps = eps
+                    break
+            else:
+                if p_values[0] > q:
+                    best_eps = eps
+                    break
+
+            # TODO: if we find a lot of discoveries (a lot of small p-values),
+            #  we can skip epsilons that are close to the current eps (ex. 10 to 9).
+            #  If there's only a few discoveries,
+            #  we should probe epsilons that are close (10 to 9.9)
+
+        # print(f"total time to compute new risk: {compute_risk_time} s")
+        # print(f"total time to test equal distribution: {test_equal_distrbution_time} s")
+
+        sqlite_connection.close()
+
+        if best_eps is None:
+            return None
+
+        return best_eps, dp_result # also return the dp result computed
+
+
+if __name__ == '__main__':
+    # csv_path = '../PUMS.csv'
+    # df = pd.read_csv(csv_path)#.head(100)
+    # print(df.head())
+    df = pd.read_csv("../adult.csv")
+    # df = df[["age", "education", "education.num", "race", "income"]]
+    # df.rename(columns={'education.num': 'education_num'}, inplace=True)
+    # df = df.sample(1000, random_state=0, ignore_index=True)
+    # df = pd.read_csv("adult_100_sample.csv")
+    df.rename(columns={'education.num': 'education_num'}, inplace=True)
+    # df["row_num"] = df.reset_index().index
+    # print(df)
+
+    query_string = "SELECT COUNT(*) FROM adult WHERE age < 40 AND income == '>50K'"
+    # query_string = "SELECT AVG(age) FROM adult WHERE income == '>50K' AND education_num == 13" #education_num == 13
+    # query_string = "SELECT race, COUNT(*) FROM adult WHERE education_num >= 14 AND income == '<=50K' GROUP BY race"
+    # query_string = "SELECT AVG(age) from PUMS"
+    # query_string = "SELECT COUNT(*) FROM (SELECT COUNT(age) as cnt FROM adult GROUP BY age) WHERE cnt > 2"
+
+    # design epsilons to test in a way that smaller eps are more frequent and largest eps are less
+    eps_list = list(np.arange(0.001, 0.01, 0.001, dtype=float))
+    eps_list += list(np.arange(0.01, 0.11, 0.01, dtype=float))
+    eps_list += list(np.arange(0.1, 1.1, 0.1, dtype=float))
+    eps_list += list(np.arange(1, 11, 1, dtype=float))
+    # eps_list += list(np.arange(10, 101, 10, dtype=float))
+    # eps_list = list(np.arange(0.5, 5.1, 0.5, dtype=float))
+
+    # eps_list = [6.0]
+    # print(eps_list)
+
+    start_time = time.time()
+    eps = find_epsilon(df, query_string, -1, 100, eps_list, 5, 0.05)
+    elapsed = time.time() - start_time
+    print(f"total time: {elapsed} s")
+
+    print(eps)
