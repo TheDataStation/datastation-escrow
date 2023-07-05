@@ -832,7 +832,7 @@ def find_epsilon(context,
         if best_eps is None:
             return None
 
-        return best_eps, dp_result  # also return the dp result computed
+        return best_eps, dp_result, insert_db_time  # also return the dp result computed
 
 
 @register()
