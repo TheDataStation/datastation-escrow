@@ -46,7 +46,7 @@ def get_datasets_by_paths(db: Session, paths):
 
 def get_datasets_by_ids(db: Session, ids: list):
     datasets = db.query(Dataset).filter(Dataset.id.in_(tuple(ids))).all()
-    print(datasets)
+    # print(datasets)
     return datasets
 
 def remove_dataset_by_name(db: Session, name):
