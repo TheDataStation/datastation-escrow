@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
         data_path = "/home/zhiru_uchicago_edu/DataStation/integration_tests/private_query/data/adult_age_race_sex_income.csv"
         encrypted_path = "/home/zhiru_uchicago_edu/DataStation/integration_tests/private_query/encrypted_data" \
-                         "/adult_age_race_sex_income_encrpypted.csv"
+                         "/adult_age_race_sex_income_encrypted.csv"
 
 
         def create_user(user_name):
