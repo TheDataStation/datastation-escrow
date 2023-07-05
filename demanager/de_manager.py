@@ -132,12 +132,7 @@ def register_provenance_in_DB(data_id,
 
     return Response(status=0, message="success")
 
-def list_discoverable_des(username):
-    # Check if there is an existing user
-    cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
-    if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
-
+def list_discoverable_des():
     database_service_response = database_api.list_discoverable_des()
     res = []
     for discoverable_de_id in database_service_response:

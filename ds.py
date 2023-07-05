@@ -335,17 +335,17 @@ class DataStation:
 
         return Response(status=de_manager_response.status, message=de_manager_response.message)
 
-    def list_discoverable_des(self, username):
+    def list_discoverable_des(self, user_id):
         """
         List IDs of all des in discoverable mode.
 
         Parameters:
-            username: caller username
+            user_id: id of user
 
         Returns:
         A list containing IDs of all discoverable des.
         """
-        de_manager_response = de_manager.list_discoverable_des(username)
+        de_manager_response = de_manager.list_discoverable_des()
         return de_manager_response
 
     def upload_policy(self, username, user_id, api, data_id, share_id):
@@ -430,7 +430,7 @@ class DataStation:
         return policy_broker.get_all_policies()
 
     def suggest_share(self,
-                      username,
+                      user_id,
                       dest_agents,
                       data_elements,
                       template,
@@ -440,7 +440,7 @@ class DataStation:
         Propose a share. This leads to the creation of a share.
 
         Parameters:
-            username: the unique username identifying which user is calling the api
+            user_id: the unique id identifying which user is calling the api
             dest_agents: list of user ids
             data_elements: list of data elements
             template: template function
@@ -457,15 +457,14 @@ class DataStation:
         self.cur_share_id += 1
 
         if self.trust_mode == "full_trust":
-            response = share_manager.register_share_in_DB(username,
-                                                          share_id,
+            response = share_manager.register_share_in_DB(share_id,
                                                           dest_agents,
                                                           data_elements,
                                                           template,
                                                           *args,
                                                           **kwargs, )
         else:
-            response = share_manager.register_share_in_DB_no_trust(username,
+            response = share_manager.register_share_in_DB_no_trust(user_id,
                                                                    share_id,
                                                                    dest_agents,
                                                                    data_elements,
@@ -477,12 +476,12 @@ class DataStation:
 
         return response
 
-    def show_share(self, username, share_id):
+    def show_share(self, user_id, share_id):
         """
         Display the content of a share.
 
         Parameters:
-            username: caller username
+            user_id: id of caller
             share_id: id of the share that the caller wants to see
 
         Returns:
@@ -493,14 +492,14 @@ class DataStation:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return share_manager.show_share(username, share_id)
+        return share_manager.show_share(user_id, share_id)
 
-    def approve_share(self, username, share_id):
+    def approve_share(self, user_id, share_id):
         """
         Update a share's status to ready, for approval agent <username>.
 
         Parameters:
-            username: caller username
+            user_id: caller username
             share_id: id of the share
 
         Returns:
@@ -508,32 +507,25 @@ class DataStation:
             status: status of approving share. 0: success, 1: failure.
         """
         if self.trust_mode == "full_trust":
-            return share_manager.approve_share(username,
+            return share_manager.approve_share(user_id,
                                                share_id, )
         else:
-            return share_manager.approve_share(username,
+            return share_manager.approve_share(user_id,
                                                share_id,
                                                self.write_ahead_log,
                                                self.key_manager, )
 
-    def execute_share(self, username, share_id):
+    def execute_share(self, user_id, share_id):
         """
         Execute a share.
 
         Parameters:
-            username: caller username (should be one of the dest agents)
+            user_id: caller id
             share_id: id of the share
 
         Returns:
             The result of executing the share (f(P))
         """
-        # get caller's UID
-        cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
-        # If the user doesn't exist, something is wrong
-        if cur_user.status == -1:
-            print("Something wrong with the current user")
-            return Response(status=1, message="Something wrong with the current user")
-        cur_user_id = cur_user.data[0].id
 
         # fetch arguments
         share_template, share_param = share_manager.get_share_template_and_param(share_id)
@@ -544,7 +536,7 @@ class DataStation:
         if self.development_mode:
             # Check destination agent
             dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
-            if cur_user_id not in dest_a_ids:
+            if user_id not in dest_a_ids:
                 print("Caller not a destination agent")
                 return None
 
@@ -594,7 +586,7 @@ class DataStation:
 
         # Case 2: Sending to Gatekeeper
         res = self.gatekeeper.call_api(share_template,
-                                       cur_user_id,
+                                       user_id,
                                        share_id,
                                        "pessimistic",
                                        *args,
@@ -659,7 +651,7 @@ class DataStation:
             if api == cur_api.__name__:
                 print("user is calling an api_endpoint", api)
                 # print(args)
-                res = cur_api(*args, **kwargs)
+                res = cur_api(user_id, *args, **kwargs)
                 return res
 
     # data users gives a staged DE ID and tries to release it
