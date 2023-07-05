@@ -609,10 +609,34 @@ def find_epsilon(context,
             # compute_exact_aggregates_of_neighboring_data(df_copy, table_name, row_num_col, idx_to_compute,
             #                                              private_reader, subquery, query)
 
+        neighboring_aggregates = []
+
         for i in range(len(neighboring_results)):
             if neighboring_results[i] is None:
                 idx_computed = cache[inv_cache[i]][0]
                 neighboring_results[i] = neighboring_results[idx_computed]
+
+            neighboring_result = neighboring_results[i]
+            neighboring_aggregate = [val[1:] for val in neighboring_result.itertuples()]
+            # print("neighboring_aggregates", neighboring_aggregates)
+
+            if len(neighboring_aggregate) != len(original_aggregates):
+                # corner case: group by results missing for one group after removing one record
+                # print("in")
+                missing_group = set(original_aggregates) - set(neighboring_aggregate)
+                # assert len(missing_group) == 1
+                missing_group = missing_group.pop()
+                missing_group_pos = original_aggregates.index(missing_group)
+                missing_group = list(missing_group)
+                for i in range(len(missing_group)):
+                    if isinstance(missing_group[i], numbers.Number):
+                        # print("xxxx")
+                        missing_group[i] = 0
+                neighboring_aggregate.insert(missing_group_pos, tuple(missing_group))
+
+            # print("neighboring_aggregates", neighboring_aggregates)
+
+            neighboring_aggregates.append(neighboring_aggregate)
 
         elapsed = time.time() - start_time
         # print(f"time to compute neighboring_results: {elapsed} s")
@@ -661,28 +685,10 @@ def find_epsilon(context,
             # print("dp_aggregates", dp_aggregates)
 
             PRIs = []
-            for neighboring_result in neighboring_results:
-                neighboring_aggregates = [val[1:] for val in neighboring_result.itertuples()]
-                # print("neighboring_aggregates", neighboring_aggregates)
-
-                if len(neighboring_aggregates) != len(original_aggregates):
-                    # corner case: group by results missing for one group after removing one record
-                    # print("in")
-                    missing_group = set(original_aggregates) - set(neighboring_aggregates)
-                    # assert len(missing_group) == 1
-                    missing_group = missing_group.pop()
-                    missing_group_pos = original_aggregates.index(missing_group)
-                    missing_group = list(missing_group)
-                    for i in range(len(missing_group)):
-                        if isinstance(missing_group[i], numbers.Number):
-                            # print("xxxx")
-                            missing_group[i] = 0
-                    neighboring_aggregates.insert(missing_group_pos, tuple(missing_group))
-
-                # print("neighboring_aggregates", neighboring_aggregates)
+            for neighboring_aggregate in neighboring_aggregates:
 
                 PRI = 0
-                for row1, row2 in zip(dp_aggregates, neighboring_aggregates):
+                for row1, row2 in zip(dp_aggregates, neighboring_aggregate):
                     for val1, val2 in zip(row1, row2):
                         if isinstance(val1, numbers.Number) and isinstance(val2, numbers.Number):
                             PRI += abs(val1 - val2)
@@ -814,13 +820,13 @@ def find_epsilon(context,
             # min = np.min(PRIs)
             max = np.max(PRIs)
             # median = np.median(PRIs)
-            p25 = np.percentile(PRIs, 25)
+            denom = np.percentile(PRIs, 50)
 
             # print("max / min", max / min)
             # print("max / 25p", max / p25)
             # print("max / med", max / median)
 
-            if max / p25 < 1.001:
+            if max / denom < 1.01:
                 best_eps = eps
                 break
 
