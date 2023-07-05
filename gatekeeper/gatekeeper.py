@@ -170,6 +170,7 @@ def call_api(api,
     # accessible_data_paths = set()
     # for cur_id in all_accessible_data_id:
     #     accessible_data_paths.add(str(database_api.get_dataset_by_id(cur_id).data[0].access_type))
+    print("xxx", all_accessible_data_id)
     get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
     if get_datasets_by_ids_res.status == -1:
         print("get_datasets_by_ids_res database error")
