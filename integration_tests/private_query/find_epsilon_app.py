@@ -131,24 +131,24 @@ def compute_neighboring_results(df, query_string, idx_to_compute, table_name, ro
 
         # start_time = time.time()
 
-        dummy_row = df.iloc[0].copy()
-        for col in df.columns:
-            if col in table_metadata.keys():
-                if table_metadata[col]["type"] == "int" or table_metadata[col]["type"] == "float":
-                    dummy_row[col] = table_metadata[col]["lower"]
-                elif table_metadata[col]["type"] == "string":
-                    dummy_row[col] = None
-            else:
-                dummy_row[col] = len(df) + 1
+        # dummy_row = df.iloc[0].copy()
+        # for col in df.columns:
+        #     if col in table_metadata.keys():
+        #         if table_metadata[col]["type"] == "int" or table_metadata[col]["type"] == "float":
+        #             dummy_row[col] = table_metadata[col]["lower"]
+        #         elif table_metadata[col]["type"] == "string":
+        #             dummy_row[col] = None
+        #     else:
+        #         dummy_row[col] = len(df) + 1
+        #
+        # # print(dummy_row)
+        # # df_with_dummy_row = df.append(dummy_row)
+        # df_with_dummy_row = pd.concat([df, pd.DataFrame([dummy_row])], ignore_index=True)
 
-        # print(dummy_row)
-        # df_with_dummy_row = df.append(dummy_row)
-        df_with_dummy_row = pd.concat([df, pd.DataFrame([dummy_row])], ignore_index=True)
-
-        num_rows = to_sql(df_with_dummy_row, name=table_name, con=conn,
+        num_rows = to_sql(df, name=table_name, con=conn,
                           # index=not any(name is None for name in df.index.names),
                           if_exists="replace")  # load index into db if all levels are named
-        if num_rows != len(df_with_dummy_row):
+        if num_rows != len(df):
             print("error when loading to sqlite")
             return None
 
@@ -669,7 +669,7 @@ def find_epsilon(context,
                     # corner case: group by results missing for one group after removing one record
                     # print("in")
                     missing_group = set(original_aggregates) - set(neighboring_aggregates)
-                    assert len(missing_group) == 1
+                    # assert len(missing_group) == 1
                     missing_group = missing_group.pop()
                     missing_group_pos = original_aggregates.index(missing_group)
                     missing_group = list(missing_group)
