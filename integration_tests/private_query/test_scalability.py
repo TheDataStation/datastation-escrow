@@ -28,16 +28,11 @@ if __name__ == '__main__':
 
     num_runs_experiment = 10
 
-    risk_group_percentile = -1
-    risk_group_size = 100
     eps_list = list(np.arange(0.001, 0.01, 0.001, dtype=float))
     eps_list += list(np.arange(0.01, 0.1, 0.01, dtype=float))
     eps_list += list(np.arange(0.1, 1, 0.1, dtype=float))
     eps_list += list(np.arange(1, 11, 1, dtype=float))
-    num_runs = 1
-    q = 0.05
-    test = "mw"
-    num_parallel_processes = 10
+    num_parallel_processes = 6
 
     # query_string = "SELECT COUNT(*) FROM adult WHERE income == '>50K' AND education_num == 13 AND age == 25"
     # query_string = "SELECT marital_status, COUNT(*) FROM adult WHERE race == 'Asian-Pac-Islander' AND age >= 30 AND
@@ -54,7 +49,7 @@ if __name__ == '__main__':
                "SELECT SUM(fnlwgt) FROM adult WHERE capital_gain > 0 AND income == '<=50K' AND occupation == 'Sales'"
                ]
 
-    root_dir = "/home/cc/DataStation/integration_tests/private_query"
+    root_dir = "/home/zhiru_uchicago_edu/DataStation/integration_tests/private_query"
     # root_dir = "/Users/zhiruzhu/Desktop/data_station/DataStation/integration_tests/private_query"
 
     data_list = ["adult_1000", "adult_10000", "adult_100000", "adult_1000000"]
@@ -216,12 +211,7 @@ if __name__ == '__main__':
                 res = client_api.call_api("find_epsilon", cur_token, "pessimistic",
                                           list(catalog.keys())[0],
                                           sql_query,
-                                          risk_group_percentile,
-                                          risk_group_size,
                                           eps_list,
-                                          num_runs,
-                                          q,
-                                          test,
                                           num_parallel_processes)
                 elapsed = time.time() - start_time
                 print(f"time: {elapsed} s")
