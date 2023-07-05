@@ -492,10 +492,18 @@ def extract_table_names(query):
 
 @register()
 def find_epsilon(context,
-                 df: pd.DataFrame,
+                 file_to_query: str,
                  query_string: str,
                  eps_to_test: list,
                  num_parallel_processes: int = 8):
+
+    files = utils.get_all_files()
+    # print(files)
+    if file_to_query not in files:
+        print(f"{file_to_query} not accessible")
+        return None
+
+    df = pd.read_csv(file_to_query)
 
     with warnings.catch_warnings():
         warnings.simplefilter(action="ignore")
