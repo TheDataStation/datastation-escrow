@@ -10,7 +10,7 @@ import re
 
 import numpy as np
 import pandas as pd
-from scipy import stats
+# from scipy import stats
 import tqdm
 import time
 import warnings
@@ -22,17 +22,17 @@ from snsql.sql.reader.base import SortKey
 from snsql._ast.ast import Top
 from sqlalchemy import create_engine
 from pandas.io.sql import to_sql, read_sql
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from statsmodels.stats.multitest import fdrcorrection
 from sql_metadata import Parser
-from sklearn import preprocessing
+# from sklearn import preprocessing
 import multiprocessing as mp
 # from multiprocessing.pool import Pool
 # import pathos.multiprocessing as mp
-from pathos.multiprocessing import ProcessPool
+# from pathos.multiprocessing import ProcessPool
 from collections import defaultdict
-from scipy.stats import laplace
-from scipy import spatial
+# from scipy.stats import laplace
+# from scipy import spatial
 
 
 def get_metadata(df: pd.DataFrame, name: str):
