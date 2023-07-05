@@ -142,7 +142,8 @@ def compute_neighboring_results(df, query_string, idx_to_compute, table_name, ro
                 dummy_row[col] = len(df) + 1
 
         # print(dummy_row)
-        df_with_dummy_row = df.append(dummy_row)
+        # df_with_dummy_row = df.append(dummy_row)
+        df_with_dummy_row = pd.concat([df, pd.DataFrame([dummy_row])], ignore_index=True)
 
         num_rows = to_sql(df_with_dummy_row, name=table_name, con=conn,
                           # index=not any(name is None for name in df.index.names),
