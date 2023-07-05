@@ -26,9 +26,9 @@ from pandas.io.sql import to_sql, read_sql
 from statsmodels.stats.multitest import fdrcorrection
 from sql_metadata import Parser
 # from sklearn import preprocessing
-import multiprocessing as mp
+# import multiprocessing as mp
 # from multiprocessing.pool import Pool
-# import pathos.multiprocessing as mp
+import pathos.multiprocessing as mp
 # from pathos.multiprocessing import ProcessPool
 from collections import defaultdict
 # from scipy.stats import laplace
