@@ -496,6 +496,8 @@ def find_epsilon(context,
                  file_to_query: str,
                  query_string: str,
                  eps_to_test: list,
+                 percentile: int,
+                 threshold: float = 0.01,
                  num_parallel_processes: int = 8):
 
     files = utils.get_all_files()
@@ -820,13 +822,13 @@ def find_epsilon(context,
             # min = np.min(PRIs)
             max = np.max(PRIs)
             # median = np.median(PRIs)
-            denom = np.percentile(PRIs, 50)
+            denom = np.percentile(PRIs, percentile)
 
             # print("max / min", max / min)
             # print("max / 25p", max / p25)
             # print("max / med", max / median)
 
-            if max / denom < 1.01:
+            if max / denom < 1.0 + threshold:
                 best_eps = eps
                 break
 
