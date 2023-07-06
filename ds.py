@@ -204,7 +204,7 @@ class DataStation:
         if response.status == 1:
             return Response(status=response.status, message=response.message)
 
-        return Response(status=response.status, message=response.message)
+        return response
 
     def get_all_apis(self):
         """

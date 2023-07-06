@@ -1,3 +1,5 @@
+# TODO: change all username to user_id
+
 class EscrowAPI:
     __comp = None
 
@@ -33,7 +35,7 @@ class EscrowAPI:
 
     @classmethod
     def register_de(cls,
-                    username,
+                    user_id,
                     data_name,
                     data_type,
                     access_param,
@@ -44,7 +46,7 @@ class EscrowAPI:
         Registers a data element in Data Station's database.
 
         Parameters:
-            username: caller username (owner of the data element)
+            user_id: caller id (owner of the data element)
             data_name: name of the data
             data_type: type of DE. e.g: file.
             access_param: additional parameters needed for acccessing the DE
@@ -55,11 +57,11 @@ class EscrowAPI:
             status: status of registering DE. 0: success, 1: failure.
             data_id: if success, a data_id is returned for this registered DE.
         """
-        return cls.__comp.register_de(username, data_name, data_type, access_param, optimistic)
+        return cls.__comp.register_de(user_id, data_name, data_type, access_param, optimistic)
 
     @classmethod
     def upload_de(cls,
-                  username,
+                  user_id,
                   data_id,
                   data_in_bytes):
         """
@@ -68,7 +70,7 @@ class EscrowAPI:
         storage manager.
 
         Parameters:
-            username: caller username (owner of the data element)
+            user_id: caller id (owner of the data element)
             data_id: id of this existing DE
             data_in_bytes: data in bytes
 
@@ -76,21 +78,21 @@ class EscrowAPI:
         A response object with the following fields:
             status: status of uploading data. 0: success, 1: failure.
         """
-        return cls.__comp.upload_de(username, data_id, data_in_bytes)
+        return cls.__comp.upload_de(user_id, data_id, data_in_bytes)
 
     @classmethod
-    def list_discoverable_des(cls, username):
+    def list_discoverable_des(cls, user_id):
         """
         API Endpoint.
         List IDs of all des in discoverable mode.
 
         Parameters:
-            username: caller username
+            user_id: caller id
 
         Returns:
         A list containing IDs of all discoverable des.
         """
-        return cls.__comp.list_discoverable_des(username)
+        return cls.__comp.list_discoverable_des(user_id)
 
     @classmethod
     def upload_policy(cls, username, user_id, api, data_id, share_id):
@@ -113,7 +115,7 @@ class EscrowAPI:
 
     @classmethod
     def suggest_share(cls,
-                      username,
+                      user_id,
                       dest_agents,
                       data_elements,
                       template,
@@ -124,7 +126,7 @@ class EscrowAPI:
         Propose a share. This leads to the creation of a share, which is just a list of policies.
 
         Parameters:
-            username: caller username
+            user_id: caller id
             dest_agents: list of user ids
             data_elements: list of data elements
             template: template function
@@ -135,16 +137,16 @@ class EscrowAPI:
         A response object with the following fields:
             status: status of suggesting share. 0: success, 1: failure.
         """
-        return cls.__comp.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
+        return cls.__comp.suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs)
 
     @classmethod
-    def show_share(cls, username, share_id):
+    def show_share(cls, user_id, share_id):
         """
         API Endpoint.
         Display the content of a share.
 
         Parameters:
-            username: caller username
+            user_id: caller username
             share_id: id of the share that the caller wants to see
 
         Returns:
@@ -155,38 +157,38 @@ class EscrowAPI:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return cls.__comp.show_share(username, share_id)
+        return cls.__comp.show_share(user_id, share_id)
 
     @classmethod
-    def approve_share(cls, username, share_id):
+    def approve_share(cls, user_id, share_id):
         """
         API Endpoint.
         Update a share's status to ready, for approval agent <username>.
 
         Parameters:
-            username: caller username
+            user_id: caller username
             share_id: id of the share
 
         Returns:
         A response object with the following fields:
             status: status of approving share. 0: success, 1: failure.
         """
-        return cls.__comp.approve_share(username, share_id)
+        return cls.__comp.approve_share(user_id, share_id)
 
     @classmethod
-    def execute_share(cls, username, share_id):
+    def execute_share(cls, user_id, share_id):
         """
         API Endpoint.
         Execute a share.
 
         Parameters:
-            username: caller username (should be one of the dest agents)
+            user_id: caller username (should be one of the dest agents)
             share_id: id of the share
 
         Returns:
             The result of executing the share (f(P))
         """
-        return cls.__comp.execute_share(username, share_id)
+        return cls.__comp.execute_share(user_id, share_id)
 
     @classmethod
     def ack_data_in_share(cls, username, share_id, data_id):

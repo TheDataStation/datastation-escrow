@@ -5,7 +5,7 @@ from fastapi import FastAPI
 import uvicorn
 
 from main import initialize_system
-from userregister import user_register
+from dsapplicationregistration.dsar_core import get_registered_api_endpoint
 
 app = FastAPI()
 
@@ -13,10 +13,12 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 
-@app.get('/method1')
-def method1_endpoint(param1: str):
-    result = param1
-    return {'result': result}
+# register agent
+@app.post("/register_agent")
+def register_agent(username, password):
+    """
+    """
+    return ds.create_user(username, password)
 
 if __name__ == "__main__":
     """
@@ -50,9 +52,15 @@ if __name__ == "__main__":
     global ds
     ds = initialize_system(args.ds_config, args.app_config)
 
-    # TODO: remove these and put them somewhere else
     log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):
         os.remove(log_path)
 
+    # Let's get the list of function objects (the api_endpoints defined in the EPF)
+    api_endpoints = get_registered_api_endpoint()
+    for api in api_endpoints:
+        app.add_api_route(f"/{api.__name__}", api, methods=["POST"])
+
     uvicorn.run(app, host='0.0.0.0', port=8000)
+
+
