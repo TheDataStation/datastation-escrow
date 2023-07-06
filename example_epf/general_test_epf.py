@@ -3,33 +3,33 @@ from escrowapi.escrow_api import EscrowAPI
 import csv
 
 @api_endpoint
-def register_de(username, data_name, data_type, access_param, optimistic):
+def register_de(user_id, data_name, data_type, access_param, optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_de(username, data_name, data_type, access_param, optimistic)
+    return EscrowAPI.register_de(user_id, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
-def upload_de(username, data_id, data_in_bytes):
-    return EscrowAPI.upload_de(username, data_id, data_in_bytes)
+def upload_de(user_id, data_id, data_in_bytes):
+    return EscrowAPI.upload_de(user_id, data_id, data_in_bytes)
 
 @api_endpoint
-def list_discoverable_des(username):
-    return EscrowAPI.list_discoverable_des(username)
+def list_discoverable_des(user_id):
+    return EscrowAPI.list_discoverable_des(user_id)
 
 @api_endpoint
-def suggest_share(username, dest_agents, data_elements, template, *args, **kwargs):
-    return EscrowAPI.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
+def suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs):
+    return EscrowAPI.suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs)
 
 @api_endpoint
-def show_share(username, share_id):
-    return EscrowAPI.show_share(username, share_id)
+def show_share(user_id, share_id):
+    return EscrowAPI.show_share(user_id, share_id)
 
 @api_endpoint
-def approve_share(username, share_id):
-    return EscrowAPI.approve_share(username, share_id)
+def approve_share(user_id, share_id):
+    return EscrowAPI.approve_share(user_id, share_id)
 
 @api_endpoint
-def execute_share(username, share_id):
-    return EscrowAPI.execute_share(username, share_id)
+def execute_share(user_id, share_id):
+    return EscrowAPI.execute_share(user_id, share_id)
 
 def get_data(de):
     if de.type == "file":
