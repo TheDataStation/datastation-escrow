@@ -60,7 +60,7 @@ if __name__ == '__main__':
         cur_user_sym_key = ds.key_manager.agents_symmetric_key[1]
         ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
         u_id = i // 3
-        register_res = ds.call_api(f"user{u_id}", "register_de", None, None,
+        register_res = ds.call_api(f"user{u_id}", "register_de",
                                    f"user{u_id}", f"f{i}.csv", "file", f"f{i}.csv", True, )
         ds.call_api(f"user{u_id}", "upload_de", None, None,
                     f"user{u_id}", register_res.de_id, ciphertext_bytes, )
@@ -71,8 +71,7 @@ if __name__ == '__main__':
     # Step 3: Agent suggesting shares
     agents = [1]
     data_elements = [4]
-    ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, "write_first_row",
-                4)
+    ds.call_api("user0", "suggest_share", "user0", agents, data_elements, "write_first_row", 4)
 
     # Approval agent calls show_share() to see content of the share
     share_obj = ds.call_api("user1", "show_share", None, None, "user1", 1)
