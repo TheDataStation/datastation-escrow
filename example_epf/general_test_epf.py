@@ -43,7 +43,6 @@ def write_first_row(de_id):
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         first_row = next(reader)
-    with open("/mnt/data/output.csv", 'w', newline='') as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(first_row)
-    return "write finished"
+    with open("/mnt/data_mount/hello.csv", 'w+') as csvfile:
+        csvfile.write("hello")
+    return first_row
