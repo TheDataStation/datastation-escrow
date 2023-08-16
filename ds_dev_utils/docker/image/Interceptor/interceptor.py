@@ -202,6 +202,7 @@ class Xmp(Fuse):
                 self.file = os.fdopen(os.open("." + path, flags, *mode),
                                       flag2mode(flags))
                 self.fd = self.file.fileno()
+                print("Interceptor: in file init, path is", self.file_path)
 
                 if hasattr(os, 'pread'):
                     self.iolock = None
@@ -226,7 +227,7 @@ class Xmp(Fuse):
                 cur_set = data_accessed_dict_global[pid]
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set
-                print("Data accessed is", data_accessed_dict_global[pid])
+                print("All files currently accessed by Intercetpor is", data_accessed_dict_global[pid])
 
                 self.symmetric_key = None
                 self.decrypted_bytes = None
@@ -293,7 +294,7 @@ class Xmp(Fuse):
                                 decryption_time_dict_global["total_time"] += decryption_time
 
             def read(self, length, offset):
-                # print("Interceptor: I am reading " + str(self.file_path))
+                print("Interceptor: I am reading " + str(self.file_path))
 
                 if self.iolock:
                     self.iolock.acquire()

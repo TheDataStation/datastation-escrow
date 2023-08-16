@@ -172,6 +172,7 @@ class Gatekeeper:
 
         data_ids_accessed = []
         for path in data_path_accessed:
+            print(path)
             data_ids_accessed.append(int(path.split("/")[-2]))
         # print("API result is", api_result)
 
