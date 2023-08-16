@@ -165,7 +165,8 @@ class Gatekeeper:
                               self.docker_session,
                               *args,
                               )
-
+        print(ret)
+        exit()
         api_result = ret["return_info"][0]
         data_path_accessed = ret["return_info"][1]
         decryption_time = ret["return_info"][2]
