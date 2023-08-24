@@ -79,6 +79,8 @@ def calc_pi():
             di_list.append(de_path)
         else:
             bi_list.append(de_path)
+    di_list = sorted(di_list, key=lambda x: int(x[-5]))
+    bi_list = sorted(bi_list, key=lambda x: int(x[-5]))
     # for i in range(len(di_list)):
     #     cur_data = f"d{i}.csv"
     #     cur_benchmark = f"b{i}.csv"
