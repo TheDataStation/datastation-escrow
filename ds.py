@@ -576,6 +576,7 @@ class DataStation:
 
             # Execute share
             list_of_function = get_registered_functions()
+
             for cur_fn in list_of_function:
                 if share_template == cur_fn.__name__:
                     print("Calling a template function in development", share_template)
@@ -583,15 +584,15 @@ class DataStation:
                     print(kwargs)
                     res = cur_fn(*args, **kwargs)
                     return res
-
-        # Case 2: Sending to Gatekeeper
-        res = self.gatekeeper.call_api(share_template,
-                                       user_id,
-                                       share_id,
-                                       "pessimistic",
-                                       *args,
-                                       **kwargs)
-        return res
+        else:
+            # Case 2: Sending to Gatekeeper
+            res = self.gatekeeper.call_api(share_template,
+                                           user_id,
+                                           share_id,
+                                           "pessimistic",
+                                           *args,
+                                           **kwargs)
+            return res
 
     def ack_data_in_share(self, username, data_id, share_id):
         """

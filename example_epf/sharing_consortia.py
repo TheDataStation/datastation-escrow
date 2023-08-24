@@ -15,6 +15,10 @@ def upload_de(user_id, data_id, data_in_bytes):
     return EscrowAPI.upload_de(user_id, data_id, data_in_bytes)
 
 @api_endpoint
+def list_discoverable_des(user_id):
+    return EscrowAPI.list_discoverable_des(user_id)
+
+@api_endpoint
 def suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs):
     return EscrowAPI.suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs)
 
@@ -62,6 +66,8 @@ def evaluate_bi_with_ti(ti, bi):
     y_pred = ti.predict(X_test)
     return accuracy_score(y_test, y_pred)
 
+@api_endpoint
+@function
 def calc_pi():
     pi_list = []
     di_list = []
@@ -69,7 +75,7 @@ def calc_pi():
     des = EscrowAPI.get_all_accessible_des()
     for de in des:
         de_path = de.access_param
-        if de.type == "data":
+        if de_path[-6] == "d":
             di_list.append(de_path)
         else:
             bi_list.append(de_path)
