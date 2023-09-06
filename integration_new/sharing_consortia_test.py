@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # Step 3: Agent suggesting shares
     agents = [1]
     data_elements = [1, 2, 3, 4, 5, 6]
-    ds.call_api("user0", "suggest_share", agents, data_elements, "calc_pi")
+    ds.call_api("user0", "suggest_share", agents, data_elements, "calc_pi_and_pip")
 
     # Approval agent calls show_share() to see content of the share
     share_obj = ds.call_api("user1", "show_share", 1)

@@ -51,6 +51,26 @@ def setup_ti_with_di(di):
     clf.fit(X_train, y_train)
     return clf
 
+def setup_ti_with_d_combined():
+    df_list = []
+    des = EscrowAPI.get_all_accessible_des()
+    for de in des:
+        de_path = de.access_param
+        cur_df = pd.read_csv(de_path)
+        df_list.append(cur_df)
+
+    data = pd.concat(df_list, ignore_index=True)
+    data = data.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
+    data = data.dropna()
+    label_encoder = LabelEncoder()
+    data["Sex"] = label_encoder.fit_transform(data["Sex"])
+    data["Embarked"] = label_encoder.fit_transform(data["Embarked"])
+    X_train = data.drop("Survived", axis=1)
+    y_train = data["Survived"]
+    clf = RandomForestClassifier(random_state=1)
+    clf.fit(X_train, y_train)
+    return clf
+
 def evaluate_bi_with_ti(ti, bi):
     """
     Evaluate agent i's ti using his oen benchmark bi
@@ -68,8 +88,10 @@ def evaluate_bi_with_ti(ti, bi):
 
 @api_endpoint
 @function
-def calc_pi():
+def calc_pi_and_pip():
+    clf_combined = setup_ti_with_d_combined()
     pi_list = []
+    pip_list = []
     di_list = []
     bi_list = []
     des = EscrowAPI.get_all_accessible_des()
@@ -81,13 +103,11 @@ def calc_pi():
             bi_list.append(de_path)
     di_list = sorted(di_list, key=lambda x: int(x[-5]))
     bi_list = sorted(bi_list, key=lambda x: int(x[-5]))
-    # for i in range(len(di_list)):
-    #     cur_data = f"d{i}.csv"
-    #     cur_benchmark = f"b{i}.csv"
-    #     cur_clf = setup_ti_with_di(cur_data)
-    #     cur_acc = evaluate_bi_with_ti(cur_clf, cur_benchmark)
-    #     pi_list.append(cur_acc)
-    return di_list, bi_list
-
-
-
+    for i in range(len(di_list)):
+        cur_clf = setup_ti_with_di(di_list[i])
+        cur_pi = evaluate_bi_with_ti(cur_clf, bi_list[i])
+        cur_pip = evaluate_bi_with_ti(clf_combined, bi_list[i])
+        pi_list.append(cur_pi)
+        pip_list.append(cur_pip)
+    # TODO: write the pis to their respective files
+    return pi_list, pip_list
