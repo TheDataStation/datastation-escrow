@@ -160,7 +160,7 @@ class Gatekeeper:
         ret = call_actual_api(api,
                               self.epf_path,
                               self.mount_dir,
-                              self.key_manager,
+                              self.key_manager.agents_symmetric_key,
                               accessible_de,
                               self.get_new_docker_id(),
                               self.docker_session,
@@ -227,7 +227,7 @@ class Gatekeeper:
 def call_actual_api(api_name,
                     epf_path,
                     mount_dir,
-                    key_manager,
+                    agents_symmetric_key,
                     accessible_de,
                     docker_id,
                     docker_session:DSDocker,
@@ -241,7 +241,7 @@ def call_actual_api(api_name,
      api_name: name of API to run on Docker container
      epf_path: path to the epf file
      mount_dir: directory of filesystem mount for Interceptor
-     key_manager: key manager storing all the sym keys
+     agents_symmetric_key: key manager storing all the sym keys
      accessible_de: a set of accessible DataElement
      docker_id: id assigned to docker container
      server: flask server to receive communications with docker container
@@ -255,7 +255,7 @@ def call_actual_api(api_name,
     # print(api_name, *args, **kwargs)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
 
-    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "key_manager": key_manager}
+    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "agents_symmetric_key": agents_symmetric_key}
     print("The real epf path is", epf_realpath)
 
     # print(session.container.top())
