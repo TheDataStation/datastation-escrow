@@ -16,3 +16,10 @@ class EscrowAPIDocker:
         for de in self.accessible_de:
             if de.id == de_id:
                 return de
+
+    def write_staged(self, file_name, user_id, content):
+        """
+        TODO: first pickle the content to bytes, then encrypt it using the user_id's corresponding sym key
+        TODO: then do f.write()
+        """
+        pass
