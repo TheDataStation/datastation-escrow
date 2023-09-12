@@ -3,11 +3,13 @@ import os
 
 class EscrowAPIDocker:
 
-    def __init__(self, accessible_de):
+    def __init__(self, accessible_de, agents_symmetric_key):
         self.accessible_de = accessible_de
+        self.agents_symmetric_key = agents_symmetric_key
         for cur_de in self.accessible_de:
             if cur_de.type == "file":
                 cur_de.access_param = os.path.join("/mnt/data_mount/", cur_de.access_param)
+        print(self.agents_symmetric_key)
 
     def get_all_accessible_des(self):
         return self.accessible_de
