@@ -204,6 +204,9 @@ class DataStation:
         if response.status == 1:
             return Response(status=response.status, message=response.message)
 
+        # Part 3: Creating a staging storage folder for the newly created user
+        self.storage_manager.create_staging_for_user(user_id)
+
         return response
 
     def get_all_apis(self):

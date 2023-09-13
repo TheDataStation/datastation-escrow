@@ -11,10 +11,16 @@ class StorageManager:
         self.storage_path = storage_path
         if not os.path.exists("SM_storage/Staging_storage"):
             os.makedirs("SM_storage/Staging_storage")
+        self.staging_path = "SM_storage/Staging_storage"
 
     def get_dir_path(self, data_id):
         dir_path = path.join(self.storage_path, str(data_id))
         return dir_path
+
+    def create_staging_for_user(self, user_id):
+        user_staging_path = f"{self.staging_path}/{user_id}"
+        if not os.path.exists(user_staging_path):
+            os.makedirs(user_staging_path)
 
     def store(self, data_name, data_id, data, data_type):
         file_name = path.basename(data_name)
@@ -70,4 +76,3 @@ class StorageManager:
 
         # Other types of data elements are not currently supported
         return Response(status=1, message="data type not currently supported")
-
