@@ -1,6 +1,7 @@
 from os import path, remove, makedirs, removedirs
 from common.pydantic_models.response import Response, RetrieveDataResponse
 
+import os
 import math
 
 # TODO: Right now, we give SM the responsibility to determine how it wants to store different types of data
@@ -8,6 +9,8 @@ class StorageManager:
 
     def __init__(self, storage_path):
         self.storage_path = storage_path
+        if not os.path.exists("SM_storage/Staging_storage"):
+            os.makedirs("SM_storage/Staging_storage")
 
     def get_dir_path(self, data_id):
         dir_path = path.join(self.storage_path, str(data_id))

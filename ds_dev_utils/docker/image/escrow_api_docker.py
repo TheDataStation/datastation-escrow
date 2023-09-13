@@ -23,13 +23,12 @@ class EscrowAPIDocker:
 
     def write_staged(self, file_name, user_id, content):
         """
-        TODO: first pickle the content to bytes, then encrypt it using the user_id's corresponding sym key
-        TODO: then do f.write()
+        first pickle the content to bytes, then encrypt it using the user_id's sym key
+        then write to file
         """
         # with open("/mnt/data_mount/hello.csv", 'w+') as csvfile:
         #     csvfile.write("hello")
         pk_bytes = pickle.dumps(content)
         user_sym_key = self.agents_symmetric_key[user_id]
         enc_bytes = cryptoutils.encrypt_data_with_symmetric_key(pk_bytes, user_sym_key)
-        print(user_sym_key)
-        print(enc_bytes)
+        # TODO: write to file

@@ -50,6 +50,8 @@ if __name__ == '__main__':
         public_key_list.append(cur_public_key)
         ds.create_user(f"user{i}", "string", cipher_sym_key_list[i], public_key_list[i], )
 
+    exit()
+
     # Step 2: Create and upload data elements.
     # We use the 6 csv files in integration_new/test_files/titanic_p
     for i in range(6):
