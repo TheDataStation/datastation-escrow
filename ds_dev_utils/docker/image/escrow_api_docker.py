@@ -29,5 +29,5 @@ class EscrowAPIDocker:
         pk_bytes = pickle.dumps(content)
         user_sym_key = self.agents_symmetric_key[user_id]
         enc_bytes = cryptoutils.encrypt_data_with_symmetric_key(pk_bytes, user_sym_key)
-        with open(f"/mnt/data_mount/Staging_storage/{user_id}/{file_name}", 'w+') as f:
+        with open(f"/mnt/data_mount/Staging_storage/{user_id}/{file_name}", 'wb+') as f:
             f.write(enc_bytes)
