@@ -1,4 +1,6 @@
 import os
+import pickle
+from crypto import cryptoutils
 
 
 class EscrowAPIDocker:
@@ -24,9 +26,10 @@ class EscrowAPIDocker:
         TODO: first pickle the content to bytes, then encrypt it using the user_id's corresponding sym key
         TODO: then do f.write()
         """
-        pass
         # with open("/mnt/data_mount/hello.csv", 'w+') as csvfile:
         #     csvfile.write("hello")
-        print(file_name)
-        print(user_id)
-        print(content)
+        pk_bytes = pickle.dumps(content)
+        user_sym_key = self.agents_symmetric_key[user_id]
+        enc_bytes = cryptoutils.encrypt_data_with_symmetric_key(pk_bytes, user_sym_key)
+        print(user_sym_key)
+        print(enc_bytes)
