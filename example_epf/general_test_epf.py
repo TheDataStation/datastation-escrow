@@ -43,6 +43,5 @@ def print_first_row(de_id):
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         first_row = next(reader)
-    with open("/mnt/data_mount/hello.csv", 'w+') as csvfile:
-        csvfile.write("hello")
+    EscrowAPI.write_staged("temp", 1, first_row)
     return first_row

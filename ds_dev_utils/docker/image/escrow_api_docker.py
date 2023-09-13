@@ -25,3 +25,8 @@ class EscrowAPIDocker:
         TODO: then do f.write()
         """
         pass
+        # with open("/mnt/data_mount/hello.csv", 'w+') as csvfile:
+        #     csvfile.write("hello")
+        print(file_name)
+        print(user_id)
+        print(content)

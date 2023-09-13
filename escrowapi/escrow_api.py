@@ -34,6 +34,14 @@ class EscrowAPI:
         return cls.__comp.get_de_by_id(de_id)
 
     @classmethod
+    def write_staged(cls, file_name, user_id, content):
+        """
+        Used by functions.
+        Writes "content" to a file for user_id.
+        """
+        return cls.__comp.write_staged(file_name, user_id, content)
+
+    @classmethod
     def register_de(cls,
                     user_id,
                     data_name,
