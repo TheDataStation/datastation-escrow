@@ -135,7 +135,7 @@ def main():
     decryption_time = dict(decryption_time_dict)["total_time"]
 
     # Removing newly created files
-    filtered_data_accessed = set(filter(lambda x: x.split("/")[-3] == "Staging_storage", data_accessed))
+    filtered_data_accessed = set(filter(lambda x: x.split("/")[-3] != "Staging_storage", data_accessed))
 
     to_send_back = pickle.dumps({"return_value": ret,
                                  "data_accessed": filtered_data_accessed,
