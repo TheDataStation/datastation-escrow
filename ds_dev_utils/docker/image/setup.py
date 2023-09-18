@@ -134,6 +134,8 @@ def main():
         data_accessed = []
     decryption_time = dict(decryption_time_dict)["total_time"]
 
+    print(data_accessed)
+
     to_send_back = pickle.dumps({"return_value": ret,
                                  "data_accessed": data_accessed,
                                  "decryption_time": decryption_time})
