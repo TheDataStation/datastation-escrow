@@ -658,6 +658,13 @@ class DataStation:
                 res = cur_api(user_id, *args, **kwargs)
                 return res
 
+    def write_staged(self, file_name, user_id, content):
+        """
+        Writes to staging storage in full trust mode.
+        """
+        with open(f"{self.storage_path}/Staging_storage/{user_id}/{file_name}", 'wb+') as f:
+            f.write(pickle.dumps(content))
+
     # data users gives a staged DE ID and tries to release it
     def release_staged_DE(self, username, staged_ID):
         """

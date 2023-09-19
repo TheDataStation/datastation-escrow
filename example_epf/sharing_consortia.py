@@ -109,5 +109,6 @@ def calc_pi_and_pip():
         cur_pip = evaluate_bi_with_ti(clf_combined, bi_list[i])
         pi_list.append(cur_pi)
         pip_list.append(cur_pip)
-    # TODO: write the pis to their respective files
+    for i in range(1, len(di_list)+1):
+        EscrowAPI.write_staged(f"p{i}_p{i}p.txt", i, [pi_list[i-1], pip_list[i-1]])
     return pi_list, pip_list
