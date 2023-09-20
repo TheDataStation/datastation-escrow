@@ -197,19 +197,3 @@ class EscrowAPI:
             The result of executing the share (f(P))
         """
         return cls.__comp.execute_share(user_id, share_id)
-
-    @classmethod
-    def ack_data_in_share(cls, username, share_id, data_id):
-        """
-        API Endpoint. (Outdated)
-
-        Parameters:
-            username: caller username
-            share_id: id of the share
-            data_id: id of the data element
-
-        Returns:
-        A response object with the following fields:
-            status: status of acknowledging share. 0: success, 1: failure.
-        """
-        return cls.__comp.approve_share(username, share_id, data_id)

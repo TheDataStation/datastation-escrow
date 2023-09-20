@@ -63,9 +63,13 @@ if __name__ == '__main__':
     ds.call_api(f"user1", "approve_share", 1)
     ds.call_api(f"user2", "approve_share", 1)
 
-    # Step 5: user calls execute share
+    # Step 5: user calculates pi and pip
     res_1 = ds.call_api("user0", "execute_share", 1)
     print("Result is:", res_1)
+
+    # TODO: user calls release staged to look at their pi and pip
+
+    # TODO: user submitting bids and runs the auction
 
     # Last step: shut down the Data Station
     ds.shut_down()
