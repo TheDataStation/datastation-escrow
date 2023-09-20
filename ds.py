@@ -665,43 +665,57 @@ class DataStation:
         with open(f"{self.storage_path}/Staging_storage/{user_id}/{file_name}", 'wb+') as f:
             f.write(pickle.dumps(content))
 
-    # data users gives a staged DE ID and tries to release it
-    def release_staged_DE(self, username, staged_ID):
+    def release_staged(self, user_id):
         """
-        Releases the staged data element. This function is run after call_api, on optimistic mode
-         to release any staged data elements that aren't allowed to be shared.
-
-        Parameters:
-         username: the unique username identifying which user is calling the api
-         staged_ID: id of the staged data element
-
-        Returns:
-         released data
+        Releases all files in a user's staging storage.
         """
+        all_contents = []
+        cur_dir = f"{self.storage_path}/Staging_storage/{user_id}"
+        staged_list = os.listdir(cur_dir)
+        for staged in staged_list:
+            cur_staged_path = os.path.join(cur_dir, staged)
+            with open(cur_staged_path, "rb") as f:
+                cur_content = pickle.load(f)
+                all_contents.append(cur_content)
+        return all_contents
 
-        # get caller's UID
-        cur_user = database_api.get_user_by_user_name(
-            User(user_name=username, ))
-        # If the user doesn't exist, something is wrong
-        if cur_user.status == -1:
-            print("Something wrong with the current user")
-            return Response(status=1, message="Something wrong with the current user")
-        cur_user_id = cur_user.data[0].id
-
-        # First get the API call that generated this staged DE
-        api = database_api.get_api_for_staged_id(staged_ID)
-
-        # Then get the currently accessible DEs for the <cur_user_id, api> combo
-        accessible_data_ids = policy_broker.get_user_api_info(cur_user_id, api)
-
-        # Then get the parent_ids for this staged DE (all accessed DEs used to create this DE)
-        accessed_data_ids = database_api.get_parent_id_for_staged_id(staged_ID)
-
-        # Then check if accessed_data_ids is a subset of accessible_data_ids
-        # If yes, we can release the staged DE
-        if set(accessed_data_ids).issubset(set(accessible_data_ids)):
-            res = cu.from_bytes(self.staging_storage.release(staged_ID))
-            return res
+    # # data users gives a staged DE ID and tries to release it
+    # def release_staged_DE(self, username, staged_ID):
+    #     """
+    #     Releases the staged data element. This function is run after call_api, on optimistic mode
+    #      to release any staged data elements that aren't allowed to be shared.
+    #
+    #     Parameters:
+    #      username: the unique username identifying which user is calling the api
+    #      staged_ID: id of the staged data element
+    #
+    #     Returns:
+    #      released data
+    #     """
+    #
+    #     # get caller's UID
+    #     cur_user = database_api.get_user_by_user_name(
+    #         User(user_name=username, ))
+    #     # If the user doesn't exist, something is wrong
+    #     if cur_user.status == -1:
+    #         print("Something wrong with the current user")
+    #         return Response(status=1, message="Something wrong with the current user")
+    #     cur_user_id = cur_user.data[0].id
+    #
+    #     # First get the API call that generated this staged DE
+    #     api = database_api.get_api_for_staged_id(staged_ID)
+    #
+    #     # Then get the currently accessible DEs for the <cur_user_id, api> combo
+    #     accessible_data_ids = policy_broker.get_user_api_info(cur_user_id, api)
+    #
+    #     # Then get the parent_ids for this staged DE (all accessed DEs used to create this DE)
+    #     accessed_data_ids = database_api.get_parent_id_for_staged_id(staged_ID)
+    #
+    #     # Then check if accessed_data_ids is a subset of accessible_data_ids
+    #     # If yes, we can release the staged DE
+    #     if set(accessed_data_ids).issubset(set(accessible_data_ids)):
+    #         res = cu.from_bytes(self.staging_storage.release(staged_ID))
+    #         return res
 
     def print_full_log(self):
         self.data_station_log.read_full_log(self.key_manager)
@@ -725,7 +739,7 @@ class DataStation:
                 break
 
         if api_type is None:
-            print("Not a valid API endpoint to call.")
+            print("Called API endpoint not found in EPM.")
             return None
 
         # Case 1: calling non-jail function

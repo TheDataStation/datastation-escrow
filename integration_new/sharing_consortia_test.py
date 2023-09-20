@@ -67,7 +67,9 @@ if __name__ == '__main__':
     res_1 = ds.call_api("user0", "execute_share", 1)
     print("Result is:", res_1)
 
-    # TODO: user calls release staged to look at their pi and pip
+    # Step 6: user calls release staged to look at their pi and pip
+    res = ds.call_api("user0", "release_staged")
+    print(f"Releasing pi and pip for user0: {res}")
 
     # TODO: user submitting bids and runs the auction
 

@@ -42,6 +42,14 @@ class EscrowAPI:
         return cls.__comp.write_staged(file_name, user_id, content)
 
     @classmethod
+    def release_staged(cls, user_id):
+        """
+        Used by API endpoints.
+        For a user, releases all files in the user's staging storage.
+        """
+        return cls.__comp.release_staged(user_id)
+
+    @classmethod
     def register_de(cls,
                     user_id,
                     data_name,

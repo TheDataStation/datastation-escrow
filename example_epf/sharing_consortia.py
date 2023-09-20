@@ -34,6 +34,10 @@ def approve_share(user_id, share_id):
 def execute_share(user_id, share_id):
     return EscrowAPI.execute_share(user_id, share_id)
 
+@api_endpoint
+def release_staged(user_id):
+    return EscrowAPI.release_staged(user_id)
+
 def setup_ti_with_di(di):
     """
     Sets up agent i's task ti with his own data di
