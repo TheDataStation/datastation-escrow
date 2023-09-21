@@ -274,6 +274,7 @@ class DataStation:
                                                                  self.key_manager)
         return de_manager_response
 
+    # TODO: change this to take in a file: in full trust mode, just read/write bytes; else read, encrypt, then write
     def upload_de(self,
                   user_id,
                   data_id,
@@ -286,7 +287,7 @@ class DataStation:
             data_id: id of this existing DE
             data_in_bytes: daat in bytes
         """
-        # Check if the dataset exists, and whether data owner is the current user
+        # Check if the DE exists, and whether its owner is the caller
         verify_owner_response = common_procedure.verify_dataset_owner(data_id, user_id)
         if verify_owner_response.status == 1:
             return verify_owner_response

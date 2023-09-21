@@ -20,6 +20,7 @@ def register_agent(username, password):
     """
     return ds.create_user(username, password)
 
+
 if __name__ == "__main__":
     """
     Initializes an api to communicate by HTTP with a client.
@@ -33,6 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', default=8080, type=int)
     parser.add_argument('-hs', '--host', default="localhost", type=str)
 
+    # Clean up
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
     folders = ['SM_storage', 'Staging_storage']
@@ -59,6 +61,7 @@ if __name__ == "__main__":
     # Let's get the list of function objects (the api_endpoints defined in the EPF)
     api_endpoints = get_registered_api_endpoint()
     for api in api_endpoints:
+        print(api.__name__)
         app.add_api_route(f"/{api.__name__}", api, methods=["POST"])
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
