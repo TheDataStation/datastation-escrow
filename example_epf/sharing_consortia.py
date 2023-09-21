@@ -116,3 +116,30 @@ def calc_pi_and_pip():
     for i in range(1, len(di_list)+1):
         EscrowAPI.write_staged(f"p{i}_p{i}p.txt", i, [pi_list[i-1], pip_list[i-1]])
     return pi_list, pip_list
+
+@api_endpoint
+@function
+def run_auction():
+    bid_list = []
+    des = EscrowAPI.get_all_accessible_des()
+    for de in des:
+        de_path = de.access_param
+        with open(de_path, "r") as file:
+            line = file.readline().strip()
+            if line:
+                a_id, bid, num_q = map(int, line.split(","))
+                bid_list.append((a_id, bid, num_q))
+    bid_list = [(tup[0], tup[1], tup[2], (tup[1] - 1) * tup[2]) for tup in bid_list]
+    bid_list.sort(key=lambda x: x[3], reverse=True)
+
+    best_product = -1
+    for k in range(len(bid_list)):
+        cur_product = (k+1) * bid_list[k][1]
+        if cur_product > best_product:
+            best_product = cur_product
+    winning_price = best_product
+    winning_indices = []
+    for i in bid_list:
+        if i[1] >= winning_price:
+            winning_indices.append(i[0])
+    return winning_indices
