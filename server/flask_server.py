@@ -19,7 +19,6 @@ def call_api():
     Calls the API specified by a pickled dict-like structure. The dict must contain:
         username: the user that is calling this api
         api: the api to be called
-        exec_mode: execution mode
         args: arguments for the api being called
         kwargs: arguments for the api being called
     """
@@ -29,7 +28,7 @@ def call_api():
     # print("Call API Arguments are:", args)
     # enqueue(api_call(data))
 
-    return pickle.dumps(ds.call_api(args['username'], args['api'], args['exec_mode'], *args['args'], **args['kwargs']))
+    return pickle.dumps(ds.call_api(args['username'], args['api'], *args['args'], **args['kwargs']))
 
 
 # create user
@@ -38,6 +37,7 @@ def create_user():
     """
     Creates a user from a pickled dict-like structure. The dict must contain:
         username: the user that is calling this api
+        password: password
         user_sym_key (optional): symmetric key for user
         user_public_key (optional): public key for user
     """
@@ -47,7 +47,9 @@ def create_user():
     args = pickle.loads(unpickled)
     print("Received 'Create User'. User Arguments are:", args, file=sys.stdout)
 
-    return pickle.dumps(ds.create_user(args['user'], args.get('user_sym_key', None), args.get('user_public_key', None)))
+    return pickle.dumps(ds.create_user(args['username'], args['password'],
+                                       args.get('user_sym_key', None),
+                                       args.get('user_public_key', None)))
 
 
 # log in

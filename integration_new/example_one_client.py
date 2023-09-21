@@ -32,13 +32,11 @@ if __name__ == '__main__':
     u1 = {'user': User(user_name="jerry", password="string")}
     create_user_response = requests.post("http://localhost:8080/create_user",
                                          data=pickle.dumps(u1),
-                                         # headers={'Content-Type': 'application/octet-stream'},
                                          )
     print(pickle.loads(create_user_response.content))
     u2 = {'user': User(user_name="david", password="123456")}
     create_user_response = requests.post("http://localhost:8080/create_user",
                                          data=pickle.dumps(u2),
-                                         # headers={'Content-Type': 'application/octet-stream'},
                                          )
     print(pickle.loads(create_user_response.content))
 

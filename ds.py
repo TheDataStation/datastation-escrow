@@ -477,7 +477,7 @@ class DataStation:
                                                                    *args,
                                                                    **kwargs, )
 
-        return response
+        return share_id
 
     def show_share(self, user_id, share_id):
         """

@@ -52,19 +52,19 @@ if __name__ == '__main__':
     # Step 3: Agent suggesting shares
     agents = [1]
     data_elements = [1, 2, 3, 4, 5, 6]
-    ds.call_api("user0", "suggest_share", agents, data_elements, "calc_pi_and_pip")
+    s_id = ds.call_api("user0", "suggest_share", agents, data_elements, "calc_pi_and_pip")
 
     # Approval agent calls show_share() to see content of the share
-    share_obj = ds.call_api("user1", "show_share", 1)
+    share_obj = ds.call_api("user1", "show_share", s_id)
     print(share_obj)
 
     # Step 4: Agents approving the share.
-    ds.call_api(f"user0", "approve_share", 1)
-    ds.call_api(f"user1", "approve_share", 1)
-    ds.call_api(f"user2", "approve_share", 1)
+    ds.call_api(f"user0", "approve_share", s_id)
+    ds.call_api(f"user1", "approve_share", s_id)
+    ds.call_api(f"user2", "approve_share", s_id)
 
     # Step 5: user calculates pi and pip
-    res_1 = ds.call_api("user0", "execute_share", 1)
+    res_1 = ds.call_api("user0", "execute_share", s_id)
     print("Result of calculating pi and pip is:", res_1)
 
     # Step 6: user calls release staged to look at their pi and pip
@@ -82,14 +82,14 @@ if __name__ == '__main__':
 
     agents = [1]
     data_elements = [7, 8, 9]
-    ds.call_api("user0", "suggest_share", agents, data_elements, "run_auction")
+    s_id = ds.call_api("user0", "suggest_share", agents, data_elements, "run_auction")
 
-    ds.call_api(f"user0", "approve_share", 2)
-    ds.call_api(f"user1", "approve_share", 2)
-    ds.call_api(f"user2", "approve_share", 2)
+    ds.call_api(f"user0", "approve_share", s_id)
+    ds.call_api(f"user1", "approve_share", s_id)
+    ds.call_api(f"user2", "approve_share", s_id)
 
-    res_2 = ds.call_api("user0", "execute_share", 2)
-    print("Result of running the auction is: the winner user id is", res_2)
+    res_2 = ds.call_api("user0", "execute_share", s_id)
+    print("Result of running the auction: the winner user id is", res_2)
 
     # Last step: shut down the Data Station
     ds.shut_down()
