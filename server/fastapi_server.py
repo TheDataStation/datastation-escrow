@@ -72,3 +72,5 @@ if __name__ == "__main__":
             app.add_api_route(f"/{api.__name__}", api, methods=["POST"])
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
+
+hdaifdahfdas
