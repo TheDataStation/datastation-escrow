@@ -1,7 +1,8 @@
 import os
 import shutil
 import argparse
-from fastapi import FastAPI
+
+from fastapi import FastAPI, File, UploadFile
 import uvicorn
 
 from main import initialize_system
@@ -16,8 +17,6 @@ async def root():
 # register agent
 @app.post("/register_agent")
 def register_agent(username, password):
-    """
-    """
     return ds.create_user(username, password)
 
 
@@ -62,8 +61,30 @@ if __name__ == "__main__":
     api_endpoints = get_registered_api_endpoint()
     for api in api_endpoints:
         print(api.__name__)
-        app.add_api_route(f"/{api.__name__}", api, methods=["POST"])
+        if api.__name__ == "upload_de":
+            upload_de_def = api
+
+            def upload_file(user_id, data_id, file: UploadFile = File(...)):
+                contents = file.file.read()
+                return upload_de_def(user_id, data_id, contents)
+            app.add_api_route(f"/{api.__name__}", upload_file, methods=["POST"])
+        else:
+            app.add_api_route(f"/{api.__name__}", api, methods=["POST"])
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
+
+
+    # @app.post("/upload")
+    # def upload(file: UploadFile = File(...)):
+    #     try:
+    #         contents = file.file.read()
+    #         with open(file.filename, 'wb') as f:
+    #             f.write(contents)
+    #     except Exception:
+    #         return {"message": "There was an error uploading the file"}
+    #     finally:
+    #         file.file.close()
+    #
+    #     return {"message": f"Successfully uploaded {file.filename}"}
 
 

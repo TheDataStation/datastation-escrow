@@ -274,7 +274,7 @@ class DataStation:
                                                                  self.key_manager)
         return de_manager_response
 
-    # TODO: change this to take in a file: in full trust mode, just read/write bytes; else read, encrypt, then write
+    # TODO: change this encrypt bytes if in no trust mode, using user's symmetric key
     def upload_de(self,
                   user_id,
                   data_id,
