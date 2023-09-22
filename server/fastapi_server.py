@@ -72,21 +72,3 @@ if __name__ == "__main__":
             app.add_api_route(f"/{api.__name__}", api, methods=["POST"])
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
-
-    hi
-
-
-    # @app.post("/upload")
-    # def upload(file: UploadFile = File(...)):
-    #     try:
-    #         contents = file.file.read()
-    #         with open(file.filename, 'wb') as f:
-    #             f.write(contents)
-    #     except Exception:
-    #         return {"message": "There was an error uploading the file"}
-    #     finally:
-    #         file.file.close()
-    #
-    #     return {"message": f"Successfully uploaded {file.filename}"}
-
-
