@@ -274,7 +274,6 @@ class DataStation:
                                                                  self.key_manager)
         return de_manager_response
 
-    # TODO: change this encrypt bytes if in no trust mode, using user's symmetric key
     def upload_de(self,
                   user_id,
                   data_id,
@@ -296,6 +295,10 @@ class DataStation:
         data_res = database_api.get_data_by_id(data_id)
         if data_res.status == -1:
             return data_res
+
+        if self.trust_mode == "no_trust":
+            data_in_bytes = cu.encrypt_data_with_symmetric_key(data_in_bytes,
+                                                               self.key_manager.agents_symmetric_key[user_id])
 
         storage_manager_response = self.storage_manager.store(data_res.data[0].name,
                                                               data_id,
