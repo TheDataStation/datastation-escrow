@@ -539,6 +539,8 @@ class DataStation:
         args = share_param["args"]
         kwargs = share_param["kwargs"]
 
+        print("Share_template called is", share_template)
+
         # Case 1: in development mode, we mimic the behaviour of Gatekeeper
         if self.development_mode:
             # Check destination agent
@@ -580,6 +582,8 @@ class DataStation:
                     cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
 
             self.accessible_de_development = accessible_de
+
+            print(self.accessible_de_development)
 
             # Execute share
             list_of_function = get_registered_functions()

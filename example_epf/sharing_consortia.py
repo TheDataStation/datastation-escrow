@@ -68,8 +68,9 @@ def setup_ti_with_d_combined():
     des = EscrowAPI.get_all_accessible_des()
     for de in des:
         de_path = de.access_param
-        cur_df = pd.read_csv(de_path)
-        df_list.append(cur_df)
+        if de_path[-6] == "d":
+            cur_df = pd.read_csv(de_path)
+            df_list.append(cur_df)
 
     data = pd.concat(df_list, ignore_index=True)
     data = data.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
