@@ -5,7 +5,7 @@ from common import common_procedure
 from common.pydantic_models.dataset import Dataset
 from common.pydantic_models.staged import Staged
 from common.pydantic_models.user import User
-from common.pydantic_models.response import Response, UploadDataResponse, RemoveDataResponse
+# from common.pydantic_models.response import Response, UploadDataResponse, RemoveDataResponse
 
 
 def register_data_in_DB(data_id,
@@ -42,9 +42,9 @@ def register_data_in_DB(data_id,
 
     database_service_response = database_api.create_dataset(new_dataset)
     if database_service_response.status == -1:
-        return Response(status=1, message="internal database error")
+        return {"status": 1, "message": "internal database error"}
 
-    return UploadDataResponse(status=0, message="success", de_id=data_id)
+    return {"status": 0, "message": "success", "de_id": data_id}
 
 def remove_data(data_name,
                 cur_username,

@@ -282,13 +282,13 @@ class DataStation:
         Upload a file corresponding to a registered DE.
 
         Parameters:
-            username: the unique username identifying which user owns the dataset
+            user_id: user id
             data_id: id of this existing DE
             data_in_bytes: daat in bytes
         """
         # Check if the DE exists, and whether its owner is the caller
         verify_owner_response = common_procedure.verify_dataset_owner(data_id, user_id)
-        if verify_owner_response.status == 1:
+        if verify_owner_response["status"] == 1:
             return verify_owner_response
 
         # We now get the data_name and data_type from data_id
