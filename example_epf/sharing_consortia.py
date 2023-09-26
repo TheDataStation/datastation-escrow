@@ -7,35 +7,43 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 @api_endpoint
-def register_de(user_id, data_name, data_type, access_param, optimistic):
-    return EscrowAPI.register_de(user_id, data_name, data_type, access_param, optimistic)
+def register_de(user_id: int,
+                data_name: str,
+                data_type: str,
+                access_param: str,
+                discoverable: int):
+    """Register a DE"""
+    return EscrowAPI.register_de(user_id, data_name, data_type, access_param, discoverable)
 
 @api_endpoint
 def upload_de(user_id, data_id, data_in_bytes):
     return EscrowAPI.upload_de(user_id, data_id, data_in_bytes)
 
 @api_endpoint
-def list_discoverable_des(user_id):
+def list_discoverable_des(user_id: int):
     return EscrowAPI.list_discoverable_des(user_id)
 
 @api_endpoint
-def suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs):
-    return EscrowAPI.suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs)
+def suggest_share(user_id: int,
+                  dest_agents: list[int],
+                  data_elements: list[int],
+                  template: str, ):
+    return EscrowAPI.suggest_share(user_id, dest_agents, data_elements, template)
 
 @api_endpoint
-def show_share(user_id, share_id):
+def show_share(user_id: int, share_id: int):
     return EscrowAPI.show_share(user_id, share_id)
 
 @api_endpoint
-def approve_share(user_id, share_id):
+def approve_share(user_id: int, share_id: int):
     return EscrowAPI.approve_share(user_id, share_id)
 
 @api_endpoint
-def execute_share(user_id, share_id):
+def execute_share(user_id: int, share_id: int):
     return EscrowAPI.execute_share(user_id, share_id)
 
 @api_endpoint
-def release_staged(user_id):
+def release_staged(user_id: int):
     return EscrowAPI.release_staged(user_id)
 
 def setup_ti_with_di(di):

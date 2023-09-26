@@ -64,7 +64,7 @@ if __name__ == "__main__":
         if api.__name__ == "upload_de":
             upload_de_def = api
 
-            def upload_file(user_id, data_id, file: UploadFile = File(...)):
+            def upload_file(user_id: int, data_id: int, file: UploadFile = File(...)):
                 contents = file.file.read()
                 return upload_de_def(user_id, data_id, contents)
             app.add_api_route(f"/{api.__name__}", upload_file, methods=["POST"])
