@@ -5,7 +5,7 @@ from jose import jwt, JWTError
 from fastapi import HTTPException, status
 from dbservice import database_api
 from common.pydantic_models.user import User
-from common.pydantic_models.response import Response, UploadUserResponse, TokenResponse
+# from common.pydantic_models.response import Response, UploadUserResponse, TokenResponse
 
 # Adding global variables to support access token generation (for authentication)
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"
@@ -32,7 +32,7 @@ def create_user(user_id,
     # check if there is an existing user
     existed_user = database_api.get_user_by_user_name(User(user_name=user_name,))
     if existed_user.status == 1:
-        return Response(status=1, message="username already exists")
+        return {"status": 1, "message": "username already exists"}
 
     # no existing username, create new user
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
@@ -51,9 +51,9 @@ def create_user(user_id,
                     password=hashed.decode(),)
     resp = database_api.create_user(new_user)
     if resp.status == -1:
-        return Response(status=1, message="creating user DB error")
+        return {"status": 1, "message": "creating user DB error"}
 
-    return UploadUserResponse(status=0, message="success", user_id=resp.data[0].id)
+    return {"status": 0, "message": "success", "user_id": resp.data[0].id}
 
 def login_user(username, password):
     # check if there is an existing user
