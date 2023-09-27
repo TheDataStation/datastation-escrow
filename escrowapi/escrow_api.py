@@ -1,5 +1,3 @@
-# TODO: change all username to user_id
-
 class EscrowAPI:
     __comp = None
 

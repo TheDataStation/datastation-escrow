@@ -7,7 +7,6 @@ import pickle
 
 from common.pydantic_models.api import API
 from common.pydantic_models.user import User
-from common.pydantic_models.response import Response
 from common.pydantic_models.policy import Policy
 from common import common_procedure
 from common.general_utils import parse_config
@@ -412,15 +411,13 @@ class DataStation:
         policy = Policy(user_id=user_id, api=api, data_id=data_id)
 
         if self.trust_mode == "full_trust":
-            response = policy_broker.remove_policy(policy,
-                                                   username, )
+            return policy_broker.remove_policy(policy,
+                                               username, )
         else:
-            response = policy_broker.remove_policy(policy,
-                                                   username,
-                                                   self.write_ahead_log,
-                                                   self.key_manager, )
-
-        return Response(status=response.status, message=response.message)
+            return policy_broker.remove_policy(policy,
+                                               username,
+                                               self.write_ahead_log,
+                                               self.key_manager, )
 
     def get_all_policies(self):
         """
@@ -643,8 +640,8 @@ class DataStation:
         cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
         # If the user doesn't exist, something is wrong
         if cur_user.status == -1:
-            print("Something wrong with the current user")
-            return Response(status=1, message="Something wrong with the current user")
+            print("database error: cannot find caller")
+            return {"status": 1, "message": "database error: cannot find user"}
         user_id = cur_user.data[0].id
 
         # First we check if we are in development mode, if true, call call_api_development

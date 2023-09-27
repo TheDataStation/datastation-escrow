@@ -7,7 +7,6 @@ from dbservice import database_api
 from sharemanager import share_manager
 from policybroker import policy_broker
 from common.pydantic_models.api import API
-from common.pydantic_models.response import Response, APIExecResponse
 from common.abstraction import DataElement
 
 from verifiability.log import Log
@@ -106,20 +105,7 @@ class Gatekeeper:
 
         # print(trust_mode)
 
-        # We first determine whether this is a data-blind function or data-aware function
-        # data-aware function requires an argument called DE_id
-
-        data_aware_flag = False
-        data_aware_DE = set()
-
-        if kwargs.__contains__("DE_id"):
-            data_aware_flag = True
-            data_aware_DE = set(kwargs["DE_id"])
-
-        # print(data_aware_flag)
-        # print(data_aware_DE)
-
-        # Check if call is in destination agent
+        # Check if caller is in destination agent
         dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
         if cur_user_id not in dest_a_ids:
             print("Caller not a destination agent")
@@ -139,7 +125,7 @@ class Gatekeeper:
         if get_datasets_by_ids_res.status == -1:
             err_msg = "No accessible data for " + api
             print(err_msg)
-            return Response(status=1, message=err_msg)
+            return {"status": 1, "message": err_msg}
 
         accessible_de = set()
         for cur_data in get_datasets_by_ids_res.data:
@@ -190,10 +176,9 @@ class Gatekeeper:
                                                           data_ids_accessed,
                                                           self.key_manager, )
             # In this case, we can return the result to caller.
-            response = APIExecResponse(status=0,
-                                       message="API result can be released",
-                                       result=[api_result, decryption_time]
-                                       )
+            response = {"status": 0,
+                        "message": "Contract result can be released",
+                        "result": [api_result, decryption_time]}
         # elif set(data_ids_accessed).issubset(all_accessible_de_id):
         #     # print("Some access to optimistic data not allowed by policy.")
         #     # log operation: logging intent_policy mismatch
@@ -206,17 +191,14 @@ class Gatekeeper:
         #                                message="Some access to optimistic data not allowed by policy.",
         #                                result=[api_result, data_ids_accessed], )
         else:
-            # TODO: illegal access can still happen since interceptor does not block access
-            #  (except filter out inaccessible data when list dir)
-            # print("Access to illegal data happened. Something went wrong")
             # log operation: logging intent_policy mismatch
             self.data_station_log.log_intent_policy_mismatch(cur_user_id,
                                                              api,
                                                              data_ids_accessed,
                                                              set(all_accessible_de_id),
                                                              self.key_manager, )
-            response = Response(
-                status=1, message="Access to illegal data happened. Something went wrong.")
+            response = {"status": 1,
+                        "message": "Access to illegal DE happened. Something went wrong."}
 
         return response
 

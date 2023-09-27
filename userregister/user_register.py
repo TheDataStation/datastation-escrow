@@ -5,7 +5,6 @@ from jose import jwt, JWTError
 from fastapi import HTTPException, status
 from dbservice import database_api
 from common.pydantic_models.user import User
-# from common.pydantic_models.response import Response, UploadUserResponse, TokenResponse
 
 # Adding global variables to support access token generation (for authentication)
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"
@@ -60,7 +59,7 @@ def login_user(username, password):
     existed_user = database_api.get_user_by_user_name(User(user_name=username,))
     # If the user doesn't exist, something is wrong
     if existed_user.status == -1:
-        return TokenResponse(status=1, token="username is wrong")
+        return {"status": 1, "token": "username is wrong"}
     user_data = existed_user.data[0]
     if bcrypt.checkpw(password.encode(), user_data.password.encode()):
         # In here the password matches, we store the content for the token in the message
@@ -68,8 +67,8 @@ def login_user(username, password):
         access_token = create_access_token(
             data={"sub": user_data.user_name}, expires_delta=access_token_expires
         )
-        return TokenResponse(status=0, token=str(access_token))
-    return TokenResponse(status=1, token="password does not match")
+        return {"status": 0, "token": str(access_token)}
+    return {"status": 1, "token": "password does not match"}
 
 def authenticate_user(token):
     # Credential Checking
