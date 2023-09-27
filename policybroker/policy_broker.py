@@ -67,7 +67,7 @@ def bulk_upload_policies(policies,
     # Get caller's UID
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
+        return {"status": 1, "message": "database error: can't find caller"}
     cur_user_id = cur_user.data[0].id
     # print(cur_user_id)
 
@@ -102,7 +102,7 @@ def remove_policy(policy: Policy,
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
+        return {"status": 1, "message": "Something wrong with the current user"}
     cur_user_id = cur_user.data[0].id
 
     # If in no_trust mode, we need to record this REMOVE_POLICY to wal
@@ -117,41 +117,7 @@ def remove_policy(policy: Policy,
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     response = database_api.remove_policy(policy)
-    return Response(status=response.status, message=response.msg)
-
-
-# update a policy's status
-
-def ack_data_in_share(cur_username,
-                      data_id,
-                      share_id,
-                      write_ahead_log=None,
-                      key_manager=None, ):
-    # First check if the dataset owner is the current user
-    verify_owner_response = common_procedure.verify_dataset_owner(data_id, cur_username)
-    if verify_owner_response.status == 1:
-        return verify_owner_response
-
-    # Get caller's id
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
-    # If the user doesn't exist, something is wrong
-    if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
-    cur_user_id = cur_user.data[0].id
-
-    # If in no_trust mode, we need to record this UPDATE_POLICY_STATUS to wal
-    if write_ahead_log is not None:
-        wal_entry = "database_api.approve_share(data_id=" + str(data_id) \
-                    + ",share_id=" + str(share_id) \
-                    + "))"
-        # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
-
-    response = database_api.ack_data_in_share(data_id, share_id)
-    if response is not None:
-        return Response(status=0, message="Acknowledge share success.")
-    return Response(status=1, message="Acknowledge share failure.")
-
+    return {"status": response.status, "message": response.msg}
 
 # get all policies from DB
 
@@ -173,18 +139,6 @@ def get_all_dependencies():
         # Fill in list of dependencies
         list_of_dependencies.append(cur_tuple)
     return list_of_dependencies
-
-
-def get_all_policies():
-    list_of_policies = []
-    # get list of policies for the current user
-    policy_res = database_api.get_all_policies()
-    for i in range(len(policy_res.data)):
-        cur_tuple = (policy_res.data[i].user_id,
-                     policy_res.data[i].api,
-                     policy_res.data[i].data_id,)
-        list_of_policies.append(cur_tuple)
-    return list_of_policies
 
 
 # For gatekeeper

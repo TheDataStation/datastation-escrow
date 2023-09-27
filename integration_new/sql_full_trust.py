@@ -56,7 +56,6 @@ def data_gen(num_partitions):
 
 def cleanup():
     folders = ['SM_storage',
-               'Staging_storage',
                "integration_new/test_files/sql_plain",
                "integration_new/test_files/sql_cipher",
                ]

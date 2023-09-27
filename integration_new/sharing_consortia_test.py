@@ -6,7 +6,7 @@ from main import initialize_system
 def cleanup():
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
-    folders = ['SM_storage', 'Staging_storage']
+    folders = ['SM_storage']
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
@@ -44,7 +44,7 @@ if __name__ == '__main__':
         else:
             f_name = f"b{u_id}.csv"
         register_res = ds.call_api(f"user{u_id}", "register_de", f_name, "file", f_name, True, )
-        ds.call_api(f"user{u_id}", "upload_de", register_res.de_id, plaintext_bytes, )
+        ds.call_api(f"user{u_id}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
     res = ds.call_api("user0", "list_discoverable_des")
     print(f"Result of listing discoverable data elements is {res}")
@@ -78,7 +78,7 @@ if __name__ == '__main__':
         plaintext_bytes = f.read()
         f.close()
         register_res = ds.call_api(f"user{i}", "register_de", f"b{i+1}.txt", "file", f"b{i+1}.txt", True, )
-        ds.call_api(f"user{i}", "upload_de", register_res.de_id, plaintext_bytes, )
+        ds.call_api(f"user{i}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
     agents = [1]
     data_elements = [7, 8, 9]

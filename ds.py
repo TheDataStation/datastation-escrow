@@ -248,22 +248,21 @@ class DataStation:
         self.cur_data_id += 1
 
         if self.trust_mode == "full_trust":
-            de_manager_response = de_manager.register_data_in_DB(data_id,
-                                                                 data_name,
-                                                                 user_id,
-                                                                 data_type,
-                                                                 access_param,
-                                                                 optimistic)
+            return de_manager.register_data_in_DB(data_id,
+                                                  data_name,
+                                                  user_id,
+                                                  data_type,
+                                                  access_param,
+                                                  optimistic)
         else:
-            de_manager_response = de_manager.register_data_in_DB(data_id,
-                                                                 data_name,
-                                                                 user_id,
-                                                                 data_type,
-                                                                 access_param,
-                                                                 optimistic,
-                                                                 self.write_ahead_log,
-                                                                 self.key_manager)
-        return de_manager_response
+            return de_manager.register_data_in_DB(data_id,
+                                                  data_name,
+                                                  user_id,
+                                                  data_type,
+                                                  access_param,
+                                                  optimistic,
+                                                  self.write_ahead_log,
+                                                  self.key_manager)
 
     def upload_de(self,
                   user_id,
@@ -410,18 +409,6 @@ class DataStation:
                                                username,
                                                self.write_ahead_log,
                                                self.key_manager, )
-
-    def get_all_policies(self):
-        """
-        Gets all a policies from DS
-
-        Parameters:
-
-        Returns:
-         ALL policies from policy broker
-        """
-
-        return policy_broker.get_all_policies()
 
     def suggest_share(self,
                       user_id,

@@ -7,7 +7,7 @@ from crypto import cryptoutils as cu
 def cleanup():
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
-    folders = ['SM_storage', 'Staging_storage']
+    folders = ['SM_storage']
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         register_res = ds.call_api(f"user{u_id}", "register_de",
                                    f"f{i}.csv", "file", f"f{i}.csv", True, )
         ds.call_api(f"user{u_id}", "upload_de",
-                    register_res.de_id, ciphertext_bytes, )
+                    register_res["de_id"], ciphertext_bytes, )
 
     res = ds.call_api("user0", "list_discoverable_des")
     print(f"Result of listing discoverable data elements is {res}")

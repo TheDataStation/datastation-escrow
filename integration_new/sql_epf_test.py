@@ -9,7 +9,7 @@ if __name__ == '__main__':
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
-    folders = ['SM_storage', 'Staging_storage']
+    folders = ['SM_storage']
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
