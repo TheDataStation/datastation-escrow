@@ -29,14 +29,13 @@ if __name__ == "__main__":
         description='A Client API for Data Station',
         epilog='Text at the bottom of help')
     parser.add_argument('-c', '--ds_config', default='data_station_config.yaml', type=str)
-    parser.add_argument('-a', '--app_config', default='app_connector_config.yaml', type=str)
     parser.add_argument('-p', '--port', default=8080, type=int)
     parser.add_argument('-hs', '--host', default="localhost", type=str)
 
     # Clean up
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
-    folders = ['SM_storage', 'Staging_storage']
+    folders = ['SM_storage']
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
@@ -51,7 +50,7 @@ if __name__ == "__main__":
     host = args.host
 
     global ds
-    ds = initialize_system(args.ds_config, args.app_config)
+    ds = initialize_system(args.ds_config)
 
     log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):

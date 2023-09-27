@@ -58,10 +58,13 @@ class DataStation:
             self.ds_storage_path = str(pathlib.Path(
                 ds_config["storage_path"]).absolute())
 
+            # EPF connector
+            self.epf_path = ds_config["epf_path"]
+
             # development mode
             self.development_mode = ds_config["in_development_mode"]
 
-    def __init__(self, ds_config, app_config, need_to_recover=False):
+    def __init__(self, ds_config, need_to_recover=False):
         """
         The general class that creates and initializes a Data Station.
 
@@ -101,7 +104,7 @@ class DataStation:
         self.key_manager = KeyManager()
 
         # print(self.storage_path)
-        self.epf_path = app_config["epf_path"]
+        self.epf_path = self.config.epf_path
 
         # register all api_endpoints
         register_epf(self.epf_path)
@@ -772,12 +775,3 @@ class DataStation:
 
 if __name__ == "__main__":
     print("Main")
-    # First parse test_config files and command line arguments
-
-    # https://docs.python.org/3/library/argparse.html
-    # (potentiall need to re-write some key-values from clg)
-    data_station_config = parse_config(sys.argv[1])
-    app_connector_config = parse_config(sys.argv[2])
-    ds = DataStation(data_station_config, app_connector_config)
-
-    # run_system(parse_config("data_station_config.yaml"))

@@ -78,9 +78,8 @@ if __name__ == '__main__':
     # Step 0: System initialization
 
     ds_config = "data_station_config.yaml"
-    app_config = "app_connector_config.yaml"
 
-    ds = initialize_system(ds_config, app_config)
+    ds = initialize_system(ds_config)
 
     # Step 1: We create two new users of the Data Station
     num_users = 3
