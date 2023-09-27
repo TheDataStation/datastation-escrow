@@ -5,7 +5,6 @@ from common import common_procedure
 from common.pydantic_models.dataset import Dataset
 from common.pydantic_models.staged import Staged
 from common.pydantic_models.user import User
-# from common.pydantic_models.response import Response, UploadDataResponse, RemoveDataResponse
 
 
 def register_data_in_DB(data_id,
@@ -51,10 +50,10 @@ def remove_data(data_name,
                 write_ahead_log=None,
                 key_manager=None,):
 
-    # Check if there is an existing dataset
+    # Check if there is an existing data element
     existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name,))
     if existed_dataset.status == -1:
-        return Response(status=1, message="Dataset does not exist.")
+        return {"status": 1, "message": "DE does not exist."}
 
     # print(existed_dataset.data[0])
 
@@ -65,7 +64,7 @@ def remove_data(data_name,
     # Check if there is an existing user
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
+        return {"status": 1, "message": "Something wrong with the current user"}
     cur_user_id = cur_user.data[0].id
 
     # Check if the dataset owner is the current user
@@ -84,12 +83,11 @@ def remove_data(data_name,
     dataset_to_remove = Dataset(name=data_name,)
     database_service_response = database_api.remove_dataset_by_name(dataset_to_remove)
     if database_service_response.status == -1:
-        return Response(status=1, message="internal database error")
+        return {"status": 1, "message": "database error: remove DE failed"}
 
-    return RemoveDataResponse(status=0,
-                              message="Successfully removed data",
-                              data_id=dataset_id,
-                              type=type_of_data,)
+    return {"status": 0,
+            "message": "Successfully removed data",
+            "data_id": dataset_id, }
 
 def register_staged_in_DB(data_id,
                           caller_id,
@@ -110,9 +108,9 @@ def register_staged_in_DB(data_id,
                         api=api,)
     database_service_response = database_api.create_staged(new_staged)
     if database_service_response.status == -1:
-        return Response(status=1, message="internal database error")
+        return {"status": 1, "message": "database error: create staged DE failed"}
 
-    return Response(status=0, message="success")
+    return {"status": 0, "message": "success"}
 
 def register_provenance_in_DB(data_id,
                               data_ids_accessed,
@@ -128,9 +126,9 @@ def register_provenance_in_DB(data_id,
 
     database_service_response = database_api.bulk_create_provenance(data_id, list(data_ids_accessed))
     if database_service_response == 1:
-        return Response(status=1, message="internal database error")
+        return {"status": 1, "message": "internal database error"}
 
-    return Response(status=0, message="success")
+    return {"status": 0, "message": "success"}
 
 def list_discoverable_des():
     database_service_response = database_api.list_discoverable_des()
