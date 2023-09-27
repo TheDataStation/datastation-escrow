@@ -43,9 +43,6 @@ class DataStation:
             # get storage path for data
             self.storage_path = ds_config["storage_path"]
 
-            # staging path
-            self.staging_path = ds_config["staging_path"]
-
             # log arguments
             self.log_in_memory_flag = ds_config["log_in_memory"]
             self.log_path = ds_config["log_path"]
@@ -70,7 +67,7 @@ class DataStation:
 
         Parameters:
          ds_config: dictionary of general config options
-         app_config: dictionary of app connector options TODO: store this as variables
+         app_config: dictionary of app connector options
          need_to_recover: bool that specifies if needs to recover from previous database
         """
         # parse config file
@@ -592,31 +589,6 @@ class DataStation:
                                            *args,
                                            **kwargs)
             return res
-
-    def ack_data_in_share(self, username, data_id, share_id):
-        """
-        (Outdated)
-
-        Parameters:
-            username: the unique username identifying which user is calling the api
-            share_id: id of the share
-            data_id: id of the data element
-
-        Returns:
-        A response object with the following fields:
-            status: status of acknowledging share. 0: success, 1: failure.
-        """
-        if self.trust_mode == "full_trust":
-            response = policy_broker.ack_data_in_share(
-                username, data_id, share_id)
-        else:
-            response = policy_broker.ack_data_in_share(username,
-                                                       data_id,
-                                                       share_id,
-                                                       self.write_ahead_log,
-                                                       self.key_manager, )
-
-        return response
 
     def call_api(self, username, api: API, *args, **kwargs):
         """
