@@ -1,5 +1,5 @@
 from os import path, remove, makedirs, removedirs
-from common.pydantic_models.response import Response, RetrieveDataResponse
+# from common.pydantic_models.response import Response, RetrieveDataResponse
 
 import os
 import math
@@ -44,9 +44,8 @@ class StorageManager:
                     else:
                         file.write(data[bytes_written:])
         except OSError as error:
-            return Response(status=1,
-                            message="data id=" + str(data_id) + "already exists")
-        return Response(status=0, message="success", )
+            return {"status": 1, "message": f"DE id={data_id} already exists"}
+        return {"status": 0, "message": "success"}
 
     def remove(self, data_name, data_id, data_type):
         if data_type == "file":

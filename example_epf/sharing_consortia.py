@@ -8,10 +8,9 @@ from sklearn.metrics import accuracy_score
 
 @api_endpoint
 def register_de(user_id: int,
-                file_name: str,
-                discoverable: int):
+                file_name: str, ):
     """Register a DE"""
-    return EscrowAPI.register_de(user_id, file_name, "file", file_name, discoverable)
+    return EscrowAPI.register_de(user_id, file_name, "file", file_name, 1)
 
 @api_endpoint
 def upload_de(user_id, data_id, data_in_bytes):

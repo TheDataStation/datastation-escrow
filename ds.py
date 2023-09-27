@@ -464,24 +464,22 @@ class DataStation:
         self.cur_share_id += 1
 
         if self.trust_mode == "full_trust":
-            response = share_manager.register_share_in_DB(share_id,
-                                                          dest_agents,
-                                                          data_elements,
-                                                          template,
-                                                          *args,
-                                                          **kwargs, )
+            return share_manager.register_share_in_DB(share_id,
+                                                      dest_agents,
+                                                      data_elements,
+                                                      template,
+                                                      *args,
+                                                      **kwargs, )
         else:
-            response = share_manager.register_share_in_DB_no_trust(user_id,
-                                                                   share_id,
-                                                                   dest_agents,
-                                                                   data_elements,
-                                                                   template,
-                                                                   self.write_ahead_log,
-                                                                   self.key_manager,
-                                                                   *args,
-                                                                   **kwargs, )
-
-        return share_id
+            return share_manager.register_share_in_DB_no_trust(user_id,
+                                                               share_id,
+                                                               dest_agents,
+                                                               data_elements,
+                                                               template,
+                                                               self.write_ahead_log,
+                                                               self.key_manager,
+                                                               *args,
+                                                               **kwargs, )
 
     def show_share(self, user_id, share_id):
         """
