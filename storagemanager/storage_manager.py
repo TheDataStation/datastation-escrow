@@ -56,12 +56,11 @@ class StorageManager:
                 remove(dst_file_path)
                 removedirs(dir_path)
             except OSError as error:
-                return Response(status=1,
-                                message="Error removing data from storage")
-            return Response(status=0, message="success")
+                return {"status": 1, "message": "Error removing data from storage"}
+            return {"status": 0, "message": "success"}
 
         # Other types of data elements are not currently supported
-        return Response(status=1, message="data type not currently supported")
+        return {"status": 1, "message": "data type not currently supported"}
 
     @staticmethod
     def retrieve_data_by_id(data_type, data_access_type):

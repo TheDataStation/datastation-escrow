@@ -327,20 +327,20 @@ class DataStation:
                                                          username,
                                                          self.write_ahead_log,
                                                          self.key_manager, )
-        if de_manager_response.status != 0:
-            return Response(status=de_manager_response.status, message=de_manager_response.message)
+        if de_manager_response["status"] != 0:
+            return de_manager_response
 
         # At this step we have removed the record about the dataset from DB
         # Now we remove its actual content from SM
         storage_manager_response = self.storage_manager.remove(data_name,
-                                                               de_manager_response.data_id,
-                                                               de_manager_response.type, )
+                                                               de_manager_response["data_id"],
+                                                               de_manager_response["type"], )
 
         # If SM removal failed
-        if storage_manager_response.status == 1:
+        if storage_manager_response["status"] == 1:
             return storage_manager_response
 
-        return Response(status=de_manager_response.status, message=de_manager_response.message)
+        return {"status": de_manager_response["status"], "message": de_manager_response["message"]}
 
     def list_discoverable_des(self, user_id):
         """
@@ -372,15 +372,13 @@ class DataStation:
         policy = Policy(user_id=user_id, api=api, data_id=data_id, share_id=share_id, status=1)
 
         if self.trust_mode == "full_trust":
-            response = policy_broker.upload_policy(policy,
-                                                   username, )
+            return policy_broker.upload_policy(policy,
+                                               username, )
         else:
-            response = policy_broker.upload_policy(policy,
-                                                   username,
-                                                   self.write_ahead_log,
-                                                   self.key_manager, )
-
-        return Response(status=response.status, message=response.message)
+            return policy_broker.upload_policy(policy,
+                                               username,
+                                               self.write_ahead_log,
+                                               self.key_manager, )
 
     def bulk_upload_policies(self, username, policies):
         """

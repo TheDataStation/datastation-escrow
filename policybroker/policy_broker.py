@@ -30,7 +30,7 @@ def upload_policy(policy: Policy,
     cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
     # If the user doesn't exist, something is wrong
     if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
+        return {"status": 1, "message": "Something wrong with the current user"}
     cur_user_id = cur_user.data[0].id
 
     # If in no_trust mode, we need to record this ADD_POLICY to wal
@@ -46,9 +46,9 @@ def upload_policy(policy: Policy,
 
     response = database_api.create_policy(policy)
     if response.status == -1:
-        return Response(status=1, message="Upload policy failed")
+        return {"status": 1, "message": "Upload policy failed"}
     else:
-        return Response(status=0, message="Upload policy success")
+        return {"status": 0, "message": "success"}
 
 
 # upload policies in bulk fashion

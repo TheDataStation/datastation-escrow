@@ -87,7 +87,8 @@ def remove_data(data_name,
 
     return {"status": 0,
             "message": "Successfully removed data",
-            "data_id": dataset_id, }
+            "data_id": dataset_id,
+            "type": type_of_data, }
 
 def register_staged_in_DB(data_id,
                           caller_id,
