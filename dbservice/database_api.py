@@ -38,7 +38,7 @@ def create_user(user_id, user_name, password):
     with get_db() as session:
         user = user_repo.create_user(session, user_id, user_name, password)
         if user:
-            return {"status": 0, "message": "success", "user_id": user.id}
+            return {"status": 0, "message": "success", "data": user}
         else:
             return {"status": 1, "message": "database error: create user failed"}
 
@@ -46,7 +46,7 @@ def get_user_by_user_name(user_name):
     with get_db() as session:
         user = user_repo.get_user_by_user_name(session, user_name)
         if user:
-            return {"status": 0, "message": "success", "user": user}
+            return {"status": 0, "message": "success", "data": user}
         else:
             return {"status": 1, "message": "database error: get user by username failed"}
 
@@ -54,31 +54,31 @@ def get_user_with_max_id():
     with get_db() as session:
         user = user_repo.get_user_with_max_id(session)
         if user:
-            return response.UserResponse(status=1, msg="success", data=[user])
+            return {"status": 0, "message": "success", "data": user}
         else:
-            return response.UserResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get user with max id failed"}
 
 def get_all_users():
     with get_db() as session:
         users = user_repo.get_all_users(session)
         if len(users):
-            return response.UserResponse(status=1, msg="success", data=users)
+            return {"status": 0, "message": "success", "data": users}
         else:
-            return response.UserResponse(status=-1, msg="no existing users", data=[])
+            return {"status": 1, "message": "no existing users"}
 
 def recover_users(users):
     with get_db() as session:
         res = user_repo.recover_users(session, users)
-        if res is not None:
+        if res:
             return 0
 
-def create_dataset(request):
+def create_de(de_id, de_name, user_id, de_type, access_param, optimistic):
     with get_db() as session:
-        dataset = dataset_repo.create_dataset(session, request)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataset_repo.create_de(session, de_id, de_name, user_id, de_type, access_param, optimistic)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: create de failed"}
 
 def get_dataset_by_name(request):
     with get_db() as session:

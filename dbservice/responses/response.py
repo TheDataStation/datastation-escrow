@@ -12,9 +12,6 @@ class Response(BaseModel):
     status: int
     msg: str
 
-class UserResponse(Response):
-    data: List[User]
-
 class DatasetResponse(Response):
     data: List[Dataset]
 

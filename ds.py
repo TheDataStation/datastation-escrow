@@ -140,8 +140,8 @@ class DataStation:
 
         # Decide which user_id to use at new insertion
         user_id_resp = database_api.get_user_with_max_id()
-        if user_id_resp.status == 1:
-            self.cur_user_id = user_id_resp.data[0].id + 1
+        if user_id_resp["status"] == 0:
+            self.cur_user_id = user_id_resp["data"].id + 1
         else:
             self.cur_user_id = 1
 
@@ -224,8 +224,8 @@ class DataStation:
 
     def register_de(self,
                     user_id,
-                    data_name,
-                    data_type,
+                    de_name,
+                    de_type,
                     access_param,
                     optimistic):
         """
@@ -233,8 +233,8 @@ class DataStation:
 
         Parameters:
             user_id: the unique id identifying which user owns the dataset
-            data_name: name of the data
-            data_type: what types of data can be uploaded?
+            de_name: name of DE
+            de_type: what types of data can be uploaded?
             optimistic: flag to be included in optimistic data discovery
             access_param: additional parameters needed for acccessing the DE
         """
@@ -243,21 +243,21 @@ class DataStation:
         self.cur_de_id += 1
 
         if self.trust_mode == "full_trust":
-            return de_manager.register_data_in_DB(de_id,
-                                                  data_name,
-                                                  user_id,
-                                                  data_type,
-                                                  access_param,
-                                                  optimistic)
+            return de_manager.register_de_in_DB(de_id,
+                                                de_name,
+                                                user_id,
+                                                de_type,
+                                                access_param,
+                                                optimistic)
         else:
-            return de_manager.register_data_in_DB(de_id,
-                                                  data_name,
-                                                  user_id,
-                                                  data_type,
-                                                  access_param,
-                                                  optimistic,
-                                                  self.write_ahead_log,
-                                                  self.key_manager)
+            return de_manager.register_de_in_DB(de_id,
+                                                de_name,
+                                                user_id,
+                                                de_type,
+                                                access_param,
+                                                optimistic,
+                                                self.write_ahead_log,
+                                                self.key_manager)
 
     def upload_de(self,
                   user_id,
@@ -524,7 +524,7 @@ class DataStation:
         user_resp = database_api.get_user_by_user_name(username)
         if user_resp["status"] == 1:
             return user_resp
-        user_id = user_resp["user"].id
+        user_id = user_resp["data"].id
 
         # First we check if we are in development mode, if true, call call_api_development
         if self.development_mode:
@@ -645,8 +645,8 @@ class DataStation:
 
         # Step 2: reset self.cur_user_id from DB
         user_id_resp = database_api.get_user_with_max_id()
-        if user_id_resp.status == 1:
-            self.cur_user_id = user_id_resp.data[0].id + 1
+        if user_id_resp["status"] == 0:
+            self.cur_user_id = user_id_resp["data"].id + 1
         else:
             self.cur_user_id = 1
         print("User ID to use after recovering DB is: " + str(self.cur_user_id))

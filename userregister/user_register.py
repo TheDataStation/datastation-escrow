@@ -41,14 +41,17 @@ def create_user(user_id,
         wal_entry = f"database_api.create_user({user_id}, {user_name}, {hashed.decode()})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    return database_api.create_user(user_id, user_name, password)
+    user_resp = database_api.create_user(user_id, user_name, password)
+    if user_resp == 1:
+        return user_resp
+    return {"status": user_resp["status"], "message": user_resp["message"], "user_id": user_resp["data"].id}
 
 def login_user(username, password):
     # check if there is an existing user
     user_resp = database_api.get_user_by_user_name(username)
     if user_resp["status"] == 1:
         return user_resp
-    user_data = user_resp["user"]
+    user_data = user_resp["data"]
     if bcrypt.checkpw(password.encode(), user_data.password.encode()):
         # In here the password matches, we store the content for the token in the message
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

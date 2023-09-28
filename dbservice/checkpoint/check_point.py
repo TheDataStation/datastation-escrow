@@ -27,7 +27,7 @@ class CheckPoint:
 
         # First we check point the user table
         user_res = database_api.get_all_users()
-        user_table_as_list = user_res.data
+        user_table_as_list = user_res["data"]
         user_table_plain_bytes = pickle.dumps(user_table_as_list)
         user_table_cipher_bytes = sym_key_to_use.encrypt(user_table_plain_bytes)
 

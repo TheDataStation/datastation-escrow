@@ -62,14 +62,14 @@ def remove_dataset_by_name(db: Session, name):
     return "success"
 
 
-def create_dataset(db: Session, dataset: DatasetCreate):
-    db_dataset = Dataset(id=dataset.id,
-                         owner_id=dataset.owner_id,
-                         name=dataset.name,
-                         type=dataset.type,
-                         access_param=dataset.access_param,
-                         description=dataset.description,
-                         optimistic=dataset.optimistic)
+def create_de(db: Session, de_id, de_name, user_id, de_type, access_param, optimistic):
+    db_dataset = Dataset(id=de_id,
+                         owner_id=user_id,
+                         name=de_name,
+                         type=de_type,
+                         access_param=access_param,
+                         description="",
+                         optimistic=optimistic)
 
     try:
         db.add(db_dataset)
