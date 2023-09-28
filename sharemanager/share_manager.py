@@ -94,7 +94,7 @@ def register_share_in_DB_no_trust(user_id,
 
 
 def show_share(user_id, share_id):
-
+    # Check if caller is in share's approval agent
     approval_agents = database_api.get_approval_for_share(share_id)
     approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
     if user_id not in approval_agents_list:

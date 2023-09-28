@@ -70,7 +70,6 @@ class DataStation:
 
         Parameters:
          ds_config: dictionary of general config options
-         app_config: dictionary of app connector options
          need_to_recover: bool that specifies if needs to recover from previous database
         """
         # parse config file
@@ -347,71 +346,6 @@ class DataStation:
         """
         de_manager_response = de_manager.list_discoverable_des()
         return de_manager_response
-
-    def upload_policy(self, username, user_id, api, data_id, share_id):
-        """
-        Uploads a policy written by the given user to DS
-
-        Parameters:
-            username: the unique username identifying which user wrote the policy
-            user_id: part of policy to upload, the user ID of the policy
-            api: the api the policy refers to
-            data_id: the data id the policy refers to
-            share_id: to which share does this policy apply.
-
-        Returns:
-            Response of policy broker
-        """
-        policy = Policy(user_id=user_id, api=api, data_id=data_id, share_id=share_id, status=1)
-
-        if self.trust_mode == "full_trust":
-            return policy_broker.upload_policy(policy,
-                                               username, )
-        else:
-            return policy_broker.upload_policy(policy,
-                                               username,
-                                               self.write_ahead_log,
-                                               self.key_manager, )
-
-    def bulk_upload_policies(self, username, policies):
-        """
-        For testing purposes.
-        """
-        # This code here is unpolished. Just for testing purposes.
-        if self.trust_mode == "full_trust":
-            response = database_api.bulk_upload_policies(policies)
-            return response
-        else:
-            response = policy_broker.bulk_upload_policies(policies,
-                                                          username,
-                                                          self.write_ahead_log,
-                                                          self.key_manager, )
-            return response
-
-    def remove_policy(self, username, user_id, api, data_id):
-        """
-        Removes a policy from DS
-
-        Parameters:
-         username: the unique username identifying which user wrote the policy
-         user_id: part of policy to upload, the user ID of the policy
-         api: the api the policy refers to
-         data_id: the data id the policy refers to
-
-        Returns:
-         Response of policy broker
-        """
-
-        policy = Policy(user_id=user_id, api=api, data_id=data_id)
-
-        if self.trust_mode == "full_trust":
-            return policy_broker.remove_policy(policy,
-                                               username, )
-        else:
-            return policy_broker.remove_policy(policy,
-                                               username,
-                                               self.write_ahead_log,
-                                               self.key_manager, )
 
     def suggest_share(self,
                       user_id,

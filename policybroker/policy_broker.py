@@ -1,9 +1,6 @@
 from dbservice import database_api
 from common import common_procedure
 import os
-from common.pydantic_models.policy import Policy
-from common.pydantic_models.user import User
-from common.pydantic_models.response import Response
 
 
 # Helper function to get all ancestors of an api from dependency graph (including itself)
@@ -12,112 +9,6 @@ def get_all_ancestors(api, d_graph, cur_ancestors):
         cur_ancestors += d_graph[api]
         for parent_api in d_graph[api]:
             get_all_ancestors(parent_api, d_graph, cur_ancestors)
-
-
-# upload a new policy to DB
-
-def upload_policy(policy: Policy,
-                  cur_username,
-                  write_ahead_log=None,
-                  key_manager=None, ):
-    # TODO: think about if the following block needs to be added back later
-    # # First check if the dataset owner is the current user
-    # verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
-    # if verify_owner_response.status == 1:
-    #     return verify_owner_response
-
-    # Get caller's id
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
-    # If the user doesn't exist, something is wrong
-    if cur_user.status == -1:
-        return {"status": 1, "message": "Something wrong with the current user"}
-    cur_user_id = cur_user.data[0].id
-
-    # If in no_trust mode, we need to record this ADD_POLICY to wal
-    if write_ahead_log is not None:
-        wal_entry = "database_api.create_policy(Policy(user_id=" + str(policy.user_id) \
-                    + ",api='" + policy.api \
-                    + "',data_id=" + str(policy.data_id) \
-                    + ",share_id=" + str(policy.share_id) \
-                    + ",status=" + str(policy.status) \
-                    + "))"
-        # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
-
-    response = database_api.create_policy(policy)
-    if response.status == -1:
-        return {"status": 1, "message": "Upload policy failed"}
-    else:
-        return {"status": 0, "message": "success"}
-
-
-# upload policies in bulk fashion
-
-def bulk_upload_policies(policies,
-                         cur_username,
-                         write_ahead_log=None,
-                         key_manager=None, ):
-    # First check if the dataset owner(s) is the current user
-    for policy in policies:
-        verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
-        if verify_owner_response.status == 1:
-            return verify_owner_response
-    # print("all owner check passed")
-
-    # Get caller's UID
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
-    if cur_user.status == -1:
-        return {"status": 1, "message": "database error: can't find caller"}
-    cur_user_id = cur_user.data[0].id
-    # print(cur_user_id)
-
-    # If in no_trust mode, we need to record EVERY add_policy to wal
-    if write_ahead_log is not None:
-        for policy in policies:
-            wal_entry = "database_api.create_policy(Policy(user_id=" + str(policy.user_id) \
-                        + ",api='" + policy.api \
-                        + "',data_id=" + str(policy.data_id) \
-                        + ",share_id=" + str(policy.share_id) \
-                        + ",status=" + str(policy.status) \
-                        + "))"
-            # If write_ahead_log is not None, key_manager also will not be None
-            write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
-
-    response = database_api.bulk_upload_policies(policies)
-    return response
-
-
-# remove a policy from DB
-
-def remove_policy(policy: Policy,
-                  cur_username,
-                  write_ahead_log=None,
-                  key_manager=None, ):
-    # First check if the dataset owner is the current user
-    verify_owner_response = common_procedure.verify_dataset_owner(policy.data_id, cur_username)
-    if verify_owner_response.status == 1:
-        return verify_owner_response
-
-    # Get caller's id
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
-    # If the user doesn't exist, something is wrong
-    if cur_user.status == -1:
-        return {"status": 1, "message": "Something wrong with the current user"}
-    cur_user_id = cur_user.data[0].id
-
-    # If in no_trust mode, we need to record this REMOVE_POLICY to wal
-    if write_ahead_log is not None:
-        wal_entry = "database_api.remove_policy(Policy(user_id=" + str(policy.user_id) \
-                    + ",api='" + policy.api \
-                    + "',data_id=" + str(policy.data_id) \
-                    + ",share_id=" + str(policy.share_id) \
-                    + ",status=" + str(policy.status) \
-                    + "))"
-        # If write_ahead_log is not None, key_manager also will not be None
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
-
-    response = database_api.remove_policy(policy)
-    return {"status": response.status, "message": response.msg}
 
 # get all policies from DB
 
@@ -169,7 +60,7 @@ def get_user_api_info(user_id, api, share_id):
 
     # get ancestors of the api being called
     cur_ancestors = [api]
-    print("get_user_api_info, with pid: ", os.getpid() ,api, dependency_graph, cur_ancestors)
+    print("get_user_api_info, with pid: ", os.getpid(), api, dependency_graph, cur_ancestors)
     get_all_ancestors(api, dependency_graph, cur_ancestors)
     # print("Current api's ancestors are:")
     # print(cur_ancestors)
@@ -190,7 +81,6 @@ def get_user_api_info(user_id, api, share_id):
     accessible_data = list(set(accessible_data))
 
     # # Check correctness
-    # print("accessible data from new method:")
-    # print(accessible_data)
+    # print("accessible data:", accessible_data)
 
     return accessible_data

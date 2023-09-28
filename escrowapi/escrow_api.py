@@ -109,25 +109,6 @@ class EscrowAPI:
         return cls.__comp.list_discoverable_des(user_id)
 
     @classmethod
-    def upload_policy(cls, username, user_id, api, data_id, share_id):
-        """
-        API Endpoint.
-        Uploads a policy written by the given user to DS
-
-        Parameters:
-            username: caller username
-            user_id: part of policy to upload, the user ID of the policy
-            api: the api the policy refers to
-            data_id: the data id the policy refers to
-            share_id: to which share does this policy apply.
-
-        Returns:
-        A response object with the following fields:
-            status: status of uploading policy. 0: success, 1: failure.
-        """
-        return cls.__comp.upload_policy(username, user_id, api, data_id, share_id)
-
-    @classmethod
     def suggest_share(cls,
                       user_id,
                       dest_agents,
