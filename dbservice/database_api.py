@@ -7,7 +7,6 @@ from .crud import (user_repo,
                    function_repo,
                    function_dependency_repo,
                    policy_repo,
-                   staged_repo,
                    provenance_repo,
                    share_repo, )
 from .responses import response
@@ -244,28 +243,6 @@ def bulk_upload_policies(policies):
         if res is not None:
             return 0
 
-def create_staged(request):
-    with get_db() as session:
-        staged = staged_repo.create_staged(session, request)
-        if staged:
-            return response.StagedResponse(status=1, msg="success", data=[staged])
-        else:
-            return response.StagedResponse(status=-1, msg="fail", data=[])
-
-def get_staging_with_max_id():
-    with get_db() as session:
-        staged = staged_repo.get_staged_with_max_id(session)
-        if staged:
-            return response.StagedResponse(status=1, msg="success", data=[staged])
-        else:
-            return response.StagedResponse(status=-1, msg="internal database error", data=[])
-
-def recover_staged(staged):
-    with get_db() as session:
-        res = staged_repo.recover_staged(session, staged)
-        if res is not None:
-            return 0
-
 def create_provenance(request):
     with get_db() as session:
         provenance = provenance_repo.create_provenance(session, request)
@@ -281,12 +258,6 @@ def get_all_provenances():
             return response.ProvenanceResponse(status=1, msg="success", data=provenances)
         else:
             return response.ProvenanceResponse(status=-1, msg="no existing provenances", data=[])
-
-def get_parent_id_for_staged_id(staged_id):
-    with get_db() as session:
-        parent_ids = provenance_repo.get_parent_id_for_staged_id(session, staged_id)
-        if len(parent_ids):
-            return parent_ids
 
 def recover_provenance(provenances):
     with get_db() as session:

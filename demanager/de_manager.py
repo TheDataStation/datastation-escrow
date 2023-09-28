@@ -3,7 +3,6 @@ import pathlib
 from dbservice import database_api
 from common import common_procedure
 from common.pydantic_models.dataset import Dataset
-from common.pydantic_models.staged import Staged
 from common.pydantic_models.user import User
 
 
@@ -89,47 +88,6 @@ def remove_data(data_name,
             "message": "Successfully removed data",
             "data_id": dataset_id,
             "type": type_of_data, }
-
-def register_staged_in_DB(data_id,
-                          caller_id,
-                          api,
-                          write_ahead_log=None,
-                          key_manager=None,):
-    wal_entry = "database_api.create_staged(Staged(id=" + str(data_id) \
-                + ",caller_id=" + str(caller_id) \
-                + ",api='" + api \
-                + "'))"
-    # If in no_trust mode, record this entry
-    if write_ahead_log is not None:
-        write_ahead_log.log(caller_id, wal_entry, key_manager, )
-
-    # Start writing the entry to DB
-    new_staged = Staged(id=data_id,
-                        caller_id=caller_id,
-                        api=api,)
-    database_service_response = database_api.create_staged(new_staged)
-    if database_service_response.status == -1:
-        return {"status": 1, "message": "database error: create staged DE failed"}
-
-    return {"status": 0, "message": "success"}
-
-def register_provenance_in_DB(data_id,
-                              data_ids_accessed,
-                              cur_user_id=None,
-                              write_ahead_log=None,
-                              key_manager=None,):
-    wal_entry = "database_api.bulk_create_provenance(" + str(data_id) \
-                + ", " + str(list(data_ids_accessed)) \
-                + ")"
-    # If in no_trust mode, record this entry
-    if write_ahead_log is not None:
-        write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
-
-    database_service_response = database_api.bulk_create_provenance(data_id, list(data_ids_accessed))
-    if database_service_response == 1:
-        return {"status": 1, "message": "internal database error"}
-
-    return {"status": 0, "message": "success"}
 
 def list_discoverable_des():
     database_service_response = database_api.list_discoverable_des()

@@ -4,7 +4,6 @@ from common.pydantic_models.dataset import Dataset
 from common.pydantic_models.function import Function
 from common.pydantic_models.function_dependency import FunctionDependency
 from common.pydantic_models.policy import Policy
-from common.pydantic_models.staged import Staged
 from common.pydantic_models.provenance import Provenance
 from common.pydantic_models.share import Share
 from typing import List
@@ -30,9 +29,6 @@ class FunctionDependencyResponse(Response):
 
 class PolicyResponse(Response):
     data: List[Policy]
-
-class StagedResponse(Response):
-    data: List[Staged]
 
 class ProvenanceResponse(Response):
     data: List[Provenance]

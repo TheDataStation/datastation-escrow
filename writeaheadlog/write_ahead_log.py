@@ -7,7 +7,6 @@ from dbservice import database_api
 from common.pydantic_models.user import User
 from common.pydantic_models.dataset import Dataset
 from common.pydantic_models.policy import Policy
-from common.pydantic_models.staged import Staged
 from common.pydantic_models.provenance import Provenance
 
 WriteContent = namedtuple("WriteContent",

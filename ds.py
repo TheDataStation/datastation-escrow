@@ -135,15 +135,8 @@ class DataStation:
             self.cur_data_id = data_id_resp.data[0].id + 1
         else:
             self.cur_data_id = 1
-        # print("Starting data id should be:")
+        # print("Starting DE id should be:")
         # print(self.cur_data_id)
-
-        # Decide which staging_data_id to use at new insertion
-        staging_id_resp = database_api.get_staging_with_max_id()
-        if staging_id_resp.status == 1:
-            self.cur_staging_data_id = staging_id_resp.data[0].id + 1
-        else:
-            self.cur_staging_data_id = 1
 
         # Decide which user_id to use at new insertion
         user_id_resp = database_api.get_user_with_max_id()
