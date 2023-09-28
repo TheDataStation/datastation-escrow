@@ -129,14 +129,14 @@ class DataStation:
             database_api.recover_db_from_snapshots(self.key_manager)
             self.recover_db_from_wal()
 
-        # Decide which data_id to use at new insertion
-        data_id_resp = database_api.get_data_with_max_id()
-        if data_id_resp.status == 1:
-            self.cur_data_id = data_id_resp.data[0].id + 1
+        # Decide which de_id to use at new insertion
+        de_id_resp = database_api.get_data_with_max_id()
+        if de_id_resp.status == 1:
+            self.cur_de_id = de_id_resp.data[0].id + 1
         else:
-            self.cur_data_id = 1
+            self.cur_de_id = 1
         # print("Starting DE id should be:")
-        # print(self.cur_data_id)
+        # print(self.cur_de_id)
 
         # Decide which user_id to use at new insertion
         user_id_resp = database_api.get_user_with_max_id()
@@ -238,19 +238,19 @@ class DataStation:
             optimistic: flag to be included in optimistic data discovery
             access_param: additional parameters needed for acccessing the DE
         """
-        # Decide which data_id to use from ClientAPI.cur_data_id field
-        data_id = self.cur_data_id
-        self.cur_data_id += 1
+        # Decide which de_id to use from self.cur_de_id
+        de_id = self.cur_de_id
+        self.cur_de_id += 1
 
         if self.trust_mode == "full_trust":
-            return de_manager.register_data_in_DB(data_id,
+            return de_manager.register_data_in_DB(de_id,
                                                   data_name,
                                                   user_id,
                                                   data_type,
                                                   access_param,
                                                   optimistic)
         else:
-            return de_manager.register_data_in_DB(data_id,
+            return de_manager.register_data_in_DB(de_id,
                                                   data_name,
                                                   user_id,
                                                   data_type,
@@ -261,34 +261,34 @@ class DataStation:
 
     def upload_de(self,
                   user_id,
-                  data_id,
+                  de_id,
                   data_in_bytes):
         """
         Upload a file corresponding to a registered DE.
 
         Parameters:
             user_id: user id
-            data_id: id of this existing DE
+            de_id: id of this existing DE
             data_in_bytes: daat in bytes
         """
         # Check if the DE exists, and whether its owner is the caller
-        verify_owner_response = common_procedure.verify_dataset_owner(data_id, user_id)
+        verify_owner_response = common_procedure.verify_dataset_owner(de_id, user_id)
         if verify_owner_response["status"] == 1:
             return verify_owner_response
 
-        # We now get the data_name and data_type from data_id
-        data_res = database_api.get_data_by_id(data_id)
-        if data_res.status == -1:
-            return data_res
+        # We now get the data_name and data_type from de_id
+        de_res = database_api.get_data_by_id(de_id)
+        if de_res.status == -1:
+            return de_res
 
         if self.trust_mode == "no_trust":
             data_in_bytes = cu.encrypt_data_with_symmetric_key(data_in_bytes,
                                                                self.key_manager.agents_symmetric_key[user_id])
 
-        storage_manager_response = self.storage_manager.store(data_res.data[0].name,
-                                                              data_id,
+        storage_manager_response = self.storage_manager.store(de_res.data[0].name,
+                                                              de_id,
                                                               data_in_bytes,
-                                                              data_res.data[0].type, )
+                                                              de_res.data[0].type, )
         return storage_manager_response
 
     def remove_dataset(self, username, data_name):
@@ -318,7 +318,7 @@ class DataStation:
         # At this step we have removed the record about the dataset from DB
         # Now we remove its actual content from SM
         storage_manager_response = self.storage_manager.remove(data_name,
-                                                               de_manager_response["data_id"],
+                                                               de_manager_response["de_id"],
                                                                de_manager_response["type"], )
 
         # If SM removal failed
@@ -653,13 +653,13 @@ class DataStation:
             self.cur_user_id = 1
         print("User ID to use after recovering DB is: " + str(self.cur_user_id))
 
-        # Step 3: reset self.cur_data_id from DB
-        data_id_resp = database_api.get_data_with_max_id()
-        if data_id_resp.status == 1:
-            self.cur_data_id = data_id_resp.data[0].id + 1
+        # Step 3: reset self.cur_de_id from DB
+        de_id_resp = database_api.get_data_with_max_id()
+        if de_id_resp.status == 1:
+            self.cur_de_id = de_id_resp.data[0].id + 1
         else:
-            self.cur_data_id = 1
-        print("Data ID to use after recovering DB is: " + str(self.cur_data_id))
+            self.cur_de_id = 1
+        print("DE ID to use after recovering DB is: " + str(self.cur_de_id))
 
     # For testing purposes: persist keys to a file
 

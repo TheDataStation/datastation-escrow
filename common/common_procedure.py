@@ -1,9 +1,9 @@
 from dbservice import database_api
 
 
-def verify_dataset_owner(dataset_id, user_id):
+def verify_dataset_owner(de_id, user_id):
     # get data element owner id
-    dataset_owner_id = database_api.get_de_owner(dataset_id)
+    dataset_owner_id = database_api.get_de_owner(de_id)
     if dataset_owner_id is None:
         return {"status": 1, "message": "Error retrieving data owner."}
     # print("Dataset owner id is: " + str(dataset_owner_id))

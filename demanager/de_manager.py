@@ -6,7 +6,7 @@ from common.pydantic_models.dataset import Dataset
 from common.pydantic_models.user import User
 
 
-def register_data_in_DB(data_id,
+def register_data_in_DB(de_id,
                         data_name,
                         user_id,
                         data_type,
@@ -22,7 +22,7 @@ def register_data_in_DB(data_id,
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log is not None:
-        wal_entry = "database_api.create_dataset(Dataset(id=" + str(data_id) \
+        wal_entry = "database_api.create_dataset(Dataset(id=" + str(de_id) \
                     + ",name='" + data_name \
                     + "',owner_id=" + str(user_id) \
                     + ",type='" + data_type \
@@ -31,7 +31,7 @@ def register_data_in_DB(data_id,
                     + "))"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    new_dataset = Dataset(id=data_id,
+    new_dataset = Dataset(id=de_id,
                           name=data_name,
                           owner_id=user_id,
                           type=data_type,
@@ -42,7 +42,7 @@ def register_data_in_DB(data_id,
     if database_service_response.status == -1:
         return {"status": 1, "message": "internal database error"}
 
-    return {"status": 0, "message": "success", "de_id": data_id}
+    return {"status": 0, "message": "success", "de_id": de_id}
 
 def remove_data(data_name,
                 cur_username,
@@ -86,7 +86,7 @@ def remove_data(data_name,
 
     return {"status": 0,
             "message": "Successfully removed data",
-            "data_id": dataset_id,
+            "de_id": dataset_id,
             "type": type_of_data, }
 
 def list_discoverable_des():
