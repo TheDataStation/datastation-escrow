@@ -38,7 +38,7 @@ class CheckPoint:
             user_file.write(user_to_add)
 
         # Then we check point the data table
-        data_res = database_api.get_all_datasets()
+        data_res = database_api.get_all_des()
         data_table_as_list = data_res.data
         data_table_plain_bytes = pickle.dumps(data_table_as_list)
         data_table_cipher_bytes = sym_key_to_use.encrypt(data_table_plain_bytes)
@@ -102,7 +102,7 @@ class CheckPoint:
 
         # print(data_content_list)
 
-        database_api.recover_datas(data_content_list)
+        database_api.recover_des(data_content_list)
 
         # Policy table
         with open(self.table_paths[2], "rb") as f:

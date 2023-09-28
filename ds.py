@@ -130,7 +130,7 @@ class DataStation:
             self.recover_db_from_wal()
 
         # Decide which de_id to use at new insertion
-        de_id_resp = database_api.get_data_with_max_id()
+        de_id_resp = database_api.get_de_with_max_id()
         if de_id_resp.status == 1:
             self.cur_de_id = de_id_resp.data[0].id + 1
         else:
@@ -232,7 +232,7 @@ class DataStation:
         Registers a data element in Data Station's database.
 
         Parameters:
-            user_id: the unique id identifying which user owns the dataset
+            user_id: the unique id identifying which user owns the de
             de_name: name of DE
             de_type: what types of data can be uploaded?
             optimistic: flag to be included in optimistic data discovery
@@ -272,12 +272,12 @@ class DataStation:
             data_in_bytes: daat in bytes
         """
         # Check if the DE exists, and whether its owner is the caller
-        verify_owner_response = common_procedure.verify_dataset_owner(de_id, user_id)
+        verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
         if verify_owner_response["status"] == 1:
             return verify_owner_response
 
         # We now get the data_name and data_type from de_id
-        de_res = database_api.get_data_by_id(de_id)
+        de_res = database_api.get_de_by_id(de_id)
         if de_res.status == -1:
             return de_res
 
@@ -291,33 +291,33 @@ class DataStation:
                                                               de_res.data[0].type, )
         return storage_manager_response
 
-    def remove_dataset(self, username, data_name):
+    def remove_de(self, username, de_name):
         """
-        Removes a dataset from DS
+        Removes a DE from DS's database
 
         Parameters:
-         username: the unique username identifying which user owns the dataset
-         data_name: name of the data
+         username: the unique username identifying which user owns the de
+         de_name: name of the data
 
         Returns:
          Response of data register
         """
 
-        # First we call de_manager to remove the existing dataset from the database
+        # First we call de_manager to remove the existing DE from the database
         if self.trust_mode == "full_trust":
-            de_manager_response = de_manager.remove_data(data_name,
+            de_manager_response = de_manager.remove_data(de_name,
                                                          username, )
         else:
-            de_manager_response = de_manager.remove_data(data_name,
+            de_manager_response = de_manager.remove_data(de_name,
                                                          username,
                                                          self.write_ahead_log,
                                                          self.key_manager, )
         if de_manager_response["status"] != 0:
             return de_manager_response
 
-        # At this step we have removed the record about the dataset from DB
+        # At this step we have removed the record about the de from DB
         # Now we remove its actual content from SM
-        storage_manager_response = self.storage_manager.remove(data_name,
+        storage_manager_response = self.storage_manager.remove(de_name,
                                                                de_manager_response["de_id"],
                                                                de_manager_response["type"], )
 
@@ -461,13 +461,13 @@ class DataStation:
             all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
             # print(f"all accessible data elements are: {all_accessible_de_id}")
 
-            get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
-            if get_datasets_by_ids_res.status == -1:
+            get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
+            if get_des_by_ids_res.status == -1:
                 print("Something wrong with getting accessible DE for share.")
                 return None
 
             accessible_de = set()
-            for cur_data in get_datasets_by_ids_res.data:
+            for cur_data in get_des_by_ids_res.data:
                 if self.trust_mode == "no_trust":
                     data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
                 else:
@@ -652,7 +652,7 @@ class DataStation:
         print("User ID to use after recovering DB is: " + str(self.cur_user_id))
 
         # Step 3: reset self.cur_de_id from DB
-        de_id_resp = database_api.get_data_with_max_id()
+        de_id_resp = database_api.get_de_with_max_id()
         if de_id_resp.status == 1:
             self.cur_de_id = de_id_resp.data[0].id + 1
         else:

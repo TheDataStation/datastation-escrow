@@ -6,15 +6,9 @@ from ..schemas.dataelement import DataElement
 from ..schemas.user import User
 
 
-def get_all_datasets(db: Session):
-    all_data = db.query(DataElement).all()
-    return all_data
-
-
-# The following function returns all datasets with optimistic == True
-def get_all_optimistic_datasets(db: Session):
-    all_optimistic_data = db.query(DataElement).filter(DataElement.optimistic == True).all()
-    return all_optimistic_data
+def get_all_des(db: Session):
+    des = db.query(DataElement).all()
+    return des
 
 
 def list_discoverable_des(db: Session):
@@ -22,42 +16,36 @@ def list_discoverable_des(db: Session):
     return all_optimistic_data
 
 
-def get_data_by_id(db: Session, dataset_id: int):
-    dataset = db.query(DataElement).filter(DataElement.id == dataset_id).first()
-    if dataset:
-        return dataset
+def get_de_by_id(db: Session, de_id: int):
+    de = db.query(DataElement).filter(DataElement.id == de_id).first()
+    if de:
+        return de
     else:
         return None
 
 
-def get_dataset_by_name(db: Session, name: str):
-    dataset = db.query(DataElement).filter(DataElement.name == name).first()
-    if dataset:
-        return dataset
+def get_de_by_name(db: Session, name: str):
+    de = db.query(DataElement).filter(DataElement.name == name).first()
+    if de:
+        return de
     else:
         return None
 
 
-def get_dataset_by_access_param(db: Session, access_param: str):
-    dataset = db.query(DataElement).filter(DataElement.access_param == access_param).first()
-    if dataset:
-        return dataset
+def get_de_by_access_param(db: Session, access_param: str):
+    de = db.query(DataElement).filter(DataElement.access_param == access_param).first()
+    if de:
+        return de
     else:
         return None
 
 
-def get_datasets_by_paths(db: Session, paths):
-    # session.query(MyUserClass).filter(MyUserClass.id.in_((123,456))).all()
-    datasets = db.query(DataElement).filter(DataElement.access_param.in_(tuple(paths))).all()
-    return datasets
+def get_des_by_ids(db: Session, ids: list):
+    des = db.query(DataElement).filter(DataElement.id.in_(tuple(ids))).all()
+    return des
 
 
-def get_datasets_by_ids(db: Session, ids: list):
-    datasets = db.query(DataElement).filter(DataElement.id.in_(tuple(ids))).all()
-    return datasets
-
-
-def remove_dataset_by_name(db: Session, name):
+def remove_de_by_name(db: Session, name):
     try:
         db.query(DataElement).filter(DataElement.name == name).delete()
         db.commit()
@@ -68,45 +56,45 @@ def remove_dataset_by_name(db: Session, name):
 
 
 def create_de(db: Session, de_id, de_name, user_id, de_type, access_param, optimistic):
-    db_dataset = DataElement(id=de_id,
-                             owner_id=user_id,
-                             name=de_name,
-                             type=de_type,
-                             access_param=access_param,
-                             optimistic=optimistic)
+    db_de = DataElement(id=de_id,
+                        owner_id=user_id,
+                        name=de_name,
+                        type=de_type,
+                        access_param=access_param,
+                        optimistic=optimistic)
 
     try:
-        db.add(db_dataset)
+        db.add(db_de)
         db.commit()
-        db.refresh(db_dataset)
+        db.refresh(db_de)
     except SQLAlchemyError as e:
         db.rollback()
         return None
-    return db_dataset
+    return db_de
 
 
 # The following function returns the owner, given a DE ID.
-def get_de_owner(db: Session, dataset_id: int):
-    dataset = db.query(DataElement).filter(DataElement.id == dataset_id).first()
-    if dataset:
-        owner_id = db.query(User.id).filter(User.id == dataset.owner_id).first()[0]
+def get_de_owner(db: Session, de_id: int):
+    de = db.query(DataElement).filter(DataElement.id == de_id).first()
+    if de:
+        owner_id = db.query(User.id).filter(User.id == de.owner_id).first()[0]
         if owner_id:
             return owner_id
     return None
 
 
-# The following function returns the dataset with the max ID
-def get_data_with_max_id(db: Session):
+# The following function returns the DE with the max ID
+def get_de_with_max_id(db: Session):
     max_id = db.query(func.max(DataElement.id)).scalar_subquery()
-    dataset = db.query(DataElement).filter(DataElement.id == max_id).first()
-    if dataset:
-        return dataset
+    de = db.query(DataElement).filter(DataElement.id == max_id).first()
+    if de:
+        return de
     else:
         return None
 
 
 # The following function recovers the data table from a list of Data
-def recover_datas(db: Session, datas):
+def recover_des(db: Session, datas):
     datas_to_add = []
     for data in datas:
         cur_data = DataElement(id=data.id,

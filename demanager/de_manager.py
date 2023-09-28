@@ -40,7 +40,7 @@ def remove_data(data_name,
                 write_ahead_log=None,
                 key_manager=None, ):
     # Check if there is an existing data element
-    existed_dataset = database_api.get_dataset_by_name(Dataset(name=data_name, ))
+    existed_dataset = database_api.get_de_by_name(Dataset(name=data_name, ))
     if existed_dataset.status == -1:
         return {"status": 1, "message": "DE does not exist."}
 
@@ -56,8 +56,8 @@ def remove_data(data_name,
         return user_resp
     cur_user_id = user_resp["data"].id
 
-    # Check if the dataset owner is the current user
-    verify_owner_response = common_procedure.verify_dataset_owner(dataset_id, cur_username)
+    # Check if the DE owner is the current user
+    verify_owner_response = common_procedure.verify_de_owner(dataset_id, cur_username)
     if verify_owner_response.status == 1:
         return verify_owner_response
 
@@ -70,7 +70,7 @@ def remove_data(data_name,
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     dataset_to_remove = Dataset(name=data_name, )
-    database_service_response = database_api.remove_dataset_by_name(dataset_to_remove)
+    database_service_response = database_api.remove_de_by_name(dataset_to_remove)
     if database_service_response.status == -1:
         return {"status": 1, "message": "database error: remove DE failed"}
 

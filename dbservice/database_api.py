@@ -80,25 +80,25 @@ def create_de(de_id, de_name, user_id, de_type, access_param, optimistic):
         else:
             return {"status": 1, "message": "database error: create de failed"}
 
-def get_dataset_by_name(request):
+def get_de_by_name(request):
     with get_db() as session:
-        dataset = dataelement_repo.get_dataset_by_name(session, request.name)
+        dataset = dataelement_repo.get_de_by_name(session, request.name)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
-def get_data_by_id(data_id: int):
+def get_de_by_id(data_id: int):
     with get_db() as session:
-        dataset = dataelement_repo.get_data_by_id(session, data_id)
+        dataset = dataelement_repo.get_de_by_id(session, data_id)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
-def get_dataset_by_access_type(request):
+def get_de_by_access_type(request):
     with get_db() as session:
-        dataset = dataelement_repo.get_dataset_by_access_param(session, request)
+        dataset = dataelement_repo.get_de_by_access_param(session, request)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
@@ -109,25 +109,17 @@ def list_discoverable_des():
         discoverable_des = dataelement_repo.list_discoverable_des(session)
         return discoverable_des
 
-def get_datasets_by_paths(request):
+def get_des_by_ids(request):
     with get_db() as session:
-        datasets = dataelement_repo.get_datasets_by_paths(session, request)
+        datasets = dataelement_repo.get_des_by_ids(session, request)
         if len(datasets) > 0:
             return response.DatasetResponse(status=1, msg="success", data=datasets)
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
-def get_datasets_by_ids(request):
+def remove_de_by_name(request):
     with get_db() as session:
-        datasets = dataelement_repo.get_datasets_by_ids(session, request)
-        if len(datasets) > 0:
-            return response.DatasetResponse(status=1, msg="success", data=datasets)
-        else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
-
-def remove_dataset_by_name(request):
-    with get_db() as session:
-        res = dataelement_repo.remove_dataset_by_name(session, request.name)
+        res = dataelement_repo.remove_de_by_name(session, request.name)
         if res == "success":
             return response.DatasetResponse(status=1, msg="success", data=[])
         else:
@@ -137,33 +129,25 @@ def get_de_owner(request):
     with get_db() as session:
         return dataelement_repo.get_de_owner(session, request)
 
-def get_all_datasets():
+def get_all_des():
     with get_db() as session:
-        datasets = dataelement_repo.get_all_datasets(session)
+        datasets = dataelement_repo.get_all_des(session)
         if len(datasets):
             return response.DatasetResponse(status=1, msg="success", data=datasets)
         else:
             return response.DatasetResponse(status=-1, msg="no existing datasets", data=[])
 
-def get_all_optimistic_datasets():
+def get_de_with_max_id():
     with get_db() as session:
-        datasets = dataelement_repo.get_all_optimistic_datasets(session)
-        if len(datasets):
-            return response.DatasetResponse(status=1, msg="success", data=datasets)
-        else:
-            return response.DatasetResponse(status=-1, msg="no optimistic datasets", data=[])
-
-def get_data_with_max_id():
-    with get_db() as session:
-        dataset = dataelement_repo.get_data_with_max_id(session)
+        dataset = dataelement_repo.get_de_with_max_id(session)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
-def recover_datas(datas):
+def recover_des(datas):
     with get_db() as session:
-        res = dataelement_repo.recover_datas(session, datas)
+        res = dataelement_repo.recover_des(session, datas)
         if res is not None:
             return 0
 

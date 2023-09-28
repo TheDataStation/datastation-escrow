@@ -121,7 +121,7 @@ class Gatekeeper:
         all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
         # print(f"all accessible data elements are: {all_accessible_de_id}")
 
-        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
+        get_datasets_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
         if get_datasets_by_ids_res.status == -1:
             err_msg = "No accessible data for " + api
             print(err_msg)
