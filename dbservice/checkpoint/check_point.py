@@ -61,18 +61,6 @@ class CheckPoint:
             policy_to_add = pickle.dumps(policy_table)
             policy_file.write(policy_to_add)
 
-        # Then we check point the staged table
-        staged_res = database_api.get_all_staged()
-        staged_table_as_list = staged_res.data
-        staged_table_plain_bytes = pickle.dumps(staged_table_as_list)
-        staged_table_cipher_bytes = sym_key_to_use.encrypt(staged_table_plain_bytes)
-
-        staged_table = TableContent(content=staged_table_cipher_bytes)
-
-        with open(self.table_paths[3], "ab") as staged_file:
-            staged_to_add = pickle.dumps(staged_table)
-            staged_file.write(staged_to_add)
-
         # Then we check point the provenance table
         provenance_res = database_api.get_all_provenances()
         provenance_table_as_list = provenance_res.data

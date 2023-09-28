@@ -5,7 +5,7 @@ import pathlib
 import time
 import pickle
 
-from common.pydantic_models.api import API
+from common.pydantic_models.function import Function
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
 from common import common_procedure
@@ -514,7 +514,7 @@ class DataStation:
                                            **kwargs)
             return res
 
-    def call_api(self, username, api: API, *args, **kwargs):
+    def call_api(self, username, api, *args, **kwargs):
         """
         Calls an API as the given user
 

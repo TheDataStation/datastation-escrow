@@ -8,4 +8,4 @@ class Staged(Base):
 
     id = Column(Integer, primary_key=True)
     caller_id = Column(Integer, ForeignKey("users.id"))
-    api = Column(String, ForeignKey("APIs.api_name"))
+    api = Column(String, ForeignKey("Functions.function_name"))

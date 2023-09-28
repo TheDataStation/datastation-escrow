@@ -4,8 +4,8 @@ from sqlalchemy import event
 
 from .crud import (user_repo,
                    dataset_repo,
-                   api_repo,
-                   api_dependency_repo,
+                   function_repo,
+                   function_dependency_repo,
                    policy_repo,
                    staged_repo,
                    provenance_repo,
@@ -168,37 +168,37 @@ def recover_datas(datas):
         if res is not None:
             return 0
 
-def create_api(request):
+def create_function(request):
     with get_db() as session:
-        api = api_repo.create_api(session, request)
-        if api:
-            return response.APIResponse(status=1, msg="success", data=[api])
+        function = function_repo.create_function(session, request)
+        if function:
+            return response.FunctionResponse(status=1, msg="success", data=[function])
         else:
-            return response.APIResponse(status=-1, msg="fail", data=[])
+            return response.FunctionResponse(status=-1, msg="fail", data=[])
 
-def get_all_apis():
+def get_all_functions():
     with get_db() as session:
-        apis = api_repo.get_all_apis(session)
-        if len(apis):
-            return response.GetAPIResponse(status=1, msg="success", data=apis)
+        functions = function_repo.get_all_functions(session)
+        if len(functions):
+            return response.GetFunctionResponse(status=1, msg="success", data=functions)
         else:
-            return response.GetAPIResponse(status=-1, msg="no existing apis", data=[])
+            return response.GetFunctionResponse(status=-1, msg="no existing functions", data=[])
 
-def create_api_dependency(request):
+def create_function_dependency(request):
     with get_db() as session:
-        api_dependency = api_dependency_repo.create_api_dependency(session, request)
-        if api_dependency:
-            return response.APIDependencyResponse(status=1, msg="success", data=[api_dependency])
+        function_dependency = function_dependency_repo.create_function_dependency(session, request)
+        if function_dependency:
+            return response.FunctionDependencyResponse(status=1, msg="success", data=[function_dependency])
         else:
-            return response.APIDependencyResponse(status=-1, msg="fail", data=[])
+            return response.FunctionDependencyResponse(status=-1, msg="fail", data=[])
 
-def get_all_api_dependencies():
+def get_all_function_dependencies():
     with get_db() as session:
-        api_dependencies = api_dependency_repo.get_all_dependencies(session)
-        if len(api_dependencies):
-            return response.APIDependencyResponse(status=1, msg="success", data=api_dependencies)
+        function_dependencies = function_dependency_repo.get_all_dependencies(session)
+        if len(function_dependencies):
+            return response.FunctionDependencyResponse(status=1, msg="success", data=function_dependencies)
         else:
-            return response.APIDependencyResponse(status=-1, msg="no existing dependencies", data=[])
+            return response.FunctionDependencyResponse(status=-1, msg="no existing dependencies", data=[])
 
 def create_policy(request):
     with get_db() as session:
@@ -251,20 +251,6 @@ def create_staged(request):
             return response.StagedResponse(status=1, msg="success", data=[staged])
         else:
             return response.StagedResponse(status=-1, msg="fail", data=[])
-
-def get_api_for_staged_id(staged_id):
-    with get_db() as session:
-        api_name = staged_repo.get_api_for_staged_id(session, staged_id)
-        if api_name:
-            return api_name.api
-
-def get_all_staged():
-    with get_db() as session:
-        staged = staged_repo.get_all_staged(session)
-        if len(staged):
-            return response.StagedResponse(status=1, msg="success", data=staged)
-        else:
-            return response.StagedResponse(status=-1, msg="no existing staged DEs", data=[])
 
 def get_staging_with_max_id():
     with get_db() as session:

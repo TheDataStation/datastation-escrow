@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from common.pydantic_models.user import User
 from common.pydantic_models.dataset import Dataset
-from common.pydantic_models.api import API
-from common.pydantic_models.api_dependency import APIDependency
+from common.pydantic_models.function import Function
+from common.pydantic_models.function_dependency import FunctionDependency
 from common.pydantic_models.policy import Policy
 from common.pydantic_models.staged import Staged
 from common.pydantic_models.provenance import Provenance
@@ -19,14 +19,14 @@ class UserResponse(Response):
 class DatasetResponse(Response):
     data: List[Dataset]
 
-class APIResponse(Response):
-    data: List[API]
+class FunctionResponse(Response):
+    data: List[Function]
 
-class GetAPIResponse(Response):
+class GetFunctionResponse(Response):
     data: List[str]
 
-class APIDependencyResponse(Response):
-    data: List[APIDependency]
+class FunctionDependencyResponse(Response):
+    data: List[FunctionDependency]
 
 class PolicyResponse(Response):
     data: List[Policy]

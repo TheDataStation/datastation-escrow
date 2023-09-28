@@ -6,7 +6,7 @@ from dsapplicationregistration.dsar_core import (get_api_endpoint_names,
 from dbservice import database_api
 from sharemanager import share_manager
 from policybroker import policy_broker
-from common.pydantic_models.api import API
+from common.pydantic_models.function import Function
 from common.abstraction import DataElement
 
 from verifiability.log import Log
@@ -48,16 +48,16 @@ class Gatekeeper:
         function_names = get_functions_names()
         # now we call dbservice to register these info in the DB
         for cur_api in function_names:
-            api_db = API(api_name=cur_api)
+            api_db = Function(function_name=cur_api)
             print("api added: ", api_db)
-            database_service_response = database_api.create_api(api_db)
+            database_service_response = database_api.create_function(api_db)
             if database_service_response.status == -1:
                 print("database_api.create_api: internal database error")
                 raise RuntimeError(
                     "database_api.create_api: internal database error")
 
-        api_res = database_api.get_all_apis()
-        print("all apis uploaded, with pid: ", os.getpid(), api_res)
+        api_res = database_api.get_all_functions()
+        print("all function uploaded, with pid: ", os.getpid(), api_res)
 
         if not development_mode:
             docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".")
