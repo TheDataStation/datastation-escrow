@@ -4,12 +4,11 @@ from sqlalchemy.orm import relationship
 from ..database import Base
 
 
-class Dataset(Base):
-    __tablename__ = "datasets"
+class DataElement(Base):
+    __tablename__ = "DataElements"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    description = Column(String)
     type = Column(String)
     access_param = Column(String)
     optimistic = Column(Boolean)

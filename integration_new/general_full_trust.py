@@ -39,8 +39,8 @@ if __name__ == '__main__':
         plaintext_bytes = f.read()
         f.close()
         u_id = i // 3
-        res = register_res = ds.call_api(f"user{u_id}", "register_de", f"f{i}.csv", "file", f"f{i}.csv", True, )
-        print(res)
+        register_res = ds.call_api(f"user{u_id}", "register_de", f"f{i}.csv", "file", f"f{i}.csv", True, )
+        print(register_res)
         ds.call_api(f"user{u_id}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
     res = ds.call_api("user0", "list_discoverable_des")

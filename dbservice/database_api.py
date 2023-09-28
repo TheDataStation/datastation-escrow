@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import event
 
 from .crud import (user_repo,
-                   dataset_repo,
+                   dataelement_repo,
                    function_repo,
                    function_dependency_repo,
                    policy_repo,
@@ -74,7 +74,7 @@ def recover_users(users):
 
 def create_de(de_id, de_name, user_id, de_type, access_param, optimistic):
     with get_db() as session:
-        de = dataset_repo.create_de(session, de_id, de_name, user_id, de_type, access_param, optimistic)
+        de = dataelement_repo.create_de(session, de_id, de_name, user_id, de_type, access_param, optimistic)
         if de:
             return {"status": 0, "message": "success", "data": de}
         else:
@@ -82,7 +82,7 @@ def create_de(de_id, de_name, user_id, de_type, access_param, optimistic):
 
 def get_dataset_by_name(request):
     with get_db() as session:
-        dataset = dataset_repo.get_dataset_by_name(session, request.name)
+        dataset = dataelement_repo.get_dataset_by_name(session, request.name)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
@@ -90,7 +90,7 @@ def get_dataset_by_name(request):
 
 def get_data_by_id(data_id: int):
     with get_db() as session:
-        dataset = dataset_repo.get_data_by_id(session, data_id)
+        dataset = dataelement_repo.get_data_by_id(session, data_id)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
@@ -98,7 +98,7 @@ def get_data_by_id(data_id: int):
 
 def get_dataset_by_access_type(request):
     with get_db() as session:
-        dataset = dataset_repo.get_dataset_by_access_param(session, request)
+        dataset = dataelement_repo.get_dataset_by_access_param(session, request)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
@@ -106,12 +106,12 @@ def get_dataset_by_access_type(request):
 
 def list_discoverable_des():
     with get_db() as session:
-        discoverable_des = dataset_repo.list_discoverable_des(session)
+        discoverable_des = dataelement_repo.list_discoverable_des(session)
         return discoverable_des
 
 def get_datasets_by_paths(request):
     with get_db() as session:
-        datasets = dataset_repo.get_datasets_by_paths(session, request)
+        datasets = dataelement_repo.get_datasets_by_paths(session, request)
         if len(datasets) > 0:
             return response.DatasetResponse(status=1, msg="success", data=datasets)
         else:
@@ -119,7 +119,7 @@ def get_datasets_by_paths(request):
 
 def get_datasets_by_ids(request):
     with get_db() as session:
-        datasets = dataset_repo.get_datasets_by_ids(session, request)
+        datasets = dataelement_repo.get_datasets_by_ids(session, request)
         if len(datasets) > 0:
             return response.DatasetResponse(status=1, msg="success", data=datasets)
         else:
@@ -127,7 +127,7 @@ def get_datasets_by_ids(request):
 
 def remove_dataset_by_name(request):
     with get_db() as session:
-        res = dataset_repo.remove_dataset_by_name(session, request.name)
+        res = dataelement_repo.remove_dataset_by_name(session, request.name)
         if res == "success":
             return response.DatasetResponse(status=1, msg="success", data=[])
         else:
@@ -135,11 +135,11 @@ def remove_dataset_by_name(request):
 
 def get_de_owner(request):
     with get_db() as session:
-        return dataset_repo.get_de_owner(session, request)
+        return dataelement_repo.get_de_owner(session, request)
 
 def get_all_datasets():
     with get_db() as session:
-        datasets = dataset_repo.get_all_datasets(session)
+        datasets = dataelement_repo.get_all_datasets(session)
         if len(datasets):
             return response.DatasetResponse(status=1, msg="success", data=datasets)
         else:
@@ -147,7 +147,7 @@ def get_all_datasets():
 
 def get_all_optimistic_datasets():
     with get_db() as session:
-        datasets = dataset_repo.get_all_optimistic_datasets(session)
+        datasets = dataelement_repo.get_all_optimistic_datasets(session)
         if len(datasets):
             return response.DatasetResponse(status=1, msg="success", data=datasets)
         else:
@@ -155,7 +155,7 @@ def get_all_optimistic_datasets():
 
 def get_data_with_max_id():
     with get_db() as session:
-        dataset = dataset_repo.get_data_with_max_id(session)
+        dataset = dataelement_repo.get_data_with_max_id(session)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
@@ -163,7 +163,7 @@ def get_data_with_max_id():
 
 def recover_datas(datas):
     with get_db() as session:
-        res = dataset_repo.recover_datas(session, datas)
+        res = dataelement_repo.recover_datas(session, datas)
         if res is not None:
             return 0
 

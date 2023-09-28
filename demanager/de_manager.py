@@ -13,20 +13,14 @@ def register_de_in_DB(de_id,
                       optimistic,
                       write_ahead_log=None,
                       key_manager=None):
-    # Call DB to register a new dataset in the database
+    # Call DB to register a new data element in the database
 
     if pathlib.Path(access_param).is_file():
         access_param = str(pathlib.Path(access_param).absolute())
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log is not None:
-        wal_entry = "database_api.create_de(Dataset(id=" + str(de_id) \
-                    + ",name='" + de_name \
-                    + "',owner_id=" + str(user_id) \
-                    + ",type='" + de_type \
-                    + "',access_param='" + access_param \
-                    + "',optimistic=" + str(optimistic) \
-                    + "))"
+        wal_entry = f"database_api.create_de({de_id}, {de_name}, {user_id}, {de_type}, {access_param}, {optimistic})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
     de_resp = database_api.create_de(de_id,
