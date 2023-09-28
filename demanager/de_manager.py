@@ -61,10 +61,10 @@ def remove_data(data_name,
     type_of_data = existed_dataset.data[0].type
 
     # Check if there is an existing user
-    cur_user = database_api.get_user_by_user_name(cur_username)
-    if cur_user.status == -1:
-        return {"status": 1, "message": "Something wrong with the current user"}
-    cur_user_id = cur_user.data[0].id
+    user_resp = database_api.get_user_by_user_name(cur_username)
+    if user_resp["status"] == 1:
+        return user_resp
+    cur_user_id = user_resp["user"].id
 
     # Check if the dataset owner is the current user
     verify_owner_response = common_procedure.verify_dataset_owner(dataset_id, cur_username)

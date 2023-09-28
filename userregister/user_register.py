@@ -29,8 +29,8 @@ def create_user(user_id,
                 key_manager=None,):
     # print(user_id)
     # check if there is an existing user
-    existed_user = database_api.get_user_by_user_name(user_name)
-    if existed_user.status == 1:
+    user_resp = database_api.get_user_by_user_name(user_name)
+    if user_resp["status"] == 0:
         return {"status": 1, "message": "username already exists"}
 
     # no existing username, create new user
@@ -45,11 +45,10 @@ def create_user(user_id,
 
 def login_user(username, password):
     # check if there is an existing user
-    existed_user = database_api.get_user_by_user_name(username)
-    # If the user doesn't exist, something is wrong
-    if existed_user.status == -1:
-        return {"status": 1, "token": "username is wrong"}
-    user_data = existed_user.data[0]
+    user_resp = database_api.get_user_by_user_name(username)
+    if user_resp["status"] == 1:
+        return user_resp
+    user_data = user_resp["user"]
     if bcrypt.checkpw(password.encode(), user_data.password.encode()):
         # In here the password matches, we store the content for the token in the message
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

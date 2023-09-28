@@ -40,15 +40,15 @@ def create_user(user_id, user_name, password):
         if user:
             return {"status": 0, "message": "success", "user_id": user.id}
         else:
-            return {"status": 1, "message": "creating user DB error"}
+            return {"status": 1, "message": "database error: create user failed"}
 
 def get_user_by_user_name(user_name):
     with get_db() as session:
         user = user_repo.get_user_by_user_name(session, user_name)
         if user:
-            return response.UserResponse(status=1, msg="success", data=[user])
+            return {"status": 0, "message": "success", "user": user}
         else:
-            return response.UserResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get user by username failed"}
 
 def get_user_with_max_id():
     with get_db() as session:
