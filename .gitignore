@@ -7,6 +7,8 @@ numbers/
 Working/
 oldstuff/numbers/
 plots/
+SM_storage/
+SM_storage_mount/
 data_station.db
 ds_log.pkl
 wal.pkl
