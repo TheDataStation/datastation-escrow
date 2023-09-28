@@ -61,7 +61,7 @@ def remove_data(data_name,
     type_of_data = existed_dataset.data[0].type
 
     # Check if there is an existing user
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username, ))
+    cur_user = database_api.get_user_by_user_name(cur_username)
     if cur_user.status == -1:
         return {"status": 1, "message": "Something wrong with the current user"}
     cur_user_id = cur_user.data[0].id

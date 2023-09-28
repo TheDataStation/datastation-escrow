@@ -521,7 +521,7 @@ class DataStation:
         """
 
         # get caller's UID
-        cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
+        cur_user = database_api.get_user_by_user_name(username)
         # If the user doesn't exist, something is wrong
         if cur_user.status == -1:
             print("database error: cannot find caller")

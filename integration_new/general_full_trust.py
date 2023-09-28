@@ -28,7 +28,8 @@ if __name__ == '__main__':
     # Step 1: Create new agents
     num_users = 2
     for i in range(num_users):
-        ds.create_user(f"user{i}", "string", )
+        res = ds.create_user(f"user{i}", "string", )
+        print(res)
 
     # Step 2: Create and upload data elements.
     # We use the 6 csv files in integration_new/test_files/titanic_p

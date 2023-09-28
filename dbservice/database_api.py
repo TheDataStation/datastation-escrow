@@ -34,17 +34,17 @@ def get_db():
     finally:
         db.close()
 
-def create_user(request):
+def create_user(user_id, user_name, password):
     with get_db() as session:
-        user = user_repo.create_user(session, request)
+        user = user_repo.create_user(session, user_id, user_name, password)
         if user:
-            return response.UserResponse(status=1, msg="success", data=[user])
+            return {"status": 0, "message": "success", "user_id": user.id}
         else:
-            return response.UserResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "creating user DB error"}
 
-def get_user_by_user_name(request):
+def get_user_by_user_name(user_name):
     with get_db() as session:
-        user = user_repo.get_user_by_user_name(session, request.user_name)
+        user = user_repo.get_user_by_user_name(session, user_name)
         if user:
             return response.UserResponse(status=1, msg="success", data=[user])
         else:
