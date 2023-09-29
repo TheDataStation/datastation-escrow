@@ -32,8 +32,11 @@ def register_share_in_DB(share_id,
     # Then add to SharePolicy table. First get the approval agents, default to DE owners.
     approval_agent_set = set()
     for de_id in data_elements:
-        owner_id = database_api.get_de_owner(de_id)
-        approval_agent_set.add(owner_id)
+        owner_id_res = database_api.get_de_owner_id(de_id)
+        if owner_id_res["status"] == 0:
+            approval_agent_set.add(owner_id_res["data"])
+        else:
+            return owner_id_res
     for a_id in approval_agent_set:
         db_res = database_api.create_share_policy(share_id, a_id, 0)
         if db_res.status == -1:
@@ -81,7 +84,7 @@ def register_share_in_DB_no_trust(user_id,
     # Then add to SharePolicy table. First get the approval agents, default to DE owners.
     approval_agent_set = set()
     for de_id in data_elements:
-        owner_id = database_api.get_de_owner(de_id)
+        owner_id = database_api.get_de_owner_id(de_id)
         approval_agent_set.add(owner_id)
     for a_id in approval_agent_set:
         wal_entry = f"database_api.create_share_policy({share_id}, {a_id}, 0)"

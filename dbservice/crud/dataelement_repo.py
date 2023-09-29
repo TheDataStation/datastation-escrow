@@ -74,7 +74,7 @@ def create_de(db: Session, de_id, de_name, user_id, de_type, access_param, optim
 
 
 # The following function returns the owner, given a DE ID.
-def get_de_owner(db: Session, de_id: int):
+def get_de_owner_id(db: Session, de_id: int):
     de = db.query(DataElement).filter(DataElement.id == de_id).first()
     if de:
         owner_id = db.query(User.id).filter(User.id == de.owner_id).first()[0]

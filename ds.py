@@ -278,17 +278,17 @@ class DataStation:
 
         # We now get the data_name and data_type from de_id
         de_res = database_api.get_de_by_id(de_id)
-        if de_res.status == -1:
+        if de_res["status"] == 1:
             return de_res
 
         if self.trust_mode == "no_trust":
             data_in_bytes = cu.encrypt_data_with_symmetric_key(data_in_bytes,
                                                                self.key_manager.agents_symmetric_key[user_id])
 
-        storage_manager_response = self.storage_manager.store(de_res.data[0].name,
+        storage_manager_response = self.storage_manager.store(de_res["data"].name,
                                                               de_id,
                                                               data_in_bytes,
-                                                              de_res.data[0].type, )
+                                                              de_res["data"].type, )
         return storage_manager_response
 
     def remove_de(self, username, de_name):
@@ -462,12 +462,12 @@ class DataStation:
             # print(f"all accessible data elements are: {all_accessible_de_id}")
 
             get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
-            if get_des_by_ids_res.status == -1:
+            if get_des_by_ids_res["status"] == 1:
                 print("Something wrong with getting accessible DE for share.")
-                return None
+                return get_des_by_ids_res
 
             accessible_de = set()
-            for cur_data in get_des_by_ids_res.data:
+            for cur_data in get_des_by_ids_res["data"]:
                 if self.trust_mode == "no_trust":
                     data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
                 else:

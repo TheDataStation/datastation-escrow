@@ -82,27 +82,27 @@ def create_de(de_id, de_name, user_id, de_type, access_param, optimistic):
 
 def get_de_by_name(de_name):
     with get_db() as session:
-        dataset = dataelement_repo.get_de_by_name(session, de_name)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataelement_repo.get_de_by_name(session, de_name)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get DE by name failed"}
 
-def get_de_by_id(data_id: int):
+def get_de_by_id(de_id: int):
     with get_db() as session:
-        dataset = dataelement_repo.get_de_by_id(session, data_id)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataelement_repo.get_de_by_id(session, de_id)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get DE by id failed"}
 
 def get_de_by_access_type(request):
     with get_db() as session:
-        dataset = dataelement_repo.get_de_by_access_param(session, request)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataelement_repo.get_de_by_access_param(session, request)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get DE by access type failed"}
 
 def list_discoverable_des():
     with get_db() as session:
@@ -111,23 +111,27 @@ def list_discoverable_des():
 
 def get_des_by_ids(request):
     with get_db() as session:
-        datasets = dataelement_repo.get_des_by_ids(session, request)
-        if len(datasets) > 0:
-            return response.DatasetResponse(status=1, msg="success", data=datasets)
+        des = dataelement_repo.get_des_by_ids(session, request)
+        if len(des) > 0:
+            return {"status": 0, "message": "success", "data": des}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: no DE found for give IDs"}
 
 def remove_de_by_name(de_name):
     with get_db() as session:
         res = dataelement_repo.remove_de_by_name(session, de_name)
         if res == "success":
-            return response.DatasetResponse(status=1, msg="success", data=[])
+            return {"status": 0, "message": "success"}
         else:
-            return response.DatasetResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: remove DE by name failed"}
 
-def get_de_owner(request):
+def get_de_owner_id(request):
     with get_db() as session:
-        return dataelement_repo.get_de_owner(session, request)
+        res = dataelement_repo.get_de_owner_id(session, request)
+        if res:
+            return {"status": 0, "message": "success", "data": res}
+        else:
+            return {"status": 1, "message": "database error: get DE owner id failed"}
 
 def get_all_des():
     with get_db() as session:

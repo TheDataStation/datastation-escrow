@@ -40,14 +40,14 @@ def remove_data(de_name,
                 key_manager=None, ):
     # Check if there is an existing data element
     de_resp = database_api.get_de_by_name(de_name)
-    if de_resp.status == -1:
-        return {"status": 1, "message": "DE does not exist."}
+    if de_resp["status"] == 1:
+        return de_resp
 
     # print(de_resp.data[0])
 
     # Get ID of the DE
-    de_id = de_resp.data[0].id
-    type_of_de = de_resp.data[0].type
+    de_id = de_resp["data"].id
+    type_of_de = de_resp["data"].type
 
     # Check if there is an existing user
     user_resp = database_api.get_user_by_user_name(cur_username)
@@ -68,8 +68,8 @@ def remove_data(de_name,
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
     database_service_response = database_api.remove_de_by_name(de_name)
-    if database_service_response.status == -1:
-        return {"status": 1, "message": "database error: remove DE failed"}
+    if database_service_response["status"] == 1:
+        return database_service_response
 
     return {"status": 0,
             "message": "Successfully removed data",
