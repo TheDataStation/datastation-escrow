@@ -9,13 +9,3 @@ class Policy(BaseModel):
 
     class Config:
         orm_mode = True
-
-class PolicyCreate(BaseModel):
-    user_id: int
-    api: str
-    data_id: int
-    share_id: int
-    status: int
-
-    class Config:
-        orm_mode = True

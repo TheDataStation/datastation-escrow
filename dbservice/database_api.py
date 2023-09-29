@@ -6,7 +6,6 @@ from .crud import (user_repo,
                    dataelement_repo,
                    function_repo,
                    function_dependency_repo,
-                   policy_repo,
                    provenance_repo,
                    share_repo, )
 from .responses import response
@@ -186,12 +185,6 @@ def get_all_function_dependencies():
             return {"status": 0, "message": "success", "data": function_dependencies}
         else:
             return {"status": 1, "message": "database error: no function dependencies found"}
-
-def bulk_upload_policies(policies):
-    with get_db() as session:
-        res = policy_repo.bulk_upload_policies(session, policies)
-        if res is not None:
-            return 0
 
 def create_provenance(request):
     with get_db() as session:

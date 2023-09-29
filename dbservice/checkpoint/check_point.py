@@ -37,17 +37,17 @@ class CheckPoint:
             user_to_add = pickle.dumps(user_table)
             user_file.write(user_to_add)
 
-        # Then we check point the data table
-        data_res = database_api.get_all_des()
-        data_table_as_list = data_res["data"]
-        data_table_plain_bytes = pickle.dumps(data_table_as_list)
-        data_table_cipher_bytes = sym_key_to_use.encrypt(data_table_plain_bytes)
+        # Then we check point the de table
+        de_res = database_api.get_all_des()
+        de_table_as_list = de_res["data"]
+        de_table_plain_bytes = pickle.dumps(de_table_as_list)
+        de_table_cipher_bytes = sym_key_to_use.encrypt(de_table_plain_bytes)
 
-        data_table = TableContent(content=data_table_cipher_bytes)
+        de_table = TableContent(content=de_table_cipher_bytes)
 
-        with open(self.table_paths[1], "ab") as data_file:
-            data_to_add = pickle.dumps(data_table)
-            data_file.write(data_to_add)
+        with open(self.table_paths[1], "ab") as de_file:
+            de_to_add = pickle.dumps(de_table)
+            de_file.write(de_to_add)
 
         # Then we check point the provenance table
         provenance_res = database_api.get_all_provenances()

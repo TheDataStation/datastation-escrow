@@ -1,6 +1,4 @@
 from dbservice import database_api
-from common import common_procedure
-import os
 
 
 # Helper function to get all ancestors of an api from dependency graph (including itself)
