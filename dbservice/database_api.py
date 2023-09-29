@@ -80,9 +80,9 @@ def create_de(de_id, de_name, user_id, de_type, access_param, optimistic):
         else:
             return {"status": 1, "message": "database error: create de failed"}
 
-def get_de_by_name(request):
+def get_de_by_name(de_name):
     with get_db() as session:
-        dataset = dataelement_repo.get_de_by_name(session, request.name)
+        dataset = dataelement_repo.get_de_by_name(session, de_name)
         if dataset:
             return response.DatasetResponse(status=1, msg="success", data=[dataset])
         else:
@@ -117,9 +117,9 @@ def get_des_by_ids(request):
         else:
             return response.DatasetResponse(status=-1, msg="internal database error", data=[])
 
-def remove_de_by_name(request):
+def remove_de_by_name(de_name):
     with get_db() as session:
-        res = dataelement_repo.remove_de_by_name(session, request.name)
+        res = dataelement_repo.remove_de_by_name(session, de_name)
         if res == "success":
             return response.DatasetResponse(status=1, msg="success", data=[])
         else:

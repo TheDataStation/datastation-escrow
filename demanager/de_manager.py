@@ -2,7 +2,6 @@ import pathlib
 
 from dbservice import database_api
 from common import common_procedure
-from common.pydantic_models.dataset import Dataset
 
 
 def register_de_in_DB(de_id,
@@ -35,20 +34,20 @@ def register_de_in_DB(de_id,
     return {"status": de_resp["status"], "message": de_resp["message"], "de_id": de_resp["data"].id}
 
 
-def remove_data(data_name,
+def remove_data(de_name,
                 cur_username,
                 write_ahead_log=None,
                 key_manager=None, ):
     # Check if there is an existing data element
-    existed_dataset = database_api.get_de_by_name(Dataset(name=data_name, ))
-    if existed_dataset.status == -1:
+    de_resp = database_api.get_de_by_name(de_name)
+    if de_resp.status == -1:
         return {"status": 1, "message": "DE does not exist."}
 
-    # print(existed_dataset.data[0])
+    # print(de_resp.data[0])
 
-    # Get ID of the dataset
-    dataset_id = existed_dataset.data[0].id
-    type_of_data = existed_dataset.data[0].type
+    # Get ID of the DE
+    de_id = de_resp.data[0].id
+    type_of_de = de_resp.data[0].type
 
     # Check if there is an existing user
     user_resp = database_api.get_user_by_user_name(cur_username)
@@ -57,27 +56,25 @@ def remove_data(data_name,
     cur_user_id = user_resp["data"].id
 
     # Check if the DE owner is the current user
-    verify_owner_response = common_procedure.verify_de_owner(dataset_id, cur_username)
+    verify_owner_response = common_procedure.verify_de_owner(de_id, cur_username)
     if verify_owner_response.status == 1:
         return verify_owner_response
 
-    # Actually remove the dataset
+    # Actually remove the DE
     # If in no_trust mode, we need to record this REMOVE_DATA to wal
     if write_ahead_log is not None:
-        wal_entry = "database_api.remove_dataset_by_name(Dataset(name='" + data_name \
-                    + "'))"
+        wal_entry = f"database_api.remove_de_by_name({de_name})"
         # If write_ahead_log is not None, key_manager also will not be None
         write_ahead_log.log(cur_user_id, wal_entry, key_manager, )
 
-    dataset_to_remove = Dataset(name=data_name, )
-    database_service_response = database_api.remove_de_by_name(dataset_to_remove)
+    database_service_response = database_api.remove_de_by_name(de_name)
     if database_service_response.status == -1:
         return {"status": 1, "message": "database error: remove DE failed"}
 
     return {"status": 0,
             "message": "Successfully removed data",
-            "de_id": dataset_id,
-            "type": type_of_data, }
+            "de_id": de_id,
+            "type": type_of_de, }
 
 
 def list_discoverable_des():

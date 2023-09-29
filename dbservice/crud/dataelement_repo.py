@@ -45,9 +45,9 @@ def get_des_by_ids(db: Session, ids: list):
     return des
 
 
-def remove_de_by_name(db: Session, name):
+def remove_de_by_name(db: Session, de_name):
     try:
-        db.query(DataElement).filter(DataElement.name == name).delete()
+        db.query(DataElement).filter(DataElement.name == de_name).delete()
         db.commit()
     except SQLAlchemyError as e:
         db.rollback()

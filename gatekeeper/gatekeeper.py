@@ -121,22 +121,22 @@ class Gatekeeper:
         all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
         # print(f"all accessible data elements are: {all_accessible_de_id}")
 
-        get_datasets_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
-        if get_datasets_by_ids_res.status == -1:
+        get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
+        if get_des_by_ids_res.status == -1:
             err_msg = "No accessible data for " + api
             print(err_msg)
             return {"status": 1, "message": err_msg}
 
         accessible_de = set()
-        for cur_data in get_datasets_by_ids_res.data:
+        for cur_de in get_des_by_ids_res.data:
             if self.trust_mode == "no_trust":
-                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
+                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
             else:
                 data_owner_symmetric_key = None
-            cur_de = DataElement(cur_data.id,
-                                 cur_data.name,
-                                 cur_data.type,
-                                 cur_data.access_param,
+            cur_de = DataElement(cur_de.id,
+                                 cur_de.name,
+                                 cur_de.type,
+                                 cur_de.access_param,
                                  data_owner_symmetric_key)
             accessible_de.add(cur_de)
 
