@@ -135,49 +135,49 @@ def get_de_owner_id(request):
 
 def get_all_des():
     with get_db() as session:
-        datasets = dataelement_repo.get_all_des(session)
-        if len(datasets):
-            return response.DatasetResponse(status=1, msg="success", data=datasets)
+        des = dataelement_repo.get_all_des(session)
+        if len(des):
+            return {"status": 0, "message": "success", "data": des}
         else:
-            return response.DatasetResponse(status=-1, msg="no existing datasets", data=[])
+            return {"status": 1, "message": "database error: no existing DEs"}
 
 def get_de_with_max_id():
     with get_db() as session:
-        dataset = dataelement_repo.get_de_with_max_id(session)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataelement_repo.get_de_with_max_id(session)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get DE with max ID failed"}
 
-def recover_des(datas):
+def recover_des(des):
     with get_db() as session:
-        res = dataelement_repo.recover_des(session, datas)
+        res = dataelement_repo.recover_des(session, des)
         if res is not None:
             return 0
 
-def create_function(request):
+def create_function(function_name):
     with get_db() as session:
-        function = function_repo.create_function(session, request)
+        function = function_repo.create_function(session, function_name)
         if function:
-            return response.FunctionResponse(status=1, msg="success", data=[function])
+            return {"status": 0, "message": "success", "data": function}
         else:
-            return response.FunctionResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: register function in DB failed"}
 
 def get_all_functions():
     with get_db() as session:
         functions = function_repo.get_all_functions(session)
         if len(functions):
-            return response.GetFunctionResponse(status=1, msg="success", data=functions)
+            return {"status": 0, "message": "success", "data": functions}
         else:
-            return response.GetFunctionResponse(status=-1, msg="no existing functions", data=[])
+            return {"status": 1, "message": "database error: no registered functions found"}
 
-def create_function_dependency(request):
+def create_function_dependency(from_f, to_f):
     with get_db() as session:
-        function_dependency = function_dependency_repo.create_function_dependency(session, request)
+        function_dependency = function_dependency_repo.create_function_dependency(session, from_f, to_f)
         if function_dependency:
-            return response.FunctionDependencyResponse(status=1, msg="success", data=[function_dependency])
+            return {"status": 0, "message": "success", "data": function_dependency}
         else:
-            return response.FunctionDependencyResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: create function dependency failed"}
 
 def get_all_function_dependencies():
     with get_db() as session:

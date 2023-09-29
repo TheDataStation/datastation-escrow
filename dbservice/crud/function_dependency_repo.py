@@ -2,11 +2,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..schemas.function_dependency import FunctionDependency
-from common.pydantic_models.function_dependency import FunctionDependencyCreate
 
-def create_function_dependency(db: Session, f_depend: FunctionDependencyCreate):
-    db_f_depend = FunctionDependency(from_f=f_depend.from_f,
-                                     to_f=f_depend.to_f,)
+def create_function_dependency(db: Session, from_f, to_f):
+    db_f_depend = FunctionDependency(from_f=from_f, to_f=to_f,)
     try:
         db.add(db_f_depend)
         db.commit()

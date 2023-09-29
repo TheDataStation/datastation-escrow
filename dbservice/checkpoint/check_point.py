@@ -39,7 +39,7 @@ class CheckPoint:
 
         # Then we check point the data table
         data_res = database_api.get_all_des()
-        data_table_as_list = data_res.data
+        data_table_as_list = data_res["data"]
         data_table_plain_bytes = pickle.dumps(data_table_as_list)
         data_table_cipher_bytes = sym_key_to_use.encrypt(data_table_plain_bytes)
 

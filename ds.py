@@ -131,8 +131,8 @@ class DataStation:
 
         # Decide which de_id to use at new insertion
         de_id_resp = database_api.get_de_with_max_id()
-        if de_id_resp.status == 1:
-            self.cur_de_id = de_id_resp.data[0].id + 1
+        if de_id_resp["status"] == 0:
+            self.cur_de_id = de_id_resp["data"].id + 1
         else:
             self.cur_de_id = 1
         # print("Starting DE id should be:")
@@ -653,8 +653,8 @@ class DataStation:
 
         # Step 3: reset self.cur_de_id from DB
         de_id_resp = database_api.get_de_with_max_id()
-        if de_id_resp.status == 1:
-            self.cur_de_id = de_id_resp.data[0].id + 1
+        if de_id_resp["status"] == 0:
+            self.cur_de_id = de_id_resp["data"].id + 1
         else:
             self.cur_de_id = 1
         print("DE ID to use after recovering DB is: " + str(self.cur_de_id))

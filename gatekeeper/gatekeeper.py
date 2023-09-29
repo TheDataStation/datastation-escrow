@@ -47,17 +47,18 @@ class Gatekeeper:
         # register all api_endpoints that are functions in database_api
         function_names = get_functions_names()
         # now we call dbservice to register these info in the DB
-        for cur_api in function_names:
-            api_db = Function(function_name=cur_api)
-            print("api added: ", api_db)
-            database_service_response = database_api.create_function(api_db)
-            if database_service_response.status == -1:
-                print("database_api.create_api: internal database error")
+        for cur_f in function_names:
+            f_db = Function(function_name=cur_f)
+            print("function added: ", f_db)
+            database_service_response = database_api.create_function(f_db)
+            if database_service_response["status"] == 1:
+                print("database_api.create_function: internal database error")
                 raise RuntimeError(
-                    "database_api.create_api: internal database error")
+                    "database_api.create_function: internal database error")
 
-        api_res = database_api.get_all_functions()
-        print("all function uploaded, with pid: ", os.getpid(), api_res)
+        f_res = database_api.get_all_functions()
+        if f_res["status"] == 0:
+            print("all function registered: ", f_res["data"])
 
         if not development_mode:
             docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".")
