@@ -49,18 +49,6 @@ class CheckPoint:
             data_to_add = pickle.dumps(data_table)
             data_file.write(data_to_add)
 
-        # Then we check point the policy table
-        policy_res = database_api.get_all_policies()
-        policy_table_as_list = policy_res.data
-        policy_table_plain_bytes = pickle.dumps(policy_table_as_list)
-        policy_table_cipher_bytes = sym_key_to_use.encrypt(policy_table_plain_bytes)
-
-        policy_table = TableContent(content=policy_table_cipher_bytes)
-
-        with open(self.table_paths[2], "ab") as policy_file:
-            policy_to_add = pickle.dumps(policy_table)
-            policy_file.write(policy_to_add)
-
         # Then we check point the provenance table
         provenance_res = database_api.get_all_provenances()
         provenance_table_as_list = provenance_res.data

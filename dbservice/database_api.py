@@ -183,47 +183,9 @@ def get_all_function_dependencies():
     with get_db() as session:
         function_dependencies = function_dependency_repo.get_all_dependencies(session)
         if len(function_dependencies):
-            return response.FunctionDependencyResponse(status=1, msg="success", data=function_dependencies)
+            return {"status": 0, "message": "success", "data": function_dependencies}
         else:
-            return response.FunctionDependencyResponse(status=-1, msg="no existing dependencies", data=[])
-
-def create_policy(request):
-    with get_db() as session:
-        policy = policy_repo.create_policy(session, request)
-        if policy:
-            return response.PolicyResponse(status=1, msg="success", data=[policy])
-        else:
-            return response.PolicyResponse(status=-1, msg="fail", data=[])
-
-def ack_data_in_share(data_id, share_id):
-    with get_db() as session:
-        res = policy_repo.ack_data_in_share(session, data_id, share_id)
-        if res is not None:
-            return 0
-
-def remove_policy(request):
-    with get_db() as session:
-        res = policy_repo.remove_policy(session, request)
-        if res == "success":
-            return response.PolicyResponse(status=1, msg="success", data=[])
-        else:
-            return response.PolicyResponse(status=-1, msg="fail", data=[])
-
-def get_all_policies():
-    with get_db() as session:
-        policies = policy_repo.get_all_policies(session)
-        if len(policies):
-            return response.PolicyResponse(status=1, msg="success", data=policies)
-        else:
-            return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
-
-def get_ack_policy_user_share(user_id, share_id):
-    with get_db() as session:
-        policies = policy_repo.get_ack_policy_user_share(session, user_id, share_id)
-        if len(policies):
-            return response.PolicyResponse(status=1, msg="success", data=policies)
-        else:
-            return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
+            return {"status": 1, "message": "database error: no function dependencies found"}
 
 def bulk_upload_policies(policies):
     with get_db() as session:

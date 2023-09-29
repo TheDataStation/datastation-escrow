@@ -48,9 +48,7 @@ class Gatekeeper:
         function_names = get_functions_names()
         # now we call dbservice to register these info in the DB
         for cur_f in function_names:
-            f_db = Function(function_name=cur_f)
-            print("function added: ", f_db)
-            database_service_response = database_api.create_function(f_db)
+            database_service_response = database_api.create_function(cur_f)
             if database_service_response["status"] == 1:
                 print("database_api.create_function: internal database error")
                 raise RuntimeError(
@@ -74,11 +72,6 @@ class Gatekeeper:
         ret = self.docker_id
         self.docker_id += 1
         return ret
-
-    @staticmethod
-    def get_accessible_data(user_id, api, share_id):
-        accessible_data = policy_broker.get_user_api_info(user_id, api, share_id)
-        return accessible_data
 
     # We add times to the following function to record the overheads
 
