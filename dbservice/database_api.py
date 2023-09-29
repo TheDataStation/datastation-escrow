@@ -6,7 +6,6 @@ from .crud import (user_repo,
                    dataelement_repo,
                    function_repo,
                    function_dependency_repo,
-                   provenance_repo,
                    share_repo, )
 from .responses import response
 from contextlib import contextmanager
@@ -185,36 +184,6 @@ def get_all_function_dependencies():
             return {"status": 0, "message": "success", "data": function_dependencies}
         else:
             return {"status": 1, "message": "database error: no function dependencies found"}
-
-def create_provenance(request):
-    with get_db() as session:
-        provenance = provenance_repo.create_provenance(session, request)
-        if provenance:
-            return response.ProvenanceResponse(status=1, msg="success", data=[provenance])
-        else:
-            return response.ProvenanceResponse(status=-1, msg="fail", data=[])
-
-def get_all_provenances():
-    with get_db() as session:
-        provenances = provenance_repo.get_all_provenances(session)
-        if len(provenances):
-            return response.ProvenanceResponse(status=1, msg="success", data=provenances)
-        else:
-            return response.ProvenanceResponse(status=-1, msg="no existing provenances", data=[])
-
-def recover_provenance(provenances):
-    with get_db() as session:
-        res = provenance_repo.recover_provenance(session, provenances)
-        if res is not None:
-            return 0
-
-def bulk_create_provenance(child_id, provenances):
-    with get_db() as session:
-        res = provenance_repo.bulk_create_provenance(session, child_id, provenances)
-        if res is not None:
-            return 0
-        else:
-            return 1
 
 def create_share(share_id, share_template, share_param):
     with get_db() as session:

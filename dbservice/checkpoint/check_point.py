@@ -49,18 +49,6 @@ class CheckPoint:
             de_to_add = pickle.dumps(de_table)
             de_file.write(de_to_add)
 
-        # Then we check point the provenance table
-        provenance_res = database_api.get_all_provenances()
-        provenance_table_as_list = provenance_res.data
-        provenance_table_plain_bytes = pickle.dumps(provenance_table_as_list)
-        provenance_table_cipher_bytes = sym_key_to_use.encrypt(provenance_table_plain_bytes)
-
-        provenance_table = TableContent(content=provenance_table_cipher_bytes)
-
-        with open(self.table_paths[4], "ab") as provenance_file:
-            provenance_to_add = pickle.dumps(provenance_table)
-            provenance_file.write(provenance_to_add)
-
     def recover_db_from_snapshots(self, key_manager):
 
         # Pick the symmetric key used to encrypt the tables
@@ -91,42 +79,6 @@ class CheckPoint:
         # print(data_content_list)
 
         database_api.recover_des(data_content_list)
-
-        # Policy table
-        with open(self.table_paths[2], "rb") as f:
-            policy_res = pickle.load(f)
-
-        policy_content_cipher = policy_res.content
-        policy_content_plain = sym_key_to_use.decrypt(policy_content_cipher)
-        policy_content_list = pickle.loads(policy_content_plain)
-
-        # print(policy_content_list)
-
-        database_api.bulk_upload_policies(policy_content_list)
-
-        # Staged table
-        with open(self.table_paths[3], "rb") as f:
-            staged_res = pickle.load(f)
-
-        staged_content_cipher = staged_res.content
-        staged_content_plain = sym_key_to_use.decrypt(staged_content_cipher)
-        staged_content_list = pickle.loads(staged_content_plain)
-
-        # print(staged_content_list)
-
-        database_api.recover_staged(staged_content_list)
-
-        # Provenance table
-        with open(self.table_paths[4], "rb") as f:
-            provenance_res = pickle.load(f)
-
-        provenance_content_cipher = provenance_res.content
-        provenance_content_plain = sym_key_to_use.decrypt(provenance_content_cipher)
-        provenance_content_list = pickle.loads(provenance_content_plain)
-
-        # print(provenance_content_list)
-
-        database_api.recover_provenance(provenance_content_list)
 
     def clear(self):
         self.table_paths = []
