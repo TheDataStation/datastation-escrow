@@ -41,7 +41,7 @@ def create_user(user_id,
         wal_entry = f"database_api.create_user({user_id}, {user_name}, {hashed.decode()})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    user_resp = database_api.create_user(user_id, user_name, password)
+    user_resp = database_api.create_user(user_id, user_name, hashed.decode())
     if user_resp == 1:
         return user_resp
     return {"status": user_resp["status"], "message": user_resp["message"], "user_id": user_resp["data"].id}
