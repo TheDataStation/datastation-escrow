@@ -209,45 +209,45 @@ def create_contract_dest(contract_id, dest_agent_id):
         else:
             return {"status": 1, "message": "database error: create contract dest agents failed"}
 
-def create_share_de(share_id, de_id):
+def create_contract_de(contract_id, de_id):
     with get_db() as session:
-        share_de = contract_repo.create_share_de(session, share_id, de_id)
-        if share_de:
-            return response.Response(status=1, msg="success")
+        contract_de = contract_repo.create_contract_de(session, contract_id, de_id)
+        if contract_de:
+            return {"status": 0, "message": "success"}
         else:
-            return response.Response(status=-1, msg="Create Contract Data Element failed")
+            return {"status": 1, "message": "database error: create contract DE failed"}
 
-def create_share_policy(share_id, approval_agent_id, status):
+def create_contract_status(contract_id, approval_agent_id, status):
     with get_db() as session:
-        share_policy = contract_repo.create_share_policy(session, share_id, approval_agent_id, status)
-        if share_policy:
-            return response.Response(status=1, msg="success")
+        contract_status = contract_repo.create_contract_status(session, contract_id, approval_agent_id, status)
+        if contract_status:
+            return {"status": 0, "message": "success"}
         else:
-            return response.Response(status=-1, msg="Create Contract Policy failed")
+            return {"status": 1, "message": "database error: create contract status failed"}
 
-def get_approval_for_share(share_id):
+def get_approval_for_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_approval_for_share(session, share_id)
+        return contract_repo.get_approval_for_contract(session, contract_id)
 
-def get_status_for_share(share_id):
+def get_status_for_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_status_for_share(session, share_id)
+        return contract_repo.get_status_for_contract(session, contract_id)
 
 def get_dest_for_contract(c_id):
     with get_db() as session:
         return contract_repo.get_dest_for_contract(session, c_id)
 
-def get_de_for_share(share_id):
+def get_de_for_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_de_for_share(session, share_id)
+        return contract_repo.get_de_for_contract(session, contract_id)
 
 def get_share(share_id):
     with get_db() as session:
         return contract_repo.get_share(session, share_id)
 
-def approve_share(a_id, share_id):
+def approve_contract(a_id, contract_id):
     with get_db() as session:
-        return contract_repo.approve_share(session, a_id, share_id)
+        return contract_repo.approve_contract(session, a_id, contract_id)
 
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)

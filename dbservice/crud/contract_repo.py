@@ -3,9 +3,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
 from ..schemas.contract import Contract
-from ..schemas.share_dest import ContractDest
-from ..schemas.share_de import ShareDE
-from ..schemas.share_policy import SharePolicy
+from ..schemas.contract_dest import ContractDest
+from ..schemas.contract_de import ContractDE
+from ..schemas.contract_status import ContractStatus
 
 
 def create_contract(db: Session, contract_id, contract_function, contract_function_param):
@@ -36,30 +36,30 @@ def create_contract_dest(db: Session, c_id, a_id):
     return db_contract_dest
 
 
-def create_share_de(db: Session, s_id, de_id):
-    db_share_de = ShareDE(s_id=s_id, de_id=de_id)
+def create_contract_de(db: Session, c_id, de_id):
+    db_contract_de = ContractDE(c_id=c_id, de_id=de_id)
     try:
-        db.add(db_share_de)
+        db.add(db_contract_de)
         db.commit()
-        db.refresh(db_share_de)
+        db.refresh(db_contract_de)
     except SQLAlchemyError as e:
         db.rollback()
         return None
 
-    return db_share_de
+    return db_contract_de
 
 
-def create_share_policy(db: Session, s_id, a_id, status):
-    db_share_policy = SharePolicy(s_id=s_id, a_id=a_id, status=status)
+def create_contract_status(db: Session, c_id, a_id, status):
+    db_contract_status = ContractStatus(c_id=c_id, a_id=a_id, status=status)
     try:
-        db.add(db_share_policy)
+        db.add(db_contract_status)
         db.commit()
-        db.refresh(db_share_policy)
+        db.refresh(db_contract_status)
     except SQLAlchemyError as e:
         db.rollback()
         return None
 
-    return db_share_policy
+    return db_contract_status
 
 
 def get_contract_with_max_id(db: Session):
@@ -74,19 +74,19 @@ def get_contract_with_max_id(db: Session):
         return None
 
 
-def get_approval_for_share(db: Session, share_id):
-    approval_agents = db.query(SharePolicy.a_id).filter(SharePolicy.s_id == share_id).all()
+def get_approval_for_contract(db: Session, contract_id):
+    approval_agents = db.query(ContractStatus.a_id).filter(ContractStatus.c_id == contract_id).all()
     return approval_agents
 
 
-def get_status_for_share(db: Session, share_id):
-    share_status = db.query(SharePolicy.status).filter(SharePolicy.s_id == share_id).all()
+def get_status_for_contract(db: Session, contract_id):
+    share_status = db.query(ContractStatus.status).filter(ContractStatus.c_id == contract_id).all()
     return share_status
 
 
-def get_de_for_share(db: Session, share_id):
-    de_in_share = db.query(ShareDE.de_id).filter(ShareDE.s_id == share_id).all()
-    return de_in_share
+def get_de_for_contract(db: Session, contract_id):
+    de_in_contract = db.query(ContractDE.de_id).filter(ContractDE.c_id == contract_id).all()
+    return de_in_contract
 
 
 def get_dest_for_contract(db: Session, c_id):
@@ -99,9 +99,11 @@ def get_share(db: Session, share_id):
     return share
 
 
-def approve_share(db: Session, a_id, share_id):
+def approve_contract(db: Session, a_id, contract_id):
     try:
-        db.query(SharePolicy).filter(SharePolicy.a_id == a_id, SharePolicy.s_id == share_id).update({'status': 1})
+        db.query(ContractStatus).filter(ContractStatus.a_id == a_id,
+                                        ContractStatus.c_id == contract_id)\
+                                .update({'status': 1})
         db.commit()
     except SQLAlchemyError as e:
         db.rollback()

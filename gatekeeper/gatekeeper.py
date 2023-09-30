@@ -78,8 +78,7 @@ class Gatekeeper:
     def call_api(self,
                  api,
                  cur_user_id,
-                 share_id,
-                 exec_mode,
+                 contract_id,
                  *args,
                  **kwargs):
         """
@@ -90,8 +89,7 @@ class Gatekeeper:
         Parameters:
          api: api to call
          cur_user_id: the user id to decide what data is exposed
-         share_id: id of share from which the api is called,
-         exec_mode: optimistic or pessimistic
+         contract_id: id of contract from which the api is called,
 
         Returns:
          Response based on what happens
@@ -112,7 +110,7 @@ class Gatekeeper:
             return None
 
         # If yes, set the accessible_de to be the entirety of P
-        all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
+        all_accessible_de_id = share_manager.get_de_ids_for_contract(contract_id)
         # print(f"all accessible data elements are: {all_accessible_de_id}")
 
         get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)

@@ -458,7 +458,7 @@ class DataStation:
                 return None
 
             # Get accessible data elements
-            all_accessible_de_id = share_manager.get_de_ids_for_share(contract_id)
+            all_accessible_de_id = share_manager.get_de_ids_for_contract(contract_id)
             # print(f"all accessible data elements are: {all_accessible_de_id}")
 
             get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
