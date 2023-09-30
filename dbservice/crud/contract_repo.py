@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
 from ..schemas.contract import Contract
-from ..schemas.share_dest import ShareDest
+from ..schemas.share_dest import ContractDest
 from ..schemas.share_de import ShareDE
 from ..schemas.share_policy import SharePolicy
 
@@ -23,17 +23,17 @@ def create_contract(db: Session, contract_id, contract_function, contract_functi
     return db_contract
 
 
-def create_share_dest(db: Session, s_id, a_id):
-    db_share_dest = ShareDest(s_id=s_id, a_id=a_id)
+def create_contract_dest(db: Session, c_id, a_id):
+    db_contract_dest = ContractDest(c_id=c_id, a_id=a_id)
     try:
-        db.add(db_share_dest)
+        db.add(db_contract_dest)
         db.commit()
-        db.refresh(db_share_dest)
+        db.refresh(db_contract_dest)
     except SQLAlchemyError as e:
         db.rollback()
         return None
 
-    return db_share_dest
+    return db_contract_dest
 
 
 def create_share_de(db: Session, s_id, de_id):
@@ -89,8 +89,8 @@ def get_de_for_share(db: Session, share_id):
     return de_in_share
 
 
-def get_dest_for_share(db: Session, share_id):
-    dest_agents = db.query(ShareDest.a_id).filter(ShareDest.s_id == share_id).all()
+def get_dest_for_contract(db: Session, c_id):
+    dest_agents = db.query(ContractDest.a_id).filter(ContractDest.c_id == c_id).all()
     return dest_agents
 
 

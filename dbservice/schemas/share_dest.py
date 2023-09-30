@@ -3,8 +3,8 @@ from sqlalchemy import Column, Integer
 from ..database import Base
 
 
-class ShareDest(Base):
-    __tablename__ = "sharedest"
+class ContractDest(Base):
+    __tablename__ = "ContractDests"
 
-    s_id = Column(Integer, primary_key=True, index=True)
+    c_id = Column(Integer, primary_key=True, index=True)
     a_id = Column(Integer, primary_key=True)

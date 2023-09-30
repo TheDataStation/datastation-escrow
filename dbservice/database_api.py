@@ -201,13 +201,13 @@ def get_contract_with_max_id():
         else:
             return {"status": 1, "message": "database error: get contract with max ID failed"}
 
-def create_share_dest(share_id, dest_agent_id):
+def create_contract_dest(contract_id, dest_agent_id):
     with get_db() as session:
-        share_dest = contract_repo.create_share_dest(session, share_id, dest_agent_id)
-        if share_dest:
-            return response.Response(status=1, msg="success")
+        contract_dest = contract_repo.create_contract_dest(session, contract_id, dest_agent_id)
+        if contract_dest:
+            return {"status": 0, "message": "success"}
         else:
-            return response.Response(status=-1, msg="Create Contract Dest Agent failed")
+            return {"status": 1, "message": "database error: create contract dest agents failed"}
 
 def create_share_de(share_id, de_id):
     with get_db() as session:
@@ -233,9 +233,9 @@ def get_status_for_share(share_id):
     with get_db() as session:
         return contract_repo.get_status_for_share(session, share_id)
 
-def get_dest_for_share(share_id):
+def get_dest_for_contract(c_id):
     with get_db() as session:
-        return contract_repo.get_dest_for_share(session, share_id)
+        return contract_repo.get_dest_for_contract(session, c_id)
 
 def get_de_for_share(share_id):
     with get_db() as session:

@@ -18,11 +18,11 @@ def register_share_in_DB(contract_id,
     if db_res["status"] == 1:
         return db_res
 
-    # Then add to ShareDest table and ShareDE table
+    # Then add to ContractDest table and ShareDE table
     for a_id in dest_agents:
-        db_res = database_api.create_share_dest(contract_id, a_id)
-        if db_res.status == -1:
-            return {"status": 1, "message": "database error: create share agents failed"}
+        db_res = database_api.create_contract_dest(contract_id, a_id)
+        if db_res["status"] == 1:
+            return db_res
 
     for de_id in data_elements:
         db_res = database_api.create_share_de(contract_id, de_id)
@@ -62,15 +62,15 @@ def register_share_in_DB_no_trust(user_id,
     wal_entry = f"database_api.create_share({share_id}, {template}, {param_str})"
     write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    db_res = database_api.create_share(share_id, template, param_str)
+    db_res = database_api.create_contract(share_id, template, param_str)
     if db_res.status == -1:
         return {"status": 1, "message": "database error: create share failed"}
 
-    # Then add to ShareDest table and ShareDE table
+    # Then add to ContractDest table and ShareDE table
     for a_id in dest_agents:
-        wal_entry = f"database_api.create_share_dest({share_id}, {a_id})"
+        wal_entry = f"database_api.create_contract_dest({share_id}, {a_id})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
-        db_res = database_api.create_share_dest(share_id, a_id)
+        db_res = database_api.create_contract_dest(share_id, a_id)
         if db_res.status == -1:
             return {"status": 1, "message": "database error: create share agents failed"}
 
@@ -96,19 +96,19 @@ def register_share_in_DB_no_trust(user_id,
     return {"status": 0, "message": "success", "share_id": share_id}
 
 
-def show_share(user_id, share_id):
+def show_share(user_id, contract_id):
     # Check if caller is in share's approval agent
-    approval_agents = database_api.get_approval_for_share(share_id)
+    approval_agents = database_api.get_approval_for_share(contract_id)
     approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
     if user_id not in approval_agents_list:
         return None
 
     # Get the destination agents, the data elements, the template and its args
-    des_in_share = database_api.get_de_for_share(share_id)
+    des_in_share = database_api.get_de_for_share(contract_id)
     des_list = list(map(lambda ele: ele[0], des_in_share))
-    dest_agents = database_api.get_dest_for_share(share_id)
+    dest_agents = database_api.get_dest_for_contract(contract_id)
     dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
-    share_db_res = database_api.get_share(share_id)
+    share_db_res = database_api.get_share(contract_id)
 
     function_param = json.loads(share_db_res.function_param)
     share_obj = {
@@ -158,7 +158,7 @@ def get_de_ids_for_share(share_id):
 
 
 def get_dest_ids_for_share(share_id):
-    dest_agents = database_api.get_dest_for_share(share_id)
+    dest_agents = database_api.get_dest_for_contract(share_id)
     dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
     return dest_agents_list
 
