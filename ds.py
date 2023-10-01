@@ -115,7 +115,8 @@ class DataStation:
             self.key_manager,
             self.trust_mode,
             self.epf_path,
-            self.config.ds_storage_path,
+            self.config
+            # self.config.ds_storage_path,
             self.development_mode,
         )
 

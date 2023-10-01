@@ -28,6 +28,19 @@ def main():
 
     print(config_dict)
 
+    # curr_os = config_dict["operating_system"]
+    curr_os = "mac"
+
+    if curr_os == "mac":
+        addr = "http://host.docker.internal"
+    elif curr_os == "linux":
+        addr = "http://127.0.0.1"
+    else:
+        print("unsupported OS")
+        addr = ""
+
+    addr += ":3030"
+
     accessible_de = config_dict["accessible_de"]
     docker_id = config_dict["docker_id"]
     agents_symmetric_key = config_dict["agents_symmetric_key"]
@@ -94,7 +107,7 @@ def main():
     max_retry = 3
     while cnt < max_retry:
         try:
-            response = requests.get('http://127.0.0.1:3030/started', params=send_params)
+            response = requests.get(f'{addr}/started', params=send_params)
             if response.status_code == requests.codes.ok:
                 break
             else:
@@ -112,7 +125,7 @@ def main():
     # start = time.time()
 
     # request function to run
-    response = requests.get('http://127.0.0.1:3030/get_function_dict', params=send_params)
+    response = requests.get(f'{addr}/get_function_dict', params=send_params)
     function_dict = pickle.loads(response.content)
     # print("function dictionary: ", function_dict)
     # print(time.time() - start)
@@ -149,7 +162,7 @@ def main():
     # print(to_send_back)
 
     # send the return value of the function
-    response = requests.post("http://127.0.0.1:3030/send_function_return",
+    response = requests.post(f"{addr}/send_function_return",
                              data=to_send_back,
                              params=send_params,
                              )

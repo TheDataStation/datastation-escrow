@@ -22,7 +22,7 @@ class Gatekeeper:
                  key_manager: KeyManager,
                  trust_mode: str,
                  epf_path,
-                 mount_dir,
+                 config:DSConfig,
                  development_mode,
                  ):
         """
@@ -39,7 +39,7 @@ class Gatekeeper:
         self.trust_mode = trust_mode
 
         self.epf_path = epf_path
-        self.mount_dir = mount_dir
+        self.mount_dir = config.mount_dir
         self.docker_id = 1
         self.server = FlaskDockerServer()
         self.server.start_server()
@@ -237,7 +237,8 @@ def call_actual_api(api_name,
     # print(api_name, *args, **kwargs)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
 
-    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "agents_symmetric_key": agents_symmetric_key}
+    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "agents_symmetric_key": agents_symmetric_key,
+                   "operating_system": operating_system}
     print("The real epf path is", epf_realpath)
 
     # print(session.container.top())
