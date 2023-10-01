@@ -437,7 +437,7 @@ class DataStation:
         """
 
         # fetch arguments
-        share_template, share_param = share_manager.get_share_template_and_param(contract_id)
+        share_template, share_param = share_manager.get_contract_function_and_param(contract_id)
         args = share_param["args"]
         kwargs = share_param["kwargs"]
 
@@ -446,7 +446,7 @@ class DataStation:
         # Case 1: in development mode, we mimic the behaviour of Gatekeeper
         if self.development_mode:
             # Check destination agent
-            dest_a_ids = share_manager.get_dest_ids_for_share(contract_id)
+            dest_a_ids = share_manager.get_dest_ids_for_contract(contract_id)
             if user_id not in dest_a_ids:
                 print("Caller not a destination agent")
                 return None

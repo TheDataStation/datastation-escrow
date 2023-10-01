@@ -98,13 +98,13 @@ class Gatekeeper:
         # print(trust_mode)
 
         # Check if caller is in destination agent
-        dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
+        dest_a_ids = share_manager.get_dest_ids_for_contract(contract_id)
         if cur_user_id not in dest_a_ids:
             print("Caller not a destination agent")
             return None
 
         # Check if the share has been approved by all approval agents
-        share_ready_flag = share_manager.check_share_ready(share_id)
+        share_ready_flag = share_manager.check_share_ready(contract_id)
         if not share_ready_flag:
             print("This share has not been approved to execute yet.")
             return None

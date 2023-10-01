@@ -18,7 +18,7 @@ def register_share_in_DB(contract_id,
     if db_res["status"] == 1:
         return db_res
 
-    # Then add to ContractDest table and ShareDE table
+    # Then add to ContractDest table and ContractDE table
     for a_id in dest_agents:
         db_res = database_api.create_contract_dest(contract_id, a_id)
         if db_res["status"] == 1:
@@ -29,7 +29,7 @@ def register_share_in_DB(contract_id,
         if db_res["status"] == 1:
             return db_res
 
-    # Then add to SharePolicy table. First get the approval agents, default to DE owners.
+    # Then add to ContractStatus table. First get the approval agents, default to DE owners.
     approval_agent_set = set()
     for de_id in data_elements:
         owner_id_res = database_api.get_de_owner_id(de_id)
@@ -108,13 +108,13 @@ def show_share(user_id, contract_id):
     des_list = list(map(lambda ele: ele[0], des_in_contract))
     dest_agents = database_api.get_dest_for_contract(contract_id)
     dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
-    share_db_res = database_api.get_share(contract_id)
+    contract_db_res = database_api.get_contract(contract_id)
 
-    function_param = json.loads(share_db_res.function_param)
+    function_param = json.loads(contract_db_res.function_param)
     share_obj = {
         "a_dest": dest_agents_list,
         "des": des_list,
-        "template": share_db_res.function,
+        "template": contract_db_res.function,
         "args": function_param["args"],
         "kwargs": function_param["kwargs"],
     }
@@ -157,14 +157,14 @@ def get_de_ids_for_contract(contract_id):
     return des_list
 
 
-def get_dest_ids_for_share(share_id):
-    dest_agents = database_api.get_dest_for_contract(share_id)
+def get_dest_ids_for_contract(contract_id):
+    dest_agents = database_api.get_dest_for_contract(contract_id)
     dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
     return dest_agents_list
 
 
-def get_share_template_and_param(share_id):
-    share_db_res = database_api.get_share(share_id)
-    function = share_db_res.function
-    function_param = json.loads(share_db_res.function_param)
+def get_contract_function_and_param(contract_id):
+    contract_db_res = database_api.get_contract(contract_id)
+    function = contract_db_res.function
+    function_param = json.loads(contract_db_res.function_param)
     return function, function_param

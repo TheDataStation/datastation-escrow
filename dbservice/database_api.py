@@ -7,7 +7,6 @@ from .crud import (user_repo,
                    function_repo,
                    function_dependency_repo,
                    contract_repo, )
-from .responses import response
 from contextlib import contextmanager
 from dbservice.checkpoint.check_point import check_point
 
@@ -233,17 +232,17 @@ def get_status_for_contract(contract_id):
     with get_db() as session:
         return contract_repo.get_status_for_contract(session, contract_id)
 
-def get_dest_for_contract(c_id):
+def get_dest_for_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_dest_for_contract(session, c_id)
+        return contract_repo.get_dest_for_contract(session, contract_id)
 
 def get_de_for_contract(contract_id):
     with get_db() as session:
         return contract_repo.get_de_for_contract(session, contract_id)
 
-def get_share(share_id):
+def get_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_share(session, share_id)
+        return contract_repo.get_contract(session, contract_id)
 
 def approve_contract(a_id, contract_id):
     with get_db() as session:
