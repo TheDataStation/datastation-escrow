@@ -5,16 +5,11 @@ import pathlib
 import time
 import pickle
 
-from common.pydantic_models.function import Function
-from common.pydantic_models.user import User
-from common.pydantic_models.policy import Policy
 from common import common_procedure
-from common.general_utils import parse_config
-
 from storagemanager.storage_manager import StorageManager
 from policybroker import policy_broker
 from demanager import de_manager
-from sharemanager import share_manager
+from contractmanager import contract_manager
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto import cryptoutils as cu
@@ -368,22 +363,22 @@ class DataStation:
         self.cur_contract_id += 1
 
         if self.trust_mode == "full_trust":
-            return share_manager.register_share_in_DB(contract_id,
-                                                      dest_agents,
-                                                      data_elements,
-                                                      template,
-                                                      *args,
-                                                      **kwargs, )
+            return contract_manager.register_share_in_DB(contract_id,
+                                                         dest_agents,
+                                                         data_elements,
+                                                         template,
+                                                         *args,
+                                                         **kwargs, )
         else:
-            return share_manager.register_share_in_DB_no_trust(user_id,
-                                                               contract_id,
-                                                               dest_agents,
-                                                               data_elements,
-                                                               template,
-                                                               self.write_ahead_log,
-                                                               self.key_manager,
-                                                               *args,
-                                                               **kwargs, )
+            return contract_manager.register_share_in_DB_no_trust(user_id,
+                                                                  contract_id,
+                                                                  dest_agents,
+                                                                  data_elements,
+                                                                  template,
+                                                                  self.write_ahead_log,
+                                                                  self.key_manager,
+                                                                  *args,
+                                                                  **kwargs, )
 
     def show_share(self, user_id, contract_id):
         """
@@ -401,7 +396,7 @@ class DataStation:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return share_manager.show_share(user_id, contract_id)
+        return contract_manager.show_share(user_id, contract_id)
 
     def approve_share(self, user_id, contract_id):
         """
@@ -416,13 +411,13 @@ class DataStation:
             status: status of approving share. 0: success, 1: failure.
         """
         if self.trust_mode == "full_trust":
-            return share_manager.approve_share(user_id,
-                                               contract_id, )
+            return contract_manager.approve_share(user_id,
+                                                  contract_id, )
         else:
-            return share_manager.approve_share(user_id,
-                                               contract_id,
-                                               self.write_ahead_log,
-                                               self.key_manager, )
+            return contract_manager.approve_share(user_id,
+                                                  contract_id,
+                                                  self.write_ahead_log,
+                                                  self.key_manager, )
 
     def execute_share(self, user_id, contract_id):
         """
@@ -437,7 +432,7 @@ class DataStation:
         """
 
         # fetch arguments
-        share_template, share_param = share_manager.get_contract_function_and_param(contract_id)
+        share_template, share_param = contract_manager.get_contract_function_and_param(contract_id)
         args = share_param["args"]
         kwargs = share_param["kwargs"]
 
@@ -446,19 +441,19 @@ class DataStation:
         # Case 1: in development mode, we mimic the behaviour of Gatekeeper
         if self.development_mode:
             # Check destination agent
-            dest_a_ids = share_manager.get_dest_ids_for_contract(contract_id)
+            dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
             if user_id not in dest_a_ids:
                 print("Caller not a destination agent")
                 return None
 
             # Check share status
-            share_ready_flag = share_manager.check_share_ready(contract_id)
+            share_ready_flag = contract_manager.check_share_ready(contract_id)
             if not share_ready_flag:
-                print("This share has not been approved to execute yet.")
+                print("This contract has not been approved to execute yet.")
                 return None
 
             # Get accessible data elements
-            all_accessible_de_id = share_manager.get_de_ids_for_contract(contract_id)
+            all_accessible_de_id = contract_manager.get_de_ids_for_contract(contract_id)
             # print(f"all accessible data elements are: {all_accessible_de_id}")
 
             get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)

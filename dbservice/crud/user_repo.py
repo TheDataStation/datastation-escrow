@@ -3,7 +3,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
 from ..schemas.user import User
-from common.pydantic_models.user import UserRegister
 
 
 def get_user(db: Session, user_id: int):
