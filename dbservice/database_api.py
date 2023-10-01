@@ -246,7 +246,11 @@ def get_contract(contract_id):
 
 def approve_contract(a_id, contract_id):
     with get_db() as session:
-        return contract_repo.approve_contract(session, a_id, contract_id)
+        res = contract_repo.approve_contract(session, a_id, contract_id)
+        if res:
+            return {"status": 0, "message": "success"}
+        else:
+            return {"status": 1, "message": "database error: approve contract failed"}
 
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)

@@ -96,7 +96,7 @@ def register_share_in_DB_no_trust(user_id,
     return {"status": 0, "message": "success", "share_id": contract_id}
 
 
-def show_share(user_id, contract_id):
+def show_contract(user_id, contract_id):
     # Check if caller is contract's approval agent
     approval_agents = database_api.get_approval_for_contract(contract_id)
     approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
@@ -122,12 +122,11 @@ def show_share(user_id, contract_id):
     return share_obj
 
 
-def approve_share(user_id,
-                  contract_id,
-                  write_ahead_log=None,
-                  key_manager=None,
-                  ):
-
+def approve_contract(user_id,
+                     contract_id,
+                     write_ahead_log=None,
+                     key_manager=None,
+                     ):
     approval_agents = database_api.get_approval_for_contract(contract_id)
     approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
     if user_id not in approval_agents_list:
@@ -135,12 +134,10 @@ def approve_share(user_id,
 
     # If in no_trust mode, we need to record this in wal
     if write_ahead_log is not None:
-        wal_entry = f"database_api.approve_share({user_id}, {contract_id})"
+        wal_entry = f"database_api.approve_contract({user_id}, {contract_id})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    db_res = database_api.approve_contract(user_id, contract_id)
-    if db_res:
-        return {"status": 0, "message": "success"}
+    return database_api.approve_contract(user_id, contract_id)
 
 
 def check_share_ready(contract_id):

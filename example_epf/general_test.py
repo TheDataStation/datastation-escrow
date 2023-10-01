@@ -20,12 +20,12 @@ def suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs
     return EscrowAPI.suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs)
 
 @api_endpoint
-def show_share(user_id, share_id):
-    return EscrowAPI.show_share(user_id, share_id)
+def show_contract(user_id, contract_id):
+    return EscrowAPI.show_contract(user_id, contract_id)
 
 @api_endpoint
-def approve_share(user_id, share_id):
-    return EscrowAPI.approve_share(user_id, share_id)
+def approve_contract(user_id, contract_id):
+    return EscrowAPI.approve_contract(user_id, contract_id)
 
 @api_endpoint
 def execute_share(user_id, share_id):

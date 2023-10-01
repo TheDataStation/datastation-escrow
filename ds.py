@@ -380,7 +380,7 @@ class DataStation:
                                                                   *args,
                                                                   **kwargs, )
 
-    def show_share(self, user_id, contract_id):
+    def show_contract(self, user_id, contract_id):
         """
         Display the content of a share.
 
@@ -396,9 +396,9 @@ class DataStation:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return contract_manager.show_share(user_id, contract_id)
+        return contract_manager.show_contract(user_id, contract_id)
 
-    def approve_share(self, user_id, contract_id):
+    def approve_contract(self, user_id, contract_id):
         """
         Update a share's status to ready, for approval agent <username>.
 
@@ -411,13 +411,13 @@ class DataStation:
             status: status of approving share. 0: success, 1: failure.
         """
         if self.trust_mode == "full_trust":
-            return contract_manager.approve_share(user_id,
-                                                  contract_id, )
+            return contract_manager.approve_contract(user_id,
+                                                     contract_id, )
         else:
-            return contract_manager.approve_share(user_id,
-                                                  contract_id,
-                                                  self.write_ahead_log,
-                                                  self.key_manager, )
+            return contract_manager.approve_contract(user_id,
+                                                     contract_id,
+                                                     self.write_ahead_log,
+                                                     self.key_manager, )
 
     def execute_share(self, user_id, contract_id):
         """

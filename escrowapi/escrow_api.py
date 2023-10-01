@@ -135,14 +135,14 @@ class EscrowAPI:
         return cls.__comp.suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs)
 
     @classmethod
-    def show_share(cls, user_id, share_id):
+    def show_contract(cls, user_id, contract_id):
         """
         API Endpoint.
         Display the content of a share.
 
         Parameters:
             user_id: caller username
-            share_id: id of the share that the caller wants to see
+            contract_id: id of the share that the caller wants to see
 
         Returns:
         An object with the following fields:
@@ -152,23 +152,23 @@ class EscrowAPI:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return cls.__comp.show_share(user_id, share_id)
+        return cls.__comp.show_contract(user_id, contract_id)
 
     @classmethod
-    def approve_share(cls, user_id, share_id):
+    def approve_contract(cls, user_id, contract_id):
         """
         API Endpoint.
         Update a share's status to ready, for approval agent <username>.
 
         Parameters:
-            user_id: caller username
-            share_id: id of the share
+            user_id: approver id
+            contract_id: id of contract
 
         Returns:
         A response object with the following fields:
             status: status of approving share. 0: success, 1: failure.
         """
-        return cls.__comp.approve_share(user_id, share_id)
+        return cls.__comp.approve_contract(user_id, contract_id)
 
     @classmethod
     def execute_share(cls, user_id, share_id):
