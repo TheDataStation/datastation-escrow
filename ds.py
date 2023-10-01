@@ -29,40 +29,8 @@ from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
                                                  register_epf, )
 from userregister import user_register
 from common.abstraction import DataElement
-
-
+from common.config import DSConfig
 class DataStation:
-    class DSConfig:
-        def __init__(self, ds_config):
-            """
-            Class that stores DS config variables at the time they were given
-            """
-            # get the trust mode for the data station
-            self.trust_mode = ds_config["trust_mode"]
-
-            # get storage path for data
-            self.storage_path = ds_config["storage_path"]
-
-            # log arguments
-            self.log_in_memory_flag = ds_config["log_in_memory"]
-            self.log_path = ds_config["log_path"]
-
-            # wal arguments
-            self.wal_path = ds_config["wal_path"]
-            self.check_point_freq = ds_config["check_point_freq"]
-
-            # the table_paths in dbservice.check_point
-            self.table_paths = ds_config["table_paths"]
-
-            # interceptor paths
-            self.ds_storage_path = str(pathlib.Path(
-                ds_config["storage_path"]).absolute())
-
-            # EPF connector
-            self.epf_path = ds_config["epf_path"]
-
-            # development mode
-            self.development_mode = ds_config["in_development_mode"]
 
     def __init__(self, ds_config, need_to_recover=False):
         """
@@ -73,7 +41,7 @@ class DataStation:
          need_to_recover: bool that specifies if needs to recover from previous database
         """
         # parse config file
-        self.config = self.DSConfig(ds_config)
+        self.config = DSConfig(ds_config)
 
         # set up development mode
         self.development_mode = self.config.development_mode
@@ -115,7 +83,7 @@ class DataStation:
             self.key_manager,
             self.trust_mode,
             self.epf_path,
-            self.config
+            self.config,
             # self.config.ds_storage_path,
             self.development_mode,
         )

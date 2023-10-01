@@ -10,3 +10,4 @@ database_url: "sqlite:///./data_station.db"
 epf_path: "example_epf/general_test.py"
 trust_mode: "no_trust"
 in_development_mode: False
+operating_system: "mac"
