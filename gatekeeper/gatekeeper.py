@@ -49,17 +49,16 @@ class Gatekeeper:
         # register all api_endpoints that are functions in database_api
         function_names = get_functions_names()
         # now we call dbservice to register these info in the DB
-        for cur_api in function_names:
-            api_db = Function(function_name=cur_api)
-            print("api added: ", api_db)
-            database_service_response = database_api.create_function(api_db)
-            if database_service_response.status == -1:
-                print("database_api.create_api: internal database error")
+        for cur_f in function_names:
+            database_service_response = database_api.create_function(cur_f)
+            if database_service_response["status"] == 1:
+                print("database_api.create_function: internal database error")
                 raise RuntimeError(
-                    "database_api.create_api: internal database error")
+                    "database_api.create_function: internal database error")
 
-        api_res = database_api.get_all_functions()
-        print("all function uploaded, with pid: ", os.getpid(), api_res)
+        f_res = database_api.get_all_functions()
+        if f_res["status"] == 0:
+            print("all function registered: ", f_res["data"])
 
         if not development_mode:
             docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".")
@@ -76,18 +75,12 @@ class Gatekeeper:
         self.docker_id += 1
         return ret
 
-    @staticmethod
-    def get_accessible_data(user_id, api, share_id):
-        accessible_data = policy_broker.get_user_api_info(user_id, api, share_id)
-        return accessible_data
-
     # We add times to the following function to record the overheads
 
     def call_api(self,
                  api,
                  cur_user_id,
-                 share_id,
-                 exec_mode,
+                 contract_id,
                  *args,
                  **kwargs):
         """
@@ -98,8 +91,7 @@ class Gatekeeper:
         Parameters:
          api: api to call
          cur_user_id: the user id to decide what data is exposed
-         share_id: id of share from which the api is called,
-         exec_mode: optimistic or pessimistic
+         contract_id: id of contract from which the api is called,
 
         Returns:
          Response based on what happens
@@ -120,25 +112,25 @@ class Gatekeeper:
             return None
 
         # If yes, set the accessible_de to be the entirety of P
-        all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
+        all_accessible_de_id = share_manager.get_de_ids_for_contract(contract_id)
         # print(f"all accessible data elements are: {all_accessible_de_id}")
 
-        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
-        if get_datasets_by_ids_res.status == -1:
+        get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
+        if get_des_by_ids_res.status == -1:
             err_msg = "No accessible data for " + api
             print(err_msg)
             return {"status": 1, "message": err_msg}
 
         accessible_de = set()
-        for cur_data in get_datasets_by_ids_res.data:
+        for cur_de in get_des_by_ids_res.data:
             if self.trust_mode == "no_trust":
-                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
+                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
             else:
                 data_owner_symmetric_key = None
-            cur_de = DataElement(cur_data.id,
-                                 cur_data.name,
-                                 cur_data.type,
-                                 cur_data.access_param,
+            cur_de = DataElement(cur_de.id,
+                                 cur_de.name,
+                                 cur_de.type,
+                                 cur_de.access_param,
                                  data_owner_symmetric_key)
             accessible_de.add(cur_de)
 

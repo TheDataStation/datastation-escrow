@@ -2,10 +2,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..schemas.function import Function
-from common.pydantic_models.function import FunctionCreate
 
-def create_function(db: Session, function: FunctionCreate):
-    db_function = Function(function_name=function.function_name,)
+def create_function(db: Session, function_name):
+    db_function = Function(function_name=function_name,)
     try:
         db.add(db_function)
         db.commit()
