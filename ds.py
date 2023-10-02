@@ -213,7 +213,7 @@ class DataStation:
         Parameters:
             user_id: user id
             de_id: id of this existing DE
-            data_in_bytes: daat in bytes
+            data_in_bytes: data in bytes
         """
         # Check if the DE exists, and whether its owner is the caller
         verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
