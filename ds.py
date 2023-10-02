@@ -5,16 +5,11 @@ import pathlib
 import time
 import pickle
 
-from common.pydantic_models.function import Function
-from common.pydantic_models.user import User
-from common.pydantic_models.policy import Policy
 from common import common_procedure
-from common.general_utils import parse_config
-
 from storagemanager.storage_manager import StorageManager
 from policybroker import policy_broker
 from demanager import de_manager
-from sharemanager import share_manager
+from contractmanager import contract_manager
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
 from crypto import cryptoutils as cu
@@ -62,13 +57,15 @@ class DataStation:
         self.data_station_log = Log(
             log_in_memory_flag, log_path, self.trust_mode)
 
-        # set up an instance of the write ahead log
+        # set up an instance of WAL and KeyManager
         wal_path = self.config.wal_path
         check_point_freq = self.config.check_point_freq
-        self.write_ahead_log = WAL(wal_path, check_point_freq)
-
-        # set up an instance of the key manager
-        self.key_manager = KeyManager()
+        if self.trust_mode == "no_trust":
+            self.write_ahead_log = WAL(wal_path, check_point_freq)
+            self.key_manager = KeyManager()
+        else:
+            self.write_ahead_log = None
+            self.key_manager = None
 
         # print(self.storage_path)
         self.epf_path = self.config.epf_path
@@ -145,16 +142,11 @@ class DataStation:
             self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         # Part two: Call the user_register to register the user in the DB
-        if self.trust_mode == "full_trust":
-            response = user_register.create_user(user_id,
-                                                 username,
-                                                 password, )
-        else:
-            response = user_register.create_user(user_id,
-                                                 username,
-                                                 password,
-                                                 self.write_ahead_log,
-                                                 self.key_manager, )
+        response = user_register.create_user(user_id,
+                                             username,
+                                             password,
+                                             self.write_ahead_log,
+                                             self.key_manager, )
 
         if response["status"] == 1:
             return response
@@ -163,19 +155,6 @@ class DataStation:
         self.storage_manager.create_staging_for_user(user_id)
 
         return response
-
-    def get_all_apis(self):
-        """
-        Gets all APIs from the policy broker
-
-        Parameters:
-         Nothing
-
-        Returns:
-         all apis
-        """
-        # Call policy_broker directly
-        return policy_broker.get_all_apis()
 
     def get_all_api_dependencies(self):
         """
@@ -211,22 +190,14 @@ class DataStation:
         de_id = self.cur_de_id
         self.cur_de_id += 1
 
-        if self.trust_mode == "full_trust":
-            return de_manager.register_de_in_DB(de_id,
-                                                de_name,
-                                                user_id,
-                                                de_type,
-                                                access_param,
-                                                optimistic)
-        else:
-            return de_manager.register_de_in_DB(de_id,
-                                                de_name,
-                                                user_id,
-                                                de_type,
-                                                access_param,
-                                                optimistic,
-                                                self.write_ahead_log,
-                                                self.key_manager)
+        return de_manager.register_de_in_DB(de_id,
+                                            de_name,
+                                            user_id,
+                                            de_type,
+                                            access_param,
+                                            optimistic,
+                                            self.write_ahead_log,
+                                            self.key_manager)
 
     def upload_de(self,
                   user_id,
@@ -238,7 +209,7 @@ class DataStation:
         Parameters:
             user_id: user id
             de_id: id of this existing DE
-            data_in_bytes: daat in bytes
+            data_in_bytes: data in bytes
         """
         # Check if the DE exists, and whether its owner is the caller
         verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
@@ -273,14 +244,10 @@ class DataStation:
         """
 
         # First we call de_manager to remove the existing DE from the database
-        if self.trust_mode == "full_trust":
-            de_manager_response = de_manager.remove_data(de_name,
-                                                         username, )
-        else:
-            de_manager_response = de_manager.remove_data(de_name,
-                                                         username,
-                                                         self.write_ahead_log,
-                                                         self.key_manager, )
+        de_manager_response = de_manager.remove_de(de_name,
+                                                   username,
+                                                   self.write_ahead_log,
+                                                   self.key_manager, )
         if de_manager_response["status"] != 0:
             return de_manager_response
 
@@ -309,58 +276,50 @@ class DataStation:
         de_manager_response = de_manager.list_discoverable_des()
         return de_manager_response
 
-    def suggest_share(self,
-                      user_id,
-                      dest_agents,
-                      data_elements,
-                      template,
-                      *args,
-                      **kwargs):
+    def propose_contract(self,
+                         user_id,
+                         dest_agents,
+                         data_elements,
+                         function,
+                         *args,
+                         **kwargs):
         """
-        Propose a share. This leads to the creation of a share.
+        Propose a contract. This leads to the creation of a contract.
 
         Parameters:
             user_id: the unique id identifying which user is calling the api
             dest_agents: list of user ids
             data_elements: list of data elements
-            template: template function
+            function: function
             args: args to the template function
             kwargs: kwargs to the template function
 
         Returns:
         A response object with the following fields:
-            status: status of suggesting share. 0: success, 1: failure.
+            status: status of proposing a contract. 0: success, 1: failure.
         """
-        # We first register the share in the DB
+        # We first register the contract in the DB
         # Decide which contract_id to use from self.cur_contract_id
         contract_id = self.cur_contract_id
         self.cur_contract_id += 1
 
-        if self.trust_mode == "full_trust":
-            return share_manager.register_share_in_DB(contract_id,
-                                                      dest_agents,
-                                                      data_elements,
-                                                      template,
-                                                      *args,
-                                                      **kwargs, )
-        else:
-            return share_manager.register_share_in_DB_no_trust(user_id,
-                                                               contract_id,
-                                                               dest_agents,
-                                                               data_elements,
-                                                               template,
-                                                               self.write_ahead_log,
-                                                               self.key_manager,
-                                                               *args,
-                                                               **kwargs, )
+        return contract_manager.register_contract_in_DB(user_id,
+                                                        contract_id,
+                                                        dest_agents,
+                                                        data_elements,
+                                                        function,
+                                                        self.write_ahead_log,
+                                                        self.key_manager,
+                                                        *args,
+                                                        **kwargs, )
 
-    def show_share(self, user_id, contract_id):
+    def show_contract(self, user_id, contract_id):
         """
-        Display the content of a share.
+        Display the content of a contract.
 
         Parameters:
             user_id: id of caller
-            contract_id: id of the share that the caller wants to see
+            contract_id: id of the contract that the caller wants to see
 
         Returns:
         An object with the following fields:
@@ -370,69 +329,65 @@ class DataStation:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return share_manager.show_share(user_id, contract_id)
+        return contract_manager.show_contract(user_id, contract_id)
 
-    def approve_share(self, user_id, contract_id):
+    def approve_contract(self, user_id, contract_id):
         """
-        Update a share's status to ready, for approval agent <username>.
+        Update a contract's status to ready, for approval agent <username>.
 
         Parameters:
             user_id: caller username
-            contract_id: id of the share
+            contract_id: id of the contract
 
         Returns:
         A response object with the following fields:
-            status: status of approving share. 0: success, 1: failure.
+            status: status of approving contract. 0: success, 1: failure.
         """
-        if self.trust_mode == "full_trust":
-            return share_manager.approve_share(user_id,
-                                               contract_id, )
-        else:
-            return share_manager.approve_share(user_id,
-                                               contract_id,
-                                               self.write_ahead_log,
-                                               self.key_manager, )
+        return contract_manager.approve_contract(user_id,
+                                                 contract_id,
+                                                 self.write_ahead_log,
+                                                 self.key_manager, )
 
-    def execute_share(self, user_id, contract_id):
+    def execute_contract(self, user_id, contract_id):
         """
-        Execute a share.
+        Execute a contract.
 
         Parameters:
             user_id: caller id
-            contract_id: id of the share
+            contract_id: id of the contract
 
         Returns:
-            The result of executing the share (f(P))
+            The result of executing the contract (f(P))
         """
 
         # fetch arguments
-        share_template, share_param = share_manager.get_share_template_and_param(contract_id)
-        args = share_param["args"]
-        kwargs = share_param["kwargs"]
+        function, function_param = contract_manager.get_contract_function_and_param(contract_id)
+        args = function_param["args"]
+        kwargs = function_param["kwargs"]
 
-        print("Share_template called is", share_template)
+        print("Function called in contract is", function)
 
         # Case 1: in development mode, we mimic the behaviour of Gatekeeper
         if self.development_mode:
             # Check destination agent
-            dest_a_ids = share_manager.get_dest_ids_for_share(contract_id)
+            dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
             if user_id not in dest_a_ids:
                 print("Caller not a destination agent")
                 return None
 
-            # Check share status
-            share_ready_flag = share_manager.check_share_ready(contract_id)
-            if not share_ready_flag:
-                print("This share has not been approved to execute yet.")
+            # Check contract status
+            contract_ready_flag = contract_manager.check_contract_ready(contract_id)
+            if not contract_ready_flag:
+                print("This contract has not been approved to execute yet.")
                 return None
 
             # Get accessible data elements
-            all_accessible_de_id = share_manager.get_de_ids_for_contract(contract_id)
+            all_accessible_de_id = contract_manager.get_de_ids_for_contract(contract_id)
             # print(f"all accessible data elements are: {all_accessible_de_id}")
 
             get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
             if get_des_by_ids_res["status"] == 1:
-                print("Something wrong with getting accessible DE for share.")
+                print("Something wrong with getting accessible DE for contract.")
                 return get_des_by_ids_res
 
             accessible_de = set()
@@ -456,19 +411,19 @@ class DataStation:
 
             print(self.accessible_de_development)
 
-            # Execute share
+            # Execute function
             list_of_function = get_registered_functions()
 
             for cur_fn in list_of_function:
-                if share_template == cur_fn.__name__:
-                    print("Calling a template function in development", share_template)
+                if function == cur_fn.__name__:
+                    print("Calling a template function in development", function)
                     print(args)
                     print(kwargs)
                     res = cur_fn(*args, **kwargs)
                     return res
         else:
             # Case 2: Sending to Gatekeeper
-            res = self.gatekeeper.call_api(share_template,
+            res = self.gatekeeper.call_api(function,
                                            user_id,
                                            contract_id,
                                            "pessimistic",
@@ -553,7 +508,7 @@ class DataStation:
                 break
 
         if api_type is None:
-            print("Called API endpoint not found in EPM.")
+            print("Called API endpoint not found in EPM:", api)
             return None
 
         # Case 1: calling non-jail function

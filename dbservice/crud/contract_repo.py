@@ -80,8 +80,8 @@ def get_approval_for_contract(db: Session, contract_id):
 
 
 def get_status_for_contract(db: Session, contract_id):
-    share_status = db.query(ContractStatus.status).filter(ContractStatus.c_id == contract_id).all()
-    return share_status
+    contract_status = db.query(ContractStatus.status).filter(ContractStatus.c_id == contract_id).all()
+    return contract_status
 
 
 def get_de_for_contract(db: Session, contract_id):
@@ -94,9 +94,9 @@ def get_dest_for_contract(db: Session, c_id):
     return dest_agents
 
 
-def get_share(db: Session, share_id):
-    share = db.query(Contract).filter(Contract.id == share_id).first()
-    return share
+def get_contract(db: Session, contract_id):
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    return contract
 
 
 def approve_contract(db: Session, a_id, contract_id):

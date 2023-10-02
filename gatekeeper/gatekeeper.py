@@ -1,12 +1,10 @@
 import os
-import pathlib
+
 from dsapplicationregistration.dsar_core import (get_api_endpoint_names,
                                                  get_functions_names,
                                                  get_registered_functions, )
 from dbservice import database_api
-from sharemanager import share_manager
-from policybroker import policy_broker
-from common.pydantic_models.function import Function
+from contractmanager import contract_manager
 from common.abstraction import DataElement
 from common.config import DSConfig
 
@@ -100,19 +98,19 @@ class Gatekeeper:
         # print(trust_mode)
 
         # Check if caller is in destination agent
-        dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
+        dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
         if cur_user_id not in dest_a_ids:
             print("Caller not a destination agent")
             return None
 
         # Check if the share has been approved by all approval agents
-        share_ready_flag = share_manager.check_share_ready(share_id)
-        if not share_ready_flag:
-            print("This share has not been approved to execute yet.")
+        contract_ready_flag = contract_manager.check_contract_ready(contract_id)
+        if not contract_ready_flag:
+            print("This contract has not been approved to execute yet.")
             return None
 
         # If yes, set the accessible_de to be the entirety of P
-        all_accessible_de_id = share_manager.get_de_ids_for_contract(contract_id)
+        all_accessible_de_id = contract_manager.get_de_ids_for_contract(contract_id)
         # print(f"all accessible data elements are: {all_accessible_de_id}")
 
         get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
@@ -208,7 +206,7 @@ def call_actual_api(api_name,
                     agents_symmetric_key,
                     accessible_de,
                     docker_id,
-                    docker_session:DSDocker,
+                    docker_session: DSDocker,
                     *args,
                     **kwargs,
                     ):
@@ -222,7 +220,7 @@ def call_actual_api(api_name,
      agents_symmetric_key: key manager storing all the sym keys
      accessible_de: a set of accessible DataElement
      docker_id: id assigned to docker container
-     server: flask server to receive communications with docker container
+     docker_session: docker container
      *args / *kwargs for api
 
     Returns:

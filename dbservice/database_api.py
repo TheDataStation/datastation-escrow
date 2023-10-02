@@ -7,7 +7,6 @@ from .crud import (user_repo,
                    function_repo,
                    function_dependency_repo,
                    contract_repo, )
-from .responses import response
 from contextlib import contextmanager
 from dbservice.checkpoint.check_point import check_point
 
@@ -233,21 +232,29 @@ def get_status_for_contract(contract_id):
     with get_db() as session:
         return contract_repo.get_status_for_contract(session, contract_id)
 
-def get_dest_for_contract(c_id):
+def get_dest_for_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_dest_for_contract(session, c_id)
+        return contract_repo.get_dest_for_contract(session, contract_id)
 
 def get_de_for_contract(contract_id):
     with get_db() as session:
         return contract_repo.get_de_for_contract(session, contract_id)
 
-def get_share(share_id):
+def get_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_share(session, share_id)
+        contract = contract_repo.get_contract(session, contract_id)
+        if contract:
+            return {"status": 0, "message": "success", "data": contract}
+        else:
+            return {"status": 1, "message": "database error: get contract failed"}
 
 def approve_contract(a_id, contract_id):
     with get_db() as session:
-        return contract_repo.approve_contract(session, a_id, contract_id)
+        res = contract_repo.approve_contract(session, a_id, contract_id)
+        if res:
+            return {"status": 0, "message": "success"}
+        else:
+            return {"status": 1, "message": "database error: approve contract failed"}
 
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)

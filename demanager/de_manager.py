@@ -10,15 +10,15 @@ def register_de_in_DB(de_id,
                       de_type,
                       access_param,
                       optimistic,
-                      write_ahead_log=None,
-                      key_manager=None):
+                      write_ahead_log,
+                      key_manager, ):
     # Call DB to register a new data element in the database
 
     if pathlib.Path(access_param).is_file():
         access_param = str(pathlib.Path(access_param).absolute())
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
-    if write_ahead_log is not None:
+    if write_ahead_log:
         wal_entry = f"database_api.create_de({de_id}, {de_name}, {user_id}, {de_type}, {access_param}, {optimistic})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
@@ -34,10 +34,10 @@ def register_de_in_DB(de_id,
     return {"status": de_resp["status"], "message": de_resp["message"], "de_id": de_resp["data"].id}
 
 
-def remove_data(de_name,
-                cur_username,
-                write_ahead_log=None,
-                key_manager=None, ):
+def remove_de(de_name,
+              cur_username,
+              write_ahead_log,
+              key_manager, ):
     # Check if there is an existing data element
     de_resp = database_api.get_de_by_name(de_name)
     if de_resp["status"] == 1:
