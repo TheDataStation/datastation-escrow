@@ -242,7 +242,11 @@ def get_de_for_contract(contract_id):
 
 def get_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_contract(session, contract_id)
+        contract = contract_repo.get_contract(session, contract_id)
+        if contract:
+            return {"status": 0, "message": "success", "data": contract}
+        else:
+            return {"status": 1, "message": "database error: get contract failed"}
 
 def approve_contract(a_id, contract_id):
     with get_db() as session:

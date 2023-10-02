@@ -102,8 +102,8 @@ class Gatekeeper:
             return None
 
         # Check if the share has been approved by all approval agents
-        share_ready_flag = contract_manager.check_share_ready(contract_id)
-        if not share_ready_flag:
+        contract_ready_flag = contract_manager.check_contract_ready(contract_id)
+        if not contract_ready_flag:
             print("This contract has not been approved to execute yet.")
             return None
 

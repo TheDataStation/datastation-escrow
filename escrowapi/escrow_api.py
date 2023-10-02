@@ -109,22 +109,22 @@ class EscrowAPI:
         return cls.__comp.list_discoverable_des(user_id)
 
     @classmethod
-    def suggest_share(cls,
-                      user_id,
-                      dest_agents,
-                      data_elements,
-                      template,
-                      *args,
-                      **kwargs,):
+    def propose_contract(cls,
+                         user_id,
+                         dest_agents,
+                         data_elements,
+                         function,
+                         *args,
+                         **kwargs, ):
         """
         API Endpoint.
-        Propose a share. This leads to the creation of a share, which is just a list of policies.
+        Propose a contract.
 
         Parameters:
             user_id: caller id
             dest_agents: list of user ids
             data_elements: list of data elements
-            template: template function
+            function: function
             args: input args to the template function
             kwargs: input kwargs to the template funciton
 
@@ -132,7 +132,7 @@ class EscrowAPI:
         A response object with the following fields:
             status: status of suggesting share. 0: success, 1: failure.
         """
-        return cls.__comp.suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs)
+        return cls.__comp.propose_contract(user_id, dest_agents, data_elements, function, *args, **kwargs)
 
     @classmethod
     def show_contract(cls, user_id, contract_id):
@@ -171,16 +171,16 @@ class EscrowAPI:
         return cls.__comp.approve_contract(user_id, contract_id)
 
     @classmethod
-    def execute_share(cls, user_id, share_id):
+    def execute_contract(cls, user_id, contract_id):
         """
         API Endpoint.
-        Execute a share.
+        Execute a contract.
 
         Parameters:
             user_id: caller username (should be one of the dest agents)
-            share_id: id of the share
+            contract_id: id of the contract
 
         Returns:
-            The result of executing the share (f(P))
+            The result of executing the contract (f(P))
         """
-        return cls.__comp.execute_share(user_id, share_id)
+        return cls.__comp.execute_contract(user_id, contract_id)

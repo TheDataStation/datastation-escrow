@@ -3,13 +3,13 @@ import json
 from dbservice import database_api
 
 
-def register_share_in_DB(contract_id,
-                         dest_agents,
-                         data_elements,
-                         function,
-                         *args,
-                         **kwargs
-                         ):
+def register_contract_in_DB(contract_id,
+                            dest_agents,
+                            data_elements,
+                            function,
+                            *args,
+                            **kwargs
+                            ):
     # First add to the Contract table
     param_json = {"args": args, "kwargs": kwargs}
     param_str = json.dumps(param_json)
@@ -42,19 +42,19 @@ def register_share_in_DB(contract_id,
         if db_res["status"] == 1:
             return db_res
 
-    return {"status": 0, "message": "success", "share_id": contract_id}
+    return {"status": 0, "message": "success", "contract_id": contract_id}
 
 
-def register_share_in_DB_no_trust(user_id,
-                                  contract_id,
-                                  dest_agents,
-                                  data_elements,
-                                  template,
-                                  write_ahead_log,
-                                  key_manager,
-                                  *args,
-                                  **kwargs,
-                                  ):
+def register_contract_in_DB_no_trust(user_id,
+                                     contract_id,
+                                     dest_agents,
+                                     data_elements,
+                                     template,
+                                     write_ahead_log,
+                                     key_manager,
+                                     *args,
+                                     **kwargs,
+                                     ):
     param_json = {"args": args, "kwargs": kwargs}
     param_str = json.dumps(param_json)
 
@@ -93,7 +93,7 @@ def register_share_in_DB_no_trust(user_id,
         if db_res["status"] == 1:
             return db_res
 
-    return {"status": 0, "message": "success", "share_id": contract_id}
+    return {"status": 0, "message": "success", "contract_id": contract_id}
 
 
 def show_contract(user_id, contract_id):
@@ -110,16 +110,16 @@ def show_contract(user_id, contract_id):
     dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
     contract_db_res = database_api.get_contract(contract_id)
 
-    function_param = json.loads(contract_db_res.function_param)
-    share_obj = {
+    function_param = json.loads(contract_db_res["data"].function_param)
+    contract_obj = {
         "a_dest": dest_agents_list,
         "des": des_list,
-        "template": contract_db_res.function,
+        "function": contract_db_res["data"].function,
         "args": function_param["args"],
         "kwargs": function_param["kwargs"],
     }
 
-    return share_obj
+    return contract_obj
 
 
 def approve_contract(user_id,
@@ -140,7 +140,7 @@ def approve_contract(user_id,
     return database_api.approve_contract(user_id, contract_id)
 
 
-def check_share_ready(contract_id):
+def check_contract_ready(contract_id):
     db_res = database_api.get_status_for_contract(contract_id)
     status_list = list(map(lambda ele: ele[0], db_res))
     if 0 in status_list:
@@ -162,6 +162,7 @@ def get_dest_ids_for_contract(contract_id):
 
 def get_contract_function_and_param(contract_id):
     contract_db_res = database_api.get_contract(contract_id)
-    function = contract_db_res.function
-    function_param = json.loads(contract_db_res.function_param)
+    print(contract_db_res)
+    function = contract_db_res["data"].function
+    function_param = json.loads(contract_db_res["data"].function_param)
     return function, function_param

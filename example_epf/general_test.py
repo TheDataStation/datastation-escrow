@@ -16,8 +16,8 @@ def list_discoverable_des(user_id):
     return EscrowAPI.list_discoverable_des(user_id)
 
 @api_endpoint
-def suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs):
-    return EscrowAPI.suggest_share(user_id, dest_agents, data_elements, template, *args, **kwargs)
+def propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs):
+    return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs)
 
 @api_endpoint
 def show_contract(user_id, contract_id):
@@ -28,8 +28,8 @@ def approve_contract(user_id, contract_id):
     return EscrowAPI.approve_contract(user_id, contract_id)
 
 @api_endpoint
-def execute_share(user_id, share_id):
-    return EscrowAPI.execute_share(user_id, share_id)
+def execute_contract(user_id, share_id):
+    return EscrowAPI.execute_contract(user_id, share_id)
 
 def get_data(de):
     if de.type == "file":
