@@ -57,18 +57,14 @@ class DataStation:
         self.data_station_log = Log(
             log_in_memory_flag, log_path, self.trust_mode)
 
-        # set up an instance of the write ahead log
+        # set up an instance of WAL and KeyManager
         wal_path = self.config.wal_path
         check_point_freq = self.config.check_point_freq
         if self.trust_mode == "no_trust":
             self.write_ahead_log = WAL(wal_path, check_point_freq)
-        else:
-            self.write_ahead_log = None
-
-        # set up an instance of the key manager
-        if self.trust_mode == "no_trust":
             self.key_manager = KeyManager()
         else:
+            self.write_ahead_log = None
             self.key_manager = None
 
         # print(self.storage_path)
