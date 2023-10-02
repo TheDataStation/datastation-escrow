@@ -118,7 +118,7 @@ class DSDocker:
 
         self.base_dir = os.path.dirname(os.path.realpath(__file__))
         self.client = docker.from_env()
-
+        print(f"Creating image from dockerfile: {dockerfile}")
         # create image from dockerfile
         self.image, log = self.client.images.build(
             path=dockerfile, dockerfile="./Dockerfile", rm=True, tag="ds_docker")

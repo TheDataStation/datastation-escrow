@@ -6,6 +6,7 @@ from dsapplicationregistration.dsar_core import (get_api_endpoint_names,
 from dbservice import database_api
 from contractmanager import contract_manager
 from common.abstraction import DataElement
+from common.config import DSConfig
 
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
@@ -20,7 +21,7 @@ class Gatekeeper:
                  key_manager: KeyManager,
                  trust_mode: str,
                  epf_path,
-                 mount_dir,
+                 config:DSConfig,
                  development_mode,
                  ):
         """
@@ -29,6 +30,7 @@ class Gatekeeper:
         """
 
         print("Start setting up the gatekeeper")
+        self.config = config
 
         # save variables
         self.data_station_log = data_station_log
@@ -37,7 +39,7 @@ class Gatekeeper:
         self.trust_mode = trust_mode
 
         self.epf_path = epf_path
-        self.mount_dir = mount_dir
+        self.mount_dir = self.config.ds_storage_path
         self.docker_id = 1
         self.server = FlaskDockerServer()
         self.server.start_server()
@@ -135,7 +137,8 @@ class Gatekeeper:
         # actual api call
         ret = call_actual_api(api,
                               self.epf_path,
-                              self.mount_dir,
+                              self.config,
+                            #   self.mount_dir,
                               self.key_manager.agents_symmetric_key,
                               accessible_de,
                               self.get_new_docker_id(),
@@ -198,7 +201,8 @@ class Gatekeeper:
 
 def call_actual_api(api_name,
                     epf_path,
-                    mount_dir,
+                    config:DSConfig,
+                    # mount_dir,
                     agents_symmetric_key,
                     accessible_de,
                     docker_id,
@@ -227,7 +231,8 @@ def call_actual_api(api_name,
     # print(api_name, *args, **kwargs)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
 
-    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "agents_symmetric_key": agents_symmetric_key}
+    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "agents_symmetric_key": agents_symmetric_key,
+                   "operating_system": config.operating_system}
     print("The real epf path is", epf_realpath)
 
     # print(session.container.top())
@@ -238,7 +243,7 @@ def call_actual_api(api_name,
     for cur_f in list_of_functions:
         if api_name == cur_f.__name__:
             print("call", api_name)
-            docker_session.flask_run(api_name, epf_realpath, mount_dir, config_dict, *args, **kwargs)
+            docker_session.flask_run(api_name, epf_realpath, config.ds_storage_path, config_dict, *args, **kwargs)
             ret = docker_session.server.q.get(block=True)
             # print(ret)
             return ret
