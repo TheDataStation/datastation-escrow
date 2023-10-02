@@ -29,38 +29,29 @@ def create_user(user_id,
                 key_manager=None,):
     # print(user_id)
     # check if there is an existing user
-    existed_user = database_api.get_user_by_user_name(User(user_name=user_name,))
-    if existed_user.status == 1:
+    user_resp = database_api.get_user_by_user_name(user_name)
+    if user_resp["status"] == 0:
         return {"status": 1, "message": "username already exists"}
 
     # no existing username, create new user
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
-    # If in no_trust mode, we need to record this ADD_USER to wal
+    # no_trust mode: record ADD_USER to wal
     if write_ahead_log is not None:
-        wal_entry = "database_api.create_user(User(id=" + str(user_id) \
-                    + ",user_name='" + user_name \
-                    + "',password='" + hashed.decode() + \
-                    "'))"
-        # If write_ahead_log is not None, key_manager also will not be None
+        wal_entry = f"database_api.create_user({user_id}, {user_name}, {hashed.decode()})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    new_user = User(id=user_id,
-                    user_name=user_name,
-                    password=hashed.decode(),)
-    resp = database_api.create_user(new_user)
-    if resp.status == -1:
-        return {"status": 1, "message": "creating user DB error"}
-
-    return {"status": 0, "message": "success", "user_id": resp.data[0].id}
+    user_resp = database_api.create_user(user_id, user_name, hashed.decode())
+    if user_resp == 1:
+        return user_resp
+    return {"status": user_resp["status"], "message": user_resp["message"], "user_id": user_resp["data"].id}
 
 def login_user(username, password):
     # check if there is an existing user
-    existed_user = database_api.get_user_by_user_name(User(user_name=username,))
-    # If the user doesn't exist, something is wrong
-    if existed_user.status == -1:
-        return {"status": 1, "token": "username is wrong"}
-    user_data = existed_user.data[0]
+    user_resp = database_api.get_user_by_user_name(username)
+    if user_resp["status"] == 1:
+        return user_resp
+    user_data = user_resp["data"]
     if bcrypt.checkpw(password.encode(), user_data.password.encode()):
         # In here the password matches, we store the content for the token in the message
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

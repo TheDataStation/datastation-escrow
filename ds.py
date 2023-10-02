@@ -99,9 +99,9 @@ class DataStation:
             self.recover_db_from_wal()
 
         # Decide which de_id to use at new insertion
-        de_id_resp = database_api.get_data_with_max_id()
-        if de_id_resp.status == 1:
-            self.cur_de_id = de_id_resp.data[0].id + 1
+        de_id_resp = database_api.get_de_with_max_id()
+        if de_id_resp["status"] == 0:
+            self.cur_de_id = de_id_resp["data"].id + 1
         else:
             self.cur_de_id = 1
         # print("Starting DE id should be:")
@@ -109,17 +109,17 @@ class DataStation:
 
         # Decide which user_id to use at new insertion
         user_id_resp = database_api.get_user_with_max_id()
-        if user_id_resp.status == 1:
-            self.cur_user_id = user_id_resp.data[0].id + 1
+        if user_id_resp["status"] == 0:
+            self.cur_user_id = user_id_resp["data"].id + 1
         else:
             self.cur_user_id = 1
 
-        # Decide which share_id to use at new insertion
-        share_id_resp = database_api.get_share_with_max_id()
-        if share_id_resp.status == 1:
-            self.cur_share_id = share_id_resp.data[0].id + 1
+        # Decide which contract_id to use at new insertion
+        contract_id_resp = database_api.get_contract_with_max_id()
+        if contract_id_resp["status"] == 0:
+            self.cur_contract_id = contract_id_resp["data"].id + 1
         else:
-            self.cur_share_id = 1
+            self.cur_contract_id = 1
 
     def create_user(self, username, password, user_sym_key=None, user_public_key=None):
         """
@@ -193,17 +193,17 @@ class DataStation:
 
     def register_de(self,
                     user_id,
-                    data_name,
-                    data_type,
+                    de_name,
+                    de_type,
                     access_param,
                     optimistic):
         """
         Registers a data element in Data Station's database.
 
         Parameters:
-            user_id: the unique id identifying which user owns the dataset
-            data_name: name of the data
-            data_type: what types of data can be uploaded?
+            user_id: the unique id identifying which user owns the de
+            de_name: name of DE
+            de_type: what types of data can be uploaded?
             optimistic: flag to be included in optimistic data discovery
             access_param: additional parameters needed for acccessing the DE
         """
@@ -212,21 +212,21 @@ class DataStation:
         self.cur_de_id += 1
 
         if self.trust_mode == "full_trust":
-            return de_manager.register_data_in_DB(de_id,
-                                                  data_name,
-                                                  user_id,
-                                                  data_type,
-                                                  access_param,
-                                                  optimistic)
+            return de_manager.register_de_in_DB(de_id,
+                                                de_name,
+                                                user_id,
+                                                de_type,
+                                                access_param,
+                                                optimistic)
         else:
-            return de_manager.register_data_in_DB(de_id,
-                                                  data_name,
-                                                  user_id,
-                                                  data_type,
-                                                  access_param,
-                                                  optimistic,
-                                                  self.write_ahead_log,
-                                                  self.key_manager)
+            return de_manager.register_de_in_DB(de_id,
+                                                de_name,
+                                                user_id,
+                                                de_type,
+                                                access_param,
+                                                optimistic,
+                                                self.write_ahead_log,
+                                                self.key_manager)
 
     def upload_de(self,
                   user_id,
@@ -241,52 +241,52 @@ class DataStation:
             data_in_bytes: daat in bytes
         """
         # Check if the DE exists, and whether its owner is the caller
-        verify_owner_response = common_procedure.verify_dataset_owner(de_id, user_id)
+        verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
         if verify_owner_response["status"] == 1:
             return verify_owner_response
 
         # We now get the data_name and data_type from de_id
-        de_res = database_api.get_data_by_id(de_id)
-        if de_res.status == -1:
+        de_res = database_api.get_de_by_id(de_id)
+        if de_res["status"] == 1:
             return de_res
 
         if self.trust_mode == "no_trust":
             data_in_bytes = cu.encrypt_data_with_symmetric_key(data_in_bytes,
                                                                self.key_manager.agents_symmetric_key[user_id])
 
-        storage_manager_response = self.storage_manager.store(de_res.data[0].name,
+        storage_manager_response = self.storage_manager.store(de_res["data"].name,
                                                               de_id,
                                                               data_in_bytes,
-                                                              de_res.data[0].type, )
+                                                              de_res["data"].type, )
         return storage_manager_response
 
-    def remove_dataset(self, username, data_name):
+    def remove_de(self, username, de_name):
         """
-        Removes a dataset from DS
+        Removes a DE from DS's database
 
         Parameters:
-         username: the unique username identifying which user owns the dataset
-         data_name: name of the data
+         username: the unique username identifying which user owns the de
+         de_name: name of the data
 
         Returns:
          Response of data register
         """
 
-        # First we call de_manager to remove the existing dataset from the database
+        # First we call de_manager to remove the existing DE from the database
         if self.trust_mode == "full_trust":
-            de_manager_response = de_manager.remove_data(data_name,
+            de_manager_response = de_manager.remove_data(de_name,
                                                          username, )
         else:
-            de_manager_response = de_manager.remove_data(data_name,
+            de_manager_response = de_manager.remove_data(de_name,
                                                          username,
                                                          self.write_ahead_log,
                                                          self.key_manager, )
         if de_manager_response["status"] != 0:
             return de_manager_response
 
-        # At this step we have removed the record about the dataset from DB
+        # At this step we have removed the record about the de from DB
         # Now we remove its actual content from SM
-        storage_manager_response = self.storage_manager.remove(data_name,
+        storage_manager_response = self.storage_manager.remove(de_name,
                                                                de_manager_response["de_id"],
                                                                de_manager_response["type"], )
 
@@ -332,12 +332,12 @@ class DataStation:
             status: status of suggesting share. 0: success, 1: failure.
         """
         # We first register the share in the DB
-        # Decide which share_id to use from self.cur_share_id
-        share_id = self.cur_share_id
-        self.cur_share_id += 1
+        # Decide which contract_id to use from self.cur_contract_id
+        contract_id = self.cur_contract_id
+        self.cur_contract_id += 1
 
         if self.trust_mode == "full_trust":
-            return share_manager.register_share_in_DB(share_id,
+            return share_manager.register_share_in_DB(contract_id,
                                                       dest_agents,
                                                       data_elements,
                                                       template,
@@ -345,7 +345,7 @@ class DataStation:
                                                       **kwargs, )
         else:
             return share_manager.register_share_in_DB_no_trust(user_id,
-                                                               share_id,
+                                                               contract_id,
                                                                dest_agents,
                                                                data_elements,
                                                                template,
@@ -354,13 +354,13 @@ class DataStation:
                                                                *args,
                                                                **kwargs, )
 
-    def show_share(self, user_id, share_id):
+    def show_share(self, user_id, contract_id):
         """
         Display the content of a share.
 
         Parameters:
             user_id: id of caller
-            share_id: id of the share that the caller wants to see
+            contract_id: id of the share that the caller wants to see
 
         Returns:
         An object with the following fields:
@@ -370,15 +370,15 @@ class DataStation:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return share_manager.show_share(user_id, share_id)
+        return share_manager.show_share(user_id, contract_id)
 
-    def approve_share(self, user_id, share_id):
+    def approve_share(self, user_id, contract_id):
         """
         Update a share's status to ready, for approval agent <username>.
 
         Parameters:
             user_id: caller username
-            share_id: id of the share
+            contract_id: id of the share
 
         Returns:
         A response object with the following fields:
@@ -386,27 +386,27 @@ class DataStation:
         """
         if self.trust_mode == "full_trust":
             return share_manager.approve_share(user_id,
-                                               share_id, )
+                                               contract_id, )
         else:
             return share_manager.approve_share(user_id,
-                                               share_id,
+                                               contract_id,
                                                self.write_ahead_log,
                                                self.key_manager, )
 
-    def execute_share(self, user_id, share_id):
+    def execute_share(self, user_id, contract_id):
         """
         Execute a share.
 
         Parameters:
             user_id: caller id
-            share_id: id of the share
+            contract_id: id of the share
 
         Returns:
             The result of executing the share (f(P))
         """
 
         # fetch arguments
-        share_template, share_param = share_manager.get_share_template_and_param(share_id)
+        share_template, share_param = share_manager.get_share_template_and_param(contract_id)
         args = share_param["args"]
         kwargs = share_param["kwargs"]
 
@@ -415,28 +415,28 @@ class DataStation:
         # Case 1: in development mode, we mimic the behaviour of Gatekeeper
         if self.development_mode:
             # Check destination agent
-            dest_a_ids = share_manager.get_dest_ids_for_share(share_id)
+            dest_a_ids = share_manager.get_dest_ids_for_share(contract_id)
             if user_id not in dest_a_ids:
                 print("Caller not a destination agent")
                 return None
 
             # Check share status
-            share_ready_flag = share_manager.check_share_ready(share_id)
+            share_ready_flag = share_manager.check_share_ready(contract_id)
             if not share_ready_flag:
                 print("This share has not been approved to execute yet.")
                 return None
 
             # Get accessible data elements
-            all_accessible_de_id = share_manager.get_de_ids_for_share(share_id)
+            all_accessible_de_id = share_manager.get_de_ids_for_contract(contract_id)
             # print(f"all accessible data elements are: {all_accessible_de_id}")
 
-            get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_de_id)
-            if get_datasets_by_ids_res.status == -1:
+            get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
+            if get_des_by_ids_res["status"] == 1:
                 print("Something wrong with getting accessible DE for share.")
-                return None
+                return get_des_by_ids_res
 
             accessible_de = set()
-            for cur_data in get_datasets_by_ids_res.data:
+            for cur_data in get_des_by_ids_res["data"]:
                 if self.trust_mode == "no_trust":
                     data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
                 else:
@@ -470,7 +470,7 @@ class DataStation:
             # Case 2: Sending to Gatekeeper
             res = self.gatekeeper.call_api(share_template,
                                            user_id,
-                                           share_id,
+                                           contract_id,
                                            "pessimistic",
                                            *args,
                                            **kwargs)
@@ -490,12 +490,10 @@ class DataStation:
         """
 
         # get caller's UID
-        cur_user = database_api.get_user_by_user_name(User(user_name=username, ))
-        # If the user doesn't exist, something is wrong
-        if cur_user.status == -1:
-            print("database error: cannot find caller")
-            return {"status": 1, "message": "database error: cannot find user"}
-        user_id = cur_user.data[0].id
+        user_resp = database_api.get_user_by_user_name(username)
+        if user_resp["status"] == 1:
+            return user_resp
+        user_id = user_resp["data"].id
 
         # First we check if we are in development mode, if true, call call_api_development
         if self.development_mode:
@@ -616,16 +614,16 @@ class DataStation:
 
         # Step 2: reset self.cur_user_id from DB
         user_id_resp = database_api.get_user_with_max_id()
-        if user_id_resp.status == 1:
-            self.cur_user_id = user_id_resp.data[0].id + 1
+        if user_id_resp["status"] == 0:
+            self.cur_user_id = user_id_resp["data"].id + 1
         else:
             self.cur_user_id = 1
         print("User ID to use after recovering DB is: " + str(self.cur_user_id))
 
         # Step 3: reset self.cur_de_id from DB
-        de_id_resp = database_api.get_data_with_max_id()
-        if de_id_resp.status == 1:
-            self.cur_de_id = de_id_resp.data[0].id + 1
+        de_id_resp = database_api.get_de_with_max_id()
+        if de_id_resp["status"] == 0:
+            self.cur_de_id = de_id_resp["data"].id + 1
         else:
             self.cur_de_id = 1
         print("DE ID to use after recovering DB is: " + str(self.cur_de_id))
