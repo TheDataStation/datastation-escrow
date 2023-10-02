@@ -92,10 +92,16 @@ class DataStation:
         # set up an instance of the write ahead log
         wal_path = self.config.wal_path
         check_point_freq = self.config.check_point_freq
-        self.write_ahead_log = WAL(wal_path, check_point_freq)
+        if self.trust_mode == "no_trust":
+            self.write_ahead_log = WAL(wal_path, check_point_freq)
+        else:
+            self.write_ahead_log = None
 
         # set up an instance of the key manager
-        self.key_manager = KeyManager()
+        if self.trust_mode == "no_trust":
+            self.key_manager = KeyManager()
+        else:
+            self.key_manager = None
 
         # print(self.storage_path)
         self.epf_path = self.config.epf_path
@@ -171,16 +177,11 @@ class DataStation:
             self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         # Part two: Call the user_register to register the user in the DB
-        if self.trust_mode == "full_trust":
-            response = user_register.create_user(user_id,
-                                                 username,
-                                                 password, )
-        else:
-            response = user_register.create_user(user_id,
-                                                 username,
-                                                 password,
-                                                 self.write_ahead_log,
-                                                 self.key_manager, )
+        response = user_register.create_user(user_id,
+                                             username,
+                                             password,
+                                             self.write_ahead_log,
+                                             self.key_manager, )
 
         if response["status"] == 1:
             return response
@@ -189,19 +190,6 @@ class DataStation:
         self.storage_manager.create_staging_for_user(user_id)
 
         return response
-
-    def get_all_apis(self):
-        """
-        Gets all APIs from the policy broker
-
-        Parameters:
-         Nothing
-
-        Returns:
-         all apis
-        """
-        # Call policy_broker directly
-        return policy_broker.get_all_apis()
 
     def get_all_api_dependencies(self):
         """
@@ -237,22 +225,14 @@ class DataStation:
         de_id = self.cur_de_id
         self.cur_de_id += 1
 
-        if self.trust_mode == "full_trust":
-            return de_manager.register_de_in_DB(de_id,
-                                                de_name,
-                                                user_id,
-                                                de_type,
-                                                access_param,
-                                                optimistic)
-        else:
-            return de_manager.register_de_in_DB(de_id,
-                                                de_name,
-                                                user_id,
-                                                de_type,
-                                                access_param,
-                                                optimistic,
-                                                self.write_ahead_log,
-                                                self.key_manager)
+        return de_manager.register_de_in_DB(de_id,
+                                            de_name,
+                                            user_id,
+                                            de_type,
+                                            access_param,
+                                            optimistic,
+                                            self.write_ahead_log,
+                                            self.key_manager)
 
     def upload_de(self,
                   user_id,
@@ -299,14 +279,10 @@ class DataStation:
         """
 
         # First we call de_manager to remove the existing DE from the database
-        if self.trust_mode == "full_trust":
-            de_manager_response = de_manager.remove_data(de_name,
-                                                         username, )
-        else:
-            de_manager_response = de_manager.remove_data(de_name,
-                                                         username,
-                                                         self.write_ahead_log,
-                                                         self.key_manager, )
+        de_manager_response = de_manager.remove_de(de_name,
+                                                   username,
+                                                   self.write_ahead_log,
+                                                   self.key_manager, )
         if de_manager_response["status"] != 0:
             return de_manager_response
 
@@ -343,7 +319,7 @@ class DataStation:
                          *args,
                          **kwargs):
         """
-        Propose a share. This leads to the creation of a share.
+        Propose a contract. This leads to the creation of a contract.
 
         Parameters:
             user_id: the unique id identifying which user is calling the api
@@ -355,30 +331,22 @@ class DataStation:
 
         Returns:
         A response object with the following fields:
-            status: status of suggesting share. 0: success, 1: failure.
+            status: status of proposing a contract. 0: success, 1: failure.
         """
-        # We first register the share in the DB
+        # We first register the contract in the DB
         # Decide which contract_id to use from self.cur_contract_id
         contract_id = self.cur_contract_id
         self.cur_contract_id += 1
 
-        if self.trust_mode == "full_trust":
-            return contract_manager.register_contract_in_DB(contract_id,
-                                                            dest_agents,
-                                                            data_elements,
-                                                            function,
-                                                            *args,
-                                                            **kwargs, )
-        else:
-            return contract_manager.register_contract_in_DB_no_trust(user_id,
-                                                                     contract_id,
-                                                                     dest_agents,
-                                                                     data_elements,
-                                                                     function,
-                                                                     self.write_ahead_log,
-                                                                     self.key_manager,
-                                                                     *args,
-                                                                     **kwargs, )
+        return contract_manager.register_contract_in_DB(user_id,
+                                                        contract_id,
+                                                        dest_agents,
+                                                        data_elements,
+                                                        function,
+                                                        self.write_ahead_log,
+                                                        self.key_manager,
+                                                        *args,
+                                                        **kwargs, )
 
     def show_contract(self, user_id, contract_id):
         """
@@ -386,7 +354,7 @@ class DataStation:
 
         Parameters:
             user_id: id of caller
-            contract_id: id of the share that the caller wants to see
+            contract_id: id of the contract that the caller wants to see
 
         Returns:
         An object with the following fields:
@@ -400,24 +368,20 @@ class DataStation:
 
     def approve_contract(self, user_id, contract_id):
         """
-        Update a share's status to ready, for approval agent <username>.
+        Update a contract's status to ready, for approval agent <username>.
 
         Parameters:
             user_id: caller username
-            contract_id: id of the share
+            contract_id: id of the contract
 
         Returns:
         A response object with the following fields:
-            status: status of approving share. 0: success, 1: failure.
+            status: status of approving contract. 0: success, 1: failure.
         """
-        if self.trust_mode == "full_trust":
-            return contract_manager.approve_contract(user_id,
-                                                     contract_id, )
-        else:
-            return contract_manager.approve_contract(user_id,
-                                                     contract_id,
-                                                     self.write_ahead_log,
-                                                     self.key_manager, )
+        return contract_manager.approve_contract(user_id,
+                                                 contract_id,
+                                                 self.write_ahead_log,
+                                                 self.key_manager, )
 
     def execute_contract(self, user_id, contract_id):
         """
@@ -458,7 +422,7 @@ class DataStation:
 
             get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
             if get_des_by_ids_res["status"] == 1:
-                print("Something wrong with getting accessible DE for share.")
+                print("Something wrong with getting accessible DE for contract.")
                 return get_des_by_ids_res
 
             accessible_de = set()

@@ -28,8 +28,8 @@ def approve_contract(user_id, contract_id):
     return EscrowAPI.approve_contract(user_id, contract_id)
 
 @api_endpoint
-def execute_contract(user_id, share_id):
-    return EscrowAPI.execute_contract(user_id, share_id)
+def execute_contract(user_id, contract_id):
+    return EscrowAPI.execute_contract(user_id, contract_id)
 
 def get_data(de):
     if de.type == "file":

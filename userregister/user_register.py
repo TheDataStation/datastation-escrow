@@ -24,8 +24,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 def create_user(user_id,
                 user_name,
                 password,
-                write_ahead_log=None,
-                key_manager=None,):
+                write_ahead_log,
+                key_manager, ):
     # print(user_id)
     # check if there is an existing user
     user_resp = database_api.get_user_by_user_name(user_name)
@@ -36,7 +36,7 @@ def create_user(user_id,
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
     # no_trust mode: record ADD_USER to wal
-    if write_ahead_log is not None:
+    if write_ahead_log:
         wal_entry = f"database_api.create_user({user_id}, {user_name}, {hashed.decode()})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 

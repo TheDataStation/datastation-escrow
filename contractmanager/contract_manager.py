@@ -3,28 +3,41 @@ import json
 from dbservice import database_api
 
 
-def register_contract_in_DB(contract_id,
+def register_contract_in_DB(user_id,
+                            contract_id,
                             dest_agents,
                             data_elements,
-                            function,
+                            template,
+                            write_ahead_log,
+                            key_manager,
                             *args,
-                            **kwargs
+                            **kwargs,
                             ):
-    # First add to the Contract table
     param_json = {"args": args, "kwargs": kwargs}
     param_str = json.dumps(param_json)
 
-    db_res = database_api.create_contract(contract_id, function, param_str)
+    # First add to the Contract table
+    if write_ahead_log:
+        wal_entry = f"database_api.create_contract({contract_id}, {template}, {param_str})"
+        write_ahead_log.log(user_id, wal_entry, key_manager, )
+
+    db_res = database_api.create_contract(contract_id, template, param_str)
     if db_res["status"] == 1:
         return db_res
 
     # Then add to ContractDest table and ContractDE table
     for a_id in dest_agents:
+        if write_ahead_log:
+            wal_entry = f"database_api.create_contract_dest({contract_id}, {a_id})"
+            write_ahead_log.log(user_id, wal_entry, key_manager, )
         db_res = database_api.create_contract_dest(contract_id, a_id)
         if db_res["status"] == 1:
             return db_res
 
     for de_id in data_elements:
+        if write_ahead_log:
+            wal_entry = f"database_api.create_contract_de({contract_id}, {de_id})"
+            write_ahead_log.log(user_id, wal_entry, key_manager, )
         db_res = database_api.create_contract_de(contract_id, de_id)
         if db_res["status"] == 1:
             return db_res
@@ -33,62 +46,13 @@ def register_contract_in_DB(contract_id,
     approval_agent_set = set()
     for de_id in data_elements:
         owner_id_res = database_api.get_de_owner_id(de_id)
-        if owner_id_res["status"] == 0:
-            approval_agent_set.add(owner_id_res["data"])
-        else:
+        if owner_id_res["status"] == 1:
             return owner_id_res
+        approval_agent_set.add(owner_id_res["data"])
     for a_id in approval_agent_set:
-        db_res = database_api.create_contract_status(contract_id, a_id, 0)
-        if db_res["status"] == 1:
-            return db_res
-
-    return {"status": 0, "message": "success", "contract_id": contract_id}
-
-
-def register_contract_in_DB_no_trust(user_id,
-                                     contract_id,
-                                     dest_agents,
-                                     data_elements,
-                                     template,
-                                     write_ahead_log,
-                                     key_manager,
-                                     *args,
-                                     **kwargs,
-                                     ):
-    param_json = {"args": args, "kwargs": kwargs}
-    param_str = json.dumps(param_json)
-
-    # First add to the Contract table
-    wal_entry = f"database_api.create_contract({contract_id}, {template}, {param_str})"
-    write_ahead_log.log(user_id, wal_entry, key_manager, )
-
-    db_res = database_api.create_contract(contract_id, template, param_str)
-    if db_res["status"] == 1:
-        return db_res
-
-    # Then add to ContractDest table and ContractDE table
-    for a_id in dest_agents:
-        wal_entry = f"database_api.create_contract_dest({contract_id}, {a_id})"
-        write_ahead_log.log(user_id, wal_entry, key_manager, )
-        db_res = database_api.create_contract_dest(contract_id, a_id)
-        if db_res["status"] == 1:
-            return db_res
-
-    for de_id in data_elements:
-        wal_entry = f"database_api.create_contract_de({contract_id}, {de_id})"
-        write_ahead_log.log(user_id, wal_entry, key_manager, )
-        db_res = database_api.create_contract_de(contract_id, de_id)
-        if db_res["status"] == 1:
-            return db_res
-
-    # Then add to ContractStatus table. First get the approval agents, default to DE owners.
-    approval_agent_set = set()
-    for de_id in data_elements:
-        owner_id = database_api.get_de_owner_id(de_id)
-        approval_agent_set.add(owner_id)
-    for a_id in approval_agent_set:
-        wal_entry = f"database_api.create_contract_status({contract_id}, {a_id}, 0)"
-        write_ahead_log.log(user_id, wal_entry, key_manager, )
+        if write_ahead_log:
+            wal_entry = f"database_api.create_contract_status({contract_id}, {a_id}, 0)"
+            write_ahead_log.log(user_id, wal_entry, key_manager, )
         db_res = database_api.create_contract_status(contract_id, a_id, 0)
         if db_res["status"] == 1:
             return db_res
@@ -124,8 +88,8 @@ def show_contract(user_id, contract_id):
 
 def approve_contract(user_id,
                      contract_id,
-                     write_ahead_log=None,
-                     key_manager=None,
+                     write_ahead_log,
+                     key_manager,
                      ):
     approval_agents = database_api.get_approval_for_contract(contract_id)
     approval_agents_list = list(map(lambda ele: ele[0], approval_agents))

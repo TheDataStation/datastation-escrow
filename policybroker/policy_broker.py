@@ -8,14 +8,6 @@ def get_all_ancestors(api, d_graph, cur_ancestors):
         for parent_api in d_graph[api]:
             get_all_ancestors(parent_api, d_graph, cur_ancestors)
 
-# get all policies from DB
-
-def get_all_apis():
-    # get list of APIs from DB
-    api_res = database_api.get_all_apis()
-    list_of_apis = list(api_res.data)
-    return list_of_apis
-
 
 def get_all_dependencies():
     list_of_dependencies = []
