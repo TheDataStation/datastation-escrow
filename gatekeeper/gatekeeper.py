@@ -1,7 +1,6 @@
 import os
 
-from dsapplicationregistration.dsar_core import (get_api_endpoint_names,
-                                                 get_functions_names,
+from dsapplicationregistration.dsar_core import (get_functions_names,
                                                  get_registered_functions, )
 from dbservice import database_api
 from contractmanager import contract_manager
@@ -21,7 +20,7 @@ class Gatekeeper:
                  key_manager: KeyManager,
                  trust_mode: str,
                  epf_path,
-                 config:DSConfig,
+                 config: DSConfig,
                  development_mode,
                  ):
         """
@@ -138,35 +137,35 @@ class Gatekeeper:
         ret = call_actual_api(api,
                               self.epf_path,
                               self.config,
-                            #   self.mount_dir,
                               self.key_manager.agents_symmetric_key,
                               accessible_de,
                               self.get_new_docker_id(),
                               self.docker_session,
                               *args,
+                              **kwargs,
                               )
 
         api_result = ret["return_info"][0]
         data_path_accessed = ret["return_info"][1]
         decryption_time = ret["return_info"][2]
 
-        data_ids_accessed = []
+        de_ids_accessed = []
         for path in data_path_accessed:
             print(path)
-            data_ids_accessed.append(int(path.split("/")[-2]))
+            de_ids_accessed.append(int(path.split("/")[-2]))
         # print("API result is", api_result)
 
-        print("data accessed is", data_ids_accessed)
+        print("DE accessed is", de_ids_accessed)
         # print("accessible data by policy is", accessible_data_policy)
-        print("all accessible data is", all_accessible_de_id)
+        print("all accessible DE is", all_accessible_de_id)
         # print("Decryption time is", decryption_time)
 
-        if set(data_ids_accessed).issubset(set(all_accessible_de_id)):
+        if set(de_ids_accessed).issubset(set(all_accessible_de_id)):
             # print("All data access allowed by policy.")
             # log operation: logging intent_policy match
             self.data_station_log.log_intent_policy_match(cur_user_id,
                                                           api,
-                                                          data_ids_accessed,
+                                                          de_ids_accessed,
                                                           self.key_manager, )
             # In this case, we can return the result to caller.
             response = {"status": 0,
@@ -187,7 +186,7 @@ class Gatekeeper:
             # log operation: logging intent_policy mismatch
             self.data_station_log.log_intent_policy_mismatch(cur_user_id,
                                                              api,
-                                                             data_ids_accessed,
+                                                             de_ids_accessed,
                                                              set(all_accessible_de_id),
                                                              self.key_manager, )
             response = {"status": 1,
@@ -201,8 +200,7 @@ class Gatekeeper:
 
 def call_actual_api(api_name,
                     epf_path,
-                    config:DSConfig,
-                    # mount_dir,
+                    config: DSConfig,
                     agents_symmetric_key,
                     accessible_de,
                     docker_id,
@@ -216,7 +214,7 @@ def call_actual_api(api_name,
     Parameters:
      api_name: name of API to run on Docker container
      epf_path: path to the epf file
-     mount_dir: directory of filesystem mount for Interceptor
+     config: DS config
      agents_symmetric_key: key manager storing all the sym keys
      accessible_de: a set of accessible DataElement
      docker_id: id assigned to docker container
