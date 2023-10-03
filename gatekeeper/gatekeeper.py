@@ -75,7 +75,7 @@ class Gatekeeper:
     # We add times to the following function to record the overheads
 
     def call_api(self,
-                 api,
+                 function,
                  cur_user_id,
                  contract_id,
                  *args,
@@ -86,7 +86,7 @@ class Gatekeeper:
           - data accessed by API is allowed
 
         Parameters:
-         api: api to call
+         function: api to call
          cur_user_id: the user id to decide what data is exposed
          contract_id: id of contract from which the api is called,
 
@@ -113,13 +113,12 @@ class Gatekeeper:
         # print(f"all accessible data elements are: {all_accessible_de_id}")
 
         get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
-        if get_des_by_ids_res.status == -1:
-            err_msg = "No accessible data for " + api
-            print(err_msg)
-            return {"status": 1, "message": err_msg}
+        if get_des_by_ids_res["status"] == 1:
+            print("No accessible DE for", function)
+            return get_des_by_ids_res
 
         accessible_de = set()
-        for cur_de in get_des_by_ids_res.data:
+        for cur_de in get_des_by_ids_res["data"]:
             if self.trust_mode == "no_trust":
                 data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
             else:
@@ -134,10 +133,14 @@ class Gatekeeper:
         # print(accessible_de)
 
         # actual api call
-        ret = call_actual_api(api,
+        if self.trust_mode == "full_trust":
+            agents_symmetric_key = None
+        else:
+            agents_symmetric_key = self.key_manager.agents_symmetric_key
+        ret = call_actual_api(function,
                               self.epf_path,
                               self.config,
-                              self.key_manager.agents_symmetric_key,
+                              agents_symmetric_key,
                               accessible_de,
                               self.get_new_docker_id(),
                               self.docker_session,
@@ -164,7 +167,7 @@ class Gatekeeper:
             # print("All data access allowed by policy.")
             # log operation: logging intent_policy match
             self.data_station_log.log_intent_policy_match(cur_user_id,
-                                                          api,
+                                                          function,
                                                           de_ids_accessed,
                                                           self.key_manager, )
             # In this case, we can return the result to caller.
@@ -185,7 +188,7 @@ class Gatekeeper:
         else:
             # log operation: logging intent_policy mismatch
             self.data_station_log.log_intent_policy_mismatch(cur_user_id,
-                                                             api,
+                                                             function,
                                                              de_ids_accessed,
                                                              set(all_accessible_de_id),
                                                              self.key_manager, )

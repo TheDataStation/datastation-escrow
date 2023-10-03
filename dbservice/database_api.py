@@ -112,7 +112,7 @@ def get_des_by_ids(request):
         if len(des) > 0:
             return {"status": 0, "message": "success", "data": des}
         else:
-            return {"status": 1, "message": "database error: no DE found for give IDs"}
+            return {"status": 1, "message": "database error: no DE found for give DE IDs"}
 
 def remove_de_by_name(de_name):
     with get_db() as session:

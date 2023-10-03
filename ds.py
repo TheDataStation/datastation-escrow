@@ -401,17 +401,17 @@ class DataStation:
 
             for cur_fn in list_of_function:
                 if function == cur_fn.__name__:
-                    print("Calling a template function in development", function)
+                    print("Calling a function in development:", function)
                     print(args)
                     print(kwargs)
                     res = cur_fn(*args, **kwargs)
                     return res
         else:
             # Case 2: Sending to Gatekeeper
+            print("Calling a function in docker:", function)
             res = self.gatekeeper.call_api(function,
                                            user_id,
                                            contract_id,
-                                           "pessimistic",
                                            *args,
                                            **kwargs)
             return res

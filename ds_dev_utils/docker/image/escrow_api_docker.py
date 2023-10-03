@@ -26,8 +26,9 @@ class EscrowAPIDocker:
         first pickle the content to bytes, then encrypt it using the user_id's sym key
         then write to file
         """
-        pk_bytes = pickle.dumps(content)
-        user_sym_key = self.agents_symmetric_key[user_id]
-        enc_bytes = cryptoutils.encrypt_data_with_symmetric_key(pk_bytes, user_sym_key)
+        bytes_to_write = pickle.dumps(content)
+        if self.agents_symmetric_key:
+            user_sym_key = self.agents_symmetric_key[user_id]
+            bytes_to_write = cryptoutils.encrypt_data_with_symmetric_key(bytes_to_write, user_sym_key)
         with open(f"/mnt/data_mount/Staging_storage/{user_id}/{file_name}", 'wb+') as f:
-            f.write(enc_bytes)
+            f.write(bytes_to_write)

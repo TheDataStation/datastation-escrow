@@ -244,7 +244,9 @@ class Xmp(Fuse):
                         if self.file_path in accessible_data_key_dict.keys():
                             # print("Getting the current key...")
                             self.symmetric_key = accessible_data_key_dict[self.file_path]
-                            # print("Key is", self.symmetric_key)
+                            print("Key is", self.symmetric_key)
+                            exit()
+                            # TODO: continue from here: fix this bug
 
                             # Decrypt the entire file here and use it as a cache.
                             # since multiple read/writes can happen to the file,
