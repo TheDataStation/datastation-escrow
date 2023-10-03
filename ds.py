@@ -7,7 +7,6 @@ import pickle
 
 from common import common_procedure
 from storagemanager.storage_manager import StorageManager
-from policybroker import policy_broker
 from demanager import de_manager
 from contractmanager import contract_manager
 from verifiability.log import Log
@@ -155,20 +154,6 @@ class DataStation:
         self.storage_manager.create_staging_for_user(user_id)
 
         return response
-
-    def get_all_api_dependencies(self):
-        """
-        Gets all API dependencies from the policy broker
-
-        Parameters:
-         Nothing
-
-        Returns:
-         all dependencies
-        """
-
-        # Call policy_broker directly
-        return policy_broker.get_all_dependencies()
 
     def register_de(self,
                     user_id,
