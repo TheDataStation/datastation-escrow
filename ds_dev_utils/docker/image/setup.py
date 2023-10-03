@@ -28,8 +28,8 @@ def main():
 
     print(config_dict)
 
-    # curr_os = config_dict["operating_system"]
-    curr_os = "mac"
+    curr_os = config_dict["operating_system"]
+    # curr_os = "mac"
 
     if curr_os == "mac":
         addr = "http://host.docker.internal"

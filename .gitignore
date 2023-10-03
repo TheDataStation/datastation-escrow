@@ -38,6 +38,7 @@ demofile.txt
 ds_dev_utils/args.pkl
 integration_new/test_files
 tpch_data/*
+baseline_sql_script.py
 
 # C extensions
 *.so
