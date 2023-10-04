@@ -209,9 +209,6 @@ class Xmp(Fuse):
                 else:
                     self.iolock = Lock()
 
-                # zz: recording data accessed here
-                # TODO: in zero trust mode, should we record all access, including those illegal access with
-                #      the wrong key?
                 fuse_context = Fuse.GetContext(Xmp_self)
                 pid = fuse_context["pid"]
                 # print("Interceptor: PID is", pid)
@@ -234,23 +231,12 @@ class Xmp(Fuse):
                 # check if the file access is from the running api inside data station
                 if pid in accessible_data_dict_global.keys():
 
-                    # get the accessible_data_key_dict, if the dict is not None,
-                    #  then we know it's running in no trust mode.
                     accessible_data_key_dict = accessible_data_dict_global[pid][1]
 
-                    if accessible_data_key_dict is not None:
-
-                        # get the symmetric key of the current file if it's accessible by the current user accessing
-                        if self.file_path in accessible_data_key_dict.keys():
-                            # print("Getting the current key...")
-                            self.symmetric_key = accessible_data_key_dict[self.file_path]
-                            print("Key is", self.symmetric_key)
-                            exit()
-                            # TODO: continue from here: fix this bug
-
-                            # Decrypt the entire file here and use it as a cache.
-                            # since multiple read/writes can happen to the file,
-                            # we don't want decrypt it for every access
+                    if self.file_path in accessible_data_key_dict.keys():
+                        self.symmetric_key = accessible_data_key_dict[self.file_path]
+                        # Get the user symmetric key. If not None, then the current mode is no_trust
+                        if self.symmetric_key:
                             if self.iolock:
                                 self.iolock.acquire()
                                 try:
@@ -301,7 +287,7 @@ class Xmp(Fuse):
                 if self.iolock:
                     self.iolock.acquire()
                     try:
-                        if self.symmetric_key is not None:
+                        if self.symmetric_key:
                             # print(self.symmetric_key)
                             # encrypted_bytes = self.file.read()
                             # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
@@ -325,7 +311,7 @@ class Xmp(Fuse):
                     finally:
                         self.iolock.release()
                 else:
-                    if self.symmetric_key is not None:
+                    if self.symmetric_key:
                         # print(self.symmetric_key)
                         # encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
                         # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
@@ -550,7 +536,10 @@ class Xmp(Fuse):
 
 
 def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict, decryption_time_dict):
-    # engine.dispose()
+    """
+    Parameters:
+        accessible_data_dict: e.g. {1: ({'/mnt/data/4/f3.csv'}, {'/mnt/data/4/f3.csv': None})}
+    """
 
     global args
     # run in foreground
