@@ -86,7 +86,7 @@ class EscrowAPI:
         Parameters:
             user_id: caller id (owner of the data element)
             data_id: id of this existing DE
-            data_in_bytes: data in bytes
+            data_in_bytes: plaintext data in bytes
 
         Returns:
         A response object with the following fields:

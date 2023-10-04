@@ -43,5 +43,6 @@ def print_first_row(de_id):
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         first_row = next(reader)
+        print(first_row)
     EscrowAPI.write_staged("temp", 1, first_row)
     return first_row

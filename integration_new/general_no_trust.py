@@ -57,12 +57,11 @@ if __name__ == '__main__':
         plaintext_bytes = f.read()
         f.close()
         cur_user_sym_key = ds.key_manager.agents_symmetric_key[1]
-        ciphertext_bytes = cu.get_symmetric_key_from_bytes(cur_user_sym_key).encrypt(plaintext_bytes)
         u_id = i // 3
         register_res = ds.call_api(f"user{u_id}", "register_de",
                                    f"f{i}.csv", "file", f"f{i}.csv", True, )
         ds.call_api(f"user{u_id}", "upload_de",
-                    register_res["de_id"], ciphertext_bytes, )
+                    register_res["de_id"], plaintext_bytes, )
 
     res = ds.call_api("user0", "list_discoverable_des")
     print(f"Result of listing discoverable data elements is {res}")
@@ -70,18 +69,19 @@ if __name__ == '__main__':
     # Step 3: Agent suggesting shares
     agents = [1]
     data_elements = [4]
-    ds.call_api("user0", "suggest_share", agents, data_elements, "print_first_row", 4)
+    ds.call_api("user0", "propose_contract", agents, data_elements, "print_first_row", 4)
 
     # Approval agent calls show_share() to see content of the share
-    share_obj = ds.call_api("user1", "show_share", 1)
+    share_obj = ds.call_api("user1", "show_contract", 1)
     print(share_obj)
 
     # Step 4: Agents approving the share.
-    ds.call_api(f"user1", "approve_share", 1)
+    ds.call_api(f"user1", "approve_contract", 1)
 
     # Step 5: user calls execute share
-    print_first_row_res = ds.call_api("user0", "execute_share", 1)
-    print("Result of printing first row is:", print_first_row_res)
+    print_first_row_res = ds.call_api("user0", "execute_contract", 1)
+    if print_first_row_res["status"] == 0:
+        print("Result of printing first row is:", print_first_row_res["result"])
 
     # Last step: shut down the Data Station
     ds.shut_down()
