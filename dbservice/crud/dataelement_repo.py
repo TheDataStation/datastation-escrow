@@ -56,6 +56,7 @@ def remove_de_by_name(db: Session, de_name):
 
 
 def create_de(db: Session, de_id, de_name, user_id, de_type, access_param, optimistic):
+    # TODO: bug here from fastapi: type mismatch
     db_de = DataElement(id=de_id,
                         owner_id=user_id,
                         name=de_name,

@@ -22,12 +22,12 @@ def register_de_in_DB(de_id,
         wal_entry = f"database_api.create_de({de_id}, {de_name}, {user_id}, {de_type}, {access_param}, {optimistic})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    de_resp = database_api.create_de(de_id,
-                                     de_name,
-                                     user_id,
-                                     de_type,
-                                     access_param,
-                                     optimistic)
+    de_resp = database_api.create_de(int(de_id),
+                                     str(de_name),
+                                     int(user_id),
+                                     str(de_type),
+                                     str(access_param),
+                                     bool(optimistic), )
     if de_resp["status"] == 1:
         return de_resp
 
