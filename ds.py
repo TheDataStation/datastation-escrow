@@ -440,8 +440,7 @@ class DataStation:
             res = self.call_api_development(user_id, api, *args, **kwargs)
             return res
 
-        # Now we need to check if the current API called is an api_endpoint (non-jail) or a function (jail)
-        # If it's non-jail, it does not need to go through the gatekeeper
+        # Calling the actual API endpoint
         list_of_api_endpoint = get_registered_api_endpoint()
         for cur_api in list_of_api_endpoint:
             if api == cur_api.__name__:
@@ -449,6 +448,9 @@ class DataStation:
                 # print(args)
                 res = cur_api(user_id, *args, **kwargs)
                 return res
+
+        print("Called api_endpoint not found:", api)
+        return None
 
     def write_staged(self, file_name, user_id, content):
         """
