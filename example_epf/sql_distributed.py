@@ -3,27 +3,39 @@ from escrowapi.escrow_api import EscrowAPI
 import duckdb
 
 @api_endpoint
-def register_data(username,
-                  data_name,
-                  data_type,
-                  access_param,
-                  optimistic):
+def register_de(username,
+                data_name,
+                data_type,
+                access_param,
+                optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_data(username, data_name, data_type, access_param, optimistic)
+    return EscrowAPI.register_de(username, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
-def upload_data(username,
-                data_id,
-                data_in_bytes):
-    return EscrowAPI.upload_data(username, data_id, data_in_bytes)
+def upload_de(username,
+              data_id,
+              data_in_bytes):
+    return EscrowAPI.upload_de(username, data_id, data_in_bytes)
 
 @api_endpoint
-def suggest_share(username, agents, functions, data_elements):
-    return EscrowAPI.suggest_share(username, agents, functions, data_elements)
+def list_discoverable_des(username,):
+    return EscrowAPI.list_discoverable_des(username)
 
 @api_endpoint
-def ack_data_in_share(username, data_id, share_id):
-    return EscrowAPI.ack_data_in_share(username, data_id, share_id)
+def suggest_share(username, dest_agents, data_elements, template, *args, **kwargs):
+    return EscrowAPI.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
+
+@api_endpoint
+def show_share(username, share_id):
+    return EscrowAPI.show_share(username, share_id)
+
+@api_endpoint
+def approve_share(username, share_id):
+    return EscrowAPI.approve_share(username, share_id)
+
+@api_endpoint
+def execute_share(username, share_id):
+    return EscrowAPI.execute_share(username, share_id)
 
 def get_data(de):
     if de.type == "file":
@@ -31,27 +43,136 @@ def get_data(de):
 
 def assemble_table(conn, table_name):
     accessible_de = EscrowAPI.get_all_accessible_des()
-    first_partition_flag = True
+    new_table_flag = True
     for de in accessible_de:
         if de.name == f"{table_name}.csv":
             table_path = get_data(de)
-            if first_partition_flag:
-                query = f"CREATE TABLE {table_name} AS SELECT * FROM {table_path}"
+            if new_table_flag:
+                query = f"CREATE TABLE {table_name} AS SELECT * FROM read_csv({table_path}, " \
+                        f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
-                first_partition_flag = False
+                new_table_flag = False
             else:
-                query = f"INSERT INTO {table_name} SELECT * FROM {table_path}"
+                query = f"INSERT INTO {table_name} SELECT * FROM read_csv({table_path}, " \
+                        f"ignore_errors=1, auto_detect=1)"
+                conn.execute(query)
+
+def assemble_orders(conn):
+    accessible_de = EscrowAPI.get_all_accessible_des()
+    first_table_flag = True
+    for de in accessible_de:
+        if de.name == f"orders.csv":
+            table_path = get_data(de)
+            if first_table_flag:
+                print("Creating o1")
+                print(table_path)
+                query = f"CREATE TABLE o1 AS SELECT * FROM read_csv({table_path}, " \
+                        f"ignore_errors=1, auto_detect=1)"
+                conn.execute(query)
+                first_table_flag = False
+            else:
+                print("Creating o2")
+                print(table_path)
+                query = f"CREATE TABLE o2 AS SELECT * FROM read_csv({table_path}, " \
+                        f"ignore_errors=1, auto_detect=1)"
                 conn.execute(query)
 
 @api_endpoint
 @function
-def select_star(table_name):
-    """run select * from a table"""
+def select_star(table_name, message):
+    """run select * from a table, and print a message"""
+    print(message)
     # Note: creating conn here, because we need to the same in-memory database
     conn = duckdb.connect()
     assemble_table(conn, table_name)
     query = f"SELECT * FROM {table_name}"
     res = conn.execute(query).fetchall()
+    return res
+
+def assemble_table_in_duckdb(conn, accessible_de, joint_table_name):
+    new_table_flag = True
+    for de in accessible_de:
+        table_path = get_data(de)
+        if new_table_flag:
+            query = f"CREATE TABLE {joint_table_name} AS SELECT * FROM read_csv({table_path}"
+            new_table_flag = False
+        else:
+            query = f"INSERT INTO {joint_table_name} SELECT * FROM read_csv({table_path}"
+        conn.execute(query)
+
+@api_endpoint
+@function
+def run_actual_query(query, joint_table_name):
+    conn = duckdb.connect()
+    accessible_de = EscrowAPI.get_all_accessible_des()
+    assemble_table_in_duckdb(conn, accessible_de, joint_table_name)
+    query_result = conn.execute(query).fetchall()
+    return query_result
+
+
+@api_endpoint
+@function
+def conclave_1():
+    # can change this to count(*) to count(*), l_quantity
+    """SELECT COUNT(*) AS by_quantity FROM lineitem GROUPBY l_quantity ORDER BY l_quantity"""
+    # Note: creating conn here, because we need to the same in-memory database
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    query = f"SELECT COUNT(*) AS by_quantity FROM lineitem GROUP BY l_quantity ORDER BY l_quantity"
+    res = conn.execute(query).fetchall()
+
+    return res
+
+@api_endpoint
+@function
+def conclave_2():
+    """SELECT (l_extendedprice * l_discount) AS revenue FROM lineitem WHERE l_quantity == 24"""
+    # Note: creating conn here, because we need to the same in-memory database
+    conn = duckdb.connect()
+    assemble_table(conn, "lineitem")
+    query = f"SELECT (l_extendedprice * l_discount) AS revenue FROM lineitem WHERE l_quantity == 24"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def conclave_3():
+    """SELECT COUNT(*) FROM orders o1 JOIN orders o2 ON o1.o_custkey = o2.o_custkey"""
+    # Note: creating conn here, because we need to the same in-memory database
+    conn = duckdb.connect()
+    assemble_orders(conn)
+    query = f"SELECT COUNT(*) FROM o1 JOIN o2 ON o1.o_custkey = o2.o_custkey"
+    res = conn.execute(query).fetchall()
+    return res
+
+@api_endpoint
+@function
+def secyan_1():
+    res = tpch_3()
+    return res
+
+@api_endpoint
+@function
+def secyan_2():
+    res = tpch_10()
+    return res
+
+@api_endpoint
+@function
+def secyan_3():
+    res = tpch_18()
+    return res
+
+@api_endpoint
+@function
+def secyan_4():
+    res = tpch_8()
+    return res
+
+@api_endpoint
+@function
+def secyan_5():
+    res = tpch_9()
     return res
 
 @api_endpoint

@@ -9,7 +9,7 @@ class EscrowAPI:
     @classmethod
     def get_all_accessible_des(cls):
         """
-        to be run WITHIN a function.
+        For use by template functions.
         Returns all accessible data elements.
 
         Returns:
@@ -20,7 +20,7 @@ class EscrowAPI:
     @classmethod
     def get_de_by_id(cls, de_id):
         """
-        to be run WITHIN a function.
+        For use by template functions.
         Returns a data element, specified by de_id
 
         Parameters:
@@ -32,19 +32,35 @@ class EscrowAPI:
         return cls.__comp.get_de_by_id(de_id)
 
     @classmethod
-    def register_data(cls,
-                      username,
-                      data_name,
-                      data_type,
-                      access_param,
-                      optimistic,
-                      ):
+    def write_staged(cls, file_name, user_id, content):
         """
-        to be run OUTSIDE a function.
+        Used by functions.
+        Writes "content" to a file for user_id.
+        """
+        return cls.__comp.write_staged(file_name, user_id, content)
+
+    @classmethod
+    def release_staged(cls, user_id):
+        """
+        Used by API endpoints.
+        For a user, releases all files in the user's staging storage.
+        """
+        return cls.__comp.release_staged(user_id)
+
+    @classmethod
+    def register_de(cls,
+                    user_id,
+                    data_name,
+                    data_type,
+                    access_param,
+                    optimistic,
+                    ):
+        """
+        API Endpoint.
         Registers a data element in Data Station's database.
 
         Parameters:
-            username: the unique username identifying which user owns the dataset
+            user_id: caller id (owner of the data element)
             data_name: name of the data
             data_type: type of DE. e.g: file.
             access_param: additional parameters needed for acccessing the DE
@@ -55,79 +71,116 @@ class EscrowAPI:
             status: status of registering DE. 0: success, 1: failure.
             data_id: if success, a data_id is returned for this registered DE.
         """
-        return cls.__comp.register_data(username, data_name, data_type, access_param, optimistic)
+        return cls.__comp.register_de(user_id, data_name, data_type, access_param, optimistic)
 
     @classmethod
-    def upload_data(cls,
-                    username,
-                    data_id,
-                    data_in_bytes):
+    def upload_de(cls,
+                  user_id,
+                  data_id,
+                  data_in_bytes):
         """
-        to be run OUTSIDE a function.
-        Upload data in bytes corresponding to a registered DE. These bytes will be written to a file
-        in DataStation's storage manager.
+        API Endpoint.
+        Upload data in bytes corresponding to a registered DE. These bytes will be written to a file in DataStation's
+        storage manager.
 
         Parameters:
-            username: the unique username identifying which user owns the dataset
+            user_id: caller id (owner of the data element)
             data_id: id of this existing DE
-            data_in_bytes: daat in bytes
+            data_in_bytes: plaintext data in bytes
 
         Returns:
         A response object with the following fields:
             status: status of uploading data. 0: success, 1: failure.
         """
-        return cls.__comp.upload_file(username, data_id, data_in_bytes)
+        return cls.__comp.upload_de(user_id, data_id, data_in_bytes)
 
     @classmethod
-    def upload_policy(cls, username, user_id, api, data_id, share_id):
+    def list_discoverable_des(cls, user_id):
         """
-        to be run OUTSIDE a function.
-        Uploads a policy written by the given user to DS
+        API Endpoint.
+        List IDs of all des in discoverable mode.
 
         Parameters:
-            username: the unique username identifying which user wrote the policy
-            user_id: part of policy to upload, the user ID of the policy
-            api: the api the policy refers to
-            data_id: the data id the policy refers to
-            share_id: to which share does this policy apply.
+            user_id: caller id
 
         Returns:
-        A response object with the following fields:
-            status: status of uploading policy. 0: success, 1: failure.
+        A list containing IDs of all discoverable des.
         """
-        return cls.__comp.upload_policy(username, user_id, api, data_id, share_id)
+        return cls.__comp.list_discoverable_des(user_id)
 
     @classmethod
-    def suggest_share(cls, username, agents, functions, data_elements):
+    def propose_contract(cls,
+                         user_id,
+                         dest_agents,
+                         data_elements,
+                         function,
+                         *args,
+                         **kwargs, ):
         """
-        to be run OUTSIDE a function.
-        Propose a share. This leads to the creation of a share, which is just a list of policies.
+        API Endpoint.
+        Propose a contract.
 
         Parameters:
-            username: the unique username identifying which user is calling the api
-            agents: list of user ids
-            functions: list of functions
+            user_id: caller id
+            dest_agents: list of user ids
             data_elements: list of data elements
+            function: function
+            args: input args to the template function
+            kwargs: input kwargs to the template funciton
 
         Returns:
         A response object with the following fields:
             status: status of suggesting share. 0: success, 1: failure.
         """
-        return cls.__comp.suggest_share(username, agents, functions, data_elements)
+        return cls.__comp.propose_contract(user_id, dest_agents, data_elements, function, *args, **kwargs)
 
     @classmethod
-    def ack_data_in_share(cls, username, share_id, data_id):
+    def show_contract(cls, user_id, contract_id):
         """
-        to be run OUTSIDE a function.
-        Updates a policy's status to ready
+        API Endpoint.
+        Display the content of a share.
 
         Parameters:
-            username: the unique username identifying which user is calling the api
-            share_id: id of the share
-            data_id: id of the data element
+            user_id: caller username
+            contract_id: id of the share that the caller wants to see
+
+        Returns:
+        An object with the following fields:
+            a_dest: a list of ids of the destination agents
+            de: a list of ids of the data elements
+            template: which template function
+            args: arguments to the template function
+            kwargs: kwargs to the template function
+        """
+        return cls.__comp.show_contract(user_id, contract_id)
+
+    @classmethod
+    def approve_contract(cls, user_id, contract_id):
+        """
+        API Endpoint.
+        Update a share's status to ready, for approval agent <username>.
+
+        Parameters:
+            user_id: approver id
+            contract_id: id of contract
 
         Returns:
         A response object with the following fields:
-            status: status of acknowledging share. 0: success, 1: failure.
+            status: status of approving share. 0: success, 1: failure.
         """
-        return cls.__comp.ack_data_in_share(username, share_id, data_id)
+        return cls.__comp.approve_contract(user_id, contract_id)
+
+    @classmethod
+    def execute_contract(cls, user_id, contract_id):
+        """
+        API Endpoint.
+        Execute a contract.
+
+        Parameters:
+            user_id: caller username (should be one of the dest agents)
+            contract_id: id of the contract
+
+        Returns:
+            The result of executing the contract (f(P))
+        """
+        return cls.__comp.execute_contract(user_id, contract_id)

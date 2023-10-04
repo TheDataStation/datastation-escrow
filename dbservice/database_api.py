@@ -3,14 +3,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import event
 
 from .crud import (user_repo,
-                   dataset_repo,
-                   api_repo,
-                   api_dependency_repo,
-                   policy_repo,
-                   staged_repo,
-                   provenance_repo,
-                   share_repo,)
-from .responses import response
+                   dataelement_repo,
+                   function_repo,
+                   function_dependency_repo,
+                   contract_repo, )
 from contextlib import contextmanager
 from dbservice.checkpoint.check_point import check_point
 
@@ -35,301 +31,230 @@ def get_db():
     finally:
         db.close()
 
-def create_user(request):
+def create_user(user_id, user_name, password):
     with get_db() as session:
-        user = user_repo.create_user(session, request)
+        user = user_repo.create_user(session, user_id, user_name, password)
         if user:
-            return response.UserResponse(status=1, msg="success", data=[user])
+            return {"status": 0, "message": "success", "data": user}
         else:
-            return response.UserResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: create user failed"}
 
-def get_user_by_user_name(request):
+def get_user_by_user_name(user_name):
     with get_db() as session:
-        user = user_repo.get_user_by_user_name(session, request.user_name)
+        user = user_repo.get_user_by_user_name(session, user_name)
         if user:
-            return response.UserResponse(status=1, msg="success", data=[user])
+            return {"status": 0, "message": "success", "data": user}
         else:
-            return response.UserResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get user by username failed"}
 
 def get_user_with_max_id():
     with get_db() as session:
         user = user_repo.get_user_with_max_id(session)
         if user:
-            return response.UserResponse(status=1, msg="success", data=[user])
+            return {"status": 0, "message": "success", "data": user}
         else:
-            return response.UserResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get user with max id failed"}
 
 def get_all_users():
     with get_db() as session:
         users = user_repo.get_all_users(session)
         if len(users):
-            return response.UserResponse(status=1, msg="success", data=users)
+            return {"status": 0, "message": "success", "data": users}
         else:
-            return response.UserResponse(status=-1, msg="no existing users", data=[])
+            return {"status": 1, "message": "no existing users"}
 
 def recover_users(users):
     with get_db() as session:
         res = user_repo.recover_users(session, users)
-        if res is not None:
+        if res:
             return 0
 
-def create_dataset(request):
+def create_de(de_id, de_name, user_id, de_type, access_param, optimistic):
     with get_db() as session:
-        dataset = dataset_repo.create_dataset(session, request)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataelement_repo.create_de(session, de_id, de_name, user_id, de_type, access_param, optimistic)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: create de failed"}
 
-def get_dataset_by_name(request):
+def get_de_by_name(de_name):
     with get_db() as session:
-        dataset = dataset_repo.get_dataset_by_name(session, request.name)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataelement_repo.get_de_by_name(session, de_name)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get DE by name failed"}
 
-def get_data_by_id(data_id: int):
+def get_de_by_id(de_id: int):
     with get_db() as session:
-        dataset = dataset_repo.get_data_by_id(session, data_id)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataelement_repo.get_de_by_id(session, de_id)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get DE by id failed"}
 
-def get_dataset_by_access_type(request):
+def get_de_by_access_type(request):
     with get_db() as session:
-        dataset = dataset_repo.get_dataset_by_access_param(session, request)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
+        de = dataelement_repo.get_de_by_access_param(session, request)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: get DE by access type failed"}
 
-def get_datasets_by_paths(request):
+def list_discoverable_des():
     with get_db() as session:
-        datasets = dataset_repo.get_datasets_by_paths(session, request)
-        if len(datasets) > 0:
-            return response.DatasetResponse(status=1, msg="success", data=datasets)
+        discoverable_des = dataelement_repo.list_discoverable_des(session)
+        return discoverable_des
+
+def get_des_by_ids(request):
+    with get_db() as session:
+        des = dataelement_repo.get_des_by_ids(session, request)
+        if len(des) > 0:
+            return {"status": 0, "message": "success", "data": des}
         else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: no DE found for give DE IDs"}
 
-def get_datasets_by_ids(request):
+def remove_de_by_name(de_name):
     with get_db() as session:
-        datasets = dataset_repo.get_datasets_by_ids(session, request)
-        if len(datasets) > 0:
-            return response.DatasetResponse(status=1, msg="success", data=datasets)
-        else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
-
-def remove_dataset_by_name(request):
-    with get_db() as session:
-        res = dataset_repo.remove_dataset_by_name(session, request.name)
+        res = dataelement_repo.remove_de_by_name(session, de_name)
         if res == "success":
-            return response.DatasetResponse(status=1, msg="success", data=[])
+            return {"status": 0, "message": "success"}
         else:
-            return response.DatasetResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: remove DE by name failed"}
 
-def get_dataset_owner(request):
+def get_de_owner_id(request):
     with get_db() as session:
-        owner = dataset_repo.get_dataset_owner(session, request.id)
-        if owner:
-            return response.UserResponse(status=1, msg="success", data=[owner])
+        res = dataelement_repo.get_de_owner_id(session, request)
+        if res:
+            return {"status": 0, "message": "success", "data": res}
         else:
-            return response.UserResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: get DE owner id failed"}
 
-def get_all_datasets():
+def get_all_des():
     with get_db() as session:
-        datasets = dataset_repo.get_all_datasets(session)
-        if len(datasets):
-            return response.DatasetResponse(status=1, msg="success", data=datasets)
+        des = dataelement_repo.get_all_des(session)
+        if len(des):
+            return {"status": 0, "message": "success", "data": des}
         else:
-            return response.DatasetResponse(status=-1, msg="no existing datasets", data=[])
+            return {"status": 1, "message": "database error: no existing DEs"}
 
-def get_all_optimistic_datasets():
+def get_de_with_max_id():
     with get_db() as session:
-        datasets = dataset_repo.get_all_optimistic_datasets(session)
-        if len(datasets):
-            return response.DatasetResponse(status=1, msg="success", data=datasets)
+        de = dataelement_repo.get_de_with_max_id(session)
+        if de:
+            return {"status": 0, "message": "success", "data": de}
         else:
-            return response.DatasetResponse(status=-1, msg="no optimistic datasets", data=[])
+            return {"status": 1, "message": "database error: get DE with max ID failed"}
 
-def get_data_with_max_id():
+def recover_des(des):
     with get_db() as session:
-        dataset = dataset_repo.get_data_with_max_id(session)
-        if dataset:
-            return response.DatasetResponse(status=1, msg="success", data=[dataset])
-        else:
-            return response.DatasetResponse(status=-1, msg="internal database error", data=[])
-
-def recover_datas(datas):
-    with get_db() as session:
-        res = dataset_repo.recover_datas(session, datas)
+        res = dataelement_repo.recover_des(session, des)
         if res is not None:
             return 0
 
-def create_api(request):
+def create_function(function_name):
     with get_db() as session:
-        api = api_repo.create_api(session, request)
-        if api:
-            return response.APIResponse(status=1, msg="success", data=[api])
+        function = function_repo.create_function(session, function_name)
+        if function:
+            return {"status": 0, "message": "success", "data": function}
         else:
-            return response.APIResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: register function in DB failed"}
 
-def get_all_apis():
+def get_all_functions():
     with get_db() as session:
-        apis = api_repo.get_all_apis(session)
-        if len(apis):
-            return response.GetAPIResponse(status=1, msg="success", data=apis)
+        functions = function_repo.get_all_functions(session)
+        if len(functions):
+            return {"status": 0, "message": "success", "data": functions}
         else:
-            return response.GetAPIResponse(status=-1, msg="no existing apis", data=[])
+            return {"status": 1, "message": "database error: no registered functions found"}
 
-def create_api_dependency(request):
+def create_function_dependency(from_f, to_f):
     with get_db() as session:
-        api_dependency = api_dependency_repo.create_api_dependency(session, request)
-        if api_dependency:
-            return response.APIDependencyResponse(status=1, msg="success", data=[api_dependency])
+        function_dependency = function_dependency_repo.create_function_dependency(session, from_f, to_f)
+        if function_dependency:
+            return {"status": 0, "message": "success", "data": function_dependency}
         else:
-            return response.APIDependencyResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: create function dependency failed"}
 
-def get_all_api_dependencies():
+def get_all_function_dependencies():
     with get_db() as session:
-        api_dependencies = api_dependency_repo.get_all_dependencies(session)
-        if len(api_dependencies):
-            return response.APIDependencyResponse(status=1, msg="success", data=api_dependencies)
+        function_dependencies = function_dependency_repo.get_all_dependencies(session)
+        if len(function_dependencies):
+            return {"status": 0, "message": "success", "data": function_dependencies}
         else:
-            return response.APIDependencyResponse(status=-1, msg="no existing dependencies", data=[])
+            return {"status": 1, "message": "database error: no function dependencies found"}
 
-def create_policy(request):
+def create_contract(contract_id, contract_function, contract_function_param):
     with get_db() as session:
-        policy = policy_repo.create_policy(session, request)
-        if policy:
-            return response.PolicyResponse(status=1, msg="success", data=[policy])
+        contract = contract_repo.create_contract(session, contract_id, contract_function, contract_function_param)
+        if contract:
+            return {"status": 0, "message": "success", "data": contract}
         else:
-            return response.PolicyResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: create contract failed"}
 
-def ack_data_in_share(data_id, share_id):
+def get_contract_with_max_id():
     with get_db() as session:
-        res = policy_repo.ack_data_in_share(session, data_id, share_id)
-        if res is not None:
-            return 0
-
-def remove_policy(request):
-    with get_db() as session:
-        res = policy_repo.remove_policy(session, request)
-        if res == "success":
-            return response.PolicyResponse(status=1, msg="success", data=[])
+        contract = contract_repo.get_contract_with_max_id(session)
+        if contract:
+            return {"status": 1, "message": "success", "data": contract}
         else:
-            return response.PolicyResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: get contract with max ID failed"}
 
-def get_all_policies():
+def create_contract_dest(contract_id, dest_agent_id):
     with get_db() as session:
-        policies = policy_repo.get_all_policies(session)
-        if len(policies):
-            return response.PolicyResponse(status=1, msg="success", data=policies)
+        contract_dest = contract_repo.create_contract_dest(session, contract_id, dest_agent_id)
+        if contract_dest:
+            return {"status": 0, "message": "success"}
         else:
-            return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
+            return {"status": 1, "message": "database error: create contract dest agents failed"}
 
-def get_ack_policy_user_share(user_id, share_id):
+def create_contract_de(contract_id, de_id):
     with get_db() as session:
-        policies = policy_repo.get_ack_policy_user_share(session, user_id, share_id)
-        if len(policies):
-            return response.PolicyResponse(status=1, msg="success", data=policies)
+        contract_de = contract_repo.create_contract_de(session, contract_id, de_id)
+        if contract_de:
+            return {"status": 0, "message": "success"}
         else:
-            return response.PolicyResponse(status=-1, msg="no existing policies", data=[])
+            return {"status": 1, "message": "database error: create contract DE failed"}
 
-def bulk_upload_policies(policies):
+def create_contract_status(contract_id, approval_agent_id, status):
     with get_db() as session:
-        res = policy_repo.bulk_upload_policies(session, policies)
-        if res is not None:
-            return 0
-
-def create_staged(request):
-    with get_db() as session:
-        staged = staged_repo.create_staged(session, request)
-        if staged:
-            return response.StagedResponse(status=1, msg="success", data=[staged])
+        contract_status = contract_repo.create_contract_status(session, contract_id, approval_agent_id, status)
+        if contract_status:
+            return {"status": 0, "message": "success"}
         else:
-            return response.StagedResponse(status=-1, msg="fail", data=[])
+            return {"status": 1, "message": "database error: create contract status failed"}
 
-def get_api_for_staged_id(staged_id):
+def get_approval_for_contract(contract_id):
     with get_db() as session:
-        api_name = staged_repo.get_api_for_staged_id(session, staged_id)
-        if api_name:
-            return api_name.api
+        return contract_repo.get_approval_for_contract(session, contract_id)
 
-def get_all_staged():
+def get_status_for_contract(contract_id):
     with get_db() as session:
-        staged = staged_repo.get_all_staged(session)
-        if len(staged):
-            return response.StagedResponse(status=1, msg="success", data=staged)
+        return contract_repo.get_status_for_contract(session, contract_id)
+
+def get_dest_for_contract(contract_id):
+    with get_db() as session:
+        return contract_repo.get_dest_for_contract(session, contract_id)
+
+def get_de_for_contract(contract_id):
+    with get_db() as session:
+        return contract_repo.get_de_for_contract(session, contract_id)
+
+def get_contract(contract_id):
+    with get_db() as session:
+        contract = contract_repo.get_contract(session, contract_id)
+        if contract:
+            return {"status": 0, "message": "success", "data": contract}
         else:
-            return response.StagedResponse(status=-1, msg="no existing staged DEs", data=[])
+            return {"status": 1, "message": "database error: get contract failed"}
 
-def get_staging_with_max_id():
+def approve_contract(a_id, contract_id):
     with get_db() as session:
-        staged = staged_repo.get_staged_with_max_id(session)
-        if staged:
-            return response.StagedResponse(status=1, msg="success", data=[staged])
+        res = contract_repo.approve_contract(session, a_id, contract_id)
+        if res:
+            return {"status": 0, "message": "success"}
         else:
-            return response.StagedResponse(status=-1, msg="internal database error", data=[])
-
-def recover_staged(staged):
-    with get_db() as session:
-        res = staged_repo.recover_staged(session, staged)
-        if res is not None:
-            return 0
-
-def create_provenance(request):
-    with get_db() as session:
-        provenance = provenance_repo.create_provenance(session, request)
-        if provenance:
-            return response.ProvenanceResponse(status=1, msg="success", data=[provenance])
-        else:
-            return response.ProvenanceResponse(status=-1, msg="fail", data=[])
-
-def get_all_provenances():
-    with get_db() as session:
-        provenances = provenance_repo.get_all_provenances(session)
-        if len(provenances):
-            return response.ProvenanceResponse(status=1, msg="success", data=provenances)
-        else:
-            return response.ProvenanceResponse(status=-1, msg="no existing provenances", data=[])
-
-def get_parent_id_for_staged_id(staged_id):
-    with get_db() as session:
-        parent_ids = provenance_repo.get_parent_id_for_staged_id(session, staged_id)
-        if len(parent_ids):
-            return parent_ids
-
-def recover_provenance(provenances):
-    with get_db() as session:
-        res = provenance_repo.recover_provenance(session, provenances)
-        if res is not None:
-            return 0
-
-def bulk_create_provenance(child_id, provenances):
-    with get_db() as session:
-        res = provenance_repo.bulk_create_provenance(session, child_id, provenances)
-        if res is not None:
-            return 0
-        else:
-            return 1
-
-def create_share(request):
-    with get_db() as session:
-        share = share_repo.create_share(session, request)
-        if share:
-            return response.ShareResponse(status=1, msg="success", data=[share])
-        else:
-            return response.ShareResponse(status=-1, msg="fail", data=[])
-
-def get_share_with_max_id():
-    with get_db() as session:
-        share = share_repo.get_share_with_max_id(session)
-        if share:
-            return response.ShareResponse(status=1, msg="success", data=[share])
-        else:
-            return response.ShareResponse(status=-1, msg="internal database error", data=[])
+            return {"status": 1, "message": "database error: approve contract failed"}
 
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)

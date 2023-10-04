@@ -9,6 +9,7 @@
 
 import os, sys
 import pathlib
+import math
 import socket
 import time
 from errno import *
@@ -201,15 +202,13 @@ class Xmp(Fuse):
                 self.file = os.fdopen(os.open("." + path, flags, *mode),
                                       flag2mode(flags))
                 self.fd = self.file.fileno()
+                print("Interceptor: in file init, path is", self.file_path)
 
                 if hasattr(os, 'pread'):
                     self.iolock = None
                 else:
                     self.iolock = Lock()
 
-                # zz: recording data accessed here
-                # TODO: in zero trust mode, should we record all access, including those illegal access with
-                #      the wrong key?
                 fuse_context = Fuse.GetContext(Xmp_self)
                 pid = fuse_context["pid"]
                 # print("Interceptor: PID is", pid)
@@ -225,51 +224,70 @@ class Xmp(Fuse):
                 cur_set = data_accessed_dict_global[pid]
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set
-                print("Data accessed is", data_accessed_dict_global[pid])
+                print("All files currently accessed by Intercetpor is", data_accessed_dict_global[pid])
 
                 self.symmetric_key = None
                 self.decrypted_bytes = None
                 # check if the file access is from the running api inside data station
                 if pid in accessible_data_dict_global.keys():
 
-                    # get the accessible_data_key_dict, if the dict is not None,
-                    #  then we know it's running in no trust mode.
                     accessible_data_key_dict = accessible_data_dict_global[pid][1]
 
-                    if accessible_data_key_dict is not None:
-
-                        # get the symmetric key of the current file if it's accessible by the current user accessing
-                        if self.file_path in accessible_data_key_dict.keys():
-                            # print("Getting the current key...")
-                            self.symmetric_key = accessible_data_key_dict[self.file_path]
-                            # print("Key is", self.symmetric_key)
-
-                            # Decrypt the entire file here and use it as a cache.
-                            # since multiple read/writes can happen to the file,
-                            # we don't want decrypt it for every access
+                    if self.file_path in accessible_data_key_dict.keys():
+                        self.symmetric_key = accessible_data_key_dict[self.file_path]
+                        # Get the user symmetric key. If not None, then the current mode is no_trust
+                        if self.symmetric_key:
                             if self.iolock:
                                 self.iolock.acquire()
                                 try:
                                     encrypted_bytes = self.file.read()
+                                    print("Decryption starting......")
                                     self.decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                                         ciphertext=encrypted_bytes,
                                         key=self.symmetric_key)
+                                    print("Decrypted bytes are:")
+                                    print(self.decrypted_bytes[:100])
                                 finally:
                                     self.iolock.release()
                             else:
-                                encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
+                                start = time.perf_counter()
+
+                                file_size = os.stat(self.file_path).st_size
+                                # print(f"File size is {file_size}")
+                                chunk_size = 2000000000
+                                num_reads = int(math.ceil(file_size / chunk_size))
+                                # print(f"Number of reads is {num_reads}")
+                                bytes_read = 0
+                                encrypted_bytes = bytes()
+                                for i in range(num_reads):
+                                    if i != num_reads - 1:
+                                        cur_chunk_bytes = os.pread(self.fd, chunk_size, bytes_read)
+                                        encrypted_bytes += cur_chunk_bytes
+                                        bytes_read += chunk_size
+                                    else:
+                                        cur_chunk_bytes = os.pread(self.fd, file_size - bytes_read, bytes_read)
+                                        encrypted_bytes += cur_chunk_bytes
+                                        bytes_read += chunk_size
+                                print("Decryption starting......")
                                 # print(len(encrypted_bytes))
+                                # print(type(encrypted_bytes))
                                 self.decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
                                     ciphertext=encrypted_bytes,
                                     key=self.symmetric_key)
+                                print("Decrypted bytes are:")
+                                print(self.decrypted_bytes[:100])
+                                end = time.perf_counter()
+                                decryption_time = end - start
+                                print(f"{decryption_time} seconds for decryption")
+                                decryption_time_dict_global["total_time"] += decryption_time
 
             def read(self, length, offset):
-                # print("Interceptor: I am reading " + str(self.file_path))
+                print("Interceptor: I am reading " + str(self.file_path))
 
                 if self.iolock:
                     self.iolock.acquire()
                     try:
-                        if self.symmetric_key is not None:
+                        if self.symmetric_key:
                             # print(self.symmetric_key)
                             # encrypted_bytes = self.file.read()
                             # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
@@ -293,7 +311,7 @@ class Xmp(Fuse):
                     finally:
                         self.iolock.release()
                 else:
-                    if self.symmetric_key is not None:
+                    if self.symmetric_key:
                         # print(self.symmetric_key)
                         # encrypted_bytes = os.pread(self.fd, os.stat(self.file_path).st_size, 0)
                         # decrypted_bytes = cryptoutils.decrypt_data_with_symmetric_key(
@@ -517,8 +535,11 @@ class Xmp(Fuse):
         return Fuse.main(self, *a, **kw)
 
 
-def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict):
-    # engine.dispose()
+def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict, decryption_time_dict):
+    """
+    Parameters:
+        accessible_data_dict: e.g. {1: ({'/mnt/data/4/f3.csv'}, {'/mnt/data/4/f3.csv': None})}
+    """
 
     global args
     # run in foreground
@@ -530,6 +551,9 @@ def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict):
     accessible_data_dict_global = accessible_data_dict
     global data_accessed_dict_global
     data_accessed_dict_global = data_accessed_dict
+    global decryption_time_dict_global
+    decryption_time_dict_global = decryption_time_dict
+    decryption_time_dict_global["total_time"] = 0
 
     usage = """
 Userspace nullfs-alike: mirror the filesystem tree from some point on.

@@ -1,26 +1,15 @@
 from dbservice import database_api
-from common.pydantic_models.dataset import Dataset
-from common.pydantic_models.user import User
-from common.pydantic_models.response import Response
 
 
-def verify_dataset_owner(dataset_id, cur_username):
-    # get dataset owner id
-    dataset_owner = database_api.get_dataset_owner(Dataset(id=dataset_id,))
-    if dataset_owner.status == -1:
-        return Response(status=1, message="Error retrieving data owner.")
-    dataset_owner_id = dataset_owner.data[0].id
-    # print("Dataset owner id is: " + str(dataset_owner_id))
+def verify_de_owner(de_id, user_id):
+    # get data element owner id
+    de_owner_id_resp = database_api.get_de_owner_id(de_id)
+    if de_owner_id_resp["status"] == 1:
+        return de_owner_id_resp
 
-    # get current user id
-    cur_user = database_api.get_user_by_user_name(User(user_name=cur_username,))
-    # If the user doesn't exist, something is wrong
-    if cur_user.status == -1:
-        return Response(status=1, message="Something wrong with the current user")
-    cur_user_id = cur_user.data[0].id
-    # print("Current user id is: "+str(cur_user_id))
+    # print("User id is", user_id)
+    # print("Owner id is", de_owner_id_resp["data].id)
+    if int(user_id) != int(de_owner_id_resp["data"]):
+        return {"status": 1, "message": "Current user is not owner of dataset"}
 
-    if cur_user_id != dataset_owner_id:
-        return Response(status=1, message="Current user is not owner of dataset")
-
-    return Response(status=0, message="verification success")
+    return {"status": 0, "message": "verifying DE owner success"}

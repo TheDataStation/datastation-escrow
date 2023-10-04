@@ -3,7 +3,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
 from ..schemas.user import User
-from common.pydantic_models.user import UserRegister
 
 
 def get_user(db: Session, user_id: int):
@@ -39,10 +38,10 @@ def get_all_users(db: Session):
     return users
 
 
-def create_user(db: Session, user: UserRegister):
-    db_user = User(id=user.id,
-                   user_name=user.user_name,
-                   password=user.password,)
+def create_user(db: Session, user_id, user_name, password):
+    db_user = User(id=user_id,
+                   user_name=user_name,
+                   password=password, )
     try:
         db.add(db_user)
         db.commit()

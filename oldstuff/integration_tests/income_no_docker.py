@@ -9,7 +9,7 @@ import pickle
 from common import general_utils
 from common.pydantic_models.user import User
 from common.pydantic_models.policy import Policy
-from clientapi.client_api import ClientAPI
+from server.flask_client import ClientAPI
 from ds import DataStation
 
 if __name__ == '__main__':
@@ -121,11 +121,11 @@ if __name__ == '__main__':
             cur_file_bytes = cur_file.read()
             cur_optimistic_flag = False
             name_to_upload = "train" + str(cur_num) + "_" + cur_type + ".pkl"
-            cur_res = ds.register_data(cur_uname,
-                                       name_to_upload,
-                                       cur_file_bytes,
+            cur_res = ds.register_de(cur_uname,
+                                     name_to_upload,
+                                     cur_file_bytes,
                                         "file",
-                                       cur_optimistic_flag, )
+                                     cur_optimistic_flag, )
             cur_file.close()
             # Upload the policies
             ds.upload_policy(cur_uname, Policy(user_id=1, api="train_income_model", data_id=data_id_counter))

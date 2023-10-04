@@ -22,9 +22,8 @@ if __name__ == '__main__':
     # Step 0: System initialization
 
     ds_config = "data_station_config.yaml"
-    app_config = "app_connector_config.yaml"
 
-    ds = initialize_system(ds_config, app_config)
+    ds = initialize_system(ds_config)
 
     log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):
@@ -35,14 +34,14 @@ if __name__ == '__main__':
     ds.create_user(User(user_name="david", password="123456"))
 
     # Step 2: Jerry logs in and uploads three data elements: a file, a postgres table, and an open data table
-    file_path = "integration_new/test_files/plaintext/train-1.csv"
+    file_path = "integration_new/test_files/titanic_p/f0.csv"
     cur_file = open(file_path, "rb")
     file_bytes = cur_file.read()
     optimistic_flag_1 = False
     de_name_1 = "file-1"
     de_access_param_1 = "file-1"
     register_res = ds.call_api("jerry",
-                               "register_data",
+                               "register_de",
                                None,
                                None,
                                "jerry",
@@ -52,7 +51,7 @@ if __name__ == '__main__':
                                optimistic_flag_1, )
 
     upload_res = ds.call_api("jerry",
-                             "upload_data",
+                             "upload_de",
                              None,
                              None,
                              "jerry",
@@ -68,7 +67,7 @@ if __name__ == '__main__':
     de_access_param_2 = json.dumps(de_access_param_obj)
     optimistic_flag_2 = False
     register_res = ds.call_api("jerry",
-                               "register_data",
+                               "register_de",
                                None,
                                None,
                                "jerry",
@@ -85,7 +84,7 @@ if __name__ == '__main__':
     de_access_param_3 = json.dumps(de_access_param_obj_3)
     optimistic_flag_3 = False
     register_res = ds.call_api("jerry",
-                               "register_data",
+                               "register_de",
                                None,
                                None,
                                "jerry",
@@ -102,7 +101,7 @@ if __name__ == '__main__':
 
     # Step 4: jerry acknowledges this share
     for data_id in data_elements:
-        ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", data_id, 1)
+        ds.call_api("jerry", "approve_share", None, None, "jerry", data_id, 1)
 
     # Step 5: david calls the API line_count. He runs it in optimistic mode.
     line_count_res = ds.call_api("david", "retrieve_data", 1, "pessimistic")

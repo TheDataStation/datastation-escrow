@@ -1,13 +1,11 @@
 import os
-import pathlib
-from dsapplicationregistration.dsar_core import (get_api_endpoint_names,
-                                                 get_functions_names,
+
+from dsapplicationregistration.dsar_core import (get_functions_names,
                                                  get_registered_functions, )
 from dbservice import database_api
-from policybroker import policy_broker
-from common.pydantic_models.api import API
-from common.pydantic_models.response import Response, APIExecResponse
+from contractmanager import contract_manager
 from common.abstraction import DataElement
+from common.config import DSConfig
 
 from verifiability.log import Log
 from writeaheadlog.write_ahead_log import WAL
@@ -22,7 +20,7 @@ class Gatekeeper:
                  key_manager: KeyManager,
                  trust_mode: str,
                  epf_path,
-                 mount_dir,
+                 config: DSConfig,
                  development_mode,
                  ):
         """
@@ -31,6 +29,7 @@ class Gatekeeper:
         """
 
         print("Start setting up the gatekeeper")
+        self.config = config
 
         # save variables
         self.data_station_log = data_station_log
@@ -39,7 +38,7 @@ class Gatekeeper:
         self.trust_mode = trust_mode
 
         self.epf_path = epf_path
-        self.mount_dir = mount_dir
+        self.mount_dir = self.config.ds_storage_path
         self.docker_id = 1
         self.server = FlaskDockerServer()
         self.server.start_server()
@@ -47,17 +46,16 @@ class Gatekeeper:
         # register all api_endpoints that are functions in database_api
         function_names = get_functions_names()
         # now we call dbservice to register these info in the DB
-        for cur_api in function_names:
-            api_db = API(api_name=cur_api)
-            print("api added: ", api_db)
-            database_service_response = database_api.create_api(api_db)
-            if database_service_response.status == -1:
-                print("database_api.create_api: internal database error")
+        for cur_f in function_names:
+            database_service_response = database_api.create_function(cur_f)
+            if database_service_response["status"] == 1:
+                print("database_api.create_function: internal database error")
                 raise RuntimeError(
-                    "database_api.create_api: internal database error")
+                    "database_api.create_function: internal database error")
 
-        api_res = database_api.get_all_apis()
-        print("all apis uploaded, with pid: ", os.getpid(), api_res)
+        f_res = database_api.get_all_functions()
+        if f_res["status"] == 0:
+            print("all function registered: ", f_res["data"])
 
         if not development_mode:
             docker_image_realpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".")
@@ -74,18 +72,12 @@ class Gatekeeper:
         self.docker_id += 1
         return ret
 
-    @staticmethod
-    def get_accessible_data(user_id, api, share_id):
-        accessible_data = policy_broker.get_user_api_info(user_id, api, share_id)
-        return accessible_data
-
     # We add times to the following function to record the overheads
 
     def call_api(self,
-                 api,
+                 function,
                  cur_user_id,
-                 share_id,
-                 exec_mode,
+                 contract_id,
                  *args,
                  **kwargs):
         """
@@ -94,10 +86,9 @@ class Gatekeeper:
           - data accessed by API is allowed
 
         Parameters:
-         api: api to call
+         function: api to call
          cur_user_id: the user id to decide what data is exposed
-         share_id: id of share from which the api is called,
-         exec_mode: optimistic or pessimistic
+         contract_id: id of contract from which the api is called,
 
         Returns:
          Response based on what happens
@@ -105,127 +96,104 @@ class Gatekeeper:
 
         # print(trust_mode)
 
-        # We first determine whether this is a data-blind function or data-aware function
-        # data-aware function requires an argument called DE_id
+        # Check if caller is in destination agent
+        dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
+        if cur_user_id not in dest_a_ids:
+            print("Caller not a destination agent")
+            return None
 
-        data_aware_flag = False
-        data_aware_DE = set()
+        # Check if the share has been approved by all approval agents
+        contract_ready_flag = contract_manager.check_contract_ready(contract_id)
+        if not contract_ready_flag:
+            print("This contract has not been approved to execute yet.")
+            return None
 
-        if kwargs.__contains__("DE_id"):
-            data_aware_flag = True
-            data_aware_DE = set(kwargs["DE_id"])
+        # If yes, set the accessible_de to be the entirety of P
+        all_accessible_de_id = contract_manager.get_de_ids_for_contract(contract_id)
+        # print(f"all accessible data elements are: {all_accessible_de_id}")
 
-        # print(data_aware_flag)
-        # print(data_aware_DE)
-
-        # look at the accessible data by policy for current (user, api)
-        # print(cur_user_id, api)
-        accessible_data_policy = self.get_accessible_data(cur_user_id, api, share_id)
-
-        # Note: In data-aware-functions, if accessible_data_policy does not include data_aware_DE,
-        # we end the execution immediately
-        if not data_aware_DE.issubset(set(accessible_data_policy)):
-            err_msg = "Attempted to access data not allowed by policies. Execution stops."
-            print(err_msg)
-            return Response(status=1, message=err_msg)
-
-        # look at all optimistic data from the DB
-        optimistic_data = database_api.get_all_optimistic_datasets()
-        accessible_data_optimistic = []
-        for i in range(len(optimistic_data.data)):
-            cur_optimistic_id = optimistic_data.data[i].id
-            accessible_data_optimistic.append(cur_optimistic_id)
-
-        # Combine these two types of accessible data elements together into all_accessible_data_id
-        if exec_mode == "optimistic":
-            all_accessible_data_id = set(
-                accessible_data_policy + accessible_data_optimistic)
-        # In pessimistic execution mode, we only include data that are allowed by policies
-        elif not data_aware_flag:
-            all_accessible_data_id = set(accessible_data_policy)
-        # Lastly, in data-aware execution, all_accessible_data_id should be data_aware_DE
-        else:
-            all_accessible_data_id = data_aware_DE
-        print("all accessible data elements are: ", all_accessible_data_id)
-
-        get_datasets_by_ids_res = database_api.get_datasets_by_ids(all_accessible_data_id)
-        if get_datasets_by_ids_res.status == -1:
-            err_msg = "No accessible data for " + api
-            print(err_msg)
-            return Response(status=1, message=err_msg)
+        get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
+        if get_des_by_ids_res["status"] == 1:
+            print("No accessible DE for", function)
+            return get_des_by_ids_res
 
         accessible_de = set()
-        for cur_data in get_datasets_by_ids_res.data:
+        for cur_de in get_des_by_ids_res["data"]:
             if self.trust_mode == "no_trust":
-                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
+                data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
             else:
                 data_owner_symmetric_key = None
-            cur_de = DataElement(cur_data.id,
-                                 cur_data.name,
-                                 cur_data.type,
-                                 cur_data.access_param,
+            cur_de = DataElement(cur_de.id,
+                                 cur_de.name,
+                                 cur_de.type,
+                                 cur_de.access_param,
                                  data_owner_symmetric_key)
             accessible_de.add(cur_de)
 
         # print(accessible_de)
 
         # actual api call
-        ret = call_actual_api(api,
+        if self.trust_mode == "full_trust":
+            agents_symmetric_key = None
+        else:
+            agents_symmetric_key = self.key_manager.agents_symmetric_key
+        ret = call_actual_api(function,
                               self.epf_path,
-                              self.mount_dir,
+                              self.config,
+                              agents_symmetric_key,
                               accessible_de,
                               self.get_new_docker_id(),
                               self.docker_session,
                               *args,
+                              **kwargs,
                               )
 
-        api_result = ret["return_value"]
-        data_path_accessed = api_result[1]
-        data_ids_accessed = []
+        api_result = ret["return_info"][0]
+        data_path_accessed = ret["return_info"][1]
+        decryption_time = ret["return_info"][2]
+
+        de_ids_accessed = []
         for path in data_path_accessed:
-            data_ids_accessed.append(int(path.split("/")[-2]))
-        api_result = api_result[0]
+            print(path)
+            de_ids_accessed.append(int(path.split("/")[-2]))
         # print("API result is", api_result)
 
-        print("data accessed is", data_ids_accessed)
-        print("accessible data by policy is", accessible_data_policy)
-        print("all accessible data is", all_accessible_data_id)
+        print("DE accessed is", de_ids_accessed)
+        # print("accessible data by policy is", accessible_data_policy)
+        print("all accessible DE is", all_accessible_de_id)
+        # print("Decryption time is", decryption_time)
 
-        if set(data_ids_accessed).issubset(set(accessible_data_policy)):
+        if set(de_ids_accessed).issubset(set(all_accessible_de_id)):
             # print("All data access allowed by policy.")
             # log operation: logging intent_policy match
             self.data_station_log.log_intent_policy_match(cur_user_id,
-                                                          api,
-                                                          data_ids_accessed,
+                                                          function,
+                                                          de_ids_accessed,
                                                           self.key_manager, )
             # In this case, we can return the result to caller.
-            response = APIExecResponse(status=0,
-                                       message="API result can be released",
-                                       result=api_result,
-                                       )
-        elif set(data_ids_accessed).issubset(all_accessible_data_id):
-            # print("Some access to optimistic data not allowed by policy.")
-            # log operation: logging intent_policy mismatch
-            self.data_station_log.log_intent_policy_mismatch(cur_user_id,
-                                                             api,
-                                                             data_ids_accessed,
-                                                             set(accessible_data_policy),
-                                                             self.key_manager, )
-            response = APIExecResponse(status=-1,
-                                       message="Some access to optimistic data not allowed by policy.",
-                                       result=[api_result, data_ids_accessed], )
+            response = {"status": 0,
+                        "message": "Contract result can be released",
+                        "result": [api_result, decryption_time]}
+        # elif set(data_ids_accessed).issubset(all_accessible_de_id):
+        #     # print("Some access to optimistic data not allowed by policy.")
+        #     # log operation: logging intent_policy mismatch
+        #     self.data_station_log.log_intent_policy_mismatch(cur_user_id,
+        #                                                      api,
+        #                                                      data_ids_accessed,
+        #                                                      set(accessible_de_policy),
+        #                                                      self.key_manager, )
+        #     response = APIExecResponse(status=-1,
+        #                                message="Some access to optimistic data not allowed by policy.",
+        #                                result=[api_result, data_ids_accessed], )
         else:
-            # TODO: illegal access can still happen since interceptor does not block access
-            #  (except filter out inaccessible data when list dir)
-            # print("Access to illegal data happened. Something went wrong")
             # log operation: logging intent_policy mismatch
             self.data_station_log.log_intent_policy_mismatch(cur_user_id,
-                                                             api,
-                                                             data_ids_accessed,
-                                                             set(accessible_data_policy),
+                                                             function,
+                                                             de_ids_accessed,
+                                                             set(all_accessible_de_id),
                                                              self.key_manager, )
-            response = Response(
-                status=1, message="Access to illegal data happened. Something went wrong.")
+            response = {"status": 1,
+                        "message": "Access to illegal DE happened. Something went wrong."}
 
         return response
 
@@ -235,10 +203,11 @@ class Gatekeeper:
 
 def call_actual_api(api_name,
                     epf_path,
-                    mount_dir,
+                    config: DSConfig,
+                    agents_symmetric_key,
                     accessible_de,
                     docker_id,
-                    docker_session:DSDocker,
+                    docker_session: DSDocker,
                     *args,
                     **kwargs,
                     ):
@@ -248,10 +217,11 @@ def call_actual_api(api_name,
     Parameters:
      api_name: name of API to run on Docker container
      epf_path: path to the epf file
-     mount_dir: directory of filesystem mount for Interceptor
+     config: DS config
+     agents_symmetric_key: key manager storing all the sym keys
      accessible_de: a set of accessible DataElement
      docker_id: id assigned to docker container
-     server: flask server to receive communications with docker container
+     docker_session: docker container
      *args / *kwargs for api
 
     Returns:
@@ -262,7 +232,8 @@ def call_actual_api(api_name,
     # print(api_name, *args, **kwargs)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
 
-    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id}
+    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "agents_symmetric_key": agents_symmetric_key,
+                   "operating_system": config.operating_system}
     print("The real epf path is", epf_realpath)
 
     # print(session.container.top())
@@ -273,7 +244,7 @@ def call_actual_api(api_name,
     for cur_f in list_of_functions:
         if api_name == cur_f.__name__:
             print("call", api_name)
-            docker_session.flask_run(api_name, epf_realpath, mount_dir, config_dict, *args, **kwargs)
+            docker_session.flask_run(api_name, epf_realpath, config.ds_storage_path, config_dict, *args, **kwargs)
             ret = docker_session.server.q.get(block=True)
             # print(ret)
             return ret

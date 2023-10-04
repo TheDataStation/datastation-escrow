@@ -36,13 +36,13 @@ def register_data(username,
                   access_param,
                   optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_data(username, data_name, data_type, access_param, optimistic)
+    return EscrowAPI.register_de(username, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
 def upload_data(username,
                 data_id,
                 data_in_bytes):
-    return EscrowAPI.upload_data(username, data_id, data_in_bytes)
+    return EscrowAPI.upload_de(username, data_id, data_in_bytes)
 
 @api_endpoint
 def upload_policy(username, user_id, api, data_id):
@@ -55,7 +55,7 @@ def suggest_share(username, agents, functions, data_elements):
 
 @api_endpoint
 def ack_data_in_share(username, data_id, share_id):
-    return EscrowAPI.ack_data_in_share(username, data_id, share_id)
+    return EscrowAPI.approve_share(username, data_id, share_id)
 
 @api_endpoint
 @function

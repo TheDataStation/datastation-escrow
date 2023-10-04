@@ -9,7 +9,7 @@ if __name__ == '__main__':
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
-    folders = ['SM_storage', 'Staging_storage']
+    folders = ['SM_storage']
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)
@@ -21,9 +21,8 @@ if __name__ == '__main__':
     # Step 0: System initialization
 
     ds_config = "data_station_config.yaml"
-    app_config = "app_connector_config.yaml"
 
-    ds = initialize_system(ds_config, app_config)
+    ds = initialize_system(ds_config)
 
     log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):
@@ -40,9 +39,9 @@ if __name__ == '__main__':
         filename = f"data/{tbl}.csv"
         f = open(filename, "rb")
         file_bytes = f.read()
-        register_res = ds.call_api("jerry", "register_data", None, None, "jerry",
+        register_res = ds.call_api("jerry", "register_de", None, None, "jerry",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
-        ds.call_api("jerry", "upload_data", None, None, "jerry",
+        ds.call_api("jerry", "upload_de", None, None, "jerry",
                     register_res.de_id, file_bytes, )
 
     david_tables = ["nation", "orders", "part"]
@@ -50,9 +49,9 @@ if __name__ == '__main__':
         filename = f"data/{tbl}.csv"
         f = open(filename, "rb")
         file_bytes = f.read()
-        register_res = ds.call_api("david", "register_data", None, None, "david",
+        register_res = ds.call_api("david", "register_de", None, None, "david",
                                    f"{tbl}.csv", "file", f"{tbl}.csv", False, )
-        ds.call_api("david", "upload_data", None, None, "david",
+        ds.call_api("david", "upload_de", None, None, "david",
                     register_res.de_id, file_bytes, )
     print("created tables")
 
@@ -64,14 +63,14 @@ if __name__ == '__main__':
                 functions, data_elements)
 
     # Step 4: they both acknowledge this share
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 1, 1)
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 2, 1)
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 3, 1)
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 4, 1)
-    ds.call_api("jerry", "ack_data_in_share", None, None, "jerry", 5, 1)
-    ds.call_api("david", "ack_data_in_share", None, None, "david", 6, 1)
-    ds.call_api("david", "ack_data_in_share", None, None, "david", 7, 1)
-    ds.call_api("david", "ack_data_in_share", None, None, "david", 8, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 1, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 2, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 3, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 4, 1)
+    ds.call_api("jerry", "approve_share", None, None, "jerry", 5, 1)
+    ds.call_api("david", "approve_share", None, None, "david", 6, 1)
+    ds.call_api("david", "approve_share", None, None, "david", 7, 1)
+    ds.call_api("david", "approve_share", None, None, "david", 8, 1)
 
     # Step 5: david calls the SQL sharing APIs.
     ix = ds.call_api("david", "column_intersection", 1, "pessimistic", 1,

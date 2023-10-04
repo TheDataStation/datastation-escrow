@@ -2,14 +2,13 @@
 __pycache__/
 *.py[cod]
 *$py.class
-SM_storage/
-Staging_storage/
-SM_storage_mount/
 numbers/
 .idea/
 Working/
 oldstuff/numbers/
 plots/
+SM_storage/
+SM_storage_mount/
 data_station.db
 ds_log.pkl
 wal.pkl
@@ -39,6 +38,7 @@ demofile.txt
 ds_dev_utils/args.pkl
 integration_new/test_files
 tpch_data/*
+integration_new/baseline_sql_script.py
 
 # C extensions
 *.so

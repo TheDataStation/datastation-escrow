@@ -68,11 +68,11 @@ if __name__ == '__main__':
             cur_optimistic_flag = False
             name_to_upload = "train" + str(cur_num) + "_" + cur_type + ".npy"
             # Upload data
-            client_api.register_data(name_to_upload,
-                                     cur_file_bytes,
+            client_api.register_de(name_to_upload,
+                                   cur_file_bytes,
                                       "file",
-                                     cur_optimistic_flag,
-                                     cur_token, )
+                                   cur_optimistic_flag,
+                                   cur_token, )
             cur_file.close()
             # Upload policy
             client_api.upload_policy(Policy(user_id=1, api="train_income_model", data_id=data_id_counter), cur_token)

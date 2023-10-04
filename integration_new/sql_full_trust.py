@@ -11,7 +11,7 @@ def data_gen(num_partitions):
     Output goes to integration_new/test_files/sql_plain.
     """
     # Define input/output directories
-    input_dir = "/Users/kos/Desktop/TPCH-data/tpch-10MB/"
+    input_dir = "tpch_data/1MB/"
     output_dir = "integration_new/test_files/sql_plain/"
     # Create a dictionary to store the schemas
     tpch_schemas = {"customer": ["c_custkey", "c_name", "c_address", "c_nationkey", "c_phone", "c_acctbal",
@@ -56,7 +56,6 @@ def data_gen(num_partitions):
 
 def cleanup():
     folders = ['SM_storage',
-               'Staging_storage',
                "integration_new/test_files/sql_plain",
                "integration_new/test_files/sql_cipher",
                ]
@@ -79,9 +78,8 @@ if __name__ == '__main__':
     # Step 0: System initialization
 
     ds_config = "data_station_config.yaml"
-    app_config = "app_connector_config.yaml"
 
-    ds = initialize_system(ds_config, app_config)
+    ds = initialize_system(ds_config)
 
     # Step 1: We create two new users of the Data Station
     num_users = 3
@@ -91,7 +89,7 @@ if __name__ == '__main__':
     # Step 2: Each user uploads their share of the dataset.
     data_gen(num_users)
 
-    # Create the encrypted TPCH files, and upload them.
+    # Create the TPCH files, and upload them.
 
     partitioned_tables = ["customer", "lineitem", "orders", "part", "partsupp", "supplier"]
     small_tables = ["nation", "region"]
@@ -100,9 +98,9 @@ if __name__ == '__main__':
         f = open(filename, "rb")
         plaintext_bytes = f.read()
         f.close()
-        register_res = ds.call_api(f"user0", "register_data", None, None, f"user0",
-                                   f"{tbl}.csv", "file", f"{tbl}.csv", False, )
-        ds.call_api(f"user0", "upload_data", None, None, f"user0",
+        register_res = ds.call_api(f"user0", "register_de", None, None, f"user0",
+                                   f"{tbl}.csv", "file", f"{tbl}.csv", True, )
+        ds.call_api(f"user0", "upload_de", None, None, f"user0",
                     register_res.de_id, plaintext_bytes, )
     for i in range(num_users):
         for tbl in partitioned_tables:
@@ -110,37 +108,42 @@ if __name__ == '__main__':
             f = open(filename, "rb")
             plaintext_bytes = f.read()
             f.close()
-            register_res = ds.call_api(f"user{i}", "register_data", None, None, f"user{i}",
+            register_res = ds.call_api(f"user{i}", "register_de", None, None, f"user{i}",
                                        f"{tbl}.csv", "file", f"{tbl}.csv", False, )
-            ds.call_api(f"user{i}", "upload_data", None, None, f"user{i}",
+            ds.call_api(f"user{i}", "upload_de", None, None, f"user{i}",
                         register_res.de_id, plaintext_bytes, )
 
-    # Step 3: user0 suggests a share saying he can run all functions in share
+    res = ds.call_api("user0", "list_discoverable_des", None, None, "user0")
+    print(f"Result of listing discoverable data elements is {res}")
+
+    # Step 3: User suggesting shares
     agents = [1]
-    functions = ["select_star", "tpch_1", "tpch_2", "tpch_3", "tpch_4", "tpch_5", "tpch_6", "tpch_7",
-                 "tpch_8", "tpch_9", "tpch_10", "tpch_11", "tpch_12", "tpch_13", "tpch_14", "tpch_15", "tpch_16",
-                 "tpch_17", "tpch_18", "tpch_19", "tpch_20", "tpch_21", "tpch_22"]
     total_des = num_users * len(partitioned_tables) + len(small_tables)
     data_elements = list(range(1, total_des + 1))
-    ds.call_api("user0", "suggest_share", None, None, "user0", agents, functions, data_elements)
+    ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, "select_star",
+                "nation", message="hello select star")
+    ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, "tpch_1")
+    ds.call_api("user0", "suggest_share", None, None, "user0", agents, data_elements, "tpch_2")
+
+    # User1 calls show_share() to see what's the content of shares
+    for i in range(1, 4):
+        share_obj = ds.call_api("user1", "show_share", None, None, "user0", i)
+        print(share_obj)
 
     # Step 4: all users acknowledge the share
-    cur_de_id = 1
     for i in range(num_users):
-        if i == 0:
-            cur_user_de_count = len(partitioned_tables) + len(small_tables)
-        else:
-            cur_user_de_count = len(partitioned_tables)
-        for j in range(cur_user_de_count):
-            ds.call_api(f"user{i}", "ack_data_in_share", None, None, f"user{i}", cur_de_id, 1)
-            cur_de_id += 1
+        for j in range(1, 4):
+            ds.call_api(f"user{i}", "approve_share", None, None, f"user{i}", j)
 
-    # Step 5: user0 calls functions
-    select_star_res = ds.call_api("user0", "select_star", 1, "pessimistic", "nation")
+    # Step 5: user calls execute share
+    select_star_res = ds.call_api("user0", "execute_share", None, None, "user0", 1)
     print("Result of select star from nation is:", select_star_res)
-    for i in range(1, 5):
-        tpch_res = ds.call_api("user0", f"tpch_{i}", 1, "pessimistic")
-        print(f"Result of TPC_H {i} is:", tpch_res)
+
+    tpch_1_res = ds.call_api("user0", "execute_share", None, None, "user0", 2)
+    print("Result of TPCH 1 is", tpch_1_res)
+
+    tpch_2_res = ds.call_api("user0", "execute_share", None, None, "user0", 3)
+    print("Result of TPCH 2 is", tpch_2_res)
 
     # Last step: shut down the Data Station
     ds.shut_down()
