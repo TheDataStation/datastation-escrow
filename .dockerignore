@@ -1,6 +1,5 @@
 .git
 data_station.db
-server/*
 contractmanager/*
 data_comparisons/*
 demanager/*
@@ -8,9 +7,9 @@ example_epf/*
 examples/*
 gatekeeper/*
 integration_new/*
-oldstuff/*
 numbers/*
 oldstuff/*
+server/*
 SM_storage/*
 storagemanager/*
 userregister/*
