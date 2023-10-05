@@ -4,7 +4,7 @@ import csv
 
 @api_endpoint
 def register_de(user_id, data_name, data_type, access_param, optimistic):
-    print("This is a customized register data!")
+    print("This is a customized register DE!")
     return EscrowAPI.register_de(user_id, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
@@ -16,7 +16,7 @@ def list_discoverable_des(user_id):
     return EscrowAPI.list_discoverable_des(user_id)
 
 @api_endpoint
-def propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs):
+def propose_contract(user_id, dest_agents: list[int], data_elements: list[int], f, *args, **kwargs):
     return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs)
 
 @api_endpoint

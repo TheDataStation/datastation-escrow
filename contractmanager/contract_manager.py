@@ -64,7 +64,8 @@ def show_contract(user_id, contract_id):
     # Check if caller is contract's approval agent
     approval_agents = database_api.get_approval_for_contract(contract_id)
     approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
-    if user_id not in approval_agents_list:
+    if int(user_id) not in approval_agents_list:
+        print("Caller not an approval agent of the contract.")
         return None
 
     # Get the destination agents, the data elements, the template and its args
@@ -93,7 +94,7 @@ def approve_contract(user_id,
                      ):
     approval_agents = database_api.get_approval_for_contract(contract_id)
     approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
-    if user_id not in approval_agents_list:
+    if int(user_id) not in approval_agents_list:
         return {"status": 1, "message": "Caller not an approval agent."}
 
     # If in no_trust mode, we need to record this in wal
