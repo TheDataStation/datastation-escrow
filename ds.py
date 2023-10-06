@@ -400,11 +400,10 @@ class DataStation:
             list_of_function = get_registered_functions()
 
             for cur_fn in list_of_function:
-                print(cur_fn.__name__)
                 if function == cur_fn.__name__:
                     print("Calling a function in development:", function)
-                    print(args)
-                    print(kwargs)
+                    print("Args is", args)
+                    print("Kwargs is ", kwargs)
                     res = cur_fn(*args, **kwargs)
                     return res
 
