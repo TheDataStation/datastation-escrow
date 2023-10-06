@@ -283,6 +283,8 @@ class DataStation:
         A response object with the following fields:
             status: status of proposing a contract. 0: success, 1: failure.
         """
+        print(args)
+
         # We first register the contract in the DB
         # Decide which contract_id to use from self.cur_contract_id
         contract_id = self.cur_contract_id
@@ -356,7 +358,7 @@ class DataStation:
         if self.development_mode:
             # Check destination agent
             dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
-            if user_id not in dest_a_ids:
+            if int(user_id) not in dest_a_ids:
                 print("Caller not a destination agent")
                 return None
 
@@ -406,6 +408,9 @@ class DataStation:
                     print(kwargs)
                     res = cur_fn(*args, **kwargs)
                     return res
+                else:
+                    print("Called function does not exist")
+                    return None
         else:
             # Case 2: Sending to Gatekeeper
             print("Calling a function in docker:", function)

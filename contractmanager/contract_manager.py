@@ -7,7 +7,7 @@ def register_contract_in_DB(user_id,
                             contract_id,
                             dest_agents,
                             data_elements,
-                            template,
+                            function,
                             write_ahead_log,
                             key_manager,
                             *args,
@@ -16,12 +16,14 @@ def register_contract_in_DB(user_id,
     param_json = {"args": args, "kwargs": kwargs}
     param_str = json.dumps(param_json)
 
+    # TODO: need to check if this is a valid function
+
     # First add to the Contract table
     if write_ahead_log:
-        wal_entry = f"database_api.create_contract({contract_id}, {template}, {param_str})"
+        wal_entry = f"database_api.create_contract({contract_id}, {function}, {param_str})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    db_res = database_api.create_contract(contract_id, template, param_str)
+    db_res = database_api.create_contract(contract_id, function, param_str)
     if db_res["status"] == 1:
         return db_res
 

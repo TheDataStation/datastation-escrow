@@ -9,5 +9,5 @@ mount_path: "./SM_storage_mount/"
 database_url: "sqlite:///./data_station.db"
 epf_path: "example_epf/general_test.py"
 trust_mode: "full_trust"
-in_development_mode: False
+in_development_mode: True # when setting to True, functions don't run through Docker
 operating_system: "mac"

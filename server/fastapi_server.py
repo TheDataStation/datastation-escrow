@@ -67,6 +67,16 @@ if __name__ == "__main__":
                 contents = file.file.read()
                 return upload_de_def(user_id, data_id, contents)
             app.add_api_route(f"/{api.__name__}", upload_file, methods=["POST"])
+        elif api.__name__ == "propose_contract":
+            propose_contract_def = api
+
+            def propose_contract(user_id: int,
+                                 dest_agents: list[int],
+                                 data_elments: list[int],
+                                 f,
+                                 args: list, ):
+                return propose_contract_def(user_id, dest_agents, data_elments, f, *args)
+            app.add_api_route(f"/{api.__name__}", propose_contract, methods=["POST"])
         else:
             app.add_api_route(f"/{api.__name__}", api, methods=["POST"])
 
