@@ -13,37 +13,33 @@ Create the needed directories
 
     mkdir SM_storage SM_storage_mount
 
-## Run an example application
+## Run a simple application
 
-We run a simple file sharing application, in which one user allows another user to see the number of lines 
-in the shared files (but not the file itself).
+Here is the code to run a simple application: printing out the first line of a file.
 
-Set the trust mode setting to "full_trust" in data_station_config.yaml
+Use the following configs in data_station_config.yaml
 
+    epf_path: "example_epf/general_test.py"
     trust_mode: "full_trust"
-
-Set the content of app_connector_config.yaml as follows:
-
-    connector_name: "example_one"
-    connector_module_path: "app_connectors/example_one.py"
+    in_development: True
 
 Execute the script that contains the example application.
 
-    python -m integration_tests.example_one
+    python3 -m integration_new.general_full_trust
 
-## Explanation of example one
+## Enabling Docker to run functions
 
-Please refer to the code in test/example_one.
+Ensure that you have Docker enabled on your machine.
 
-In step 0, Data Station is set up. In step 1, two users are created, one being the data provider
-and one being the data user. In step 2, data provider logs in and uploads three datasets 
-to the Data Station. In step 3, data provider shares the first and the third dataset 
-with the data user by writing policies. (but not the second). In step 4, data user logs in 
-and checks all the available APIs. In step 5, data user calls the API "line_count", 
-which prints the number of lines in all the files that he has access to. In this case,
-it is the two files that the data provider shared with him. In the last step, the content
-of the auditable log is printed.
+Start Docker on macOS:
 
-## Test a new application
+    open -a Docker
 
-Coming up soon.
+Start Docker on linux:
+
+    sudo systemctl start docker
+    sudo chmod 666 /var/run/docker.sock
+
+Use the following configs in data_station_config.yaml
+
+    in_development: False
