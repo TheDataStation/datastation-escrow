@@ -3,6 +3,7 @@ import shutil
 import argparse
 
 from fastapi import FastAPI, File, UploadFile
+from typing import Optional
 import uvicorn
 
 from main import initialize_system
@@ -74,8 +75,11 @@ if __name__ == "__main__":
                                  dest_agents: list[int],
                                  data_elments: list[int],
                                  f,
-                                 args: list, ):
-                return propose_contract_def(user_id, dest_agents, data_elments, f, *args)
+                                 args: Optional[list] = None):
+                if not args:
+                    return propose_contract_def(user_id, dest_agents, data_elments, f)
+                else:
+                    return propose_contract_def(user_id, dest_agents, data_elments, f, *args)
             app.add_api_route(f"/{api.__name__}", propose_contract, methods=["POST"])
         else:
             app.add_api_route(f"/{api.__name__}", api, methods=["POST"])

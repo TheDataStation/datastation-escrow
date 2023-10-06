@@ -283,8 +283,6 @@ class DataStation:
         A response object with the following fields:
             status: status of proposing a contract. 0: success, 1: failure.
         """
-        print(args)
-
         # We first register the contract in the DB
         # Decide which contract_id to use from self.cur_contract_id
         contract_id = self.cur_contract_id
