@@ -11,5 +11,5 @@ class DataElement(Base):
     name = Column(String)
     type = Column(String)
     access_param = Column(String)
-    optimistic = Column(Boolean)
+    discoverable = Column(Boolean)
     owner_id = Column(Integer)

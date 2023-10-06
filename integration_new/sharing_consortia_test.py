@@ -42,28 +42,33 @@ if __name__ == '__main__':
             f_name = f"d{u_id}.csv"
         else:
             f_name = f"b{u_id}.csv"
-        register_res = ds.call_api(f"user{u_id}", "register_de", f_name, "file", f_name, True, )
+        register_res = ds.call_api(f"user{u_id}", "register_de", f_name)
         ds.call_api(f"user{u_id}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
     res = ds.call_api("user0", "list_discoverable_des")
     print(f"Result of listing discoverable data elements is {res}")
 
-    # Step 3: Agent suggesting shares
+    # Step 3: Agent propose contracts
     agents = [1]
     data_elements = [1, 2, 3, 4, 5, 6]
-    s_id = ds.call_api("user0", "suggest_share", agents, data_elements, "calc_pi_and_pip")
+    res = ds.call_api("user0", "propose_contract", agents, data_elements, "calc_pi_and_pip")
+    if res["status"] == 0:
+        c_id = res["contract_id"]
+    else:
+        print("Proposing contract failed")
+        exit()
 
-    # Approval agent calls show_share() to see content of the share
-    share_obj = ds.call_api("user1", "show_share", s_id)
-    print(share_obj)
+    # Approval agent calls show_contract() to see content of the contract
+    contract_obj = ds.call_api("user1", "show_contract", c_id)
+    print(contract_obj)
 
-    # Step 4: Agents approving the share.
-    ds.call_api(f"user0", "approve_share", s_id)
-    ds.call_api(f"user1", "approve_share", s_id)
-    ds.call_api(f"user2", "approve_share", s_id)
+    # Step 4: Agents approving the contract.
+    ds.call_api(f"user0", "approve_contract", c_id)
+    ds.call_api(f"user1", "approve_contract", c_id)
+    ds.call_api(f"user2", "approve_contract", c_id)
 
     # Step 5: user calculates pi and pip
-    res_1 = ds.call_api("user0", "execute_share", s_id)
+    res_1 = ds.call_api("user0", "execute_contract", c_id)
     print("Result of calculating pi and pip is:", res_1)
 
     # Step 6: user calls release staged to look at their pi and pip
@@ -76,18 +81,23 @@ if __name__ == '__main__':
         f = open(cur_f, "rb")
         plaintext_bytes = f.read()
         f.close()
-        register_res = ds.call_api(f"user{i}", "register_de", f"b{i+1}.txt", "file", f"b{i+1}.txt", True, )
+        register_res = ds.call_api(f"user{i}", "register_de", f"b{i+1}.txt", )
         ds.call_api(f"user{i}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
     agents = [1]
     data_elements = [7, 8, 9]
-    s_id = ds.call_api("user0", "suggest_share", agents, data_elements, "run_auction")
+    res = ds.call_api("user0", "propose_contract", agents, data_elements, "run_auction")
+    if res["status"] == 0:
+        c_id = res["contract_id"]
+    else:
+        print("Proposing contract failed")
+        exit()
 
-    ds.call_api(f"user0", "approve_share", s_id)
-    ds.call_api(f"user1", "approve_share", s_id)
-    ds.call_api(f"user2", "approve_share", s_id)
+    ds.call_api(f"user0", "approve_contract", c_id)
+    ds.call_api(f"user1", "approve_contract", c_id)
+    ds.call_api(f"user2", "approve_contract", c_id)
 
-    res_2 = ds.call_api("user0", "execute_share", s_id)
+    res_2 = ds.call_api("user0", "execute_contract", c_id)
     print("Result of running the auction: the winner user id is", res_2)
 
     # Last step: shut down the Data Station

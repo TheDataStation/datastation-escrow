@@ -9,7 +9,7 @@ def register_de_in_DB(de_id,
                       user_id,
                       de_type,
                       access_param,
-                      optimistic,
+                      discoverable,
                       write_ahead_log,
                       key_manager, ):
     # Call DB to register a new data element in the database
@@ -19,7 +19,7 @@ def register_de_in_DB(de_id,
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log:
-        wal_entry = f"database_api.create_de({de_id}, {de_name}, {user_id}, {de_type}, {access_param}, {optimistic})"
+        wal_entry = f"database_api.create_de({de_id}, {de_name}, {user_id}, {de_type}, {access_param}, {discoverable})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
     de_resp = database_api.create_de(int(de_id),
@@ -27,7 +27,7 @@ def register_de_in_DB(de_id,
                                      int(user_id),
                                      str(de_type),
                                      str(access_param),
-                                     bool(optimistic), )
+                                     bool(discoverable), )
     if de_resp["status"] == 1:
         return de_resp
 

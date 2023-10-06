@@ -16,7 +16,12 @@ def register_contract_in_DB(user_id,
     param_json = {"args": args, "kwargs": kwargs}
     param_str = json.dumps(param_json)
 
-    # TODO: need to check if this is a valid function
+    # first check if this is a valid function
+    function_res = database_api.get_all_functions()
+    if function_res["status"] == 1:
+        return function_res
+    if function not in function_res["data"]:
+        return {"status": 1, "message": "Contract function not valid"}
 
     # First add to the Contract table
     if write_ahead_log:
@@ -129,7 +134,6 @@ def get_dest_ids_for_contract(contract_id):
 
 def get_contract_function_and_param(contract_id):
     contract_db_res = database_api.get_contract(contract_id)
-    print(contract_db_res)
     function = contract_db_res["data"].function
     function_param = json.loads(contract_db_res["data"].function_param)
     return function, function_param

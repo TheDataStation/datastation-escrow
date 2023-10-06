@@ -12,8 +12,8 @@ def get_all_des(db: Session):
 
 
 def list_discoverable_des(db: Session):
-    all_optimistic_data = db.query(DataElement.id).filter(DataElement.optimistic == True).all()
-    return all_optimistic_data
+    all_discoverable_de = db.query(DataElement.id).filter(DataElement.discoverable == True).all()
+    return all_discoverable_de
 
 
 def get_de_by_id(db: Session, de_id: int):
@@ -55,14 +55,13 @@ def remove_de_by_name(db: Session, de_name):
     return "success"
 
 
-def create_de(db: Session, de_id, de_name, user_id, de_type, access_param, optimistic):
-    # TODO: bug here from fastapi: type mismatch
+def create_de(db: Session, de_id, de_name, user_id, de_type, access_param, discoverable):
     db_de = DataElement(id=de_id,
                         owner_id=user_id,
                         name=de_name,
                         type=de_type,
                         access_param=access_param,
-                        optimistic=optimistic)
+                        discoverable=discoverable)
 
     try:
         db.add(db_de)
@@ -104,7 +103,7 @@ def recover_des(db: Session, datas):
                                type=data.type,
                                access_param=data.access_param,
                                description=data.description,
-                               optimistic=data.optimistic, )
+                               discoverable=data.discoverable, )
         datas_to_add.append(cur_data)
     try:
         db.add_all(datas_to_add)

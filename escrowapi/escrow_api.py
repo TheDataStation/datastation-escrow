@@ -53,7 +53,7 @@ class EscrowAPI:
                     data_name,
                     data_type,
                     access_param,
-                    optimistic,
+                    discoverable,
                     ):
         """
         API Endpoint.
@@ -64,14 +64,14 @@ class EscrowAPI:
             data_name: name of the data
             data_type: type of DE. e.g: file.
             access_param: additional parameters needed for acccessing the DE
-            optimistic: flag to be included in optimistic data discovery
+            discoverable: True: DE is discoverable
 
         Returns:
         A response object with the following fields:
             status: status of registering DE. 0: success, 1: failure.
             data_id: if success, a data_id is returned for this registered DE.
         """
-        return cls.__comp.register_de(user_id, data_name, data_type, access_param, optimistic)
+        return cls.__comp.register_de(user_id, data_name, data_type, access_param, discoverable)
 
     @classmethod
     def upload_de(cls,

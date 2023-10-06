@@ -160,7 +160,7 @@ class DataStation:
                     de_name,
                     de_type,
                     access_param,
-                    optimistic):
+                    discoverable):
         """
         Registers a data element in Data Station's database.
 
@@ -168,7 +168,7 @@ class DataStation:
             user_id: the unique id identifying which user owns the de
             de_name: name of DE
             de_type: what types of data can be uploaded?
-            optimistic: flag to be included in optimistic data discovery
+            discoverable: True: DE is discoverable
             access_param: additional parameters needed for acccessing the DE
         """
         # Decide which de_id to use from self.cur_de_id
@@ -180,7 +180,7 @@ class DataStation:
                                             user_id,
                                             de_type,
                                             access_param,
-                                            optimistic,
+                                            discoverable,
                                             self.write_ahead_log,
                                             self.key_manager)
 
@@ -400,15 +400,17 @@ class DataStation:
             list_of_function = get_registered_functions()
 
             for cur_fn in list_of_function:
+                print(cur_fn.__name__)
                 if function == cur_fn.__name__:
                     print("Calling a function in development:", function)
                     print(args)
                     print(kwargs)
                     res = cur_fn(*args, **kwargs)
                     return res
-                else:
-                    print("Called function does not exist")
-                    return None
+
+            # Getting here means called function is not found
+            print("Called function does not exist")
+            return None
         else:
             # Case 2: Sending to Gatekeeper
             print("Calling a function in docker:", function)

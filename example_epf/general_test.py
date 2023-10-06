@@ -3,9 +3,9 @@ from escrowapi.escrow_api import EscrowAPI
 import csv
 
 @api_endpoint
-def register_de(user_id, data_name, data_type, access_param, optimistic):
+def register_de(user_id, data_name, data_type, access_param, discoverable):
     print("This is a customized register DE!")
-    return EscrowAPI.register_de(user_id, data_name, data_type, access_param, optimistic)
+    return EscrowAPI.register_de(user_id, data_name, data_type, access_param, discoverable)
 
 @api_endpoint
 def upload_de(user_id, data_id, data_in_bytes):
