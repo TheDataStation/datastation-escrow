@@ -3,3 +3,4 @@ requests
 fuse-python
 cryptography
 numpy
+pandas
