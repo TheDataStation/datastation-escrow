@@ -40,3 +40,4 @@ requests~=2.27.1
 Flask~=2.0.3
 docker~=6.0.1
 duckdb~=0.7.1
+Werkzeug==2.2.2
