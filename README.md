@@ -51,6 +51,8 @@ developers will write applications they want to run on top of Data Station.
 In this section, we explain how to develop applications for Data Station.
 
 An application that can run on Data Station is specified as a python file under the
-example_epf/ directory. For example:
+example_epm/ directory, called an **EPM file**. An example of an EPM file is:
 
     example_epf/sharing_consortia.py
+
+Each application 
