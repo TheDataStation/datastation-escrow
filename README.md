@@ -67,7 +67,7 @@ A special class of APIs are additionally tagged with @function.
 These are APIs that users can call, that need to access the content of data elements. 
 An example of such an API endpoint in sharing_consortia.py is
 
-    @@api_endpoint
+    @api_endpoint
     @function
     def calc_pi_and_pip():
 
