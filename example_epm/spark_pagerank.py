@@ -11,6 +11,7 @@ from pyspark.sql import SparkSession
 def register_de(user_id: int,
                 file_name: str, ):
     """Register a DE"""
+    # TODO: we check that input DE looks like lines of space separated numbers (node IDs)
     return EscrowAPI.register_de(user_id, file_name, "file", file_name, 1)
 
 
@@ -45,3 +46,50 @@ def approve_contract(user_id: int, contract_id: int):
 @api_endpoint
 def execute_contract(user_id: int, contract_id: int):
     return EscrowAPI.execute_contract(user_id, contract_id)
+
+
+def computeContribs(urls, rank):
+    """Calculates URL contributions to the rank of other URLs."""
+    num_urls = len(urls)
+    for url in urls:
+        yield url, rank / num_urls
+
+
+def parseNeighbors(urls):
+    """Parses a urls pair string into urls pair."""
+    parts = re.split(r'\s+', urls)
+    return parts[0], parts[1]
+
+
+def calculate_page_rank():
+    spark = SparkSession.builder.appName("PythonPageRank").getOrCreate()
+
+    exit()
+
+    # Loads in input file.
+    lines = spark.read.text(sys.argv[1]).rdd.map(lambda r: r[0])
+
+    # TODO: Need to use Spark Union
+
+    # Loads all URLs from input file and initialize their neighbors.
+    links = lines.map(lambda urls: parseNeighbors(urls)).distinct().groupByKey().cache()
+
+    # Loads all URLs with other URL(s) link to from input file and initialize ranks of them to one.
+    ranks = links.map(lambda url_neighbors: (url_neighbors[0], 1.0))
+
+    # Calculates and updates URL ranks continuously using PageRank algorithm.
+    for iteration in range(int(sys.argv[2])):
+        # Calculates URL contributions to the rank of other URLs.
+        contribs = links.join(ranks).flatMap(lambda url_urls_rank: computeContribs(
+            url_urls_rank[1][0], url_urls_rank[1][1]  # type: ignore[arg-type]
+        ))
+
+        # Re-calculates URL ranks based on neighbor contributions.
+        ranks = contribs.reduceByKey(add).mapValues(lambda rank: rank * 0.85 + 0.15)
+
+    # Collects all URL ranks and dump them to console.
+    for (link, rank) in ranks.collect():
+        print("%s has rank: %s." % (link, rank))
+
+    spark.stop()
+
