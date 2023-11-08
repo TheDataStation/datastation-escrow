@@ -47,7 +47,7 @@ if __name__ == '__main__':
     # Step 3: Agent propose contracts
     agents = [1]
     data_elements = [1, 2]
-    res = ds.call_api("user0", "propose_contract", agents, data_elements, "calculate_page_rank")
+    res = ds.call_api("user0", "propose_contract", agents, data_elements, "calculate_page_rank", 10)
     if res["status"] == 0:
         c_id = res["contract_id"]
     else:
@@ -63,40 +63,10 @@ if __name__ == '__main__':
     ds.call_api(f"user0", "approve_contract", c_id)
     ds.call_api(f"user1", "approve_contract", c_id)
 
-    exit()
-
     # Step 5: user calculates pi and pip
-    res_1 = ds.call_api("user0", "execute_contract", c_id)
-    print("Result of calculating pi and pip is:", res_1)
-
-    # Step 6: user calls release staged to look at their pi and pip
-    res = ds.call_api("user0", "release_staged")
-    print(f"Releasing pi and pip for user0: {res}")
-
-    # Step 6: users submit bids and runs the auction
-    for i in range(3):
-        cur_f = f"integration_new/test_files/sharing_bids/b{i+1}.txt"
-        f = open(cur_f, "rb")
-        plaintext_bytes = f.read()
-        f.close()
-        register_res = ds.call_api(f"user{i}", "register_de", f"b{i+1}.txt", )
-        ds.call_api(f"user{i}", "upload_de", register_res["de_id"], plaintext_bytes, )
-
-    agents = [1]
-    data_elements = [7, 8, 9]
-    res = ds.call_api("user0", "propose_contract", agents, data_elements, "run_auction")
-    if res["status"] == 0:
-        c_id = res["contract_id"]
-    else:
-        print("Proposing contract failed")
-        exit()
-
-    ds.call_api(f"user0", "approve_contract", c_id)
-    ds.call_api(f"user1", "approve_contract", c_id)
-    ds.call_api(f"user2", "approve_contract", c_id)
-
-    res_2 = ds.call_api("user0", "execute_contract", c_id)
-    print("Result of running the auction: the winner user id is", res_2)
+    res = ds.call_api("user0", "execute_contract", c_id)
+    for (link, rank) in res:
+        print("%s has rank: %s." % (link, rank))
 
     # Last step: shut down the Data Station
     ds.shut_down()

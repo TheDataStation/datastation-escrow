@@ -6,6 +6,7 @@ import sys
 from operator import add
 
 from pyspark.sql import SparkSession
+from functools import reduce
 
 @api_endpoint
 def register_de(user_id: int,
@@ -29,8 +30,9 @@ def list_discoverable_des(user_id: int):
 def propose_contract(user_id: int,
                      dest_agents: list[int],
                      data_elements: list[int],
-                     f: str, ):
-    return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, f)
+                     f: str,
+                     *args, ):
+    return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, f, *args)
 
 
 @api_endpoint
@@ -62,15 +64,24 @@ def parseNeighbors(urls):
 
 @api_endpoint
 @function
-def calculate_page_rank():
+def calculate_page_rank(num_iter):
     spark = SparkSession.builder.appName("PythonPageRank").getOrCreate()
 
-    exit()
+    # List to hold the RDDs
+    rdd_list = []
 
-    # Loads in input file.
-    lines = spark.read.text(sys.argv[1]).rdd.map(lambda r: r[0])
+    # Assuming files is a list of file paths
+    files = []
+    des = EscrowAPI.get_all_accessible_des()
+    for de in des:
+        files.append(de.access_param)
 
-    # TODO: Need to use Spark Union
+    # Load text files into RDDs and append to the list
+    for file in files:
+        rdd_list.append(spark.sparkContext.textFile(file))
+
+    # Use reduce to apply union iteratively
+    lines = reduce(lambda x, y: x.union(y), rdd_list)
 
     # Loads all URLs from input file and initialize their neighbors.
     links = lines.map(lambda urls: parseNeighbors(urls)).distinct().groupByKey().cache()
@@ -79,7 +90,7 @@ def calculate_page_rank():
     ranks = links.map(lambda url_neighbors: (url_neighbors[0], 1.0))
 
     # Calculates and updates URL ranks continuously using PageRank algorithm.
-    for iteration in range(int(sys.argv[2])):
+    for iteration in range(num_iter):
         # Calculates URL contributions to the rank of other URLs.
         contribs = links.join(ranks).flatMap(lambda url_urls_rank: computeContribs(
             url_urls_rank[1][0], url_urls_rank[1][1]  # type: ignore[arg-type]
@@ -88,9 +99,7 @@ def calculate_page_rank():
         # Re-calculates URL ranks based on neighbor contributions.
         ranks = contribs.reduceByKey(add).mapValues(lambda rank: rank * 0.85 + 0.15)
 
-    # Collects all URL ranks and dump them to console.
-    for (link, rank) in ranks.collect():
-        print("%s has rank: %s." % (link, rank))
-
+    res = ranks.collect()
     spark.stop()
+    return res
 
