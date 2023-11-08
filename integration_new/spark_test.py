@@ -26,36 +26,33 @@ if __name__ == '__main__':
     ds = initialize_system(ds_config)
 
     # Step 1: Create new agents
-    num_users = 3
+    num_users = 2
     for i in range(num_users):
         ds.create_user(f"user{i}", "string", )
 
     # Step 2: Create and upload data elements.
-    # We use the 3 csv files in integration_new/test_files/titanic_p
-    for i in range(6):
-        cur_f = f"integration_new/test_files/titanic_p/f{i}.csv"
+    # We use the 2 csv files in integration_new/test_files/pagerank_p
+    for i in range(num_users):
+        f_name = f"{i}.txt"
+        cur_f = f"integration_new/test_files/pagerank_p/{f_name}"
         f = open(cur_f, "rb")
         plaintext_bytes = f.read()
         f.close()
-        u_id = i // 2
-        if i % 2 == 0:
-            f_name = f"d{u_id}.csv"
-        else:
-            f_name = f"b{u_id}.csv"
-        register_res = ds.call_api(f"user{u_id}", "register_de", f_name)
-        ds.call_api(f"user{u_id}", "upload_de", register_res["de_id"], plaintext_bytes, )
+        register_res = ds.call_api(f"user{i}", "register_de", f_name)
+        ds.call_api(f"user{i}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
     res = ds.call_api("user0", "list_discoverable_des")
     print(f"Result of listing discoverable data elements is {res}")
 
     # Step 3: Agent propose contracts
     agents = [1]
-    data_elements = [1, 2, 3, 4, 5, 6]
-    res = ds.call_api("user0", "propose_contract", agents, data_elements, "calc_pi_and_pip")
+    data_elements = [1, 2]
+    res = ds.call_api("user0", "propose_contract", agents, data_elements, "calculate_page_rank")
     if res["status"] == 0:
         c_id = res["contract_id"]
     else:
         print("Proposing contract failed")
+        print(res["message"])
         exit()
 
     # Approval agent calls show_contract() to see content of the contract
@@ -65,7 +62,8 @@ if __name__ == '__main__':
     # Step 4: Agents approving the contract.
     ds.call_api(f"user0", "approve_contract", c_id)
     ds.call_api(f"user1", "approve_contract", c_id)
-    ds.call_api(f"user2", "approve_contract", c_id)
+
+    exit()
 
     # Step 5: user calculates pi and pip
     res_1 = ds.call_api("user0", "execute_contract", c_id)

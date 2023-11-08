@@ -60,7 +60,8 @@ def parseNeighbors(urls):
     parts = re.split(r'\s+', urls)
     return parts[0], parts[1]
 
-
+@api_endpoint
+@function
 def calculate_page_rank():
     spark = SparkSession.builder.appName("PythonPageRank").getOrCreate()
 
