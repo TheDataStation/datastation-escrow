@@ -57,7 +57,7 @@ if __name__ == "__main__":
     if os.path.exists(log_path):
         os.remove(log_path)
 
-    # Let's get the list of function objects (the api_endpoints defined in the EPF)
+    # Let's get the list of function objects (the api_endpoints defined in the EPM)
     api_endpoints = get_registered_api_endpoint()
     for api in api_endpoints:
         print(api.__name__)
