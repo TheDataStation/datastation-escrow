@@ -21,7 +21,7 @@ from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
                                                  clear_api_endpoint,
                                                  clear_function,
                                                  register_epf, )
-from userregister import user_register
+from agentmanager import agent_manager
 from common.abstraction import DataElement
 from common.config import DSConfig
 class DataStation:
@@ -141,7 +141,7 @@ class DataStation:
             self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         # Part two: Call the user_register to register the user in the DB
-        response = user_register.create_user(user_id,
+        response = agent_manager.create_user(user_id,
                                              username,
                                              password,
                                              self.write_ahead_log,
@@ -154,6 +154,14 @@ class DataStation:
         self.storage_manager.create_staging_for_user(user_id)
 
         return response
+
+    def list_all_agents(self,
+                        user_id):
+        """
+        Show all agents' (ID, name) in the current instance
+        """
+        agent_manager_response = agent_manager.list_all_agents()
+        return agent_manager_response
 
     def register_de(self,
                     user_id,
@@ -206,6 +214,7 @@ class DataStation:
         if de_res["status"] == 1:
             return de_res
 
+        # If in no_trust mode, encrypt the DE using agent's symmetric key
         if self.trust_mode == "no_trust":
             data_in_bytes = cu.encrypt_data_with_symmetric_key(data_in_bytes,
                                                                self.key_manager.agents_symmetric_key[user_id])

@@ -9,7 +9,7 @@ class EscrowAPI:
     @classmethod
     def get_all_accessible_des(cls):
         """
-        For use by template functions.
+        For functions.
         Returns all accessible data elements.
 
         Returns:
@@ -20,7 +20,7 @@ class EscrowAPI:
     @classmethod
     def get_de_by_id(cls, de_id):
         """
-        For use by template functions.
+        For functions.
         Returns a data element, specified by de_id
 
         Parameters:
@@ -34,15 +34,15 @@ class EscrowAPI:
     @classmethod
     def write_staged(cls, file_name, user_id, content):
         """
-        Used by functions.
-        Writes "content" to a file for user_id.
+        For functions.
+        Writes "content" to a file under "file_name" for user_id.
         """
         return cls.__comp.write_staged(file_name, user_id, content)
 
     @classmethod
     def release_staged(cls, user_id):
         """
-        Used by API endpoints.
+        For API endpoints.
         For a user, releases all files in the user's staging storage.
         """
         return cls.__comp.release_staged(user_id)
@@ -56,8 +56,8 @@ class EscrowAPI:
                     discoverable,
                     ):
         """
-        API Endpoint.
-        Registers a data element in Data Station's database.
+        For API endpoints.
+        Registers a DE in Data Station's database.
 
         Parameters:
             user_id: caller id (owner of the data element)
@@ -74,12 +74,22 @@ class EscrowAPI:
         return cls.__comp.register_de(user_id, data_name, data_type, access_param, discoverable)
 
     @classmethod
+    def list_all_agents(cls,
+                        user_id):
+        """
+        For API endpoints.
+        Lists all agents' (ID, name) in the current instance.
+        """
+        return cls.__comp.list_all_agents(user_id)
+
+
+    @classmethod
     def upload_de(cls,
                   user_id,
                   data_id,
                   data_in_bytes):
         """
-        API Endpoint.
+        For API endpoints.
         Upload data in bytes corresponding to a registered DE. These bytes will be written to a file in DataStation's
         storage manager.
 

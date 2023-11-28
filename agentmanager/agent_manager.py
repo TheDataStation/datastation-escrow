@@ -75,3 +75,11 @@ def authenticate_user(token):
     except JWTError:
         raise credentials_exception
     return username
+
+def list_all_agents():
+    database_service_response = database_api.get_all_users()
+    res = []
+    for agent in database_service_response["data"]:
+        cur_agent_id_name = (agent.id, agent.user_name)
+        res.append(cur_agent_id_name)
+    return res
