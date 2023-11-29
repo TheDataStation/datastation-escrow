@@ -7,7 +7,7 @@ from typing import Optional
 import uvicorn
 
 from main import initialize_system
-from dsapplicationregistration.dsar_core import get_registered_api_endpoint
+from dsapplicationregistration.dsar_core import get_registered_api_endpoint, get_registered_functions
 
 app = FastAPI()
 
@@ -50,6 +50,7 @@ if __name__ == "__main__":
     port = args.port
     host = args.host
 
+    # Initializing an instance of DS, according to the config file
     global ds
     ds = initialize_system(args.ds_config)
 
@@ -57,8 +58,10 @@ if __name__ == "__main__":
     if os.path.exists(log_path):
         os.remove(log_path)
 
-    # Let's get the list of function objects (the api_endpoints defined in the EPM)
+    # Get the list of api_endpoints defined in the EPM (not including @functions)
+    # Create FastAPI endpoints for them
     api_endpoints = get_registered_api_endpoint()
+    functions = get_registered_functions()
     for api in api_endpoints:
         print(api.__name__)
         if api.__name__ == "upload_de":

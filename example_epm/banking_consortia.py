@@ -33,7 +33,7 @@ def approve_contract(user_id, contract_id):
 def execute_contract(user_id, contract_id):
     return EscrowAPI.execute_contract(user_id, contract_id)
 
-
-
-
-
+@api_endpoint
+@function
+def print_first_row(de_id):
+    pass
