@@ -7,15 +7,13 @@ def parse_config(path_to_config):
         res_config = yaml.load(config_file, Loader=yaml.FullLoader)
     return res_config
 
-def clean_test_env(log_path):
-
+def clean_test_env():
+    # Clear escrow state (the database)
     if os.path.exists("data_station.db"):
         os.remove("data_station.db")
 
-    if os.path.exists(log_path):
-        os.remove(log_path)
-
-    folders = ['SM_storage', 'Staging_storage']
+    # Clear stored DEs
+    folders = ['SM_storage']
     for folder in folders:
         for filename in os.listdir(folder):
             file_path = os.path.join(folder, filename)

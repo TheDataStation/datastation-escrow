@@ -27,6 +27,10 @@ Execute the script that contains the example application.
 
     python3 -m integration_new.general_full_trust
 
+Alternatively, to access the application through a web UI (FastAPI):
+
+    python3 -m server.fastapi_server
+
 ## Enabling Docker to run functions
 
 Ensure that you have Docker enabled on your machine.

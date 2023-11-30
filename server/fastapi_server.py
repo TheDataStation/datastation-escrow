@@ -8,12 +8,9 @@ import uvicorn
 
 from main import initialize_system
 from dsapplicationregistration.dsar_core import get_registered_api_endpoint
+from common.general_utils import clean_test_env
 
 app = FastAPI()
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
 # register agent
 @app.post("/register_agent")
@@ -33,17 +30,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', default=8080, type=int)
     parser.add_argument('-hs', '--host', default="localhost", type=str)
 
-    # Clean up
-    if os.path.exists("data_station.db"):
-        os.remove("data_station.db")
-    folders = ['SM_storage']
-    for folder in folders:
-        for filename in os.listdir(folder):
-            file_path = os.path.join(folder, filename)
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
+    clean_test_env()
 
     args = parser.parse_args()
     print(args)
