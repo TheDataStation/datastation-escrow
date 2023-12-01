@@ -167,7 +167,7 @@ class EscrowAPI:
     @classmethod
     def show_contract(cls, user_id, contract_id):
         """
-        API Endpoint.
+        For API endpoints.
         Display the content of a share.
 
         Parameters:
@@ -185,9 +185,25 @@ class EscrowAPI:
         return cls.__comp.show_contract(user_id, contract_id)
 
     @classmethod
+    def show_all_contracts_as_dest(cls, user_id):
+        """
+        For API endpoints.
+        Display all contracts, for which caller is a destination agent.
+        """
+        pass
+
+    @classmethod
+    def show_all_contracts_as_src(cls, user_id):
+        """
+        For API endpoints.
+        Display all contracts, for which caller is an approval agent.
+        """
+        pass
+
+    @classmethod
     def approve_contract(cls, user_id, contract_id):
         """
-        API Endpoint.
+        For API endpoints.
         Update a share's status to ready, for approval agent <username>.
 
         Parameters:
@@ -203,7 +219,7 @@ class EscrowAPI:
     @classmethod
     def execute_contract(cls, user_id, contract_id):
         """
-        API Endpoint.
+        For API endpoints.
         Execute a contract.
 
         Parameters:
