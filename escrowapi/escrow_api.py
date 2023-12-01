@@ -74,6 +74,26 @@ class EscrowAPI:
         return cls.__comp.register_de(user_id, data_name, data_type, access_param, discoverable)
 
     @classmethod
+    def remove_de_from_storage(cls,
+                               user_id,
+                               de_id):
+        """
+        For API endpoints.
+        Remove a DE from storage. (Does not remove it from DB)
+        """
+        pass
+
+    @classmethod
+    def remove_de_from_db(cls,
+                          user_id,
+                          de_id):
+        """
+        For API endpoints.
+        Remove a DE from DB. Also removes it from storage, if it's still in storage.
+        """
+        pass
+
+    @classmethod
     def list_all_agents(cls,
                         user_id):
         """
@@ -86,7 +106,7 @@ class EscrowAPI:
     @classmethod
     def upload_de(cls,
                   user_id,
-                  data_id,
+                  de_id,
                   data_in_bytes):
         """
         For API endpoints.
@@ -95,14 +115,14 @@ class EscrowAPI:
 
         Parameters:
             user_id: caller id (owner of the data element)
-            data_id: id of this existing DE
+            de_id: id of this existing DE
             data_in_bytes: plaintext data in bytes
 
         Returns:
         A response object with the following fields:
             status: status of uploading data. 0: success, 1: failure.
         """
-        return cls.__comp.upload_de(user_id, data_id, data_in_bytes)
+        return cls.__comp.upload_de(user_id, de_id, data_in_bytes)
 
     @classmethod
     def list_discoverable_des(cls, user_id):
