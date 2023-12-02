@@ -204,7 +204,7 @@ class DataStation:
             de_id: id of this existing DE
             data_in_bytes: plaintext data in bytes
         """
-        # Check if the DE exists, and whether its owner is the caller
+        # Check if DE exists, and whether its owner is the caller
         verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
         if verify_owner_response["status"] == 1:
             return verify_owner_response
@@ -219,43 +219,48 @@ class DataStation:
             data_in_bytes = cu.encrypt_data_with_symmetric_key(data_in_bytes,
                                                                self.key_manager.agents_symmetric_key[user_id])
 
-        storage_manager_response = self.storage_manager.store(de_res["data"].name,
-                                                              de_id,
-                                                              data_in_bytes,
-                                                              de_res["data"].type, )
-        return storage_manager_response
+        return self.storage_manager.store(de_res["data"].name,
+                                          de_id,
+                                          data_in_bytes,
+                                          de_res["data"].type, )
 
-    def remove_de(self, username, de_name):
+    def remove_de_from_storage(self, user_id, de_id):
         """
-        Removes a DE from DS's database
-
-        Parameters:
-         username: the unique username identifying which user owns the de
-         de_name: name of the data
-
-        Returns:
-         Response of data register
+        Remove a DE from storage. (Does not remove it from DB).
         """
+        # Check if DE exists, and whether its owner is the caller
+        verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
+        if verify_owner_response["status"] == 1:
+            return verify_owner_response
 
-        # First we call de_manager to remove the existing DE from the database
-        de_manager_response = de_manager.remove_de(de_name,
-                                                   username,
-                                                   self.write_ahead_log,
-                                                   self.key_manager, )
-        if de_manager_response["status"] != 0:
+        return self.storage_manager.remove_de_from_storage(de_id)
+
+    def remove_de_from_db(self, user_id, de_id):
+        """
+        Removes a DE from DS's database.
+        """
+        # Check if DE exists, and whether its owner is the caller
+        verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
+        if verify_owner_response["status"] == 1:
+            return verify_owner_response
+
+        # First call de_manager to remove the DE from database
+        de_manager_response = de_manager.remove_de_from_db(user_id,
+                                                           de_id,
+                                                           self.write_ahead_log,
+                                                           self.key_manager, )
+        if de_manager_response["status"] == 1:
             return de_manager_response
 
         # At this step we have removed the record about the de from DB
-        # Now we remove its actual content from SM
-        storage_manager_response = self.storage_manager.remove(de_name,
-                                                               de_manager_response["de_id"],
-                                                               de_manager_response["type"], )
+        # Now we remove its actual content from storage.
+        storage_manager_response = self.storage_manager.remove_de_from_storage(de_id)
 
-        # If SM removal failed
+        # If DE exists in storage, but removal failed
         if storage_manager_response["status"] == 1:
             return storage_manager_response
 
-        return {"status": de_manager_response["status"], "message": de_manager_response["message"]}
+        return de_manager_response
 
     def list_discoverable_des(self, user_id):
         """
@@ -324,6 +329,18 @@ class DataStation:
             kwargs: kwargs to the template function
         """
         return contract_manager.show_contract(user_id, contract_id)
+
+    def show_all_contracts_as_dest(self, user_id):
+        """
+        Display all contracts, for which caller is a destination agent.
+        """
+        return contract_manager.show_all_contracts_as_dest(user_id)
+
+    def show_all_contracts_as_src(self, user_id):
+        """
+        Display all contracts, for which caller is an approval agent.
+        """
+        return contract_manager.show_all_contracts_as_src(user_id)
 
     def approve_contract(self, user_id, contract_id):
         """

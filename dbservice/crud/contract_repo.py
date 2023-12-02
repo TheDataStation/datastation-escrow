@@ -89,14 +89,24 @@ def get_de_for_contract(db: Session, contract_id):
     return de_in_contract
 
 
-def get_dest_for_contract(db: Session, c_id):
-    dest_agents = db.query(ContractDest.a_id).filter(ContractDest.c_id == c_id).all()
+def get_dest_for_contract(db: Session, contract_id):
+    dest_agents = db.query(ContractDest.a_id).filter(ContractDest.c_id == contract_id).all()
     return dest_agents
 
 
 def get_contract(db: Session, contract_id):
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     return contract
+
+
+def get_all_contracts_for_dest(db: Session, dest_agent_id):
+    contract_ids = db.query(ContractDest.c_id).filter(ContractDest.a_id == dest_agent_id).all()
+    return contract_ids
+
+
+def get_all_contracts_for_src(db: Session, src_agent_id):
+    contract_ids = db.query(ContractStatus.c_id).filter(ContractStatus.a_id == src_agent_id).all()
+    return contract_ids
 
 
 def approve_contract(db: Session, a_id, contract_id):

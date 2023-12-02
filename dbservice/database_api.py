@@ -122,6 +122,14 @@ def remove_de_by_name(de_name):
         else:
             return {"status": 1, "message": "database error: remove DE by name failed"}
 
+def remove_de_by_id(de_id):
+    with get_db() as session:
+        res = dataelement_repo.remove_de_by_id(session, de_id)
+        if res == "success":
+            return {"status": 0, "message": "success"}
+        else:
+            return {"status": 1, "message": "database error: remove DE by ID failed"}
+
 def get_de_owner_id(request):
     with get_db() as session:
         res = dataelement_repo.get_de_owner_id(session, request)
@@ -247,6 +255,22 @@ def get_contract(contract_id):
             return {"status": 0, "message": "success", "data": contract}
         else:
             return {"status": 1, "message": "database error: get contract failed"}
+
+def get_all_contracts_for_dest(dest_agent_id):
+    with get_db() as session:
+        contract_ids = contract_repo.get_contract(session, dest_agent_id)
+        if contract_ids:
+            return {"status": 0, "message": "success", "data": contract_ids}
+        else:
+            return {"status": 1, "message": "No contracts found for destination agent."}
+
+def get_all_contracts_for_src(src_agent_id):
+    with get_db() as session:
+        contract_ids = contract_repo.get_contract(session, src_agent_id)
+        if contract_ids:
+            return {"status": 0, "message": "success", "data": contract_ids}
+        else:
+            return {"status": 1, "message": "No contracts found for source agent."}
 
 def approve_contract(a_id, contract_id):
     with get_db() as session:

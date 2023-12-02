@@ -55,6 +55,16 @@ def remove_de_by_name(db: Session, de_name):
     return "success"
 
 
+def remove_de_by_id(db: Session, de_id):
+    try:
+        db.query(DataElement).filter(DataElement.id == de_id).delete()
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+    return "success"
+
+
 def create_de(db: Session, de_id, de_name, user_id, de_type, access_param, discoverable):
     db_de = DataElement(id=de_id,
                         owner_id=user_id,

@@ -81,7 +81,7 @@ class EscrowAPI:
         For API endpoints.
         Remove a DE from storage. (Does not remove it from DB)
         """
-        pass
+        return cls.__comp.register_de(user_id, de_id)
 
     @classmethod
     def remove_de_from_db(cls,
@@ -91,7 +91,7 @@ class EscrowAPI:
         For API endpoints.
         Remove a DE from DB. Also removes it from storage, if it's still in storage.
         """
-        pass
+        return cls.__comp.remove_de_from_db(user_id, de_id)
 
     @classmethod
     def list_all_agents(cls,
@@ -190,7 +190,7 @@ class EscrowAPI:
         For API endpoints.
         Display all contracts, for which caller is a destination agent.
         """
-        pass
+        return cls.__comp.show_all_contracts_as_dest(user_id)
 
     @classmethod
     def show_all_contracts_as_src(cls, user_id):
@@ -198,7 +198,7 @@ class EscrowAPI:
         For API endpoints.
         Display all contracts, for which caller is an approval agent.
         """
-        pass
+        return cls.__comp.show_all_contracts_as_src(user_id)
 
     @classmethod
     def approve_contract(cls, user_id, contract_id):

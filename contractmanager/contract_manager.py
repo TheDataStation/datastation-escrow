@@ -75,24 +75,13 @@ def show_contract(user_id, contract_id):
         print("Caller not an approval agent of the contract.")
         return None
 
-    # Get the destination agents, the data elements, the template and its args
-    des_in_contract = database_api.get_de_for_contract(contract_id)
-    des_list = list(map(lambda ele: ele[0], des_in_contract))
-    dest_agents = database_api.get_dest_for_contract(contract_id)
-    dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
-    contract_db_res = database_api.get_contract(contract_id)
+    return get_contract_object(contract_id)
 
-    function_param = json.loads(contract_db_res["data"].function_param)
-    contract_obj = {
-        "a_dest": dest_agents_list,
-        "des": des_list,
-        "function": contract_db_res["data"].function,
-        "args": function_param["args"],
-        "kwargs": function_param["kwargs"],
-    }
+def show_all_contracts_as_dest(user_id):
+    pass
 
-    return contract_obj
-
+def show_all_contracts_as_src(user_id):
+    pass
 
 def approve_contract(user_id,
                      contract_id,
@@ -137,3 +126,23 @@ def get_contract_function_and_param(contract_id):
     function = contract_db_res["data"].function
     function_param = json.loads(contract_db_res["data"].function_param)
     return function, function_param
+
+def get_contract_object(contract_id):
+    # Get the destination agents, the data elements, the template and its args, and the ready status
+    des_in_contract = database_api.get_de_for_contract(contract_id)
+    des_list = list(map(lambda ele: ele[0], des_in_contract))
+    dest_agents = database_api.get_dest_for_contract(contract_id)
+    dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
+    contract_db_res = database_api.get_contract(contract_id)
+    function_param = json.loads(contract_db_res["data"].function_param)
+    ready_status = check_contract_ready(contract_id)
+
+    contract_obj = {
+        "a_dest": dest_agents_list,
+        "des": des_list,
+        "function": contract_db_res["data"].function,
+        "args": function_param["args"],
+        "kwargs": function_param["kwargs"],
+        "ready_status": ready_status,
+    }
+    return contract_obj
