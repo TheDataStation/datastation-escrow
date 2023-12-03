@@ -41,20 +41,29 @@ if __name__ == '__main__':
     res = ds.call_api("user0", "list_discoverable_des_with_src")
     print(f"Listing discoverable data elements with their source agents: {res}")
 
-    exit()
-
-    # Step 3: Agent suggesting shares
-    agents = [1]
-    data_elements = [4]
-    res = ds.call_api("user0", "propose_contract", agents, data_elements, "print_first_row", 4)
+    # Test proposing contracts
+    dest_agents = [1, 2]
+    data_elements = [1, 4]
+    res = ds.call_api("user0", "propose_contract", dest_agents, data_elements, "print_first_row", 4)
     print(res)
 
-    # Approval agent calls show_share() to see content of the share
-    share_obj = ds.call_api("user1", "show_contract", 1)
-    print(share_obj)
+    dest_agents = [1, 2]
+    data_elements = [2, 4]
+    res = ds.call_api("user0", "propose_contract", dest_agents, data_elements, "print_first_row", 2)
+    print(res)
+
+    # Test show contracts
+    res = ds.call_api("user1", "show_contract", 1)
+    print(res)
+    res = ds.call_api("user0", "show_all_contracts_for_dest")
+    print(res)
+    res = ds.call_api("user1", "show_all_contracts_for_src")
+    print(res)
 
     # Step 4: Agents approving the share.
-    res = ds.call_api(f"user1", "approve_contract", 1)
+    res = ds.call_api("user0", "approve_contract", 1)
+    print(res)
+    res = ds.call_api("user1", "approve_contract", 1)
     print(res)
 
     # Step 5: user calls execute contract
