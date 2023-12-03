@@ -55,7 +55,6 @@ def list_discoverable_des_with_src():
     database_service_response = database_api.list_discoverable_des()
     res = []
     for discoverable_de_id in database_service_response:
-        print(discoverable_de_id)
         de_id = discoverable_de_id[0]
         src_agent_id_resp = database_api.get_de_owner_id(de_id)
         if src_agent_id_resp["status"] == 1:

@@ -81,7 +81,7 @@ class EscrowAPI:
         For API endpoints.
         Remove a DE from storage. (Does not remove it from DB)
         """
-        return cls.__comp.register_de(user_id, de_id)
+        return cls.__comp.remove_de_from_storage(user_id, de_id)
 
     @classmethod
     def remove_de_from_db(cls,

@@ -11,13 +11,13 @@ if __name__ == '__main__':
     ds_config = "data_station_config.yaml"
     ds = initialize_system(ds_config)
 
-    # Step 1: Create new agents
+    # Step 1: Test agent creation.
     num_users = 2
     for i in range(num_users):
         res = ds.create_user(f"user{i}", "string", )
         print(res)
 
-    # Step 2: Create and upload data elements.
+    # Step 2: Test register and upload DEs.
     # We use the 6 csv files in integration_new/test_files/titanic_p
     for i in range(6):
         cur_f = f"integration_new/test_files/titanic_p/f{i}.csv"
@@ -29,6 +29,15 @@ if __name__ == '__main__':
         print(register_res)
         ds.call_api(f"user{u_id}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
+    # Test remove DEs.
+    res = ds.call_api("user1", "remove_de_from_storage", 5)
+    print(res)
+    res = ds.call_api("user1", "remove_de_from_db", 5)
+    print(res)
+    res = ds.call_api("user1", "remove_de_from_db", 6)
+    print(res)
+
+    # Test list discoverable DEs with source agents.
     res = ds.call_api("user0", "list_discoverable_des_with_src")
     print(f"Listing discoverable data elements with their source agents: {res}")
 

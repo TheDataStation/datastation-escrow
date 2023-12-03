@@ -8,8 +8,16 @@ def register_de(user_id, data_name, data_type, access_param, discoverable):
     return EscrowAPI.register_de(user_id, data_name, data_type, access_param, discoverable)
 
 @api_endpoint
-def upload_de(user_id, data_id, data_in_bytes):
-    return EscrowAPI.upload_de(user_id, data_id, data_in_bytes)
+def upload_de(user_id, de_id, data_in_bytes):
+    return EscrowAPI.upload_de(user_id, de_id, data_in_bytes)
+
+@api_endpoint
+def remove_de_from_storage(user_id, de_id):
+    return EscrowAPI.remove_de_from_storage(user_id, de_id)
+
+@api_endpoint
+def remove_de_from_db(user_id, de_id):
+    return EscrowAPI.remove_de_from_db(user_id, de_id)
 
 @api_endpoint
 def list_discoverable_des_with_src(user_id):
