@@ -262,9 +262,9 @@ class DataStation:
 
         return de_manager_response
 
-    def list_discoverable_des(self, user_id):
+    def list_discoverable_des_with_src(self, user_id):
         """
-        List IDs of all des in discoverable mode.
+        List IDs of all des in discoverable mode, with the source agent IDs.
 
         Parameters:
             user_id: id of user
@@ -272,7 +272,7 @@ class DataStation:
         Returns:
         A list containing IDs of all discoverable des.
         """
-        de_manager_response = de_manager.list_discoverable_des()
+        de_manager_response = de_manager.list_discoverable_des_with_src()
         return de_manager_response
 
     def propose_contract(self,
@@ -330,17 +330,17 @@ class DataStation:
         """
         return contract_manager.show_contract(user_id, contract_id)
 
-    def show_all_contracts_as_dest(self, user_id):
+    def show_all_contracts_for_dest(self, user_id):
         """
         Display all contracts, for which caller is a destination agent.
         """
-        return contract_manager.show_all_contracts_as_dest(user_id)
+        return contract_manager.show_all_contracts_for_dest(user_id)
 
-    def show_all_contracts_as_src(self, user_id):
+    def show_all_contracts_for_src(self, user_id):
         """
         Display all contracts, for which caller is an approval agent.
         """
-        return contract_manager.show_all_contracts_as_src(user_id)
+        return contract_manager.show_all_contracts_for_src(user_id)
 
     def approve_contract(self, user_id, contract_id):
         """

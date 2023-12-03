@@ -11,7 +11,7 @@ def register_de(user_id, data_name, data_type, access_param, discoverable):
 def upload_de(user_id, data_id, data_in_bytes):
     return EscrowAPI.upload_de(user_id, data_id, data_in_bytes)
 
-# TODO: test remove_de_from_storage and remove_de_from_db
+# TODO: test remove_de_from_storage and remove_de_from_db, and the three get_contracts
 
 @api_endpoint
 def list_discoverable_des(user_id):

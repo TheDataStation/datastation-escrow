@@ -125,7 +125,7 @@ class EscrowAPI:
         return cls.__comp.upload_de(user_id, de_id, data_in_bytes)
 
     @classmethod
-    def list_discoverable_des(cls, user_id):
+    def list_discoverable_des_with_src(cls, user_id):
         """
         API Endpoint.
         List IDs of all des in discoverable mode.
@@ -185,20 +185,20 @@ class EscrowAPI:
         return cls.__comp.show_contract(user_id, contract_id)
 
     @classmethod
-    def show_all_contracts_as_dest(cls, user_id):
+    def show_all_contracts_for_dest(cls, user_id):
         """
         For API endpoints.
         Display all contracts, for which caller is a destination agent.
         """
-        return cls.__comp.show_all_contracts_as_dest(user_id)
+        return cls.__comp.show_all_contracts_for_dest(user_id)
 
     @classmethod
-    def show_all_contracts_as_src(cls, user_id):
+    def show_all_contracts_for_src(cls, user_id):
         """
         For API endpoints.
         Display all contracts, for which caller is an approval agent.
         """
-        return cls.__comp.show_all_contracts_as_src(user_id)
+        return cls.__comp.show_all_contracts_for_src(user_id)
 
     @classmethod
     def approve_contract(cls, user_id, contract_id):

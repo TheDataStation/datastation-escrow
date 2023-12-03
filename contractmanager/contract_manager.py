@@ -77,11 +77,21 @@ def show_contract(user_id, contract_id):
 
     return get_contract_object(contract_id)
 
-def show_all_contracts_as_dest(user_id):
-    pass
+def show_all_contracts_for_dest(user_id):
+    contract_ids = database_api.get_all_contracts_for_dest(user_id)
+    contract_objects = []
+    for c_id in contract_ids:
+        cur_contract = get_contract_object(c_id)
+        contract_objects.append(cur_contract)
+    return contract_objects
 
-def show_all_contracts_as_src(user_id):
-    pass
+def show_all_contracts_for_src(user_id):
+    contract_ids = database_api.get_all_contracts_for_src(user_id)
+    contract_objects = []
+    for c_id in contract_ids:
+        cur_contract = get_contract_object(c_id)
+        contract_objects.append(cur_contract)
+    return contract_objects
 
 def approve_contract(user_id,
                      contract_id,
