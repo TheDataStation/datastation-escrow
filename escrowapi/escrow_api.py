@@ -48,6 +48,15 @@ class EscrowAPI:
         return cls.__comp.release_staged(user_id)
 
     @classmethod
+    def list_all_agents(cls,
+                        user_id):
+        """
+        For API endpoints.
+        Lists all agents' (ID, name) in the current instance.
+        """
+        return cls.__comp.list_all_agents(user_id)
+
+    @classmethod
     def register_de(cls,
                     user_id,
                     data_name,
@@ -74,6 +83,23 @@ class EscrowAPI:
         return cls.__comp.register_de(user_id, data_name, data_type, access_param, discoverable)
 
     @classmethod
+    def upload_de(cls,
+                  user_id,
+                  de_id,
+                  data_in_bytes):
+        """
+        For API endpoints.
+        Upload data in bytes corresponding to a registered DE. These bytes will be written to a file in DataStation's
+        storage manager.
+
+        Parameters:
+            user_id: caller id (owner of the data element)
+            de_id: id of this existing DE
+            data_in_bytes: plaintext data in bytes
+        """
+        return cls.__comp.upload_de(user_id, de_id, data_in_bytes)
+
+    @classmethod
     def remove_de_from_storage(cls,
                                user_id,
                                de_id):
@@ -94,37 +120,6 @@ class EscrowAPI:
         return cls.__comp.remove_de_from_db(user_id, de_id)
 
     @classmethod
-    def list_all_agents(cls,
-                        user_id):
-        """
-        For API endpoints.
-        Lists all agents' (ID, name) in the current instance.
-        """
-        return cls.__comp.list_all_agents(user_id)
-
-
-    @classmethod
-    def upload_de(cls,
-                  user_id,
-                  de_id,
-                  data_in_bytes):
-        """
-        For API endpoints.
-        Upload data in bytes corresponding to a registered DE. These bytes will be written to a file in DataStation's
-        storage manager.
-
-        Parameters:
-            user_id: caller id (owner of the data element)
-            de_id: id of this existing DE
-            data_in_bytes: plaintext data in bytes
-
-        Returns:
-        A response object with the following fields:
-            status: status of uploading data. 0: success, 1: failure.
-        """
-        return cls.__comp.upload_de(user_id, de_id, data_in_bytes)
-
-    @classmethod
     def list_discoverable_des_with_src(cls, user_id):
         """
         API Endpoint.
@@ -137,6 +132,14 @@ class EscrowAPI:
         A list containing IDs of all discoverable des.
         """
         return cls.__comp.list_discoverable_des_with_src(user_id)
+
+    @classmethod
+    def get_all_functions(cls, user_id):
+        """
+        For API endpoints.
+        List names of all functions (those that need to access DEs). e.g. train_joint_model()
+        """
+        return cls.__comp.get_all_functions(user_id)
 
     @classmethod
     def propose_contract(cls,

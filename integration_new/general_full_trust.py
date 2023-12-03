@@ -20,6 +20,10 @@ if __name__ == '__main__':
     res = ds.call_api("user0", "list_all_agents")
     print(res)
 
+    # Test get all functions.
+    res = ds.call_api("user0", "get_all_functions")
+    print(res)
+
     # Step 2: Test register and upload DEs.
     # We use the 6 csv files in integration_new/test_files/titanic_p
     for i in range(6):

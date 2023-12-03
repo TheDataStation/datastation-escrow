@@ -28,6 +28,10 @@ def list_discoverable_des_with_src(user_id):
     return EscrowAPI.list_discoverable_des_with_src(user_id)
 
 @api_endpoint
+def get_all_functions(user_id):
+    return EscrowAPI.get_all_functions(user_id)
+
+@api_endpoint
 def propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs):
     return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs)
 

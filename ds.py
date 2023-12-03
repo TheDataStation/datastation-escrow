@@ -22,6 +22,7 @@ from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
                                                  clear_function,
                                                  register_epf, )
 from agentmanager import agent_manager
+from functionmanager import function_manager
 from common.abstraction import DataElement
 from common.config import DSConfig
 class DataStation:
@@ -272,8 +273,13 @@ class DataStation:
         Returns:
         A list containing IDs of all discoverable des.
         """
-        de_manager_response = de_manager.list_discoverable_des_with_src()
-        return de_manager_response
+        return de_manager.list_discoverable_des_with_src()
+
+    def get_all_functions(self, user_id):
+        """
+        List names of all functions.
+        """
+        return function_manager.get_all_functions()
 
     def propose_contract(self,
                          user_id,
