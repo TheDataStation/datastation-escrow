@@ -11,11 +11,9 @@ def register_de(user_id, data_name, data_type, access_param, discoverable):
 def upload_de(user_id, data_id, data_in_bytes):
     return EscrowAPI.upload_de(user_id, data_id, data_in_bytes)
 
-# TODO: test remove_de_from_storage and remove_de_from_db, and the three get_contracts
-
 @api_endpoint
-def list_discoverable_des(user_id):
-    return EscrowAPI.list_discoverable_des(user_id)
+def list_discoverable_des_with_src(user_id):
+    return EscrowAPI.list_discoverable_des_with_src(user_id)
 
 @api_endpoint
 def propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs):
@@ -46,5 +44,5 @@ def print_first_row(de_id):
         reader = csv.reader(csvfile)
         first_row = next(reader)
         print(first_row)
-    EscrowAPI.write_staged("temp", 1, first_row)
+    # EscrowAPI.write_staged("temp", 1, first_row)
     return first_row

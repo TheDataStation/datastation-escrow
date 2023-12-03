@@ -1,25 +1,11 @@
-import os
-import shutil
-
 from main import initialize_system
-
-def cleanup():
-    if os.path.exists("data_station.db"):
-        os.remove("data_station.db")
-    folders = ['SM_storage']
-    for folder in folders:
-        for filename in os.listdir(folder):
-            file_path = os.path.join(folder, filename)
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
+from common.general_utils import clean_test_env
 
 
 if __name__ == '__main__':
 
     # Clean up
-    cleanup()
+    clean_test_env()
 
     # Step 0: System initialization
     ds_config = "data_station_config.yaml"
@@ -43,8 +29,10 @@ if __name__ == '__main__':
         print(register_res)
         ds.call_api(f"user{u_id}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
-    res = ds.call_api("user0", "list_discoverable_des")
-    print(f"Result of listing discoverable data elements is {res}")
+    res = ds.call_api("user0", "list_discoverable_des_with_src")
+    print(f"Listing discoverable data elements with their source agents: {res}")
+
+    exit()
 
     # Step 3: Agent suggesting shares
     agents = [1]

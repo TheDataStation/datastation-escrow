@@ -136,7 +136,7 @@ class EscrowAPI:
         Returns:
         A list containing IDs of all discoverable des.
         """
-        return cls.__comp.list_discoverable_des(user_id)
+        return cls.__comp.list_discoverable_des_with_src(user_id)
 
     @classmethod
     def propose_contract(cls,
