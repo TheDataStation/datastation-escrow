@@ -17,6 +17,9 @@ if __name__ == '__main__':
         res = ds.create_user(f"user{i}", "string", )
         print(res)
 
+    res = ds.call_api("user0", "list_all_agents")
+    print(res)
+
     # Step 2: Test register and upload DEs.
     # We use the 6 csv files in integration_new/test_files/titanic_p
     for i in range(6):
