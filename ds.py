@@ -281,6 +281,12 @@ class DataStation:
         """
         return function_manager.get_all_functions()
 
+    def get_function_info(self, user_id, function_name):
+        """
+        Return docstring of given function.
+        """
+        return function_manager.get_function_info(function_name)
+
     def propose_contract(self,
                          user_id,
                          dest_agents,

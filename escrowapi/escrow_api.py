@@ -142,6 +142,14 @@ class EscrowAPI:
         return cls.__comp.get_all_functions(user_id)
 
     @classmethod
+    def get_function_info(cls, user_id, function_name):
+        """
+        For API endpoints
+        Return docstring of given function.
+        """
+        return cls.__comp.get_function_info(user_id, function_name)
+
+    @classmethod
     def propose_contract(cls,
                          user_id,
                          dest_agents,

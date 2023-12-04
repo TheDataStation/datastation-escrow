@@ -32,6 +32,10 @@ def get_all_functions(user_id):
     return EscrowAPI.get_all_functions(user_id)
 
 @api_endpoint
+def get_function_info(user_id, function_name):
+    return EscrowAPI.get_function_info(user_id, function_name)
+
+@api_endpoint
 def propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs):
     return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs)
 
@@ -62,6 +66,12 @@ def get_data(de):
 @api_endpoint
 @function
 def print_first_row(de_id):
+    """
+    Print out the first row of specified DE.
+
+    Parameters:
+        de_id: ID of a DE.
+    """
     de = EscrowAPI.get_de_by_id(de_id)
     file_path = get_data(de)
     with open(file_path, 'r') as csvfile:
