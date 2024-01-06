@@ -7,9 +7,9 @@ def list_all_agents(user_id):
     return EscrowAPI.list_all_agents(user_id)
 
 @api_endpoint
-def register_de(user_id, de_name, de_type, access_param, discoverable):
+def register_de(user_id, de_name, discoverable):
     print("This is a customized register DE!")
-    return EscrowAPI.register_de(user_id, de_name, de_type, access_param, discoverable)
+    return EscrowAPI.register_de(user_id, de_name, "file", de_name, discoverable)
 
 @api_endpoint
 def upload_de(user_id, de_id, data_in_bytes):
