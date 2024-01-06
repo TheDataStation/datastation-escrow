@@ -12,8 +12,8 @@ def register_de(user_id, de_name, discoverable):
     return EscrowAPI.register_de(user_id, de_name, "file", de_name, discoverable)
 
 @api_endpoint
-def upload_de(user_id, de_id, data_in_bytes):
-    return EscrowAPI.upload_de(user_id, de_id, data_in_bytes)
+def upload_de(user_id, de_id, de_in_bytes):
+    return EscrowAPI.upload_de(user_id, de_id, de_in_bytes)
 
 @api_endpoint
 def remove_de_from_storage(user_id, de_id):

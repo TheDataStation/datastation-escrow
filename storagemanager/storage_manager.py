@@ -22,9 +22,9 @@ class StorageManager:
         if not os.path.exists(user_staging_path):
             os.makedirs(user_staging_path)
 
-    def store(self, data_name, data_id, data, data_type):
-        file_name = path.basename(data_name)
-        dir_path = self.get_dir_path(data_id)
+    def store(self, de_name, de_id, data, data_type):
+        file_name = path.basename(de_name)
+        dir_path = self.get_dir_path(de_id)
         # Specify path for file
         dst_file_path = path.join(dir_path, file_name)
 
@@ -44,7 +44,7 @@ class StorageManager:
                     else:
                         file.write(data[bytes_written:])
         except OSError as error:
-            return {"status": 1, "message": f"DE id={data_id} already exists"}
+            return {"status": 1, "message": f"DE id={de_id} already exists"}
         return {"status": 0, "message": "success"}
 
     def remove_de_from_storage(self, de_id):
