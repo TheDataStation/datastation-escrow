@@ -44,12 +44,12 @@ def show_contract(user_id, contract_id):
     return EscrowAPI.show_contract(user_id, contract_id)
 
 @api_endpoint
-def show_all_contracts_for_dest(user_id):
-    return EscrowAPI.show_all_contracts_for_dest(user_id)
+def show_all_contracts_as_dest(user_id):
+    return EscrowAPI.show_all_contracts_as_dest(user_id)
 
 @api_endpoint
-def show_all_contracts_for_src(user_id):
-    return EscrowAPI.show_all_contracts_for_src(user_id)
+def show_all_contracts_as_src(user_id):
+    return EscrowAPI.show_all_contracts_as_src(user_id)
 
 @api_endpoint
 def approve_contract(user_id, contract_id):

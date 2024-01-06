@@ -74,7 +74,7 @@ def get_contract_with_max_id(db: Session):
         return None
 
 
-def get_approval_for_contract(db: Session, contract_id):
+def get_src_for_contract(db: Session, contract_id):
     approval_agents = db.query(ContractStatus.a_id).filter(ContractStatus.c_id == contract_id).all()
     return approval_agents
 

@@ -232,9 +232,9 @@ def create_contract_status(contract_id, approval_agent_id, status):
         else:
             return {"status": 1, "message": "database error: create contract status failed"}
 
-def get_approval_for_contract(contract_id):
+def get_src_for_contract(contract_id):
     with get_db() as session:
-        return contract_repo.get_approval_for_contract(session, contract_id)
+        return contract_repo.get_src_for_contract(session, contract_id)
 
 def get_status_for_contract(contract_id):
     with get_db() as session:

@@ -342,17 +342,17 @@ class DataStation:
         """
         return contract_manager.show_contract(user_id, contract_id)
 
-    def show_all_contracts_for_dest(self, user_id):
+    def show_all_contracts_as_dest(self, user_id):
         """
         Display all contracts, for which caller is a destination agent.
         """
-        return contract_manager.show_all_contracts_for_dest(user_id)
+        return contract_manager.show_all_contracts_as_dest(user_id)
 
-    def show_all_contracts_for_src(self, user_id):
+    def show_all_contracts_as_src(self, user_id):
         """
         Display all contracts, for which caller is an approval agent.
         """
-        return contract_manager.show_all_contracts_for_src(user_id)
+        return contract_manager.show_all_contracts_as_src(user_id)
 
     def approve_contract(self, user_id, contract_id):
         """

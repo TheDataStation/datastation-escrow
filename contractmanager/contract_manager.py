@@ -49,14 +49,14 @@ def register_contract_in_DB(user_id,
         if db_res["status"] == 1:
             return db_res
 
-    # Then add to ContractStatus table. First get the approval agents, default to DE owners.
-    approval_agent_set = set()
+    # Then add to ContractStatus table. First get the src agents, default to DE owners.
+    src_agent_set = set()
     for de_id in data_elements:
         owner_id_res = database_api.get_de_owner_id(de_id)
         if owner_id_res["status"] == 1:
             return owner_id_res
-        approval_agent_set.add(owner_id_res["data"])
-    for a_id in approval_agent_set:
+        src_agent_set.add(owner_id_res["data"])
+    for a_id in src_agent_set:
         if write_ahead_log:
             wal_entry = f"database_api.create_contract_status({contract_id}, {a_id}, 0)"
             write_ahead_log.log(user_id, wal_entry, key_manager, )
@@ -68,16 +68,18 @@ def register_contract_in_DB(user_id,
 
 
 def show_contract(user_id, contract_id):
-    # Check if caller is contract's approval agent
-    approval_agents = database_api.get_approval_for_contract(contract_id)
-    approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
-    if int(user_id) not in approval_agents_list:
-        print("Caller not an approval agent of the contract.")
+    # Check if caller is contract's src or dest agent
+    src_agents = database_api.get_src_for_contract(contract_id)
+    dest_agents = database_api.get_dest_for_contract(contract_id)
+    src_agents_list = list(map(lambda ele: ele[0], src_agents))
+    dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
+    if int(user_id) not in src_agents_list and int(user_id) not in dest_agents_list:
+        print("Caller not a src or dest agent of the contract.")
         return None
 
     return get_contract_object(contract_id)
 
-def show_all_contracts_for_dest(user_id):
+def show_all_contracts_as_dest(user_id):
     contract_ids_resp = database_api.get_all_contracts_for_dest(user_id)
     contract_objects = []
     if contract_ids_resp["status"] == 0:
@@ -86,7 +88,7 @@ def show_all_contracts_for_dest(user_id):
             contract_objects.append(cur_contract)
     return contract_objects
 
-def show_all_contracts_for_src(user_id):
+def show_all_contracts_as_src(user_id):
     contract_ids_resp = database_api.get_all_contracts_for_src(user_id)
     contract_objects = []
     if contract_ids_resp["status"] == 0:
@@ -100,10 +102,10 @@ def approve_contract(user_id,
                      write_ahead_log,
                      key_manager,
                      ):
-    approval_agents = database_api.get_approval_for_contract(contract_id)
-    approval_agents_list = list(map(lambda ele: ele[0], approval_agents))
-    if int(user_id) not in approval_agents_list:
-        return {"status": 1, "message": "Caller not an approval agent."}
+    src_agents = database_api.get_src_for_contract(contract_id)
+    src_agents_list = list(map(lambda ele: ele[0], src_agents))
+    if int(user_id) not in src_agents_list:
+        return {"status": 1, "message": "Caller not a source agent."}
 
     # If in no_trust mode, we need to record this in wal
     if write_ahead_log is not None:
