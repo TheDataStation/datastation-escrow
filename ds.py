@@ -210,7 +210,7 @@ class DataStation:
         if verify_owner_response["status"] == 1:
             return verify_owner_response
 
-        # We now get the data_name and data_type from de_id
+        # We now get the de_name and de_type from de_id
         de_res = database_api.get_de_by_id(de_id)
         if de_res["status"] == 1:
             return de_res

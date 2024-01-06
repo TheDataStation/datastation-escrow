@@ -7,9 +7,9 @@ def list_all_agents(user_id):
     return EscrowAPI.list_all_agents(user_id)
 
 @api_endpoint
-def register_de(user_id, data_name, data_type, access_param, discoverable):
+def register_de(user_id, de_name, de_type, access_param, discoverable):
     print("This is a customized register DE!")
-    return EscrowAPI.register_de(user_id, data_name, data_type, access_param, discoverable)
+    return EscrowAPI.register_de(user_id, de_name, de_type, access_param, discoverable)
 
 @api_endpoint
 def upload_de(user_id, de_id, data_in_bytes):
@@ -59,7 +59,7 @@ def approve_contract(user_id, contract_id):
 def execute_contract(user_id, contract_id):
     return EscrowAPI.execute_contract(user_id, contract_id)
 
-def get_data(de):
+def get_de(de):
     if de.type == "file":
         return f"{de.access_param}"
 
@@ -73,7 +73,7 @@ def print_first_row(de_id):
         de_id: ID of a DE.
     """
     de = EscrowAPI.get_de_by_id(de_id)
-    file_path = get_data(de)
+    file_path = get_de(de)
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         first_row = next(reader)
