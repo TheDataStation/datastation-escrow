@@ -66,12 +66,7 @@ def get_de(de):
 @api_endpoint
 @function
 def print_first_row(de_id):
-    """
-    Print out the first row of specified DE.
-
-    Parameters:
-        de_id: ID of a DE.
-    """
+    """Print out the first row of specified DE. Parameters: 1) de_id: ID of a DE."""
     de = EscrowAPI.get_de_by_id(de_id)
     file_path = get_de(de)
     with open(file_path, 'r') as csvfile:
