@@ -1,6 +1,9 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
-import csv
+
+from dowhy import CausalModel
+import duckdb
+import networkx as nx
 
 @api_endpoint
 def list_all_agents(user_id):
@@ -58,19 +61,39 @@ def approve_contract(user_id, contract_id):
 def execute_contract(user_id, contract_id):
     return EscrowAPI.execute_contract(user_id, contract_id)
 
-def get_de(de):
-    if de.type == "file":
-        return f"{de.access_param}"
-
-@api_endpoint
 @function
-def print_first_row(de_id):
-    """Print out the first row of specified DE. Parameters: 1) de_id: ID of a DE."""
-    de = EscrowAPI.get_de_by_id(de_id)
-    file_path = get_de(de)
-    with open(file_path, 'r') as csvfile:
-        reader = csv.reader(csvfile)
-        first_row = next(reader)
-        print(first_row)
-    # EscrowAPI.write_staged("temp", 1, first_row)
-    return first_row
+def calc_causal_dnpr(additional_vars, dag_spec, treatment, outcome):
+    """
+    Join input DE with additional_vars from DNPR DE. Then calculate treatment's effect on outcome
+    :return: calculated effect (assuming linear)
+    """
+    des = EscrowAPI.get_all_accessible_des()
+    dnpr_de_path = None
+    input_de_path = None
+    for de in des:
+        if de.name == "dnpr_de":
+            dnpr_de_path = de.access_param
+        else:
+            input_de_path = de.access_param
+    # First run the join
+    conn = duckdb.connect()
+    addtional_var_statement = ""
+    for var in additional_vars:
+        addtional_var_statement += f", table1.{var}"
+    query_statement = f"SELECT table2.*{addtional_var_statement} " \
+                      f"FROM read_csv_auto({dnpr_de_path}) AS table1 " \
+                      f"JOIN read_csv_auto({input_de_path}) AS table2 " \
+                      f"ON table1.CPR = table2.CPR;"
+    joined_df = conn.execute(query_statement).fetchdf()
+    conn.close()
+    # Now calculate the causal effect
+    causal_dag = nx.DiGraph(dag_spec)
+    model = CausalModel(
+        data=joined_df,
+        treatment=treatment,
+        outcome=outcome,
+        graph=causal_dag, )
+    identified_estimand = model.identify_effect(proceed_when_unidentifiable=True)
+    estimate = model.estimate_effect(identified_estimand,
+                                     method_name="backdoor.linear_regression")
+    return estimate.value

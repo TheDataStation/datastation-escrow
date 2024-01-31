@@ -66,9 +66,9 @@ if __name__ == '__main__':
     # Test show contracts
     res = ds.call_api("user1", "show_contract", 1)
     print(res)
-    res = ds.call_api("user0", "show_all_contracts_for_dest")
+    res = ds.call_api("user0", "show_all_contracts_as_dest")
     print(res)
-    res = ds.call_api("user1", "show_all_contracts_for_src")
+    res = ds.call_api("user1", "show_all_contracts_as_src")
     print(res)
 
     # Step 4: Agents approving the share.
