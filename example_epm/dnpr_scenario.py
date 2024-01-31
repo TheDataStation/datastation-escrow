@@ -71,7 +71,7 @@ def calc_causal_dnpr(additional_vars, dag_spec, treatment, outcome):
     dnpr_de_path = None
     input_de_path = None
     for de in des:
-        if de.name == "dnpr_de":
+        if de.name == "DNPR.csv":
             dnpr_de_path = de.access_param
         else:
             input_de_path = de.access_param
@@ -81,8 +81,8 @@ def calc_causal_dnpr(additional_vars, dag_spec, treatment, outcome):
     for var in additional_vars:
         addtional_var_statement += f", table1.{var}"
     query_statement = f"SELECT table2.*{addtional_var_statement} " \
-                      f"FROM read_csv_auto({dnpr_de_path}) AS table1 " \
-                      f"JOIN read_csv_auto({input_de_path}) AS table2 " \
+                      f"FROM read_csv_auto('{dnpr_de_path}') AS table1 " \
+                      f"JOIN read_csv_auto('{input_de_path}') AS table2 " \
                       f"ON table1.CPR = table2.CPR;"
     joined_df = conn.execute(query_statement).fetchdf()
     conn.close()

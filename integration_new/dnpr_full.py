@@ -43,7 +43,11 @@ if __name__ == '__main__':
                       additional_vars, causal_dag, treatment, outcome)
     print(res)
 
-    res = ds.call_api("dnpr", "approve_contract", 1)
+    ds.call_api("dnpr", "approve_contract", 1)
+    ds.call_api("dadr", "approve_contract", 1)
+
+    # Executing the contract
+    res = ds.call_api("dadr", "execute_contract", 1)
     print(res)
 
     # Last step: shut down the Data Station
