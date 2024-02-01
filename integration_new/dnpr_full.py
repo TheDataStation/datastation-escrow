@@ -1,6 +1,5 @@
 from main import initialize_system
 from common.general_utils import clean_test_env
-import networkx as nx
 
 if __name__ == '__main__':
 
