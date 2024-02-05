@@ -1,6 +1,7 @@
 from main import initialize_system
 from common.general_utils import clean_test_env
 
+
 if __name__ == '__main__':
 
     # Clean up
@@ -13,68 +14,54 @@ if __name__ == '__main__':
     # Step 1: Agent creation.
     ds.create_user("bank1", "string")
     ds.create_user("bank2", "string")
-    ds.create_user("bank3", "string")
-
-    exit()
 
     # Step 2: Register and upload DEs.
-    for i in range(3):
-        # TODO: from here
-        facebook_de = f"integration_new/test_files/advertising_p/facebook.csv"
-        f = open(facebook_de, "rb")
+    for i in range(2):
+        cur_train_de = f"integration_new/test_files/banking_p/fraud_train_{i}.csv"
+        f = open(cur_train_de, "rb")
         plaintext_bytes = f.read()
         f.close()
-        register_res = ds.call_api(f"facebook", "register_de", f"facebook.csv", True, )
-        print(register_res)
-        ds.call_api(f"facebook", "upload_de", register_res["de_id"], plaintext_bytes, )
+        register_res = ds.call_api(f"bank{i+1}", "register_de", f"fraud_train_{i}.csv", True, )
+        ds.call_api(f"bank{i+1}", "upload_de", register_res["de_id"], plaintext_bytes, )
+        cur_test_de = f"integration_new/test_files/banking_p/fraud_test_{i}.csv"
+        f = open(cur_test_de, "rb")
+        plaintext_bytes = f.read()
+        f.close()
+        register_res = ds.call_api(f"bank{i + 1}", "register_de", f"fraud_test_{i}.csv", True, )
+        ds.call_api(f"bank{i + 1}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
-    # Proposing and approving first contract
-    dest_agents = [1]
-    data_elements = [1, 2]
-    query = "select de2.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
-            "from de1 inner join de2 " \
-            "on de1.first_name = de2.first_name and de1.last_name = de2.last_name"
-    label = "clicked_on_ad"
-    ds.call_api("advertiser", "propose_contract", dest_agents, data_elements, "logistic_wrapper",
-                query, label)
-    ds.call_api("facebook", "approve_contract", 1)
-    ds.call_api("youtube", "approve_contract", 1)
-
-    # Executing first contract: a logistic regression model. Then look at the coefficients.
-    res = ds.call_api("advertiser", "execute_contract", 1)
-    # print(res.coef_)
-
-    # Proposing and approving second contract
-    dest_agents = [1]
-    data_elements = [1, 2]
-    query = "select de2.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
-            "from de1 inner join de2 " \
-            "on de1.first_name = de2.first_name and de1.last_name = de2.last_name"
-    label = "clicked_on_ad"
-    ds.call_api("advertiser", "propose_contract", dest_agents, data_elements, "decision_tree_wrapper",
-                query, label)
-    ds.call_api("facebook", "approve_contract", 2)
-    ds.call_api("youtube", "approve_contract", 2)
-
-    # Executing second contract: a decision model. Then look at the splits.
-    res = ds.call_api("advertiser", "execute_contract", 2)
-    # tree.plot_tree(res)
-    # plt.show()
-
-    # Third contract: test to see if facebook has a good population who will respond to the ad
-    dest_agents = [1]
-    data_elements = [1]
-    query = "SELECT COUNT(*) AS total_records, " \
-            "SUM(CASE WHEN male = 1 AND married = 0 THEN 1 ELSE 0 END) AS male_1_married_0_records, " \
-            "(SUM(CASE WHEN male = 1 AND married = 0 THEN 1 ELSE 0 END) * 1.0) / COUNT(*) AS proportion " \
-            "FROM de1 ;"
-    ds.call_api("advertiser", "propose_contract", dest_agents, data_elements, "run_SQL_query",
-                query)
-    ds.call_api("facebook", "approve_contract", 3)
-
-    # Executing third contract: a decision model.
-    res = ds.call_api("advertiser", "execute_contract", 3)
+    # Contract 1: show schema of all training data
+    dest_agents = [1, 2]
+    data_elements = [1, 3]
+    ds.call_api("bank1", "propose_contract", dest_agents, data_elements, "show_schema")
+    ds.call_api("bank1", "approve_contract", 1)
+    ds.call_api("bank2", "approve_contract", 1)
+    res = ds.call_api("bank1", "execute_contract", 1)
     print(res)
+
+    # Contract 2: an attempt to privately integrate data
+    dest_agents = [1, 2]
+    data_elements = [1, 3]
+    ds.call_api("bank1", "propose_contract", dest_agents, data_elements, "check_column_compatibility",
+                1, 3,
+                ["amt", "gender", "city", "state", "city_pop_thousands", "dob"],
+                ["dollar_amount", "gender", "city", "state", "city_population", "customer_date_of_birth"])
+    ds.call_api("bank1", "approve_contract", 2)
+    ds.call_api("bank2", "approve_contract", 2)
+    res = ds.call_api("bank1", "execute_contract", 2)
+    print(res)
+
+    # Contract 3: Bank1 thinks that he understands more about the columns, but want to see more.
+    # So he requests a sample. This contract will not get approved, because the other bank does not want to show sample.
+    dest_agents = [1]
+    data_elements = [3]
+    ds.call_api("bank1", "propose_contract", dest_agents, data_elements, "share_sample",
+                3, 50)
+    ds.call_api("bank2", "approve_contract", 3)
+    res = ds.call_api("bank1", "execute_contract", 3)
+    print(res)
+
+    # Contract 4: Bank2 instead
 
     # Last step: shut down the Data Station
     ds.shut_down()
