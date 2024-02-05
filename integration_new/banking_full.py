@@ -57,11 +57,26 @@ if __name__ == '__main__':
     data_elements = [3]
     ds.call_api("bank1", "propose_contract", dest_agents, data_elements, "share_sample",
                 3, 50)
-    ds.call_api("bank2", "approve_contract", 3)
-    res = ds.call_api("bank1", "execute_contract", 3)
+    # ds.call_api("bank2", "approve_contract", 3)
+    # res = ds.call_api("bank1", "execute_contract", 3)
+    # print(res)
+
+    # Contract 4: Bank2 instead uploads a new synthetic dataset, give it to bank1 for integration purposes.
+    cur_train_de = f"integration_new/test_files/banking_p/synth_train_1.csv"
+    f = open(cur_train_de, "rb")
+    plaintext_bytes = f.read()
+    f.close()
+    register_res = ds.call_api(f"bank2", "register_de", f"synth_train_1.csv", True, )
+    ds.call_api(f"bank2", "upload_de", register_res["de_id"], plaintext_bytes, )
+    dest_agents = [1]
+    data_elements = [5]
+    ds.call_api("bank2", "propose_contract", dest_agents, data_elements, "share_de", 5)
+    ds.call_api("bank2", "approve_contract", 4)
+    res = ds.call_api("bank1", "execute_contract", 4)
     print(res)
 
-    # Contract 4: Bank2 instead
+    # Bank1 looks at the synthetic dataset bank2 shared, and decide on the format of DEs both of them should use
+    # for training the model.
 
     # Last step: shut down the Data Station
     ds.shut_down()

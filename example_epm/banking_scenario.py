@@ -124,6 +124,7 @@ def share_sample(de_id, sample_size):
     return sample
 
 @function
-def share_de():
-    """share a DE directly"""
-    pass
+def share_de(de_id):
+    de = EscrowAPI.get_de_by_id(de_id)
+    df = pd.read_csv(de.access_param)
+    return df
