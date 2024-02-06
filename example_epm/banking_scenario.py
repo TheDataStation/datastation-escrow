@@ -5,6 +5,8 @@ import csv
 import pandas as pd
 import duckdb
 from scipy.stats import ks_2samp
+from sklearn.linear_model import LogisticRegression
+from sklearn import preprocessing
 
 @api_endpoint
 def list_all_agents(user_id):
@@ -128,3 +130,40 @@ def share_de(de_id):
     de = EscrowAPI.get_de_by_id(de_id)
     df = pd.read_csv(de.access_param)
     return df
+
+@function
+def train_model_with_conditions(label_name,
+                                train_de_ids,
+                                test_de_ids,
+                                size_constraint,
+                                accuracy_constraint):
+    """
+    First combine all DEs in the contract. Then check for preconditions, train model, and check for postconditions.
+    """
+    train_df_list = []
+    test_df_list = []
+    for de_id in train_de_ids:
+        cur_de = EscrowAPI.get_de_by_id(de_id)
+        cur_df = pd.read_csv(cur_de.access_param)
+        if len(cur_df) < size_constraint:
+            return "Pre-condition: input size constraint failed. Model did not train."
+        train_df_list.append(cur_df)
+    for de_id in test_de_ids:
+        cur_de = EscrowAPI.get_de_by_id(de_id)
+        cur_df = pd.read_csv(cur_de.access_param)
+        test_df_list.append(cur_df)
+    train_df = pd.concat(train_df_list, ignore_index=True, axis=0)
+    test_df = pd.concat(test_df_list, ignore_index=True, axis=0)
+    X_train = train_df.drop(label_name, axis=1)
+    scaler = preprocessing.StandardScaler().fit(X_train)
+    y_train = train_df[label_name]
+    X_train_scaled = scaler.transform(X_train)
+    clf = LogisticRegression().fit(X_train_scaled, y_train)
+    X_test = test_df.drop(label_name, axis=1)
+    X_test_scaled = scaler.transform(X_test)
+    y_test = test_df[label_name]
+    if clf.score(X_test_scaled, y_test) < accuracy_constraint:
+        return "Post-condition: accuracy requirement failed. Model cannot be released."
+    print(clf.score(X_test_scaled, y_test))
+    return clf
+

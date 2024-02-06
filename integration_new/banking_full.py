@@ -68,6 +68,7 @@ if __name__ == '__main__':
     f.close()
     register_res = ds.call_api(f"bank2", "register_de", f"synth_train_1.csv", True, )
     ds.call_api(f"bank2", "upload_de", register_res["de_id"], plaintext_bytes, )
+
     dest_agents = [1]
     data_elements = [5]
     ds.call_api("bank2", "propose_contract", dest_agents, data_elements, "share_de", 5)
@@ -94,8 +95,15 @@ if __name__ == '__main__':
         register_res = ds.call_api(f"bank{i + 1}", "register_de", f"clean_test_{i}.csv", True, )
         ds.call_api(f"bank{i + 1}", "upload_de", register_res["de_id"], plaintext_bytes, )
 
-    # The final contract: combine the data and train the model. TODO
-
+    # The final contract: combine the data and train the model.
+    dest_agents = [1, 2]
+    data_elements = [6, 7, 8, 9]
+    ds.call_api("bank1", "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
+                "is_fraud", [6, 8], [7, 9], 2000, 0.95)
+    ds.call_api("bank1", "approve_contract", 5)
+    ds.call_api("bank2", "approve_contract", 5)
+    res = ds.call_api("bank1", "execute_contract", 5)
+    print(res.coef_)
 
     # Last step: shut down the Data Station
     ds.shut_down()
