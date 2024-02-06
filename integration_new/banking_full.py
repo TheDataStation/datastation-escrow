@@ -37,7 +37,7 @@ if __name__ == '__main__':
     ds.call_api("bank1", "approve_contract", 1)
     ds.call_api("bank2", "approve_contract", 1)
     res = ds.call_api("bank1", "execute_contract", 1)
-    print(res)
+    # print(res)
 
     # Contract 2: an attempt to privately integrate data
     dest_agents = [1, 2]
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     ds.call_api("bank1", "approve_contract", 2)
     ds.call_api("bank2", "approve_contract", 2)
     res = ds.call_api("bank1", "execute_contract", 2)
-    print(res)
+    # print(res)
 
     # Contract 3: Bank1 thinks that he understands more about the columns, but want to see more.
     # So he requests a sample. This contract will not get approved, because the other bank does not want to show sample.
@@ -73,10 +73,29 @@ if __name__ == '__main__':
     ds.call_api("bank2", "propose_contract", dest_agents, data_elements, "share_de", 5)
     ds.call_api("bank2", "approve_contract", 4)
     res = ds.call_api("bank1", "execute_contract", 4)
-    print(res)
+    # print(res)
 
     # Bank1 looks at the synthetic dataset bank2 shared, and decide on the format of DEs both of them should use
     # for training the model.
+    # The schema is: gender (1/0), lat, long, age, merch_lat, merch_long, city_pop_thousands, amt (all number)
+    # Bank1 also tells bank2 to convert their data into this format and upload.
+    # Let's assume they finished the transformation locally.
+    for i in range(2):
+        cur_train_de = f"integration_new/test_files/banking_p/clean_train_{i}.csv"
+        f = open(cur_train_de, "rb")
+        plaintext_bytes = f.read()
+        f.close()
+        register_res = ds.call_api(f"bank{i+1}", "register_de", f"clean_train_{i}.csv", True, )
+        ds.call_api(f"bank{i+1}", "upload_de", register_res["de_id"], plaintext_bytes, )
+        cur_test_de = f"integration_new/test_files/banking_p/clean_test_{i}.csv"
+        f = open(cur_test_de, "rb")
+        plaintext_bytes = f.read()
+        f.close()
+        register_res = ds.call_api(f"bank{i + 1}", "register_de", f"clean_test_{i}.csv", True, )
+        ds.call_api(f"bank{i + 1}", "upload_de", register_res["de_id"], plaintext_bytes, )
+
+    # The final contract: combine the data and train the model. TODO
+
 
     # Last step: shut down the Data Station
     ds.shut_down()
