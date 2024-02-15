@@ -25,6 +25,8 @@ from agentmanager import agent_manager
 from functionmanager import function_manager
 from common.abstraction import DataElement
 from common.config import DSConfig
+
+
 class DataStation:
 
     def __init__(self, ds_config, need_to_recover=False):
@@ -168,8 +170,7 @@ class DataStation:
                     user_id,
                     de_name,
                     de_type,
-                    access_param,
-                    discoverable):
+                    access_param):
         """
         Registers a data element in Data Station's database.
 
@@ -177,7 +178,6 @@ class DataStation:
             user_id: the unique id identifying which user owns the de
             de_name: name of DE
             de_type: what types of data can be uploaded?
-            discoverable: True: DE is discoverable
             access_param: additional parameters needed for acccessing the DE
         """
         # Decide which de_id to use from self.cur_de_id
@@ -189,7 +189,6 @@ class DataStation:
                                             user_id,
                                             de_type,
                                             access_param,
-                                            discoverable,
                                             self.write_ahead_log,
                                             self.key_manager)
 
@@ -263,17 +262,14 @@ class DataStation:
 
         return de_manager_response
 
-    def list_discoverable_des_with_src(self, user_id):
+    def list_all_des_with_src(self, user_id):
         """
-        List IDs of all des in discoverable mode, with the source agent IDs.
+        List IDs of all des with the source agent IDs.
 
         Parameters:
-            user_id: id of user
-
-        Returns:
-        A list containing IDs of all discoverable des.
+            user_id: id of caller
         """
-        return de_manager.list_discoverable_des_with_src()
+        return de_manager.list_all_des_with_src()
 
     def get_all_functions(self, user_id):
         """
@@ -302,6 +298,7 @@ class DataStation:
             dest_agents: list of user ids
             data_elements: list of data elements
             function: function
+            status: default approval status of a contract (for CMP specification)
             args: args to the template function
             kwargs: kwargs to the template function
 
@@ -356,7 +353,7 @@ class DataStation:
 
     def approve_contract(self, user_id, contract_id):
         """
-        Update a contract's status to ready, for approval agent <username>.
+        Update a contract's status to approved (1), for source agent <user_id>.
 
         Parameters:
             user_id: caller username
@@ -370,6 +367,24 @@ class DataStation:
                                                  contract_id,
                                                  self.write_ahead_log,
                                                  self.key_manager, )
+
+    def reject_contract(self, user_id, contract_id):
+        """
+        Update a contract's status to rejected (1), for source agent <user_id>.
+
+        Parameters:
+            user_id: caller username
+            contract_id: id of the contract
+
+        Returns:
+        A response object with the following fields:
+        A response object with the following fields:
+            status: status of rejecting contract. 0: success, 1: failure.
+        """
+        return contract_manager.reject_contract(user_id,
+                                                contract_id,
+                                                self.write_ahead_log,
+                                                self.key_manager, )
 
     def execute_contract(self, user_id, contract_id):
         """

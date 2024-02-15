@@ -10,6 +10,15 @@ from .crud import (user_repo,
 from contextlib import contextmanager
 from dbservice.checkpoint.check_point import check_point
 
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
+
+from .schemas.contract import Contract
+from .schemas.contract_dest import ContractDest
+from .schemas.contract_de import ContractDE
+from .schemas.contract_status import ContractStatus
+
 # global engine
 
 def _fk_pragma_on_connect(dbapi_con, con_record):
@@ -69,9 +78,9 @@ def recover_users(users):
         if res:
             return 0
 
-def create_de(de_id, de_name, user_id, de_type, access_param, optimistic):
+def create_de(de_id, de_name, user_id, de_type, access_param):
     with get_db() as session:
-        de = dataelement_repo.create_de(session, de_id, de_name, user_id, de_type, access_param, optimistic)
+        de = dataelement_repo.create_de(session, de_id, de_name, user_id, de_type, access_param)
         if de:
             return {"status": 0, "message": "success", "data": de}
         else:
@@ -100,11 +109,6 @@ def get_de_by_access_type(request):
             return {"status": 0, "message": "success", "data": de}
         else:
             return {"status": 1, "message": "database error: get DE by access type failed"}
-
-def list_discoverable_des():
-    with get_db() as session:
-        discoverable_des = dataelement_repo.list_discoverable_des(session)
-        return discoverable_des
 
 def get_des_by_ids(request):
     with get_db() as session:
@@ -272,13 +276,32 @@ def get_all_contracts_for_src(src_agent_id):
         else:
             return {"status": 1, "message": "No contracts found for source agent."}
 
+
 def approve_contract(a_id, contract_id):
-    with get_db() as session:
-        res = contract_repo.approve_contract(session, a_id, contract_id)
-        if res:
-            return {"status": 0, "message": "success"}
-        else:
+    with get_db() as db:
+        try:
+            db.query(ContractStatus).filter(ContractStatus.a_id == a_id,
+                                            ContractStatus.c_id == contract_id) \
+                .update({'status': 1})
+            db.commit()
+        except SQLAlchemyError as e:
+            db.rollback()
             return {"status": 1, "message": "database error: approve contract failed"}
+        return {"status": 0, "message": "success"}
+
+
+def reject_contract(a_id, contract_id):
+    with get_db() as db:
+        try:
+            db.query(ContractStatus).filter(ContractStatus.a_id == a_id,
+                                            ContractStatus.c_id == contract_id) \
+                .update({'status': -1})
+            db.commit()
+        except SQLAlchemyError as e:
+            db.rollback()
+            return {"status": 1, "message": "database error: reject contract failed"}
+        return {"status": 0, "message": "success"}
+
 
 def set_checkpoint_table_paths(table_paths):
     check_point.set_table_paths(table_paths)

@@ -79,6 +79,7 @@ def show_contract(user_id, contract_id):
 
     return get_contract_object(contract_id)
 
+
 def show_all_contracts_as_dest(user_id):
     contract_ids_resp = database_api.get_all_contracts_for_dest(user_id)
     contract_objects = []
@@ -88,6 +89,7 @@ def show_all_contracts_as_dest(user_id):
             contract_objects.append(cur_contract)
     return contract_objects
 
+
 def show_all_contracts_as_src(user_id):
     contract_ids_resp = database_api.get_all_contracts_for_src(user_id)
     contract_objects = []
@@ -96,6 +98,7 @@ def show_all_contracts_as_src(user_id):
             cur_contract = get_contract_object(c_id[0])
             contract_objects.append(cur_contract)
     return contract_objects
+
 
 def approve_contract(user_id,
                      contract_id,
@@ -113,6 +116,24 @@ def approve_contract(user_id,
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
     return database_api.approve_contract(user_id, contract_id)
+
+
+def reject_contract(user_id,
+                    contract_id,
+                    write_ahead_log,
+                    key_manager,
+                    ):
+    src_agents = database_api.get_src_for_contract(contract_id)
+    src_agents_list = list(map(lambda ele: ele[0], src_agents))
+    if int(user_id) not in src_agents_list:
+        return {"status": 1, "message": "Caller not a source agent."}
+
+    # If in no_trust mode, we need to record this in wal
+    if write_ahead_log is not None:
+        wal_entry = f"database_api.reject_contract({user_id}, {contract_id})"
+        write_ahead_log.log(user_id, wal_entry, key_manager, )
+
+    return database_api.reject_contract(user_id, contract_id)
 
 
 def check_contract_ready(contract_id):
@@ -137,9 +158,11 @@ def get_dest_ids_for_contract(contract_id):
 
 def get_contract_function_and_param(contract_id):
     contract_db_res = database_api.get_contract(contract_id)
+
     function = contract_db_res["data"].function
     function_param = json.loads(contract_db_res["data"].function_param)
     return function, function_param
+
 
 def get_contract_object(contract_id):
     # Get the destination agents, the data elements, the template and its args, and the ready status

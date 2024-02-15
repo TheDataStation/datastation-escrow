@@ -119,3 +119,15 @@ def approve_contract(db: Session, a_id, contract_id):
         db.rollback()
         return None
     return "update success"
+
+
+def reject_contract(db: Session, a_id, contract_id):
+    try:
+        db.query(ContractStatus).filter(ContractStatus.a_id == a_id,
+                                        ContractStatus.c_id == contract_id)\
+                                .update({'status': -1})
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        return None
+    return "update success"

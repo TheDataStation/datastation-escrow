@@ -11,8 +11,8 @@ def list_all_agents(user_id):
     return EscrowAPI.list_all_agents(user_id)
 
 @api_endpoint
-def register_de(user_id, de_name, discoverable):
-    return EscrowAPI.register_de(user_id, de_name, "file", de_name, discoverable)
+def register_de(user_id, de_name):
+    return EscrowAPI.register_de(user_id, de_name, "file", de_name)
 
 @api_endpoint
 def upload_de(user_id, de_id, de_in_bytes):
@@ -27,8 +27,8 @@ def remove_de_from_db(user_id, de_id):
     return EscrowAPI.remove_de_from_db(user_id, de_id)
 
 @api_endpoint
-def list_discoverable_des_with_src(user_id):
-    return EscrowAPI.list_discoverable_des_with_src(user_id)
+def list_all_des_with_src(user_id):
+    return EscrowAPI.list_all_des_with_src(user_id)
 
 @api_endpoint
 def get_all_functions(user_id):
@@ -59,6 +59,10 @@ def approve_contract(user_id, contract_id):
     return EscrowAPI.approve_contract(user_id, contract_id)
 
 @api_endpoint
+def reject_contract(user_id, contract_id):
+    return EscrowAPI.reject_contract(user_id, contract_id)
+
+@api_endpoint
 def execute_contract(user_id, contract_id):
     return EscrowAPI.execute_contract(user_id, contract_id)
 
@@ -87,26 +91,25 @@ def run_SQL_query(query):
     return res_df
 
 @function
-def logistic_wrapper(query, label_name):
+def logistic_wrapper(query, label):
     res_df = run_SQL_query(query)
-    X = res_df.drop(label_name, axis=1)
-    y = res_df[label_name]
+    X = res_df.drop(label, axis=1)
+    y = res_df[label]
     clf = LogisticRegression().fit(X, y)
     return clf
 
-@function
-def decision_tree_wrapper(query, label_name):
-    res_df = run_SQL_query(query)
-    X = res_df.drop(label_name, axis=1)
-    y = res_df[label_name]
-    clf = tree.DecisionTreeClassifier().fit(X, y)
-    return clf
 
-@function
-def linear_regression_wrapper(query, label_name):
-    res_df = run_SQL_query(query)
-    X = res_df.drop(label_name, axis=1)
-    y = res_df[label_name]
-    clf = LinearRegression().fit(X, y)
-    return clf
-
+# @function
+# def train_ML_model(query, model_name, label_name):
+#     if model_name not in ["logistic_regression", "linear_regression", "decision_tree"]:
+#         return "Model Type not currently supported"
+#     res_df = run_SQL_query(query)
+#     X = res_df.drop(label_name, axis=1)
+#     y = res_df[label_name]
+#     if model_name == "logistic_regression":
+#         clf = LogisticRegression().fit(X, y)
+#     elif model_name == "linear_regression":
+#         clf = LinearRegression().fit(X, y)
+#     else:
+#         clf = tree.DecisionTreeClassifier().fit(X, y)
+#     return clf

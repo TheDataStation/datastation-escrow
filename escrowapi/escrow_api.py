@@ -61,8 +61,7 @@ class EscrowAPI:
                     user_id,
                     data_name,
                     data_type,
-                    access_param,
-                    discoverable,
+                    access_param
                     ):
         """
         For API endpoints.
@@ -73,14 +72,13 @@ class EscrowAPI:
             data_name: name of the data
             data_type: type of DE. e.g: file.
             access_param: additional parameters needed for acccessing the DE
-            discoverable: True: DE is discoverable
 
         Returns:
         A response object with the following fields:
             status: status of registering DE. 0: success, 1: failure.
             data_id: if success, a data_id is returned for this registered DE.
         """
-        return cls.__comp.register_de(user_id, data_name, data_type, access_param, discoverable)
+        return cls.__comp.register_de(user_id, data_name, data_type, access_param)
 
     @classmethod
     def upload_de(cls,
@@ -120,18 +118,15 @@ class EscrowAPI:
         return cls.__comp.remove_de_from_db(user_id, de_id)
 
     @classmethod
-    def list_discoverable_des_with_src(cls, user_id):
+    def list_all_des_with_src(cls, user_id):
         """
         API Endpoint.
-        List IDs of all des in discoverable mode.
+        List IDs of all des with their source agents.
 
         Parameters:
             user_id: caller id
-
-        Returns:
-        A list containing IDs of all discoverable des.
         """
-        return cls.__comp.list_discoverable_des_with_src(user_id)
+        return cls.__comp.list_all_des_with_src(user_id)
 
     @classmethod
     def get_all_functions(cls, user_id):
@@ -171,7 +166,7 @@ class EscrowAPI:
 
         Returns:
         A response object with the following fields:
-            status: status of suggesting share. 0: success, 1: failure.
+            status: status of suggesting contract. 0: success, 1: failure.
         """
         return cls.__comp.propose_contract(user_id, dest_agents, data_elements, function, *args, **kwargs)
 
@@ -179,11 +174,11 @@ class EscrowAPI:
     def show_contract(cls, user_id, contract_id):
         """
         For API endpoints.
-        Display the content of a share.
+        Display the content of a contract.
 
         Parameters:
             user_id: caller username
-            contract_id: id of the share that the caller wants to see
+            contract_id: id of the contract that the caller wants to see
 
         Returns:
         An object with the following fields:
@@ -214,8 +209,7 @@ class EscrowAPI:
     @classmethod
     def approve_contract(cls, user_id, contract_id):
         """
-        For API endpoints.
-        Update a share's status to ready, for approval agent <username>.
+        Update a contract's status to approved (1), for source agent <user_id>.
 
         Parameters:
             user_id: approver id
@@ -223,9 +217,16 @@ class EscrowAPI:
 
         Returns:
         A response object with the following fields:
-            status: status of approving share. 0: success, 1: failure.
+            status: status of approving contract. 0: success, 1: failure.
         """
         return cls.__comp.approve_contract(user_id, contract_id)
+
+    @classmethod
+    def reject_contract(cls, user_id, contract_id):
+        """
+        Update a contract's status to rejected (-1), for source agent <user_id>.
+        """
+        return cls.__comp.reject_contract(user_id, contract_id)
 
     @classmethod
     def execute_contract(cls, user_id, contract_id):
