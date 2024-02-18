@@ -2,18 +2,16 @@ from .database import engine, Base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import event
 
-from .crud import (function_repo,
-                   function_dependency_repo,
-                   contract_repo, )
 from contextlib import contextmanager
 from dbservice.checkpoint.check_point import check_point
 
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
 from .schemas.user import User
 from .schemas.dataelement import DataElement
+from .schemas.function import Function
+from .schemas.function_dependency import FunctionDependency
 from .schemas.contract import Contract
 from .schemas.contract_dest import ContractDest
 from .schemas.contract_de import ContractDE
@@ -195,110 +193,141 @@ def recover_des(des):
             return None
         return 0
 
+
 def create_function(function_name):
-    with get_db() as session:
-        function = function_repo.create_function(session, function_name)
-        if function:
-            return {"status": 0, "message": "success", "data": function}
-        else:
+    with get_db() as db:
+        db_function = Function(function_name=function_name, )
+        try:
+            db.add(db_function)
+            db.commit()
+            db.refresh(db_function)
+        except SQLAlchemyError as e:
+            db.rollback()
             return {"status": 1, "message": "database error: register function in DB failed"}
+        return {"status": 0, "message": "success", "data": db_function}
 
 
 def get_all_functions():
-    with get_db() as session:
-        functions = function_repo.get_all_functions(session)
-        if len(functions):
-            return {"status": 0, "message": "success", "data": functions}
+    with get_db() as db:
+        functions = db.query(Function).all()
+        function_name_array = []
+        for function in functions:
+            function_name_array.append(function.function_name)
+        if len(function_name_array):
+            return {"status": 0, "message": "success", "data": function_name_array}
         else:
             return {"status": 1, "message": "database error: no registered functions found"}
 
 
 def create_function_dependency(from_f, to_f):
-    with get_db() as session:
-        function_dependency = function_dependency_repo.create_function_dependency(session, from_f, to_f)
-        if function_dependency:
-            return {"status": 0, "message": "success", "data": function_dependency}
-        else:
+    with get_db() as db:
+        db_f_depend = FunctionDependency(from_f=from_f, to_f=to_f, )
+        try:
+            db.add(db_f_depend)
+            db.commit()
+            db.refresh(db_f_depend)
+        except SQLAlchemyError as e:
+            db.rollback()
             return {"status": 1, "message": "database error: create function dependency failed"}
+        return {"status": 0, "message": "success", "data": db_f_depend}
 
 
 def get_all_function_dependencies():
-    with get_db() as session:
-        function_dependencies = function_dependency_repo.get_all_dependencies(session)
-        if len(function_dependencies):
-            return {"status": 0, "message": "success", "data": function_dependencies}
+    with get_db() as db:
+        f_depends = db.query(FunctionDependency).all()
+        if len(f_depends):
+            return {"status": 0, "message": "success", "data": f_depends}
         else:
             return {"status": 1, "message": "database error: no function dependencies found"}
 
 
 def create_contract(contract_id, contract_function, contract_function_param):
-    with get_db() as session:
-        contract = contract_repo.create_contract(session, contract_id, contract_function, contract_function_param)
-        if contract:
-            return {"status": 0, "message": "success", "data": contract}
-        else:
+    with get_db() as db:
+        db_contract = Contract(id=contract_id,
+                               function=contract_function,
+                               function_param=contract_function_param, )
+        try:
+            db.add(db_contract)
+            db.commit()
+            db.refresh(db_contract)
+        except SQLAlchemyError as e:
+            db.rollback()
             return {"status": 1, "message": "database error: create contract failed"}
+        return {"status": 0, "message": "success", "data": db_contract}
+
+
+def create_contract_dest(contract_id, dest_agent_id):
+    with get_db() as db:
+        db_contract_dest = ContractDest(c_id=contract_id, a_id=dest_agent_id)
+        try:
+            db.add(db_contract_dest)
+            db.commit()
+            db.refresh(db_contract_dest)
+        except SQLAlchemyError as e:
+            db.rollback()
+            return {"status": 1, "message": "database error: create contract dest agents failed"}
+        return {"status": 0, "message": "success"}
+
+
+def create_contract_de(contract_id, de_id):
+    with get_db() as db:
+        db_contract_de = ContractDE(c_id=contract_id, de_id=de_id)
+        try:
+            db.add(db_contract_de)
+            db.commit()
+            db.refresh(db_contract_de)
+        except SQLAlchemyError as e:
+            db.rollback()
+            return {"status": 1, "message": "database error: create contract DE failed"}
+        return {"status": 0, "message": "success"}
+
+
+def create_contract_status(contract_id, approval_agent_id, status):
+    with get_db() as db:
+        db_contract_status = ContractStatus(c_id=contract_id, a_id=approval_agent_id, status=status)
+        try:
+            db.add(db_contract_status)
+            db.commit()
+            db.refresh(db_contract_status)
+        except SQLAlchemyError as e:
+            db.rollback()
+            return {"status": 1, "message": "database error: create contract status failed"}
+        return {"status": 0, "message": "success"}
 
 
 def get_contract_with_max_id():
-    with get_db() as session:
-        contract = contract_repo.get_contract_with_max_id(session)
+    with get_db() as db:
+        max_id = db.query(func.max(Contract.id)).scalar_subquery()
+        contract = db.query(Contract).filter(Contract.id == max_id).first()
         if contract:
-            return {"status": 1, "message": "success", "data": contract}
+            return {"status": 0, "message": "success", "data": contract}
         else:
             return {"status": 1, "message": "database error: get contract with max ID failed"}
 
 
-def create_contract_dest(contract_id, dest_agent_id):
-    with get_db() as session:
-        contract_dest = contract_repo.create_contract_dest(session, contract_id, dest_agent_id)
-        if contract_dest:
-            return {"status": 0, "message": "success"}
-        else:
-            return {"status": 1, "message": "database error: create contract dest agents failed"}
-
-
-def create_contract_de(contract_id, de_id):
-    with get_db() as session:
-        contract_de = contract_repo.create_contract_de(session, contract_id, de_id)
-        if contract_de:
-            return {"status": 0, "message": "success"}
-        else:
-            return {"status": 1, "message": "database error: create contract DE failed"}
-
-
-def create_contract_status(contract_id, approval_agent_id, status):
-    with get_db() as session:
-        contract_status = contract_repo.create_contract_status(session, contract_id, approval_agent_id, status)
-        if contract_status:
-            return {"status": 0, "message": "success"}
-        else:
-            return {"status": 1, "message": "database error: create contract status failed"}
-
-
 def get_src_for_contract(contract_id):
-    with get_db() as session:
-        return contract_repo.get_src_for_contract(session, contract_id)
+    with get_db() as db:
+        return db.query(ContractStatus.a_id).filter(ContractStatus.c_id == contract_id).all()
 
 
 def get_status_for_contract(contract_id):
-    with get_db() as session:
-        return contract_repo.get_status_for_contract(session, contract_id)
+    with get_db() as db:
+        return db.query(ContractStatus.status).filter(ContractStatus.c_id == contract_id).all()
 
 
 def get_dest_for_contract(contract_id):
-    with get_db() as session:
-        return contract_repo.get_dest_for_contract(session, contract_id)
+    with get_db() as db:
+        return db.query(ContractDest.a_id).filter(ContractDest.c_id == contract_id).all()
 
 
 def get_de_for_contract(contract_id):
-    with get_db() as session:
-        return contract_repo.get_de_for_contract(session, contract_id)
+    with get_db() as db:
+        return db.query(ContractDE.de_id).filter(ContractDE.c_id == contract_id).all()
 
 
 def get_contract(contract_id):
-    with get_db() as session:
-        contract = contract_repo.get_contract(session, contract_id)
+    with get_db() as db:
+        contract = db.query(Contract).filter(Contract.id == contract_id).first()
         if contract:
             return {"status": 0, "message": "success", "data": contract}
         else:
@@ -306,8 +335,8 @@ def get_contract(contract_id):
 
 
 def get_all_contracts_for_dest(dest_agent_id):
-    with get_db() as session:
-        contract_ids = contract_repo.get_all_contracts_for_dest(session, dest_agent_id)
+    with get_db() as db:
+        contract_ids = db.query(ContractDest.c_id).filter(ContractDest.a_id == dest_agent_id).all()
         if contract_ids:
             return {"status": 0, "message": "success", "data": contract_ids}
         else:
@@ -315,8 +344,8 @@ def get_all_contracts_for_dest(dest_agent_id):
 
 
 def get_all_contracts_for_src(src_agent_id):
-    with get_db() as session:
-        contract_ids = contract_repo.get_all_contracts_for_src(session, src_agent_id)
+    with get_db() as db:
+        contract_ids = db.query(ContractStatus.c_id).filter(ContractStatus.a_id == src_agent_id).all()
         if contract_ids:
             return {"status": 0, "message": "success", "data": contract_ids}
         else:
