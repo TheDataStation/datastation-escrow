@@ -288,6 +288,7 @@ class DataStation:
                          dest_agents,
                          data_elements,
                          function,
+                         status,
                          *args,
                          **kwargs):
         """
@@ -316,6 +317,7 @@ class DataStation:
                                                         dest_agents,
                                                         data_elements,
                                                         function,
+                                                        status,
                                                         self.write_ahead_log,
                                                         self.key_manager,
                                                         *args,
@@ -416,7 +418,7 @@ class DataStation:
             # Check contract status
             contract_ready_flag = contract_manager.check_contract_ready(contract_id)
             if not contract_ready_flag:
-                print("This contract has not been approved to execute yet.")
+                print("This contract's status is not approved.")
                 return None
 
             # Get accessible data elements
@@ -458,6 +460,8 @@ class DataStation:
                     print("Args is", args)
                     print("Kwargs is ", kwargs)
                     res = cur_fn(*args, **kwargs)
+                    # Writing the result to caller's staging storage, under file name {contract_id}.
+                    # self.write_staged(contract_id, user_id, res)
                     return res
 
             # Getting here means called function is not found
@@ -512,6 +516,7 @@ class DataStation:
     def write_staged(self, file_name, user_id, content):
         """
         Writes to staging storage in full trust mode.
+        If file exists, its content will be overwritten.
         """
         with open(f"{self.storage_path}/Staging_storage/{user_id}/{file_name}", 'wb+') as f:
             f.write(pickle.dumps(content))

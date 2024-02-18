@@ -13,7 +13,7 @@ def register_and_upload_de(user_id, de_name, de_in_bytes):
     # Check that user's uploaded data has an attribute called "CPR": the join key.
     df = pd.read_csv(io.BytesIO(de_in_bytes))
     if "CPR" in df.columns:
-        register_de_res = EscrowAPI.register_de(user_id, de_name, "file", de_name, 0)
+        register_de_res = EscrowAPI.register_de(user_id, de_name, "file", de_name, )
         if register_de_res["de_id"]:
             return EscrowAPI.upload_de(user_id, register_de_res["de_id"], de_in_bytes)
         else:

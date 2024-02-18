@@ -76,7 +76,7 @@ class EscrowAPI:
         Returns:
         A response object with the following fields:
             status: status of registering DE. 0: success, 1: failure.
-            data_id: if success, a data_id is returned for this registered DE.
+            de_id: if success, a de_id is returned for this registered DE.
         """
         return cls.__comp.register_de(user_id, data_name, data_type, access_param)
 
@@ -150,6 +150,7 @@ class EscrowAPI:
                          dest_agents,
                          data_elements,
                          function,
+                         status,
                          *args,
                          **kwargs, ):
         """
@@ -161,14 +162,16 @@ class EscrowAPI:
             dest_agents: list of user ids
             data_elements: list of data elements
             function: function
+            status: status of the contract
             args: input args to the template function
             kwargs: input kwargs to the template funciton
 
         Returns:
         A response object with the following fields:
             status: status of suggesting contract. 0: success, 1: failure.
+            contract_id: (if success) id of the proposed contract
         """
-        return cls.__comp.propose_contract(user_id, dest_agents, data_elements, function, *args, **kwargs)
+        return cls.__comp.propose_contract(user_id, dest_agents, data_elements, function, status, *args, **kwargs)
 
     @classmethod
     def show_contract(cls, user_id, contract_id):

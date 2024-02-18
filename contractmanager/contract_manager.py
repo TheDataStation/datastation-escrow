@@ -8,6 +8,7 @@ def register_contract_in_DB(user_id,
                             dest_agents,
                             data_elements,
                             function,
+                            status,
                             write_ahead_log,
                             key_manager,
                             *args,
@@ -58,9 +59,9 @@ def register_contract_in_DB(user_id,
         src_agent_set.add(owner_id_res["data"])
     for a_id in src_agent_set:
         if write_ahead_log:
-            wal_entry = f"database_api.create_contract_status({contract_id}, {a_id}, 0)"
+            wal_entry = f"database_api.create_contract_status({contract_id}, {a_id}, {status})"
             write_ahead_log.log(user_id, wal_entry, key_manager, )
-        db_res = database_api.create_contract_status(contract_id, a_id, 0)
+        db_res = database_api.create_contract_status(contract_id, a_id, status)
         if db_res["status"] == 1:
             return db_res
 

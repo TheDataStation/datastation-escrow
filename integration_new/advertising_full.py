@@ -70,8 +70,6 @@ if __name__ == '__main__':
     tree.plot_tree(res)
     plt.show()
 
-    exit()
-
     # Third contract: test to see if facebook has a large population who will respond to the ad
     dest_agents = [1]
     data_elements = [1]

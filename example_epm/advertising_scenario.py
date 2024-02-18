@@ -11,60 +11,32 @@ def list_all_agents(user_id):
     return EscrowAPI.list_all_agents(user_id)
 
 @api_endpoint
-def register_de(user_id, de_name):
-    return EscrowAPI.register_de(user_id, de_name, "file", de_name)
+def register_and_upload_de(user_id, de_name, data_in_bytes):
+    register_res = EscrowAPI.register_de(user_id, de_name, "file", de_name)
+    if register_res["status"] == 1:
+        return register_res
+    return EscrowAPI.upload_de(user_id, register_res["de_id"], data_in_bytes)
 
 @api_endpoint
-def upload_de(user_id, de_id, de_in_bytes):
-    return EscrowAPI.upload_de(user_id, de_id, de_in_bytes)
+def list_all_agents(user_id):
+    return EscrowAPI.list_all_agents(user_id)
 
 @api_endpoint
-def remove_de_from_storage(user_id, de_id):
-    return EscrowAPI.remove_de_from_storage(user_id, de_id)
+def train_ML_model(user_id, data_elements, query, model_name, label_name):
+    proposition_res = EscrowAPI.propose_contract(user_id, [user_id], data_elements, "train_ML_model", 1,
+                                                 query, model_name, label_name)
+    if proposition_res["contract_id"]:
+        return EscrowAPI.execute_contract(user_id, proposition_res["contract_id"])
+    return proposition_res
 
 @api_endpoint
-def remove_de_from_db(user_id, de_id):
-    return EscrowAPI.remove_de_from_db(user_id, de_id)
+def propose_SQL_query(user_id, data_elements, query):
+    return EscrowAPI.propose_contract(user_id, [user_id], data_elements, "run_SQL_query", 0,
+                                      query)
 
 @api_endpoint
-def list_all_des_with_src(user_id):
-    return EscrowAPI.list_all_des_with_src(user_id)
-
-@api_endpoint
-def get_all_functions(user_id):
-    return EscrowAPI.get_all_functions(user_id)
-
-@api_endpoint
-def get_function_info(user_id, function_name):
-    return EscrowAPI.get_function_info(user_id, function_name)
-
-@api_endpoint
-def propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs):
-    return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, f, *args, **kwargs)
-
-@api_endpoint
-def show_contract(user_id, contract_id):
-    return EscrowAPI.show_contract(user_id, contract_id)
-
-@api_endpoint
-def show_all_contracts_as_dest(user_id):
-    return EscrowAPI.show_all_contracts_as_dest(user_id)
-
-@api_endpoint
-def show_all_contracts_as_src(user_id):
-    return EscrowAPI.show_all_contracts_as_src(user_id)
-
-@api_endpoint
-def approve_contract(user_id, contract_id):
+def approve_SQL_query(user_id, contract_id):
     return EscrowAPI.approve_contract(user_id, contract_id)
-
-@api_endpoint
-def reject_contract(user_id, contract_id):
-    return EscrowAPI.reject_contract(user_id, contract_id)
-
-@api_endpoint
-def execute_contract(user_id, contract_id):
-    return EscrowAPI.execute_contract(user_id, contract_id)
 
 def helper_for_SQL_query(query):
     accessible_des = EscrowAPI.get_all_accessible_des()
@@ -91,25 +63,16 @@ def run_SQL_query(query):
     return res_df
 
 @function
-def logistic_wrapper(query, label):
+def train_ML_model(query, model_name, label_name):
+    if model_name not in ["logistic_regression", "linear_regression", "decision_tree"]:
+        return "Model Type not currently supported"
     res_df = run_SQL_query(query)
-    X = res_df.drop(label, axis=1)
-    y = res_df[label]
-    clf = LogisticRegression().fit(X, y)
+    X = res_df.drop(label_name, axis=1)
+    y = res_df[label_name]
+    if model_name == "logistic_regression":
+        clf = LogisticRegression().fit(X, y)
+    elif model_name == "linear_regression":
+        clf = LinearRegression().fit(X, y)
+    else:
+        clf = tree.DecisionTreeClassifier().fit(X, y)
     return clf
-
-
-# @function
-# def train_ML_model(query, model_name, label_name):
-#     if model_name not in ["logistic_regression", "linear_regression", "decision_tree"]:
-#         return "Model Type not currently supported"
-#     res_df = run_SQL_query(query)
-#     X = res_df.drop(label_name, axis=1)
-#     y = res_df[label_name]
-#     if model_name == "logistic_regression":
-#         clf = LogisticRegression().fit(X, y)
-#     elif model_name == "linear_regression":
-#         clf = LinearRegression().fit(X, y)
-#     else:
-#         clf = tree.DecisionTreeClassifier().fit(X, y)
-#     return clf
