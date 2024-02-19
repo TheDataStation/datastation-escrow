@@ -13,8 +13,8 @@ def register_de_in_DB(de_id,
                       key_manager, ):
     # Call DB to register a new data element in the database
 
-    if pathlib.Path(access_param).is_file():
-        access_param = str(pathlib.Path(access_param).absolute())
+    if pathlib.Path(str(access_param)).is_file():
+        access_param = str(pathlib.Path(str(access_param)).absolute())
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log:

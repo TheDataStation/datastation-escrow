@@ -18,24 +18,40 @@ if __name__ == '__main__':
     ds.create_user("youtube", "string")
 
     # Step 2: Register and upload DEs.
-    facebook_de = f"integration_new/test_files/advertising_p/facebook.csv"
-    f = open(facebook_de, "rb")
-    plaintext_bytes = f.read()
-    f.close()
-    register_res = ds.call_api(f"facebook", "register_de", f"facebook.csv", )
-    print(register_res)
-    ds.call_api(f"facebook", "upload_de", register_res["de_id"], plaintext_bytes, )
-
-    youtube_de = f"integration_new/test_files/advertising_p/youtube.csv"
-    f = open(youtube_de, "rb")
-    plaintext_bytes = f.read()
-    f.close()
-    register_res = ds.call_api(f"youtube", "register_de", f"youtube.csv", )
-    print(register_res)
-    ds.call_api(f"youtube", "upload_de", register_res["de_id"], plaintext_bytes, )
+    agents = ["facebook", "youtube"]
+    for agent in agents:
+        agent_de = f"integration_new/test_files/advertising_p/{agent}.csv"
+        f = open(agent_de, "rb")
+        plaintext_bytes = f.read()
+        f.close()
+        res = ds.call_api(agent, "register_and_upload_de", f"{agent}.csv", plaintext_bytes)
+        print(res)
 
     res = ds.list_all_des_with_src("advertiser")
     print(res)
+
+    # First contract: materialize the output from the set linkage + join query
+    dest_agents = []
+    data_elements = [1, 2]
+    query = "select de2.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
+            "from de1 inner join de2 " \
+            "on de1.first_name = de2.first_name and de1.last_name = de2.last_name"
+    res = ds.call_api("advertiser", "propose_SQL_query", dest_agents, data_elements, query)
+    print(res)
+
+    ds.call_api("facebook", "approve_SQL_query", 1)
+    ds.call_api("youtube", "approve_SQL_query", 1)
+
+    res = ds.call_api("advertiser", "execute_SQL_query", 1)
+    print(res)
+
+    # Second contract: propose train_model contract with intermediate DE
+    data_elements = [3]
+    model_name = "logistic_regression"
+    label_name = "clicked_on_ad"
+    ds.call_api("advertiser", "train_ML_model", data_elements, model_name, label_name)
+    # TODO: Right now running this function gives a bug: because we cannot find the src agent ID of intermediate DEs
+    exit()
 
     # First contract: train a logistic regression model on joined data, then look at coefficients.
     dest_agents = [1]

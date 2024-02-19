@@ -5,6 +5,7 @@ import duckdb
 from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import LinearRegression
 from sklearn import tree
+import pickle
 
 @api_endpoint
 def list_all_agents(user_id):
@@ -22,21 +23,26 @@ def list_all_agents(user_id):
     return EscrowAPI.list_all_agents(user_id)
 
 @api_endpoint
-def train_ML_model(user_id, data_elements, query, model_name, label_name):
+def train_ML_model(user_id, data_elements, model_name, label_name, query=None):
     proposition_res = EscrowAPI.propose_contract(user_id, [user_id], data_elements, "train_ML_model", 1,
-                                                 query, model_name, label_name)
+                                                 model_name, label_name, query)
+    exit()
     if proposition_res["contract_id"]:
         return EscrowAPI.execute_contract(user_id, proposition_res["contract_id"])
     return proposition_res
 
 @api_endpoint
-def propose_SQL_query(user_id, data_elements, query):
-    return EscrowAPI.propose_contract(user_id, [user_id], data_elements, "run_SQL_query", 0,
+def propose_SQL_query(user_id, dest_agents, data_elements, query):
+    return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, "run_SQL_query", 0,
                                       query)
 
 @api_endpoint
 def approve_SQL_query(user_id, contract_id):
     return EscrowAPI.approve_contract(user_id, contract_id)
+
+@api_endpoint
+def execute_SQL_query(user_id, contract_id):
+    return EscrowAPI.execute_contract(user_id, contract_id)
 
 def helper_for_SQL_query(query):
     accessible_des = EscrowAPI.get_all_accessible_des()
@@ -63,10 +69,19 @@ def run_SQL_query(query):
     return res_df
 
 @function
-def train_ML_model(query, model_name, label_name):
+def train_ML_model(model_name, label_name, query=None):
     if model_name not in ["logistic_regression", "linear_regression", "decision_tree"]:
         return "Model Type not currently supported"
-    res_df = run_SQL_query(query)
+    if query:
+        res_df = run_SQL_query(query)
+    else:
+        des = EscrowAPI.get_all_accessible_des()
+        if len(des) != 1:
+            print("Wrong number of DEs in contract")
+            return -1
+        else:
+            with open(des[0].access_param, "rb") as f:
+                res_df = pickle.load(f)
     X = res_df.drop(label_name, axis=1)
     y = res_df[label_name]
     if model_name == "logistic_regression":

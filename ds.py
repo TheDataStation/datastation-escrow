@@ -411,7 +411,7 @@ class DataStation:
         if self.development_mode:
             # Check destination agent
             dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
-            if int(user_id) not in dest_a_ids:
+            if int(user_id) not in dest_a_ids and len(dest_a_ids):
                 print("Caller not a destination agent")
                 return None
 
@@ -431,15 +431,15 @@ class DataStation:
                 return get_des_by_ids_res
 
             accessible_de = set()
-            for cur_data in get_des_by_ids_res["data"]:
+            for cur_de in get_des_by_ids_res["data"]:
                 if self.trust_mode == "no_trust":
                     data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
                 else:
                     data_owner_symmetric_key = None
-                cur_de = DataElement(cur_data.id,
-                                     cur_data.name,
-                                     cur_data.type,
-                                     cur_data.access_param,
+                cur_de = DataElement(cur_de.id,
+                                     cur_de.name,
+                                     cur_de.type,
+                                     cur_de.access_param,
                                      data_owner_symmetric_key)
                 accessible_de.add(cur_de)
 
@@ -462,7 +462,18 @@ class DataStation:
                     res = cur_fn(*args, **kwargs)
                     # Writing the result to caller's staging storage, under file name {contract_id}.
                     # self.write_staged(contract_id, user_id, res)
-                    return res
+                    # print(res)
+                    # Check: if destination agents list is empty, this is a materialized intermediate DE
+                    # So we register it first, then write it to SM_storage, with f_name equal to its DE id,
+                    # owner_id equals to 0
+                    if not len(dest_a_ids):
+                        cur_de_id = self.cur_de_id
+                        register_res = self.register_de(0, cur_de_id, "file", self.cur_de_id)
+                        # Assume register runs sucessfully
+                        self.write_intermediate_DE(cur_de_id, res)
+                        return f"Intermediate DE with ID {cur_de_id} created."
+                    else:
+                        return res
 
             # Getting here means called function is not found
             print("Called function does not exist")
@@ -513,6 +524,16 @@ class DataStation:
         print("Called api_endpoint not found:", api)
         return None
 
+    def write_intermediate_DE(self, de_id, content):
+        dir_path = os.path.join(self.storage_path, str(de_id))
+        dst_file_path = os.path.join(dir_path, str(de_id))
+        os.makedirs(dir_path, exist_ok=True)
+        with open(dst_file_path, 'wb+') as f:
+            f.write(pickle.dumps(content))
+        with open(dst_file_path, "rb") as f:
+            cur_content = pickle.load(f)
+            print(cur_content)
+
     def write_staged(self, file_name, user_id, content):
         """
         Writes to staging storage in full trust mode.
@@ -551,7 +572,9 @@ class DataStation:
         # Check if api called is valid (either a function or an api_endpoint)
         api_type = None
         list_of_api_endpoint = get_registered_api_endpoint()
+        # print(api)
         for cur_api in list_of_api_endpoint:
+            # print(cur_api.__name__)
             if api == cur_api.__name__:
                 api_type = "api_endpoint"
                 break

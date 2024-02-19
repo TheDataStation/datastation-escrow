@@ -66,7 +66,7 @@ def register_epf(epf_path):
     spec = importlib.util.spec_from_file_location("", epf_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    remove_function_from_api_endpoint()
+    # remove_function_from_api_endpoint()
 
 def get_api_endpoint_names():
     api_endpoint_names = []
