@@ -99,10 +99,11 @@ def recover_users(users):
         return 0
 
 
-def create_de(de_id, de_name, user_id, de_type, access_param):
+def create_de(de_id, de_name, user_id, contract_id, de_type, access_param):
     with get_db() as db:
         db_de = DataElement(id=de_id,
                             owner_id=user_id,
+                            contract_id=contract_id,
                             name=de_name,
                             type=de_type,
                             access_param=access_param)
@@ -151,6 +152,7 @@ def get_de_owner_id(de_id):
         de = db.query(DataElement).filter(DataElement.id == de_id).first()
         if de:
             owner_id = db.query(User.id).filter(User.id == de.owner_id).first()[0]
+            print(owner_id)
             if owner_id:
                 return {"status": 0, "message": "success", "data": owner_id}
         return {"status": 1, "message": "database error: get DE owner id failed"}
@@ -181,6 +183,7 @@ def recover_des(des):
         for de in des:
             cur_de = DataElement(id=de.id,
                                  owner_id=de.owner_id,
+                                 contract_id=de.contract_id,
                                  name=de.name,
                                  type=de.type,
                                  access_param=de.access_param)

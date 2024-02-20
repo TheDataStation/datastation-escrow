@@ -26,7 +26,6 @@ def list_all_agents(user_id):
 def train_ML_model(user_id, data_elements, model_name, label_name, query=None):
     proposition_res = EscrowAPI.propose_contract(user_id, [user_id], data_elements, "train_ML_model", 1,
                                                  model_name, label_name, query)
-    exit()
     if proposition_res["contract_id"]:
         return EscrowAPI.execute_contract(user_id, proposition_res["contract_id"])
     return proposition_res
@@ -82,6 +81,7 @@ def train_ML_model(model_name, label_name, query=None):
         else:
             with open(des[0].access_param, "rb") as f:
                 res_df = pickle.load(f)
+                print(res_df)
     X = res_df.drop(label_name, axis=1)
     y = res_df[label_name]
     if model_name == "logistic_regression":

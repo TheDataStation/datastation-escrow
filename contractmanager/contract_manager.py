@@ -52,7 +52,10 @@ def register_contract_in_DB(user_id,
 
     # Then add to ContractStatus table. First get the src agents, default to DE owners.
     src_agent_set = set()
-    for de_id in data_elements:
+
+    simple_de_ides = get_simple_des_from_het_des(data_elements)
+
+    for de_id in simple_de_ides:
         owner_id_res = database_api.get_de_owner_id(de_id)
         if owner_id_res["status"] == 1:
             return owner_id_res
@@ -184,3 +187,32 @@ def get_contract_object(contract_id):
         "ready_status": ready_status,
     }
     return contract_obj
+
+def get_simple_des_from_het_des(het_de_ids):
+    """
+    Helper.
+    Given a heterogeneous set of DEs (simple or intermediate), return a simple set
+    """
+    het_des = database_api.get_des_by_ids(het_de_ids)["data"]
+    all_des = database_api.get_all_des()["data"]
+    # print(het_des)
+    simple_de_id_set = set()
+    het_de_id_set = set()
+    de_contract_dict = {}
+    for de in het_des:
+        het_de_id_set.add(de.id)
+    for de in all_des:
+        de_contract_dict[de.id] = de.contract_id
+    while het_de_id_set:
+        cur_de_id = het_de_id_set.pop()
+        if de_contract_dict[cur_de_id] == 0:
+            simple_de_id_set.add(cur_de_id)
+        else:
+            # print(de_contract_dict)
+            # convert the intermediate DE into DEs from its contract
+            des_in_contract = database_api.get_de_for_contract(de_contract_dict[cur_de_id])
+            des_to_add = set(map(lambda ele: ele[0], des_in_contract))
+            het_de_id_set.update(des_to_add)
+    # print(het_de_id_set)
+    # print(simple_de_id_set)
+    return simple_de_id_set

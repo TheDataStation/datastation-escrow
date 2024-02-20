@@ -12,3 +12,4 @@ class DataElement(Base):
     type = Column(String)
     access_param = Column(String)
     owner_id = Column(Integer)
+    contract_id = Column(Integer)

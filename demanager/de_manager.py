@@ -7,6 +7,7 @@ from common import common_procedure
 def register_de_in_DB(de_id,
                       de_name,
                       user_id,
+                      contract_id,
                       de_type,
                       access_param,
                       write_ahead_log,
@@ -18,12 +19,13 @@ def register_de_in_DB(de_id,
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log:
-        wal_entry = f"database_api.create_de({de_id}, {de_name}, {user_id}, {de_type}, {access_param})"
+        wal_entry = f"database_api.create_de({de_id}, {de_name}, {user_id}, {contract_id}, {de_type}, {access_param})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
     de_resp = database_api.create_de(int(de_id),
                                      str(de_name),
                                      int(user_id),
+                                     int(contract_id),
                                      str(de_type),
                                      str(access_param),)
     if de_resp["status"] == 1:

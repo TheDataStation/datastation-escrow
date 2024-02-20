@@ -49,42 +49,15 @@ if __name__ == '__main__':
     data_elements = [3]
     model_name = "logistic_regression"
     label_name = "clicked_on_ad"
-    ds.call_api("advertiser", "train_ML_model", data_elements, model_name, label_name)
-    # TODO: Right now running this function gives a bug: because we cannot find the src agent ID of intermediate DEs
-    exit()
-
-    # First contract: train a logistic regression model on joined data, then look at coefficients.
-    dest_agents = [1]
-    data_elements = [1, 2]
-    query = "select de2.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
-            "from de1 inner join de2 " \
-            "on de1.first_name = de2.first_name and de1.last_name = de2.last_name"
-    label = "clicked_on_ad"
-    ds.call_api("advertiser", "propose_contract", dest_agents, data_elements, "logistic_wrapper",
-                query, label)
-    ds.call_api("facebook", "approve_contract", 1)
-    ds.call_api("youtube", "approve_contract", 1)
-
-    res = ds.call_api("advertiser", "execute_contract", 1)
+    res = ds.call_api("advertiser", "train_ML_model", data_elements, model_name, label_name)
     print(res.coef_)
 
-    exit()
-
-    # Second contract: train a decision tree model on joined data, then look at splits.
-    dest_agents = [1]
-    data_elements = [1, 2]
-    query = "select de2.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
-            "from de1 inner join de2 " \
-            "on de1.first_name = de2.first_name and de1.last_name = de2.last_name"
-    label = "clicked_on_ad"
-    ds.call_api("advertiser", "propose_contract", dest_agents, data_elements, "decision_tree_wrapper",
-                query, label)
-    ds.call_api("facebook", "approve_contract", 2)
-    ds.call_api("youtube", "approve_contract", 2)
-
-    res = ds.call_api("advertiser", "execute_contract", 2)
-    tree.plot_tree(res)
-    plt.show()
+    data_elements = [3]
+    model_name = "decision_tree"
+    label_name = "clicked_on_ad"
+    res = ds.call_api("advertiser", "train_ML_model", data_elements, model_name, label_name)
+    # tree.plot_tree(res)
+    # plt.show()
 
     # Third contract: test to see if facebook has a large population who will respond to the ad
     dest_agents = [1]
@@ -93,11 +66,9 @@ if __name__ == '__main__':
             "SUM(CASE WHEN male = 1 AND married = 0 THEN 1 ELSE 0 END) AS male_1_married_0_records, " \
             "(SUM(CASE WHEN male = 1 AND married = 0 THEN 1 ELSE 0 END) * 1.0) / COUNT(*) AS proportion " \
             "FROM de1 ;"
-    ds.call_api("advertiser", "propose_contract", dest_agents, data_elements, "run_SQL_query",
-                query)
-    ds.call_api("facebook", "approve_contract", 3)
-
-    res = ds.call_api("advertiser", "execute_contract", 3)
+    ds.call_api("advertiser", "propose_SQL_query", dest_agents, data_elements, query)
+    ds.call_api("facebook", "approve_SQL_query", 4)
+    res = ds.call_api("advertiser", "execute_SQL_query", 4)
     print(res)
 
     # Last step: shut down the Data Station

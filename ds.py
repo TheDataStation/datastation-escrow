@@ -187,6 +187,7 @@ class DataStation:
         return de_manager.register_de_in_DB(de_id,
                                             de_name,
                                             user_id,
+                                            0,  # contract ID is 0 when users register a DE
                                             de_type,
                                             access_param,
                                             self.write_ahead_log,
@@ -430,10 +431,10 @@ class DataStation:
                 print("Something wrong with getting accessible DE for contract.")
                 return get_des_by_ids_res
 
-            accessible_de = set()
+            accessible_de = []
             for cur_de in get_des_by_ids_res["data"]:
                 if self.trust_mode == "no_trust":
-                    data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_data.owner_id)
+                    data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
                 else:
                     data_owner_symmetric_key = None
                 cur_de = DataElement(cur_de.id,
@@ -441,7 +442,7 @@ class DataStation:
                                      cur_de.type,
                                      cur_de.access_param,
                                      data_owner_symmetric_key)
-                accessible_de.add(cur_de)
+                accessible_de.append(cur_de)
 
             for cur_de in accessible_de:
                 if cur_de.type == "file":
@@ -467,8 +468,18 @@ class DataStation:
                     # So we register it first, then write it to SM_storage, with f_name equal to its DE id,
                     # owner_id equals to 0
                     if not len(dest_a_ids):
+                        # Decide which de_id to use from self.cur_de_id
                         cur_de_id = self.cur_de_id
-                        register_res = self.register_de(0, cur_de_id, "file", self.cur_de_id)
+                        self.cur_de_id += 1
+
+                        de_manager.register_de_in_DB(cur_de_id,
+                                                     cur_de_id,
+                                                     0,  # owner id is 0
+                                                     contract_id,
+                                                     "file",
+                                                     cur_de_id,
+                                                     self.write_ahead_log,
+                                                     self.key_manager)
                         # Assume register runs sucessfully
                         self.write_intermediate_DE(cur_de_id, res)
                         return f"Intermediate DE with ID {cur_de_id} created."
