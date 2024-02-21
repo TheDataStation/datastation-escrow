@@ -19,15 +19,22 @@ if __name__ == '__main__':
     f = open(dnpr_de, "rb")
     plaintext_bytes = f.read()
     f.close()
-    res = ds.call_api(f"dnpr", "register_and_upload_de", "DNPR.csv", plaintext_bytes, )
-    print(res)
+    print(ds.call_api(f"dnpr", "register_and_upload_de", "DNPR.csv", plaintext_bytes, ))
 
     dadr_de = f"integration_new/test_files/DNPR_p/DADR.csv"
     f = open(dadr_de, "rb")
     plaintext_bytes = f.read()
     f.close()
-    register_res = ds.call_api(f"dadr", "register_and_upload_de", f"DADR.csv", plaintext_bytes, )
-    print(res)
+    print(ds.call_api(f"dadr", "register_and_upload_de", f"DADR.csv", plaintext_bytes, ))
+
+    # Step 3: Uploading CMPs
+
+    # Step 4:
+    dest_a_id = 0
+    de_id = 1
+    function = "calc_causal_dnpr"
+    status = 1
+    print(ds.call_api(f"dnpr", "upload_cmp", dest_a_id, de_id, function, status))
 
     additional_vars = ['F32']
     causal_dag = [('smoking_status', 'HbA1c'), ('F32', 'smoking_status'), ('F32', 'HbA1c')]

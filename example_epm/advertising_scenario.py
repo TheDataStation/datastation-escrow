@@ -24,6 +24,7 @@ def list_all_agents(user_id):
 
 @api_endpoint
 def train_ML_model(user_id, data_elements, model_name, label_name, query=None):
+    # TODO: CMP specified afterwards?
     proposition_res = EscrowAPI.propose_contract(user_id, [user_id], data_elements, "train_ML_model", 1,
                                                  model_name, label_name, query)
     if proposition_res["contract_id"]:
@@ -79,6 +80,7 @@ def train_ML_model(model_name, label_name, query=None):
             print("Wrong number of DEs in contract")
             return -1
         else:
+            # TODO: Should developers write these themselves?
             with open(des[0].access_param, "rb") as f:
                 res_df = pickle.load(f)
                 print(res_df)

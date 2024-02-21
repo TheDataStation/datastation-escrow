@@ -3,17 +3,16 @@ import json
 from dbservice import database_api
 
 
-def register_contract_in_DB(user_id,
-                            contract_id,
-                            dest_agents,
-                            data_elements,
-                            function,
-                            status,
-                            write_ahead_log,
-                            key_manager,
-                            *args,
-                            **kwargs,
-                            ):
+def propose_contract(user_id,
+                     contract_id,
+                     dest_agents,
+                     data_elements,
+                     function,
+                     write_ahead_log,
+                     key_manager,
+                     *args,
+                     **kwargs,
+                     ):
     param_json = {"args": args, "kwargs": kwargs}
     param_str = json.dumps(param_json)
 
@@ -62,11 +61,25 @@ def register_contract_in_DB(user_id,
         src_agent_set.add(owner_id_res["data"])
     for a_id in src_agent_set:
         if write_ahead_log:
-            wal_entry = f"database_api.create_contract_status({contract_id}, {a_id}, {status})"
+            wal_entry = f"database_api.create_contract_status({contract_id}, {a_id}, 0)"
             write_ahead_log.log(user_id, wal_entry, key_manager, )
-        db_res = database_api.create_contract_status(contract_id, a_id, status)
+        db_res = database_api.create_contract_status(contract_id, a_id, 0)
         if db_res["status"] == 1:
             return db_res
+
+    # Now: Apply CMPs to do auto-approval and auto-rejection
+    # For the source agents, we fetch all of their relevant CMPs, by function
+    # Intuition: (0, 0) -> I approve of all my DEs in this contract for any dest agents, for this f()
+    # Intuition: (dest_a_id, a_id) -> I approve of this DE, for this dest agent, for this f()
+
+    # Step 1: Get what DEs in this contract are each src_agent are responsible for
+
+
+    # Step 2: Build their approval set
+
+    # Step: Check that this contract is a subset of their approval set: if true, auto approves
+
+    # Also, if caller is a src agent, they auto-approve
 
     return {"status": 0, "message": "success", "contract_id": contract_id}
 
@@ -140,6 +153,35 @@ def reject_contract(user_id,
     return database_api.reject_contract(user_id, contract_id)
 
 
+def upload_cmp(user_id,
+               dest_a_id,
+               de_id,
+               function,
+               status,
+               write_ahead_log,
+               key_manager, ):
+    # Check if this is a valid function
+    function_res = database_api.get_all_functions()
+    if function_res["status"] == 1:
+        return function_res
+    if function not in function_res["data"]:
+        return {"status": 1, "message": "Function in CMP not valid"}
+
+    # Check if caller is the owner of de_id
+    if de_id:
+        owner_id_res = database_api.get_de_owner_id(de_id)
+        if owner_id_res["status"] == 1:
+            return owner_id_res
+        if user_id != owner_id_res["data"]:
+            return {"status": 1, "message": "Upload CMP failure: Caller not owner of de"}
+
+    if write_ahead_log:
+        wal_entry = f"database_api.create_cmp({user_id}, {dest_a_id}, {de_id}, {function}, {status})"
+        write_ahead_log.log(user_id, wal_entry, key_manager, )
+
+    return database_api.create_cmp(user_id, dest_a_id, de_id, function, status)
+
+
 def check_contract_ready(contract_id):
     db_res = database_api.get_status_for_contract(contract_id)
     status_list = list(map(lambda ele: ele[0], db_res))
@@ -187,6 +229,7 @@ def get_contract_object(contract_id):
         "ready_status": ready_status,
     }
     return contract_obj
+
 
 def get_simple_des_from_het_des(het_de_ids):
     """

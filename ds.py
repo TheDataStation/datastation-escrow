@@ -289,7 +289,6 @@ class DataStation:
                          dest_agents,
                          data_elements,
                          function,
-                         status,
                          *args,
                          **kwargs):
         """
@@ -300,7 +299,6 @@ class DataStation:
             dest_agents: list of user ids
             data_elements: list of data elements
             function: function
-            status: default approval status of a contract (for CMP specification)
             args: args to the template function
             kwargs: kwargs to the template function
 
@@ -313,16 +311,15 @@ class DataStation:
         contract_id = self.cur_contract_id
         self.cur_contract_id += 1
 
-        return contract_manager.register_contract_in_DB(user_id,
-                                                        contract_id,
-                                                        dest_agents,
-                                                        data_elements,
-                                                        function,
-                                                        status,
-                                                        self.write_ahead_log,
-                                                        self.key_manager,
-                                                        *args,
-                                                        **kwargs, )
+        return contract_manager.propose_contract(user_id,
+                                                 contract_id,
+                                                 dest_agents,
+                                                 data_elements,
+                                                 function,
+                                                 self.write_ahead_log,
+                                                 self.key_manager,
+                                                 *args,
+                                                 **kwargs, )
 
     def show_contract(self, user_id, contract_id):
         """
@@ -388,6 +385,15 @@ class DataStation:
                                                 contract_id,
                                                 self.write_ahead_log,
                                                 self.key_manager, )
+
+    def upload_cmp(self, user_id, dest_a_id, de_id, function, status):
+        return contract_manager.upload_cmp(user_id,
+                                           dest_a_id,
+                                           de_id,
+                                           function,
+                                           status,
+                                           self.write_ahead_log,
+                                           self.key_manager, )
 
     def execute_contract(self, user_id, contract_id):
         """

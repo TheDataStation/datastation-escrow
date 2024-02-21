@@ -150,7 +150,6 @@ class EscrowAPI:
                          dest_agents,
                          data_elements,
                          function,
-                         status,
                          *args,
                          **kwargs, ):
         """
@@ -162,7 +161,6 @@ class EscrowAPI:
             dest_agents: list of user ids
             data_elements: list of data elements
             function: function
-            status: status of the contract
             args: input args to the template function
             kwargs: input kwargs to the template funciton
 
@@ -171,7 +169,7 @@ class EscrowAPI:
             status: status of suggesting contract. 0: success, 1: failure.
             contract_id: (if success) id of the proposed contract
         """
-        return cls.__comp.propose_contract(user_id, dest_agents, data_elements, function, status, *args, **kwargs)
+        return cls.__comp.propose_contract(user_id, dest_agents, data_elements, function, *args, **kwargs)
 
     @classmethod
     def show_contract(cls, user_id, contract_id):
@@ -245,3 +243,14 @@ class EscrowAPI:
             The result of executing the contract (f(P))
         """
         return cls.__comp.execute_contract(user_id, contract_id)
+
+    @classmethod
+    def upload_cmp(cls, user_id, dest_a_id, de_id, function, status):
+        """
+        Upload a new contract management policy.
+        dest_a_id: 0 means any destination agent is approved
+        de_id: 0 means any de is approved
+        function: name of the function in the contract
+        status: 1: auto-approved -1: auto-rejected
+        """
+        return cls.__comp.upload_cmp(user_id, dest_a_id, de_id, function, status)

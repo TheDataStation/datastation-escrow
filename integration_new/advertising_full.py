@@ -30,7 +30,7 @@ if __name__ == '__main__':
     res = ds.list_all_des_with_src("advertiser")
     print(res)
 
-    # First contract: materialize the output from the set linkage + join query
+    # Contract 1: materialize the output from the set linkage + join query
     dest_agents = []
     data_elements = [1, 2]
     query = "select de2.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     res = ds.call_api("advertiser", "execute_SQL_query", 1)
     print(res)
 
-    # Second contract: propose train_model contract with intermediate DE
+    # Contract 2/3: propose train_model contract with intermediate DE
     data_elements = [3]
     model_name = "logistic_regression"
     label_name = "clicked_on_ad"
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # tree.plot_tree(res)
     # plt.show()
 
-    # Third contract: test to see if facebook has a large population who will respond to the ad
+    # Contract 4: test to see if facebook has a large population who will respond to the ad
     dest_agents = [1]
     data_elements = [1]
     query = "SELECT COUNT(*) AS total_records, " \

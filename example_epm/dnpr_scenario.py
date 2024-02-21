@@ -23,8 +23,13 @@ def register_and_upload_de(user_id, de_name, de_in_bytes):
 
 
 @api_endpoint
+def upload_cmp(user_id, dest_a_id, de_id, f, status):
+    return EscrowAPI.upload_cmp(user_id, dest_a_id, de_id, f, status)
+
+
+@api_endpoint
 def run_causal_query(user_id, user_DE_id, additional_vars, dag_spec, treatment, outcome):
-    proposition_res = EscrowAPI.propose_contract(user_id, [user_id], [1, user_DE_id], "calc_causal_dnpr", 1,
+    proposition_res = EscrowAPI.propose_contract(user_id, [user_id], [1, user_DE_id], "calc_causal_dnpr",
                                                  additional_vars, dag_spec, treatment, outcome)
     if proposition_res["contract_id"]:
         return EscrowAPI.execute_contract(user_id, proposition_res["contract_id"])
