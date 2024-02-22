@@ -400,10 +400,10 @@ class DataStation:
                                            self.write_ahead_log,
                                            self.key_manager, )
 
-    def store_kv_to_state(self, key, value):
+    def store_kv_to_app_state(self, key, value):
         return self.app_state_manager.store_kv_to_app_state(key, value)
 
-    def load_key_from_state(self, key):
+    def load_key_from_app_state(self, key):
         return self.app_state_manager.load_key_from_app_state(key)
 
     def execute_contract(self, user_id, contract_id):
