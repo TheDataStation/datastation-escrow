@@ -10,6 +10,7 @@ plots/
 SM_storage/
 SM_storage_mount/
 data_station.db
+app_state.pkl
 ds_log.pkl
 wal.pkl
 users.pkl
