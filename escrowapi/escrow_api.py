@@ -254,3 +254,17 @@ class EscrowAPI:
         status: 1: auto-approved -1: auto-rejected
         """
         return cls.__comp.upload_cmp(user_id, dest_a_id, de_id, function, status)
+
+    @classmethod
+    def store_kv_to_app_state(cls, key, value):
+        """
+        Store/Update a (key, value) pair to app state.
+        """
+        return cls.__comp.store_kv_to_app_state(key, value)
+
+    @classmethod
+    def load_key_from_app_state(cls, key):
+        """
+        Load value for key from app state.
+        """
+        return cls.__comp.load_key_from_app_state(key)

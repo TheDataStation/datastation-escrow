@@ -7,6 +7,7 @@ import pickle
 
 from common import common_procedure
 from storagemanager.storage_manager import StorageManager
+from appstatemanager.app_state_manager import AppStateManager
 from demanager import de_manager
 from contractmanager import contract_manager
 from verifiability.log import Log
@@ -52,6 +53,10 @@ class DataStation:
         # set up an instance of the storage_manager
         self.storage_path = self.config.storage_path
         self.storage_manager = StorageManager(self.storage_path)
+
+        # set up an instance of the app state manager
+        self.app_state_path = self.config.app_state_path
+        self.app_state_manager = AppStateManager(self.app_state_path)
 
         # set up an instance of the log
         log_in_memory_flag = self.config.log_in_memory_flag
@@ -394,6 +399,12 @@ class DataStation:
                                            status,
                                            self.write_ahead_log,
                                            self.key_manager, )
+
+    def store_kv_to_state(self, key, value):
+        return self.app_state_manager.store_kv_to_app_state(key, value)
+
+    def load_key_from_state(self, key):
+        return self.app_state_manager.load_key_from_app_state(key)
 
     def execute_contract(self, user_id, contract_id):
         """

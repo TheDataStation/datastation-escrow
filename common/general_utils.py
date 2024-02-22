@@ -13,7 +13,8 @@ def clean_test_env():
         os.remove("data_station.db")
 
     # Clear application state
-    # TODO
+    if os.path.exists("app_state.pkl"):
+        os.remove("app_state.pkl")
 
     # Clear stored DEs
     folders = ['SM_storage']

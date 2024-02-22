@@ -11,6 +11,9 @@ class DSConfig:
         # get storage path for data
         self.storage_path = ds_config["storage_path"]
 
+        # get app state path
+        self.app_state_path = ds_config["app_state_path"]
+
         # log arguments
         self.log_in_memory_flag = ds_config["log_in_memory"]
         self.log_path = ds_config["log_path"]

@@ -1,24 +1,23 @@
-from os import path, remove, makedirs, removedirs
-
-import os
+import pickle
 
 
 class AppStateManager:
 
     def __init__(self, app_state_path):
         self.app_state_path = app_state_path
+        state_dict = {}
+        with open(self.app_state_path, 'wb+') as f:
+            f.write(pickle.dumps(state_dict))
 
-    def get_dir_path(self, de_id):
-        dir_path = path.join(self.storage_path, str(de_id))
-        return dir_path
+    def store_kv_to_app_state(self, key, value):
+        with open(self.app_state_path, "rb") as f:
+            state_dict = pickle.load(f)
+        state_dict[key] = value
+        with open(self.app_state_path, 'wb+') as f:
+            f.write(pickle.dumps(state_dict))
+            return 0
 
-    def create_staging_for_user(self, user_id):
-        user_staging_path = f"{self.staging_path}/{user_id}"
-        if not os.path.exists(user_staging_path):
-            os.makedirs(user_staging_path)
-
-    def store(self, de_name, de_id, data, data_type):
-        file_name = path.basename(de_name)
-        dir_path = self.get_dir_path(de_id)
-        # Specify path for file
-        dst_file_path = path.join(dir_path, file_name)
+    def load_key_from_app_state(self, key):
+        with open(self.app_state_path, "rb") as f:
+            state_dict = pickle.load(f)
+            return state_dict[key]
