@@ -245,15 +245,14 @@ class EscrowAPI:
         return cls.__comp.execute_contract(user_id, contract_id)
 
     @classmethod
-    def upload_cmp(cls, user_id, dest_a_id, de_id, function, status):
+    def upload_cmp(cls, user_id, dest_a_id, de_id, function):
         """
         Upload a new contract management policy.
         dest_a_id: 0 means any destination agent is approved
         de_id: 0 means any de is approved
         function: name of the function in the contract
-        status: 1: auto-approved -1: auto-rejected
         """
-        return cls.__comp.upload_cmp(user_id, dest_a_id, de_id, function, status)
+        return cls.__comp.upload_cmp(user_id, dest_a_id, de_id, function)
 
     @classmethod
     def store_kv_to_app_state(cls, key, value):

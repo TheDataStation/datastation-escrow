@@ -50,7 +50,7 @@ def propose_contract(user_id,
             return db_res
 
     # Then add to ContractStatus table. First get the src agents, default to DE owners.
-    src_agent_set = set()
+    src_agent_de_dict = {}
 
     simple_de_ides = get_simple_des_from_het_des(data_elements)
 
@@ -58,12 +58,17 @@ def propose_contract(user_id,
         owner_id_res = database_api.get_de_owner_id(de_id)
         if owner_id_res["status"] == 1:
             return owner_id_res
-        src_agent_set.add(owner_id_res["data"])
-    for a_id in src_agent_set:
+        src_a_id = owner_id_res["data"]
+        # If the key exists, append the value to its list
+        if src_a_id in src_agent_de_dict:
+            src_agent_de_dict[src_a_id].add(de_id)
+        else:
+            src_agent_de_dict.setdefault(src_a_id, set()).add(de_id)
+    for src_a_id in src_agent_de_dict:
         if write_ahead_log:
-            wal_entry = f"database_api.create_contract_status({contract_id}, {a_id}, 0)"
+            wal_entry = f"database_api.create_contract_status({contract_id}, {src_a_id}, 0)"
             write_ahead_log.log(user_id, wal_entry, key_manager, )
-        db_res = database_api.create_contract_status(contract_id, a_id, 0)
+        db_res = database_api.create_contract_status(contract_id, src_a_id, 0)
         if db_res["status"] == 1:
             return db_res
 
@@ -73,13 +78,54 @@ def propose_contract(user_id,
     # Intuition: (dest_a_id, a_id) -> I approve of this DE, for this dest agent, for this f()
 
     # Step 1: Get what DEs in this contract are each src_agent are responsible for
+    # print(src_agent_de_dict)
 
+    # Step 2: Fetch relevant CMPs that each of these src agents have specified
+    # We go over each src agent one by one
+    for src_a_id in src_agent_de_dict:
+        dest_request_dict = {}
+        for dest_a_id in dest_agents:
+            dest_request_dict[dest_a_id] = set(data_elements)
+        de_accessible_to_all = set()
+        cur_src_approval_dict = {}
+        auto_approval = False
+        for dest_a_id in dest_agents:
+            cur_src_approval_dict[dest_a_id] = set()
+        cur_policies = database_api.get_cmp_for_src_and_f(src_a_id, function)
+        cur_policies = list(map(lambda ele: [ele.dest_a_id, ele.de_id], cur_policies))
+        for policy in cur_policies:
+            if policy == [0, 0]:
+                auto_approval = True
+                break
+            elif policy[0] == 0:
+                de_accessible_to_all.add(policy[1])
+            elif policy[1] == 0:
+                cur_src_approval_dict[policy[0]] = set(data_elements)
+            else:
+                cur_src_approval_dict[policy[0]].add(policy[1])
+        for dest_a_id in dest_agents:
+            cur_src_approval_dict[dest_a_id].update(de_accessible_to_all)
 
-    # Step 2: Build their approval set
-
-    # Step: Check that this contract is a subset of their approval set: if true, auto approves
+        for dest_a_id in dest_agents:
+            dest_request_dict[dest_a_id] = dest_request_dict[dest_a_id].intersection(src_agent_de_dict[src_a_id])
+        # print("Relevant request for current source agent is", dest_request_dict)
+        # print("Auto approved request for curret source agent is ", cur_src_approval_dict)
+        # Now we check (by each dest in dest_request_dict): if requested DE is a subset for the same key value in
+        # src's approval. If all passes, set auto-approval to true.
+        if not auto_approval:
+            all_dest_passed = True
+            for key in dest_request_dict:
+                if not dest_request_dict[key].issubset(cur_src_approval_dict[key]):
+                    all_dest_passed = False
+                    break
+            auto_approval = all_dest_passed
+        # Finally: if auto_approval is True, we call approve contract
+        if auto_approval:
+            approve_contract(src_a_id, contract_id, write_ahead_log, key_manager)
 
     # Also, if caller is a src agent, they auto-approve
+    if user_id in src_agent_de_dict:
+        approve_contract(user_id, contract_id, write_ahead_log, key_manager)
 
     return {"status": 0, "message": "success", "contract_id": contract_id}
 
@@ -157,7 +203,6 @@ def upload_cmp(user_id,
                dest_a_id,
                de_id,
                function,
-               status,
                write_ahead_log,
                key_manager, ):
     # Check if this is a valid function
@@ -176,10 +221,10 @@ def upload_cmp(user_id,
             return {"status": 1, "message": "Upload CMP failure: Caller not owner of de"}
 
     if write_ahead_log:
-        wal_entry = f"database_api.create_cmp({user_id}, {dest_a_id}, {de_id}, {function}, {status})"
+        wal_entry = f"database_api.create_cmp({user_id}, {dest_a_id}, {de_id}, {function})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    return database_api.create_cmp(user_id, dest_a_id, de_id, function, status)
+    return database_api.create_cmp(user_id, dest_a_id, de_id, function)
 
 
 def check_contract_ready(contract_id):

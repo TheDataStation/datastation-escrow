@@ -309,13 +309,12 @@ def get_contract_with_max_id():
             return {"status": 1, "message": "database error: get contract with max ID failed"}
 
 
-def create_cmp(src_a_id, dest_a_id, de_id, function, status):
+def create_cmp(src_a_id, dest_a_id, de_id, function):
     with get_db() as db:
         db_cmp = CMP(src_a_id=src_a_id,
                      dest_a_id=dest_a_id,
                      de_id=de_id,
-                     function=function,
-                     status=status, )
+                     function=function, )
         try:
             db.add(db_cmp)
             db.commit()
@@ -324,6 +323,11 @@ def create_cmp(src_a_id, dest_a_id, de_id, function, status):
             db.rollback()
             return {"status": 1, "message": "database error: create contract management policy failed"}
         return {"status": 0, "message": "success", "data": db_cmp}
+
+
+def get_cmp_for_src_and_f(src_a_id, function):
+    with get_db() as db:
+        return db.query(CMP).filter(CMP.src_a_id == src_a_id and CMP.function == function).all()
 
 
 def get_src_for_contract(contract_id):

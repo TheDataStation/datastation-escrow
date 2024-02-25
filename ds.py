@@ -391,12 +391,11 @@ class DataStation:
                                                 self.write_ahead_log,
                                                 self.key_manager, )
 
-    def upload_cmp(self, user_id, dest_a_id, de_id, function, status):
+    def upload_cmp(self, user_id, dest_a_id, de_id, function):
         return contract_manager.upload_cmp(user_id,
                                            dest_a_id,
                                            de_id,
                                            function,
-                                           status,
                                            self.write_ahead_log,
                                            self.key_manager, )
 

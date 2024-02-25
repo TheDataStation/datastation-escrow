@@ -33,8 +33,7 @@ if __name__ == '__main__':
     dest_a_id = 0
     de_id = 1
     function = "calc_causal_dnpr"
-    status = 1
-    print(ds.call_api(f"dnpr", "upload_cmp", dest_a_id, de_id, function, status))
+    print(ds.call_api(f"dnpr", "upload_cmp", dest_a_id, de_id, function))
 
     additional_vars = ['F32']
     causal_dag = [('smoking_status', 'HbA1c'), ('F32', 'smoking_status'), ('F32', 'HbA1c')]
