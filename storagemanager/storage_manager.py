@@ -22,11 +22,16 @@ class StorageManager:
         if not os.path.exists(user_staging_path):
             os.makedirs(user_staging_path)
 
-    def store(self, de_name, de_id, data, data_type):
-        file_name = path.basename(de_name)
+    def write(self, de_id, content, de_type):
+
+        # Specify storage directory and storage path
         dir_path = self.get_dir_path(de_id)
-        # Specify path for file
-        dst_file_path = path.join(dir_path, file_name)
+        if de_type == "csv":
+            dst_file_path = path.join(dir_path, path.basename(f"{de_id}.csv"))
+        else:
+            dst_file_path = path.join(dir_path, path.basename(str(de_id)))
+        # print(dir_path)
+        # print(dst_file_path)
 
         try:
             # if dir already exists, data with the same id has already been stored
@@ -34,18 +39,28 @@ class StorageManager:
             # Store the file
             iters = 3
             bytes_written = 0
-            bytes_per_write = int(math.floor(len(data) / iters))
+            bytes_per_write = int(math.floor(len(content) / iters))
             # print(bytes_per_write)
             for j in range(iters):
                 with open(dst_file_path, 'ab+') as file:
                     if j != iters - 1:
-                        file.write(data[bytes_written: bytes_written + bytes_per_write])
+                        file.write(content[bytes_written: bytes_written + bytes_per_write])
                         bytes_written += bytes_per_write
                     else:
-                        file.write(data[bytes_written:])
+                        file.write(content[bytes_written:])
         except OSError as error:
             return {"status": 1, "message": f"DE id={de_id} already exists"}
         return {"status": 0, "message": "success"}
+
+    def read(self, de_id, de_type):
+        # Type 1: CSV: we return the path to the file
+        if de_type == "csv":
+            dir_path = self.get_dir_path(de_id)
+            dst_file_path = path.join(dir_path, path.basename(f"{de_id}.csv"))
+            return dst_file_path
+
+        # Other types of data elements are not currently supported
+        return {"status": 1, "message": "DE type not currently supported"}
 
     def remove_de_from_storage(self, de_id):
         dir_path = self.get_dir_path(de_id)
@@ -57,14 +72,3 @@ class StorageManager:
             return {"status": 0, "message": "success"}
 
         return {"status": 0, "message": "DE not in storage"}
-
-    @staticmethod
-    def retrieve_data_by_id(data_type, data_access_type):
-        if data_type == "file":
-            f = open(data_access_type, 'rb')
-            data_retrieved = f.read()
-            f.close()
-            return {"status": 0, "message": "data content retrieved successfully", "data": "data_retrieved"}
-
-        # Other types of data elements are not currently supported
-        return {"status": 1, "message": "DE type not currently supported"}

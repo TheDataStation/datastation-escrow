@@ -9,15 +9,11 @@ import pandas as pd
 
 
 @api_endpoint
-def register_and_upload_de(user_id, de_name, de_in_bytes):
+def register_and_upload_de(user_id, de_in_bytes):
     # Check that user's uploaded data has an attribute called "CPR": the join key.
     df = pd.read_csv(io.BytesIO(de_in_bytes))
     if "CPR" in df.columns:
-        register_de_res = EscrowAPI.register_de(user_id, de_name, "file", de_name, )
-        if register_de_res["de_id"]:
-            return EscrowAPI.upload_de(user_id, register_de_res["de_id"], de_in_bytes)
-        else:
-            return register_de_res
+        return EscrowAPI.CSVDEStore.write(user_id, de_in_bytes, )
     else:
         return "Error: Input not CSV, or 'CPR' does not exist in the data."
 
@@ -52,14 +48,12 @@ def calc_causal_dnpr(additional_vars, dag_spec, treatment, outcome):
     outcome: name of outcome variable.
     :return: calculated effect (assuming linear) of treatment on outcome
     """
-    des = EscrowAPI.get_all_accessible_des()
-    dnpr_de_path = None
-    input_de_path = None
-    for de in des:
-        if de.name == "DNPR.csv":
-            dnpr_de_path = de.access_param
+    de_ids = EscrowAPI.get_contract_de_ids()
+    for de_id in de_ids:
+        if de_id == 1:
+            dnpr_de_path = EscrowAPI.CSVDEStore.read(de_id)
         else:
-            input_de_path = de.access_param
+            input_de_path = EscrowAPI.CSVDEStore.read(de_id)
     # First run the join
     conn = duckdb.connect()
     addtional_var_statement = ""

@@ -8,8 +8,5 @@ class DataElement(Base):
     __tablename__ = "DataElements"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    type = Column(String)
-    access_param = Column(String)
     owner_id = Column(Integer)
     contract_id = Column(Integer)

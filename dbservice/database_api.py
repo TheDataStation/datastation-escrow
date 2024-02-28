@@ -100,14 +100,11 @@ def recover_users(users):
         return 0
 
 
-def create_de(de_id, de_name, user_id, contract_id, de_type, access_param):
+def create_de(de_id, user_id, contract_id):
     with get_db() as db:
         db_de = DataElement(id=de_id,
                             owner_id=user_id,
-                            contract_id=contract_id,
-                            name=de_name,
-                            type=de_type,
-                            access_param=access_param)
+                            contract_id=contract_id,)
 
         try:
             db.add(db_de)
@@ -184,10 +181,7 @@ def recover_des(des):
         for de in des:
             cur_de = DataElement(id=de.id,
                                  owner_id=de.owner_id,
-                                 contract_id=de.contract_id,
-                                 name=de.name,
-                                 type=de.type,
-                                 access_param=de.access_param)
+                                 contract_id=de.contract_id, )
             des_to_add.append(cur_de)
         try:
             db.add_all(des_to_add)

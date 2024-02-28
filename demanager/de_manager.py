@@ -5,29 +5,23 @@ from common import common_procedure
 
 
 def register_de_in_DB(de_id,
-                      de_name,
                       user_id,
                       contract_id,
-                      de_type,
-                      access_param,
                       write_ahead_log,
                       key_manager, ):
     # Call DB to register a new data element in the database
 
-    if pathlib.Path(str(access_param)).is_file():
-        access_param = str(pathlib.Path(str(access_param)).absolute())
+    # if pathlib.Path(str(access_param)).is_file():
+    #     access_param = str(pathlib.Path(str(access_param)).absolute())
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log:
-        wal_entry = f"database_api.create_de({de_id}, {de_name}, {user_id}, {contract_id}, {de_type}, {access_param})"
+        wal_entry = f"database_api.create_de({de_id}, {user_id}, {contract_id})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
     de_resp = database_api.create_de(int(de_id),
-                                     str(de_name),
                                      int(user_id),
-                                     int(contract_id),
-                                     str(de_type),
-                                     str(access_param),)
+                                     int(contract_id), )
     if de_resp["status"] == 1:
         return de_resp
 

@@ -172,63 +172,66 @@ class DataStation:
         return agent_manager_response
 
     def register_de(self,
-                    user_id,
-                    de_name,
-                    de_type,
-                    access_param):
+                    user_id):
         """
         Registers a data element in Data Station's database.
 
         Parameters:
             user_id: the unique id identifying which user owns the de
-            de_name: name of DE
-            de_type: what types of data can be uploaded?
-            access_param: additional parameters needed for acccessing the DE
         """
         # Decide which de_id to use from self.cur_de_id
         de_id = self.cur_de_id
         self.cur_de_id += 1
 
         return de_manager.register_de_in_DB(de_id,
-                                            de_name,
                                             user_id,
                                             0,  # contract ID is 0 when users register a DE
-                                            de_type,
-                                            access_param,
                                             self.write_ahead_log,
                                             self.key_manager)
 
-    def upload_de(self,
-                  user_id,
-                  de_id,
-                  data_in_bytes):
-        """
-        Upload a file corresponding to a registered DE.
+    # def upload_de(self,
+    #               user_id,
+    #               de_id,
+    #               data_in_bytes):
+    #     """
+    #     Upload a file corresponding to a registered DE.
+    #
+    #     Parameters:
+    #         user_id: user id
+    #         de_id: id of this existing DE
+    #         data_in_bytes: plaintext data in bytes
+    #     """
+    #     # Check if DE exists, and whether its owner is the caller
+    #     verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
+    #     if verify_owner_response["status"] == 1:
+    #         return verify_owner_response
+    #
+    #     # We now get the de_name and de_type from de_id
+    #     de_res = database_api.get_de_by_id(de_id)
+    #     if de_res["status"] == 1:
+    #         return de_res
+    #
+    #     # If in no_trust mode, encrypt the DE using agent's symmetric key
+    #     if self.trust_mode == "no_trust":
+    #         data_in_bytes = cu.encrypt_data_with_symmetric_key(data_in_bytes,
+    #                                                            self.key_manager.agents_symmetric_key[user_id])
+    #
+    #     return self.storage_manager.store(de_res["data"].name,
+    #                                       de_id,
+    #                                       data_in_bytes,
+    #                                       de_res["data"].type, )
 
-        Parameters:
-            user_id: user id
-            de_id: id of this existing DE
-            data_in_bytes: plaintext data in bytes
-        """
-        # Check if DE exists, and whether its owner is the caller
-        verify_owner_response = common_procedure.verify_de_owner(de_id, user_id)
-        if verify_owner_response["status"] == 1:
-            return verify_owner_response
-
-        # We now get the de_name and de_type from de_id
-        de_res = database_api.get_de_by_id(de_id)
-        if de_res["status"] == 1:
-            return de_res
-
-        # If in no_trust mode, encrypt the DE using agent's symmetric key
+    def csv_store_write(self, src_a_id, content):
+        res = self.register_de(src_a_id)
+        if res["status"]:
+            return res
         if self.trust_mode == "no_trust":
-            data_in_bytes = cu.encrypt_data_with_symmetric_key(data_in_bytes,
-                                                               self.key_manager.agents_symmetric_key[user_id])
+            content = cu.encrypt_data_with_symmetric_key(content,
+                                                         self.key_manager.agents_symmetric_key[src_a_id])
+        return self.storage_manager.write(res["de_id"], content, "csv")
 
-        return self.storage_manager.store(de_res["data"].name,
-                                          de_id,
-                                          data_in_bytes,
-                                          de_res["data"].type, )
+    def csv_store_read(self, de_id):
+        return self.storage_manager.read(de_id, "csv")
 
     def remove_de_from_storage(self, user_id, de_id):
         """
@@ -439,34 +442,34 @@ class DataStation:
                 return None
 
             # Get accessible data elements
-            all_accessible_de_id = contract_manager.get_de_ids_for_contract(contract_id)
-            # print(f"all accessible data elements are: {all_accessible_de_id}")
+            contract_de_ids = contract_manager.get_de_ids_for_contract(contract_id)
+            # print(f"Accessible DEs in the contract are: {contract_de_ids}")
 
-            get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
-            if get_des_by_ids_res["status"] == 1:
-                print("Something wrong with getting accessible DE for contract.")
-                return get_des_by_ids_res
-
-            accessible_de = []
-            for cur_de in get_des_by_ids_res["data"]:
-                if self.trust_mode == "no_trust":
-                    data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
-                else:
-                    data_owner_symmetric_key = None
-                cur_de = DataElement(cur_de.id,
-                                     cur_de.name,
-                                     cur_de.type,
-                                     cur_de.access_param,
-                                     data_owner_symmetric_key)
-                accessible_de.append(cur_de)
-
-            for cur_de in accessible_de:
-                if cur_de.type == "file":
-                    cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
-
-            self.accessible_de_development = accessible_de
-
-            print(self.accessible_de_development)
+            # get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
+            # if get_des_by_ids_res["status"] == 1:
+            #     print("Something wrong with getting accessible DE for contract.")
+            #     return get_des_by_ids_res
+            #
+            # accessible_de = []
+            # for cur_de in get_des_by_ids_res["data"]:
+            #     if self.trust_mode == "no_trust":
+            #         data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
+            #     else:
+            #         data_owner_symmetric_key = None
+            #     cur_de = DataElement(cur_de.id,
+            #                          cur_de.name,
+            #                          cur_de.type,
+            #                          cur_de.access_param,
+            #                          data_owner_symmetric_key)
+            #     accessible_de.append(cur_de)
+            #
+            # for cur_de in accessible_de:
+            #     if cur_de.type == "file":
+            #         cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
+            #
+            self.accessible_de_development = contract_de_ids
+            #
+            # print(self.accessible_de_development)
 
             # Execute function
             list_of_function = get_registered_functions()
@@ -488,8 +491,8 @@ class DataStation:
                         cur_de_id = self.cur_de_id
                         self.cur_de_id += 1
 
+                        # TODO: this needs to be modified
                         de_manager.register_de_in_DB(cur_de_id,
-                                                     cur_de_id,
                                                      0,  # owner id is 0
                                                      contract_id,
                                                      "file",
@@ -617,14 +620,14 @@ class DataStation:
                 res = cur_api(user_id, *args, **kwargs)
                 return res
 
-    def get_all_accessible_des(self):
+    def get_contract_de_ids(self):
         """
         For testing: when in development mode, fetches all DEs.
 
         Parameters:
 
         Returns:
-            a list of DataElements
+            a list of DE ids for the current contract
         """
 
         if not self.development_mode:

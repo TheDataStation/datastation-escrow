@@ -1,35 +1,52 @@
 class EscrowAPI:
     __comp = None
 
+    class CSVDEStore:
+
+        __comp = None
+
+        @classmethod
+        def set_comp(cls, api_implementation):
+            cls.__comp = api_implementation
+
+        @classmethod
+        def write(cls, src_a_id, content):
+            return cls.__comp.csv_store_write(src_a_id, content)
+
+        @classmethod
+        def read(cls, de_id):
+            return cls.__comp.csv_store_read(de_id)
+
     @classmethod
     def set_comp(cls, api_implementation):
         print("setting escrow api composition to: ", api_implementation)
         cls.__comp = api_implementation
+        cls.CSVDEStore.set_comp(api_implementation)
 
     @classmethod
-    def get_all_accessible_des(cls):
+    def get_contract_de_ids(cls):
         """
         For functions.
-        Returns all accessible data elements.
+        Returns Ids of all DEs in the contract.
 
         Returns:
             A list of DataElements.
         """
-        return cls.__comp.get_all_accessible_des()
+        return cls.__comp.get_contract_de_ids()
 
-    @classmethod
-    def get_de_by_id(cls, de_id):
-        """
-        For functions.
-        Returns a data element, specified by de_id
-
-        Parameters:
-            de_id: id of the DataElement to be returned.
-
-        Returns:
-            a DataElement object.
-        """
-        return cls.__comp.get_de_by_id(de_id)
+    # @classmethod
+    # def get_de_by_id(cls, de_id):
+    #     """
+    #     For functions.
+    #     Returns a data element, specified by de_id
+    #
+    #     Parameters:
+    #         de_id: id of the DataElement to be returned.
+    #
+    #     Returns:
+    #         a DataElement object.
+    #     """
+    #     return cls.__comp.get_de_by_id(de_id)
 
     @classmethod
     def write_staged(cls, file_name, user_id, content):
@@ -56,66 +73,66 @@ class EscrowAPI:
         """
         return cls.__comp.list_all_agents(user_id)
 
-    @classmethod
-    def register_de(cls,
-                    user_id,
-                    data_name,
-                    data_type,
-                    access_param
-                    ):
-        """
-        For API endpoints.
-        Registers a DE in Data Station's database.
+    # @classmethod
+    # def register_de(cls,
+    #                 user_id,
+    #                 data_name,
+    #                 data_type,
+    #                 access_param
+    #                 ):
+    #     """
+    #     For API endpoints.
+    #     Registers a DE in Data Station's database.
+    #
+    #     Parameters:
+    #         user_id: caller id (owner of the data element)
+    #         data_name: name of the data
+    #         data_type: type of DE. e.g: file.
+    #         access_param: additional parameters needed for acccessing the DE
+    #
+    #     Returns:
+    #     A response object with the following fields:
+    #         status: status of registering DE. 0: success, 1: failure.
+    #         de_id: if success, a de_id is returned for this registered DE.
+    #     """
+    #     return cls.__comp.register_de(user_id, data_name, data_type, access_param)
+    #
+    # @classmethod
+    # def upload_de(cls,
+    #               user_id,
+    #               de_id,
+    #               data_in_bytes):
+    #     """
+    #     For API endpoints.
+    #     Upload data in bytes corresponding to a registered DE. These bytes will be written to a file in DataStation's
+    #     storage manager.
+    #
+    #     Parameters:
+    #         user_id: caller id (owner of the data element)
+    #         de_id: id of this existing DE
+    #         data_in_bytes: plaintext data in bytes
+    #     """
+    #     return cls.__comp.upload_de(user_id, de_id, data_in_bytes)
 
-        Parameters:
-            user_id: caller id (owner of the data element)
-            data_name: name of the data
-            data_type: type of DE. e.g: file.
-            access_param: additional parameters needed for acccessing the DE
+    # @classmethod
+    # def remove_de_from_storage(cls,
+    #                            user_id,
+    #                            de_id):
+    #     """
+    #     For API endpoints.
+    #     Remove a DE from storage. (Does not remove it from DB)
+    #     """
+    #     return cls.__comp.remove_de_from_storage(user_id, de_id)
 
-        Returns:
-        A response object with the following fields:
-            status: status of registering DE. 0: success, 1: failure.
-            de_id: if success, a de_id is returned for this registered DE.
-        """
-        return cls.__comp.register_de(user_id, data_name, data_type, access_param)
-
-    @classmethod
-    def upload_de(cls,
-                  user_id,
-                  de_id,
-                  data_in_bytes):
-        """
-        For API endpoints.
-        Upload data in bytes corresponding to a registered DE. These bytes will be written to a file in DataStation's
-        storage manager.
-
-        Parameters:
-            user_id: caller id (owner of the data element)
-            de_id: id of this existing DE
-            data_in_bytes: plaintext data in bytes
-        """
-        return cls.__comp.upload_de(user_id, de_id, data_in_bytes)
-
-    @classmethod
-    def remove_de_from_storage(cls,
-                               user_id,
-                               de_id):
-        """
-        For API endpoints.
-        Remove a DE from storage. (Does not remove it from DB)
-        """
-        return cls.__comp.remove_de_from_storage(user_id, de_id)
-
-    @classmethod
-    def remove_de_from_db(cls,
-                          user_id,
-                          de_id):
-        """
-        For API endpoints.
-        Remove a DE from DB. Also removes it from storage, if it's still in storage.
-        """
-        return cls.__comp.remove_de_from_db(user_id, de_id)
+    # @classmethod
+    # def remove_de_from_db(cls,
+    #                       user_id,
+    #                       de_id):
+    #     """
+    #     For API endpoints.
+    #     Remove a DE from DB. Also removes it from storage, if it's still in storage.
+    #     """
+    #     return cls.__comp.remove_de_from_db(user_id, de_id)
 
     @classmethod
     def list_all_des_with_src(cls, user_id):
