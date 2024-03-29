@@ -8,7 +8,8 @@ from dbservice import database_api
 # Adding global variables to support access token generation (for authentication)
 SECRET_KEY = "736bf9552516f9fa304078c9022cea2400a6808f02c02cdcbd4882b94e2cb260"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 120
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 365
+
 
 # The following function handles the creation of access tokens (for LoginUser)
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -21,11 +22,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def create_user(user_id,
-                user_name,
-                password,
-                write_ahead_log,
-                key_manager, ):
+
+def create_agent(user_id,
+                 user_name,
+                 password,
+                 write_ahead_log,
+                 key_manager, ):
     # print(user_id)
     # check if there is an existing user
     user_resp = database_api.get_user_by_user_name(user_name)
@@ -45,7 +47,8 @@ def create_user(user_id,
         return user_resp
     return {"status": user_resp["status"], "message": user_resp["message"], "user_id": user_resp["data"].id}
 
-def login_user(username, password):
+
+def login_agent(username, password):
     # check if there is an existing user
     user_resp = database_api.get_user_by_user_name(username)
     if user_resp["status"] == 1:
@@ -55,12 +58,13 @@ def login_user(username, password):
         # In here the password matches, we store the content for the token in the message
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": user_data.user_name}, expires_delta=access_token_expires
+            data={"a_id": user_data.id}, expires_delta=access_token_expires
         )
-        return {"status": 0, "token": str(access_token)}
-    return {"status": 1, "token": "password does not match"}
+        return {"status": 0, "message": "login success", "data": str(access_token)}
+    return {"status": 1, "message": "password does not match"}
 
-def authenticate_user(token):
+
+def authenticate_user(token: str):
     # Credential Checking
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -69,12 +73,13 @@ def authenticate_user(token):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        a_id: str = payload.get("a_id")
+        if a_id is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    return username
+    return a_id
+
 
 def list_all_agents():
     database_service_response = database_api.get_all_users()

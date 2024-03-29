@@ -9,7 +9,7 @@ class AppStateManager:
         with open(self.app_state_path, 'wb+') as f:
             f.write(pickle.dumps(state_dict))
 
-    def store_kv_to_app_state(self, key, value):
+    def store(self, key, value):
         with open(self.app_state_path, "rb") as f:
             state_dict = pickle.load(f)
         state_dict[key] = value
@@ -17,7 +17,7 @@ class AppStateManager:
             f.write(pickle.dumps(state_dict))
             return 0
 
-    def load_key_from_app_state(self, key):
+    def load(self, key):
         with open(self.app_state_path, "rb") as f:
             state_dict = pickle.load(f)
             return state_dict[key]

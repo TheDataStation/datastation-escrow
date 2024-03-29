@@ -16,6 +16,7 @@ from .schemas.contract import Contract
 from .schemas.contract_dest import ContractDest
 from .schemas.contract_de import ContractDE
 from .schemas.contract_status import ContractStatus
+from .schemas.policy import Policy
 from .schemas.cmp import CMP
 
 
@@ -100,11 +101,11 @@ def recover_users(users):
         return 0
 
 
-def create_de(de_id, user_id, contract_id):
+def create_de(de_id, user_id, derived):
     with get_db() as db:
         db_de = DataElement(id=de_id,
                             owner_id=user_id,
-                            contract_id=contract_id,)
+                            derived=derived)
 
         try:
             db.add(db_de)
@@ -180,8 +181,7 @@ def recover_des(des):
         des_to_add = []
         for de in des:
             cur_de = DataElement(id=de.id,
-                                 owner_id=de.owner_id,
-                                 contract_id=de.contract_id, )
+                                 owner_id=de.owner_id, )
             des_to_add.append(cur_de)
         try:
             db.add_all(des_to_add)
@@ -316,7 +316,7 @@ def create_cmp(src_a_id, dest_a_id, de_id, function):
         except SQLAlchemyError as e:
             db.rollback()
             return {"status": 1, "message": "database error: create contract management policy failed"}
-        return {"status": 0, "message": "success", "data": db_cmp}
+        return {"status": 0, "message": "success"}
 
 
 def get_cmp_for_src_and_f(src_a_id, function):
@@ -395,6 +395,22 @@ def reject_contract(a_id, contract_id):
             db.rollback()
             return {"status": 1, "message": "database error: reject contract failed"}
         return {"status": 0, "message": "success"}
+
+
+def create_policy(a_id, de_ids, function, function_param):
+    with get_db() as db:
+        db_policy = Policy(a_id=a_id,
+                           de_ids=de_ids,
+                           function=function,
+                           function_param=function_param, )
+        try:
+            db.add(db_policy)
+            db.commit()
+            db.refresh(db_policy)
+        except SQLAlchemyError as e:
+            db.rollback()
+            return {"status": 1, "message": "database error: create policy failed"}
+        return {"status": 0, "message": "success", "data": db_policy}
 
 
 def set_checkpoint_table_paths(table_paths):

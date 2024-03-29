@@ -6,7 +6,7 @@ from common import common_procedure
 
 def register_de_in_DB(de_id,
                       user_id,
-                      contract_id,
+                      derived,
                       write_ahead_log,
                       key_manager, ):
     # Call DB to register a new data element in the database
@@ -16,12 +16,12 @@ def register_de_in_DB(de_id,
 
     # If in no_trust mode, we need to record this ADD_DATA to wal
     if write_ahead_log:
-        wal_entry = f"database_api.create_de({de_id}, {user_id}, {contract_id})"
+        wal_entry = f"database_api.create_de({de_id}, {user_id}, {derived})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
     de_resp = database_api.create_de(int(de_id),
                                      int(user_id),
-                                     int(contract_id), )
+                                     derived)
     if de_resp["status"] == 1:
         return de_resp
 

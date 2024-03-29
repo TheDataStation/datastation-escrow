@@ -50,7 +50,7 @@ class StorageManager:
                         file.write(content[bytes_written:])
         except OSError as error:
             return {"status": 1, "message": f"DE id={de_id} already exists"}
-        return {"status": 0, "message": "success"}
+        return {"status": 0, "message": "success", "de_id": de_id}
 
     def read(self, de_id, de_type):
         # Type 1: CSV: we return the path to the file

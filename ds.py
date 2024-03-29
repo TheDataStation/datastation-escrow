@@ -4,6 +4,7 @@ import multiprocessing
 import pathlib
 import time
 import pickle
+import json
 
 from common import common_procedure
 from storagemanager.storage_manager import StorageManager
@@ -45,7 +46,8 @@ class DataStation:
         self.development_mode = self.config.development_mode
 
         # for development mode
-        self.accessible_de_development = None
+        self.accessible_de_development = set()
+        self.accessed_de_development = set()
 
         # set up trust mode
         self.trust_mode = self.config.trust_mode
@@ -125,7 +127,10 @@ class DataStation:
         else:
             self.cur_contract_id = 1
 
-    def create_user(self, username, password, user_sym_key=None, user_public_key=None):
+        # Keep track of calling agent ID
+        self.caller_id = 0
+
+    def create_agent(self, username, password, user_sym_key=None, user_public_key=None):
         """
         Creates a user in DS
 
@@ -149,11 +154,11 @@ class DataStation:
             self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         # Part two: Call the user_register to register the user in the DB
-        response = agent_manager.create_user(user_id,
-                                             username,
-                                             password,
-                                             self.write_ahead_log,
-                                             self.key_manager, )
+        response = agent_manager.create_agent(user_id,
+                                              username,
+                                              password,
+                                              self.write_ahead_log,
+                                              self.key_manager, )
 
         if response["status"] == 1:
             return response
@@ -163,8 +168,13 @@ class DataStation:
 
         return response
 
-    def list_all_agents(self,
-                        user_id):
+    def login_agent(self, username, password):
+        """
+        Agent login.
+        """
+        return agent_manager.login_agent(username, password)
+
+    def list_all_agents(self):
         """
         Show all agents' (ID, name) in the current instance
         """
@@ -172,7 +182,8 @@ class DataStation:
         return agent_manager_response
 
     def register_de(self,
-                    user_id):
+                    user_id,
+                    derived):
         """
         Registers a data element in Data Station's database.
 
@@ -185,7 +196,7 @@ class DataStation:
 
         return de_manager.register_de_in_DB(de_id,
                                             user_id,
-                                            0,  # contract ID is 0 when users register a DE
+                                            derived,
                                             self.write_ahead_log,
                                             self.key_manager)
 
@@ -221,16 +232,18 @@ class DataStation:
     #                                       data_in_bytes,
     #                                       de_res["data"].type, )
 
-    def csv_store_write(self, src_a_id, content):
-        res = self.register_de(src_a_id)
+    def csv_store_write(self, content):
+        res = self.register_de(self.caller_id, False)
         if res["status"]:
             return res
         if self.trust_mode == "no_trust":
             content = cu.encrypt_data_with_symmetric_key(content,
-                                                         self.key_manager.agents_symmetric_key[src_a_id])
+                                                         self.key_manager.agents_symmetric_key[self.caller_id])
         return self.storage_manager.write(res["de_id"], content, "csv")
 
+    # For development mode: (Since DEs can only be accessed in sandbox)
     def csv_store_read(self, de_id):
+        self.accessed_de_development.add(de_id)
         return self.storage_manager.read(de_id, "csv")
 
     def remove_de_from_storage(self, user_id, de_id):
@@ -271,7 +284,7 @@ class DataStation:
 
         return de_manager_response
 
-    def list_all_des_with_src(self, user_id):
+    def list_all_des_with_src(self):
         """
         List IDs of all des with the source agent IDs.
 
@@ -280,7 +293,7 @@ class DataStation:
         """
         return de_manager.list_all_des_with_src()
 
-    def get_all_functions(self, user_id):
+    def get_all_functions(self):
         """
         List names of all functions.
         """
@@ -301,18 +314,6 @@ class DataStation:
                          **kwargs):
         """
         Propose a contract. This leads to the creation of a contract.
-
-        Parameters:
-            user_id: the unique id identifying which user is calling the api
-            dest_agents: list of user ids
-            data_elements: list of data elements
-            function: function
-            args: args to the template function
-            kwargs: kwargs to the template function
-
-        Returns:
-        A response object with the following fields:
-            status: status of proposing a contract. 0: success, 1: failure.
         """
         # We first register the contract in the DB
         # Decide which contract_id to use from self.cur_contract_id
@@ -394,136 +395,136 @@ class DataStation:
                                                 self.write_ahead_log,
                                                 self.key_manager, )
 
-    def upload_cmp(self, user_id, dest_a_id, de_id, function):
-        return contract_manager.upload_cmp(user_id,
+    def upload_cmp(self, dest_a_id, de_id, function):
+        return contract_manager.upload_cmp(self.caller_id,
                                            dest_a_id,
                                            de_id,
                                            function,
                                            self.write_ahead_log,
                                            self.key_manager, )
 
-    def store_kv_to_app_state(self, key, value):
-        return self.app_state_manager.store_kv_to_app_state(key, value)
+    def store(self, key, value):
+        return self.app_state_manager.store(key, value)
 
-    def load_key_from_app_state(self, key):
-        return self.app_state_manager.load_key_from_app_state(key)
+    def load(self, key):
+        return self.app_state_manager.load(key)
 
-    def execute_contract(self, user_id, contract_id):
-        """
-        Execute a contract.
+    # def execute_contract(self, user_id, contract_id):
+    #     """
+    #     Execute a contract.
+    #
+    #     Parameters:
+    #         user_id: caller id
+    #         contract_id: id of the contract
+    #
+    #     Returns:
+    #         The result of executing the contract (f(P))
+    #     """
+    #
+    #     # fetch arguments
+    #     function, function_param = contract_manager.get_contract_function_and_param(contract_id)
+    #     args = function_param["args"]
+    #     kwargs = function_param["kwargs"]
+    #
+    #     print("Function called in contract is", function)
+    #
+    #     # Case 1: in development mode, we mimic the behaviour of Gatekeeper
+    #     if self.development_mode:
+    #         # Check destination agent
+    #         dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
+    #         if int(user_id) not in dest_a_ids and len(dest_a_ids):
+    #             print("Caller not a destination agent")
+    #             return None
+    #
+    #         # Check contract status
+    #         contract_ready_flag = contract_manager.check_contract_ready(contract_id)
+    #         if not contract_ready_flag:
+    #             print("This contract's status is not approved.")
+    #             return None
+    #
+    #         # Get accessible data elements
+    #         contract_de_ids = contract_manager.get_de_ids_for_contract(contract_id)
+    #         # print(f"Accessible DEs in the contract are: {contract_de_ids}")
+    #
+    #         # get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
+    #         # if get_des_by_ids_res["status"] == 1:
+    #         #     print("Something wrong with getting accessible DE for contract.")
+    #         #     return get_des_by_ids_res
+    #         #
+    #         # accessible_de = []
+    #         # for cur_de in get_des_by_ids_res["data"]:
+    #         #     if self.trust_mode == "no_trust":
+    #         #         data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
+    #         #     else:
+    #         #         data_owner_symmetric_key = None
+    #         #     cur_de = DataElement(cur_de.id,
+    #         #                          cur_de.name,
+    #         #                          cur_de.type,
+    #         #                          cur_de.access_param,
+    #         #                          data_owner_symmetric_key)
+    #         #     accessible_de.append(cur_de)
+    #         #
+    #         # for cur_de in accessible_de:
+    #         #     if cur_de.type == "file":
+    #         #         cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
+    #         #
+    #         self.accessible_de_development = contract_de_ids
+    #         #
+    #         # print(self.accessible_de_development)
+    #
+    #         # Execute function
+    #         list_of_function = get_registered_functions()
+    #
+    #         for cur_fn in list_of_function:
+    #             if function == cur_fn.__name__:
+    #                 print("Calling a function in development:", function)
+    #                 print("Args is", args)
+    #                 print("Kwargs is ", kwargs)
+    #                 res = cur_fn(*args, **kwargs)
+    #                 # Writing the result to caller's staging storage, under file name {contract_id}.
+    #                 # self.write_staged(contract_id, user_id, res)
+    #                 # print(res)
+    #                 # Check: if destination agents list is empty, this is a materialized intermediate DE
+    #                 # So we register it first, then write it to SM_storage, with f_name equal to its DE id,
+    #                 # owner_id equals to 0
+    #                 if not len(dest_a_ids):
+    #                     # Decide which de_id to use from self.cur_de_id
+    #                     cur_de_id = self.cur_de_id
+    #                     self.cur_de_id += 1
+    #
+    #                     # TODO: this needs to be modified
+    #                     de_manager.register_de_in_DB(cur_de_id,
+    #                                                  0,  # owner id is 0
+    #                                                  contract_id,
+    #                                                  "file",
+    #                                                  cur_de_id,
+    #                                                  self.write_ahead_log,
+    #                                                  self.key_manager)
+    #                     # Assume register runs sucessfully
+    #                     self.write_intermediate_DE(cur_de_id, res)
+    #                     return f"Intermediate DE with ID {cur_de_id} created."
+    #                 else:
+    #                     return res
+    #
+    #         # Getting here means called function is not found
+    #         print("Called function does not exist")
+    #         return None
+    #     else:
+    #         # Case 2: Sending to Gatekeeper
+    #         print("Calling a function in docker:", function)
+    #         res = self.gatekeeper.call_api(function,
+    #                                        user_id,
+    #                                        contract_id,
+    #                                        *args,
+    #                                        **kwargs)
+    #         return res
 
-        Parameters:
-            user_id: caller id
-            contract_id: id of the contract
-
-        Returns:
-            The result of executing the contract (f(P))
-        """
-
-        # fetch arguments
-        function, function_param = contract_manager.get_contract_function_and_param(contract_id)
-        args = function_param["args"]
-        kwargs = function_param["kwargs"]
-
-        print("Function called in contract is", function)
-
-        # Case 1: in development mode, we mimic the behaviour of Gatekeeper
-        if self.development_mode:
-            # Check destination agent
-            dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
-            if int(user_id) not in dest_a_ids and len(dest_a_ids):
-                print("Caller not a destination agent")
-                return None
-
-            # Check contract status
-            contract_ready_flag = contract_manager.check_contract_ready(contract_id)
-            if not contract_ready_flag:
-                print("This contract's status is not approved.")
-                return None
-
-            # Get accessible data elements
-            contract_de_ids = contract_manager.get_de_ids_for_contract(contract_id)
-            # print(f"Accessible DEs in the contract are: {contract_de_ids}")
-
-            # get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
-            # if get_des_by_ids_res["status"] == 1:
-            #     print("Something wrong with getting accessible DE for contract.")
-            #     return get_des_by_ids_res
-            #
-            # accessible_de = []
-            # for cur_de in get_des_by_ids_res["data"]:
-            #     if self.trust_mode == "no_trust":
-            #         data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
-            #     else:
-            #         data_owner_symmetric_key = None
-            #     cur_de = DataElement(cur_de.id,
-            #                          cur_de.name,
-            #                          cur_de.type,
-            #                          cur_de.access_param,
-            #                          data_owner_symmetric_key)
-            #     accessible_de.append(cur_de)
-            #
-            # for cur_de in accessible_de:
-            #     if cur_de.type == "file":
-            #         cur_de.access_param = os.path.join(self.storage_path, cur_de.access_param)
-            #
-            self.accessible_de_development = contract_de_ids
-            #
-            # print(self.accessible_de_development)
-
-            # Execute function
-            list_of_function = get_registered_functions()
-
-            for cur_fn in list_of_function:
-                if function == cur_fn.__name__:
-                    print("Calling a function in development:", function)
-                    print("Args is", args)
-                    print("Kwargs is ", kwargs)
-                    res = cur_fn(*args, **kwargs)
-                    # Writing the result to caller's staging storage, under file name {contract_id}.
-                    # self.write_staged(contract_id, user_id, res)
-                    # print(res)
-                    # Check: if destination agents list is empty, this is a materialized intermediate DE
-                    # So we register it first, then write it to SM_storage, with f_name equal to its DE id,
-                    # owner_id equals to 0
-                    if not len(dest_a_ids):
-                        # Decide which de_id to use from self.cur_de_id
-                        cur_de_id = self.cur_de_id
-                        self.cur_de_id += 1
-
-                        # TODO: this needs to be modified
-                        de_manager.register_de_in_DB(cur_de_id,
-                                                     0,  # owner id is 0
-                                                     contract_id,
-                                                     "file",
-                                                     cur_de_id,
-                                                     self.write_ahead_log,
-                                                     self.key_manager)
-                        # Assume register runs sucessfully
-                        self.write_intermediate_DE(cur_de_id, res)
-                        return f"Intermediate DE with ID {cur_de_id} created."
-                    else:
-                        return res
-
-            # Getting here means called function is not found
-            print("Called function does not exist")
-            return None
-        else:
-            # Case 2: Sending to Gatekeeper
-            print("Calling a function in docker:", function)
-            res = self.gatekeeper.call_api(function,
-                                           user_id,
-                                           contract_id,
-                                           *args,
-                                           **kwargs)
-            return res
-
-    def call_api(self, username, api, *args, **kwargs):
+    def call_api(self, agent_token, api, *args, **kwargs):
         """
         Calls an API as the given user
 
         Parameters:
-         username: the unique username identifying which user is calling the api
+         agent_token: the authentication token of the agent
          api: api to call
          *args, **kwargs: arguments to the API call
 
@@ -531,28 +532,53 @@ class DataStation:
          result of calling the API
         """
 
-        # get caller's UID
-        user_resp = database_api.get_user_by_user_name(username)
-        if user_resp["status"] == 1:
-            return user_resp
-        user_id = user_resp["data"].id
+        self.caller_id = agent_manager.authenticate_user(agent_token)
+        list_of_api_endpoints = get_registered_api_endpoint()
+        list_of_functions = get_registered_functions()
 
-        # First we check if we are in development mode, if true, call call_api_development
         if self.development_mode:
-            res = self.call_api_development(user_id, api, *args, **kwargs)
-            return res
+            # First see if it's a function
+            for cur_f in list_of_functions:
+                if api == cur_f.__name__:
+                    print(f"Calling function in development mode: {api}")
+                    # Step 1: Running the function
+                    res = cur_f(*args, **kwargs)
 
-        # Calling the actual API endpoint
-        list_of_api_endpoint = get_registered_api_endpoint()
-        for cur_api in list_of_api_endpoint:
-            if api == cur_api.__name__:
-                print("user is calling an api_endpoint", api)
-                # print(args)
-                res = cur_api(user_id, *args, **kwargs)
-                return res
+                    # Step 2: Function returns. We check if it can be released by asking contract_manager.
+                    # We know the caller, the args, and DEs accessed (in development mode)
+                    # To see if args match, use json.dumps then compare the output string
+                    param_json = {"args": args, "kwargs": kwargs}
+                    param_str = json.dumps(param_json)
+                    release_status = contract_manager.check_release_status(self.caller_id,
+                                                                           self.accessed_de_development,
+                                                                           api,
+                                                                           param_str)
+                    if release_status:
+                        return res
+            # Else see if it's a pure api endpoint
+            for cur_api in list_of_api_endpoints:
+                if api == cur_api.__name__:
+                    print(f"Calling pure api_endpoint in dev mode: {api}")
+                    return cur_api(*args, **kwargs)
+            print("Called api_endpoint not found:", api)
+            return None
+        else:
+            pass
 
-        print("Called api_endpoint not found:", api)
-        return None
+        #
+        # exit()
+        # # First we check if we are in development mode, if true, call call_api_development
+        # if self.development_mode:
+        #     res = self.call_api_development(api, *args, **kwargs)
+        #     return res
+        #     if api == cur_api.__name__:
+        #         print("user is calling an api_endpoint", api)
+        #         # print(args)
+        #         res = cur_api(self.caller_id, *args, **kwargs)
+        #         return res
+        #
+        # print("Called api_endpoint not found:", api)
+        # return None
 
     def write_intermediate_DE(self, de_id, content):
         dir_path = os.path.join(self.storage_path, str(de_id))
@@ -594,46 +620,46 @@ class DataStation:
     def print_wal(self):
         self.write_ahead_log.read_wal(self.key_manager)
 
-    def call_api_development(self, user_id, api, *args, **kwargs):
-        """
-        For testing: handling api calls in development mode
-        """
+    # def call_api_development(self, api, *args, **kwargs):
+    #     """
+    #     For testing: handling api calls in development mode
+    #     """
+    #
+    #     # Check if api called is valid (either a function or an api_endpoint)
+    #     api_type = None
+    #     list_of_api_endpoint = get_registered_api_endpoint()
+    #     # print(api)
+    #     for cur_api in list_of_api_endpoint:
+    #         # print(cur_api.__name__)
+    #         if api == cur_api.__name__:
+    #             api_type = "api_endpoint"
+    #             break
+    #
+    #     if api_type is None:
+    #         print("Called API endpoint not found in EPM:", api)
+    #         return None
+    #
+    #     # Case 1: calling non-jail function
+    #     for cur_api in list_of_api_endpoint:
+    #         if api == cur_api.__name__:
+    #             print(f"Calling api_endpoint in dev mode: {api}")
+    #             res = cur_api(*args, **kwargs)
+    #             return res
 
-        # Check if api called is valid (either a function or an api_endpoint)
-        api_type = None
-        list_of_api_endpoint = get_registered_api_endpoint()
-        # print(api)
-        for cur_api in list_of_api_endpoint:
-            # print(cur_api.__name__)
-            if api == cur_api.__name__:
-                api_type = "api_endpoint"
-                break
-
-        if api_type is None:
-            print("Called API endpoint not found in EPM:", api)
-            return None
-
-        # Case 1: calling non-jail function
-        for cur_api in list_of_api_endpoint:
-            if api == cur_api.__name__:
-                print(f"Calling api_endpoint in dev mode: {api}")
-                res = cur_api(user_id, *args, **kwargs)
-                return res
-
-    def get_contract_de_ids(self):
-        """
-        For testing: when in development mode, fetches all DEs.
-
-        Parameters:
-
-        Returns:
-            a list of DE ids for the current contract
-        """
-
-        if not self.development_mode:
-            return -1
-
-        return self.accessible_de_development
+    # def get_contract_de_ids(self):
+    #     """
+    #     For testing: when in development mode, fetches all DEs.
+    #
+    #     Parameters:
+    #
+    #     Returns:
+    #         a list of DE ids for the current contract
+    #     """
+    #
+    #     if not self.development_mode:
+    #         return -1
+    #
+    #     return self.accessible_de_development
 
     def get_de_by_id(self, de_id):
         """

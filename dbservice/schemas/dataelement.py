@@ -9,4 +9,4 @@ class DataElement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     owner_id = Column(Integer)
-    contract_id = Column(Integer)
+    derived = Column(Boolean)

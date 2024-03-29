@@ -262,7 +262,6 @@ class Xmp(Fuse):
                                 for i in range(num_reads):
                                     if i != num_reads - 1:
                                         cur_chunk_bytes = os.pread(self.fd, chunk_size, bytes_read)
-                                        encrypted_bytes += cur_chunk_bytes
                                         bytes_read += chunk_size
                                     else:
                                         cur_chunk_bytes = os.pread(self.fd, file_size - bytes_read, bytes_read)
