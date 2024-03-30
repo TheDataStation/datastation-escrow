@@ -555,6 +555,8 @@ class DataStation:
                                                                            param_str)
                     if release_status:
                         return res
+                    else:
+                        return None
             # Else see if it's a pure api endpoint
             for cur_api in list_of_api_endpoints:
                 if api == cur_api.__name__:
