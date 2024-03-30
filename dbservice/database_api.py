@@ -151,7 +151,6 @@ def get_de_owner_id(de_id):
         de = db.query(DataElement).filter(DataElement.id == de_id).first()
         if de:
             owner_id = db.query(User.id).filter(User.id == de.owner_id).first()[0]
-            print(owner_id)
             if owner_id:
                 return {"status": 0, "message": "success", "data": owner_id}
         return {"status": 1, "message": "database error: get DE owner id failed"}
@@ -402,7 +401,7 @@ def create_policy(a_id, de_ids, function, function_param):
         db_policy = Policy(a_id=a_id,
                            de_ids=de_ids,
                            function=function,
-                           function_param=function_param, )
+                           function_param=function_param)
         try:
             db.add(db_policy)
             db.commit()
@@ -411,6 +410,18 @@ def create_policy(a_id, de_ids, function, function_param):
             db.rollback()
             return {"status": 1, "message": "database error: create policy failed"}
         return {"status": 0, "message": "success", "data": db_policy}
+
+
+def check_policy_exists(a_id, de_ids, function, function_param):
+    with get_db() as db:
+        res = db.query(Policy).filter(Policy.a_id == a_id,
+                                      Policy.de_ids == de_ids,
+                                      Policy.function == function,
+                                      Policy.function_param == function_param).all()
+        if res:
+            return True
+        else:
+            return False
 
 
 def set_checkpoint_table_paths(table_paths):

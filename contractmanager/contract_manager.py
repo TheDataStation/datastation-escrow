@@ -52,9 +52,9 @@ def propose_contract(user_id,
     # Add to ContractStatus table. First get the src agents, default to DE owners.
     src_agent_de_dict = {}
 
-    simple_de_ides = get_simple_des_from_het_des(data_elements)
+    simple_de_ids = get_simple_des_from_het_des(data_elements)
 
-    for de_id in simple_de_ides:
+    for de_id in simple_de_ids:
         owner_id_res = database_api.get_de_owner_id(de_id)
         if owner_id_res["status"] == 1:
             return owner_id_res
@@ -72,64 +72,6 @@ def propose_contract(user_id,
         if db_res["status"] == 1:
             return db_res
 
-    # # Now: Apply CMPs to do auto-approval and auto-rejection
-    # # For the source agents, we fetch all of their relevant CMPs, by function
-    # # Intuition: (0, 0) -> I approve of all my DEs in this contract for any dest agents, for this f()
-    # # Intuition: (dest_a_id, a_id) -> I approve of this DE, for this dest agent, for this f()
-    #
-    # # Step 1: Get what DEs in this contract are each src_agent are responsible for
-    # # print(src_agent_de_dict)
-    #
-    # # Step 2: Fetch relevant CMPs that each of these src agents have specified
-    # # We go over each src agent one by one
-    # for src_a_id in src_agent_de_dict:
-    #     dest_request_dict = {}
-    #     for dest_a_id in dest_agents:
-    #         dest_request_dict[dest_a_id] = set(data_elements)
-    #     de_accessible_to_all = set()
-    #     cur_src_approval_dict = {}
-    #     auto_approval = False
-    #     for dest_a_id in dest_agents:
-    #         cur_src_approval_dict[dest_a_id] = set()
-    #     cur_policies = database_api.get_cmp_for_src_and_f(src_a_id, function)
-    #     cur_policies = list(map(lambda ele: [ele.dest_a_id, ele.de_id], cur_policies))
-    #     for policy in cur_policies:
-    #         if policy == [0, 0]:
-    #             auto_approval = True
-    #             break
-    #         elif policy[0] == 0:
-    #             de_accessible_to_all.add(policy[1])
-    #         elif policy[1] == 0:
-    #             cur_src_approval_dict[policy[0]] = set(data_elements)
-    #         else:
-    #             cur_src_approval_dict[policy[0]].add(policy[1])
-    #     for dest_a_id in dest_agents:
-    #         cur_src_approval_dict[dest_a_id].update(de_accessible_to_all)
-    #
-    #     for dest_a_id in dest_agents:
-    #         dest_request_dict[dest_a_id] = dest_request_dict[dest_a_id].intersection(src_agent_de_dict[src_a_id])
-    #     # print("Relevant request for current source agent is", dest_request_dict)
-    #     # print("Auto approved request for curret source agent is ", cur_src_approval_dict)
-    #     # Now we check (by each dest in dest_request_dict): if requested DE is a subset for the same key value in
-    #     # src's approval. If all passes, set auto-approval to true.
-    #     if not auto_approval:
-    #         all_dest_passed = True
-    #         for key in dest_request_dict:
-    #             if not dest_request_dict[key].issubset(cur_src_approval_dict[key]):
-    #                 all_dest_passed = False
-    #                 break
-    #         auto_approval = all_dest_passed
-    #     # Finally: if auto_approval is True, we call approve contract
-    #     if auto_approval:
-    #         approve_contract(src_a_id, contract_id, write_ahead_log, key_manager)
-    #
-    # # Also, if caller is a src agent, they auto-approve
-    # if user_id in src_agent_de_dict:
-    #     approve_contract(user_id, contract_id, write_ahead_log, key_manager)
-    #
-    # # Return the status of the contract at the end
-    # contract_approved = check_contract_ready(contract_id)
-    # return {"status": 0, "message": "success", "contract_id": contract_id, "contract_approved": contract_approved}
     return {"status": 0, "message": "success", "contract_id": contract_id}
 
 
@@ -192,6 +134,7 @@ def approve_contract(user_id,
         de_ids = get_de_ids_for_contract(contract_id)
         function, function_param = get_contract_function_and_param(contract_id)
         de_ids.sort()
+        de_ids = [str(de_id) for de_id in de_ids]
         de_ids_str = " ".join(de_ids)
         for a_id in dest_a_ids:
             if write_ahead_log:
@@ -327,9 +270,85 @@ def get_simple_des_from_het_des(het_de_ids):
     # return simple_de_id_set
     return het_de_ids
 
-def check_release_status(dest_a_id, de_accessed, f, param_str):
-    print(dest_a_id)
-    print(de_accessed)
-    print(f)
-    print(param_str)
+def check_release_status(dest_a_id, de_accessed, function, function_param):
+    # Step 1: check if there's a policy existing: if yes, can release
+    de_ids = list(de_accessed)
+    de_ids.sort()
+    de_ids = [str(de_id) for de_id in de_ids]
+    de_ids_str = " ".join(de_ids)
+    policy_exists = database_api.check_policy_exists(dest_a_id, de_ids_str, function, function_param)
+    if policy_exists:
+        return True
+    # If a policy does not exist already, we apply CMRs and caller-auto-approval, and check again
+
+    # For the source agents, we fetch all of their relevant CMPs, by function
+    # Intuition: (0, 0) -> I approve of all my DEs in this contract for any dest agents, for this f()
+    # Intuition: (dest_a_id, a_id) -> I approve of this DE, for this dest agent, for this f()
+
+    # Step 1: Get what DEs in this contract are each src_agent are responsible for
+    # TODO: from here
+    src_agent_de_dict = {}
+    simple_de_ids = get_simple_des_from_het_des(de_accessed)
+    for de_id in simple_de_ids:
+        owner_id_res = database_api.get_de_owner_id(de_id)
+        if owner_id_res["status"] == 1:
+            return owner_id_res
+        src_a_id = owner_id_res["data"]
+        # If the key exists, append the value to its list
+        if src_a_id in src_agent_de_dict:
+            src_agent_de_dict[src_a_id].add(de_id)
+        else:
+            src_agent_de_dict.setdefault(src_a_id, set()).add(de_id)
+    print(src_agent_de_dict)
+
+    # # Step 2: Fetch relevant CMPs that each of these src agents have specified
+    # # We go over each src agent one by one
+    # for src_a_id in src_agent_de_dict:
+    #     dest_request_dict = {}
+    #     for dest_a_id in dest_agents:
+    #         dest_request_dict[dest_a_id] = set(data_elements)
+    #     de_accessible_to_all = set()
+    #     cur_src_approval_dict = {}
+    #     auto_approval = False
+    #     for dest_a_id in dest_agents:
+    #         cur_src_approval_dict[dest_a_id] = set()
+    #     cur_policies = database_api.get_cmp_for_src_and_f(src_a_id, function)
+    #     cur_policies = list(map(lambda ele: [ele.dest_a_id, ele.de_id], cur_policies))
+    #     for policy in cur_policies:
+    #         if policy == [0, 0]:
+    #             auto_approval = True
+    #             break
+    #         elif policy[0] == 0:
+    #             de_accessible_to_all.add(policy[1])
+    #         elif policy[1] == 0:
+    #             cur_src_approval_dict[policy[0]] = set(data_elements)
+    #         else:
+    #             cur_src_approval_dict[policy[0]].add(policy[1])
+    #     for dest_a_id in dest_agents:
+    #         cur_src_approval_dict[dest_a_id].update(de_accessible_to_all)
+    #
+    #     for dest_a_id in dest_agents:
+    #         dest_request_dict[dest_a_id] = dest_request_dict[dest_a_id].intersection(src_agent_de_dict[src_a_id])
+    #     # print("Relevant request for current source agent is", dest_request_dict)
+    #     # print("Auto approved request for curret source agent is ", cur_src_approval_dict)
+    #     # Now we check (by each dest in dest_request_dict): if requested DE is a subset for the same key value in
+    #     # src's approval. If all passes, set auto-approval to true.
+    #     if not auto_approval:
+    #         all_dest_passed = True
+    #         for key in dest_request_dict:
+    #             if not dest_request_dict[key].issubset(cur_src_approval_dict[key]):
+    #                 all_dest_passed = False
+    #                 break
+    #         auto_approval = all_dest_passed
+    #     # Finally: if auto_approval is True, we call approve contract
+    #     if auto_approval:
+    #         approve_contract(src_a_id, contract_id, write_ahead_log, key_manager)
+    #
+    # # Also, if caller is a src agent, they auto-approve
+    # if user_id in src_agent_de_dict:
+    #     approve_contract(user_id, contract_id, write_ahead_log, key_manager)
+    #
+    # # Return the status of the contract at the end
+    # contract_approved = check_contract_ready(contract_id)
+    # return {"status": 0, "message": "success", "contract_id": contract_id, "contract_approved": contract_approved}
     exit()
