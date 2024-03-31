@@ -232,6 +232,8 @@ class DataStation:
     #                                       data_in_bytes,
     #                                       de_res["data"].type, )
 
+    # When intermediate DEs can be preserved, the following function can potentially be called from a sandbox
+    # We need to think about how to handle those
     def csv_store_write(self, content):
         res = self.register_de(self.caller_id, False)
         if res["status"]:
@@ -242,6 +244,7 @@ class DataStation:
         return self.storage_manager.write(res["de_id"], content, "csv")
 
     # For development mode: (Since DEs can only be accessed in sandbox)
+    # If called outside of development mode, call to this function shoule be disabled
     def csv_store_read(self, de_id):
         self.accessed_de_development.add(de_id)
         return self.storage_manager.read(de_id, "csv")
@@ -306,7 +309,6 @@ class DataStation:
         return function_manager.get_function_info(function_name)
 
     def propose_contract(self,
-                         user_id,
                          dest_agents,
                          data_elements,
                          function,
@@ -320,7 +322,7 @@ class DataStation:
         contract_id = self.cur_contract_id
         self.cur_contract_id += 1
 
-        return contract_manager.propose_contract(user_id,
+        return contract_manager.propose_contract(self.caller_id,
                                                  contract_id,
                                                  dest_agents,
                                                  data_elements,
@@ -330,12 +332,11 @@ class DataStation:
                                                  *args,
                                                  **kwargs, )
 
-    def show_contract(self, user_id, contract_id):
+    def show_contract(self, contract_id):
         """
         Display the content of a contract.
 
         Parameters:
-            user_id: id of caller
             contract_id: id of the contract that the caller wants to see
 
         Returns:
@@ -346,33 +347,32 @@ class DataStation:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return contract_manager.show_contract(user_id, contract_id)
+        return contract_manager.show_contract(self.caller_id, contract_id)
 
-    def show_all_contracts_as_dest(self, user_id):
+    def show_all_contracts_as_dest(self):
         """
         Display all contracts, for which caller is a destination agent.
         """
-        return contract_manager.show_all_contracts_as_dest(user_id)
+        return contract_manager.show_all_contracts_as_dest(self.caller_id)
 
-    def show_all_contracts_as_src(self, user_id):
+    def show_all_contracts_as_src(self):
         """
         Display all contracts, for which caller is an approval agent.
         """
-        return contract_manager.show_all_contracts_as_src(user_id)
+        return contract_manager.show_all_contracts_as_src(self.caller_id)
 
-    def approve_contract(self, user_id, contract_id):
+    def approve_contract(self, contract_id):
         """
         Update a contract's status to approved (1), for source agent <user_id>.
 
         Parameters:
-            user_id: caller username
             contract_id: id of the contract
 
         Returns:
         A response object with the following fields:
             status: status of approving contract. 0: success, 1: failure.
         """
-        return contract_manager.approve_contract(user_id,
+        return contract_manager.approve_contract(self.caller_id,
                                                  contract_id,
                                                  self.write_ahead_log,
                                                  self.key_manager, )
@@ -553,6 +553,8 @@ class DataStation:
                                                                            self.accessed_de_development,
                                                                            api,
                                                                            param_str)
+                    # Clear self.accessed_de_development
+                    self.accessed_de_development = set()
                     if release_status:
                         return res
                     else:

@@ -72,9 +72,8 @@ class EscrowAPI:
     # Authenticated
     @classmethod
     def propose_contract(cls,
-                         caller_id,
                          dest_agents,
-                         data_elements,
+                         des,
                          function,
                          *args,
                          **kwargs, ):
@@ -82,9 +81,8 @@ class EscrowAPI:
         Propose a contract.
 
         Parameters:
-            caller_id: caller id
             dest_agents: list of user ids
-            data_elements: list of data elements
+            des: list of data elements
             function: function
             args: input args to the function
             kwargs: input kwargs to the funciton
@@ -95,17 +93,16 @@ class EscrowAPI:
             contract_id: (if success) id of the proposed contract
             contract_approved: (if success) True if the proposed contract is automatically approved; False otherwise
         """
-        return cls.__comp.propose_contract(caller_id, dest_agents, data_elements, function, *args, **kwargs)
+        return cls.__comp.propose_contract(dest_agents, des, function, *args, **kwargs)
 
     # Authenticated
     @classmethod
-    def show_contract(cls, user_id, contract_id):
+    def show_contract(cls, contract_id):
         """
         For API endpoints.
         Display the content of a contract.
 
         Parameters:
-            user_id: caller username
             contract_id: id of the contract that the caller wants to see
 
         Returns:
@@ -116,41 +113,40 @@ class EscrowAPI:
             args: arguments to the template function
             kwargs: kwargs to the template function
         """
-        return cls.__comp.show_contract(user_id, contract_id)
+        return cls.__comp.show_contract(contract_id)
 
     # Authenticated
     @classmethod
-    def show_all_contracts_as_dest(cls, user_id):
+    def show_all_contracts_as_dest(cls):
         """
         For API endpoints.
         Display all contracts, for which caller is a destination agent.
         """
-        return cls.__comp.show_all_contracts_as_dest(user_id)
+        return cls.__comp.show_all_contracts_as_dest()
 
     # Authenticated
     @classmethod
-    def show_all_contracts_as_src(cls, user_id):
+    def show_all_contracts_as_src(cls):
         """
         For API endpoints.
         Display all contracts, for which caller is an approval agent.
         """
-        return cls.__comp.show_all_contracts_as_src(user_id)
+        return cls.__comp.show_all_contracts_as_src()
 
     # Authenticated
     @classmethod
-    def approve_contract(cls, user_id, contract_id):
+    def approve_contract(cls, contract_id):
         """
         Update a contract's status to approved (1), for source agent <user_id>.
 
         Parameters:
-            user_id: approver id
             contract_id: id of contract
 
         Returns:
         A response object with the following fields:
             status: status of approving contract. 0: success, 1: failure.
         """
-        return cls.__comp.approve_contract(user_id, contract_id)
+        return cls.__comp.approve_contract(contract_id)
 
     # Authenticated
     @classmethod
