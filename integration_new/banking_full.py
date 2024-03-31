@@ -79,35 +79,35 @@ if __name__ == '__main__':
     ds.call_api(bank2_token, "approve_contract", 4)
     print(ds.call_api(bank1_token, "share_de", 5))
 
-    exit()
-
     # Bank1 looks at the synthetic dataset bank2 shared, and decide on the format of DEs both of them should use
     # for training the model.
     # The schema is: gender (1/0), lat, long, age, merch_lat, merch_long, city_pop_thousands, amt (all number)
     # Bank1 also tells bank2 to convert their data into this format and upload.
     # Let's assume they finished the transformation locally.
     for i in range(2):
+        if i == 0:
+            cur_token = bank1_token
+        else:
+            cur_token = bank2_token
         cur_train_de = f"integration_new/test_files/banking_p/clean_train_{i}.csv"
         f = open(cur_train_de, "rb")
         plaintext_bytes = f.read()
         f.close()
-        register_res = ds.call_api(f"bank{i+1}", "register_de", f"clean_train_{i}.csv", True, )
-        ds.call_api(f"bank{i+1}", "upload_de", register_res["de_id"], plaintext_bytes, )
+        print(ds.call_api(cur_token, "upload_data_in_csv", plaintext_bytes))
         cur_test_de = f"integration_new/test_files/banking_p/clean_test_{i}.csv"
         f = open(cur_test_de, "rb")
         plaintext_bytes = f.read()
         f.close()
-        register_res = ds.call_api(f"bank{i + 1}", "register_de", f"clean_test_{i}.csv", True, )
-        ds.call_api(f"bank{i + 1}", "upload_de", register_res["de_id"], plaintext_bytes, )
+        print(ds.call_api(cur_token, "upload_data_in_csv", plaintext_bytes))
 
     # The final contract: combine the data and train the model.
     dest_agents = [1, 2]
     data_elements = [6, 7, 8, 9]
-    ds.call_api("bank1", "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
+    ds.call_api(bank1_token, "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
                 "is_fraud", [6, 8], [7, 9], 2000, 0.95)
-    ds.call_api("bank1", "approve_contract", 5)
-    ds.call_api("bank2", "approve_contract", 5)
-    res = ds.call_api("bank1", "execute_contract", 5)
+    ds.call_api(bank1_token, "approve_contract", 5)
+    ds.call_api(bank2_token, "approve_contract", 5)
+    res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [6, 8], [7, 9], 2000, 0.95)
     print(res.coef_)
 
     # Last step: shut down the Data Station
