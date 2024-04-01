@@ -4,3 +4,6 @@ fuse-python
 cryptography
 numpy
 pandas
+duckdb
+scipy
+scikit-learn

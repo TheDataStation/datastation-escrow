@@ -536,17 +536,17 @@ class DataStation:
         list_of_api_endpoints = get_registered_api_endpoint()
         list_of_functions = get_registered_functions()
 
+        # For development mode
         if self.development_mode:
             # First see if it's a function
             for cur_f in list_of_functions:
                 if api == cur_f.__name__:
-                    print(f"Calling function in development mode: {api}")
+                    print(f"Development mode: Calling function: {api}")
                     # Step 1: Running the function
                     res = cur_f(*args, **kwargs)
 
                     # Step 2: Function returns. We check if it can be released by asking contract_manager.
                     # We know the caller, the args, and DEs accessed (in development mode)
-                    # To see if args match, use json.dumps then compare the output string
                     param_json = {"args": args, "kwargs": kwargs}
                     param_str = json.dumps(param_json)
                     release_status = contract_manager.check_release_status(self.caller_id,
@@ -562,15 +562,29 @@ class DataStation:
             # Else see if it's a pure api endpoint
             for cur_api in list_of_api_endpoints:
                 if api == cur_api.__name__:
-                    print(f"Calling pure api_endpoint in dev mode: {api}")
+                    print(f"Development mode: Calling pure api_endpoint: {api}")
+                    return cur_api(*args, **kwargs)
+            print("Development mode: Called api_endpoint not found:", api)
+            return None
+        else:
+            # First see if it's a function
+            for cur_f in list_of_functions:
+                if api == cur_f.__name__:
+                    res = self.gatekeeper.call_api(api,
+                                                   self.caller_id,
+                                                   *args,
+                                                   **kwargs)
+                    if res["status"] == 0:
+                        return res["result"]
+                    return None
+            # Else see if it's a pure api endpoint
+            for cur_api in list_of_api_endpoints:
+                if api == cur_api.__name__:
+                    print(f"Calling pure api_endpoint: {api}")
                     return cur_api(*args, **kwargs)
             print("Called api_endpoint not found:", api)
             return None
-        else:
-            pass
 
-        #
-        # exit()
         # # First we check if we are in development mode, if true, call call_api_development
         # if self.development_mode:
         #     res = self.call_api_development(api, *args, **kwargs)

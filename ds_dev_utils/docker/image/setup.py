@@ -58,12 +58,18 @@ def main():
     accessible_data_set = set()
     accessible_data_key_dict = {}
     for cur_de in accessible_de:
-        if cur_de.type == "file":
-            cur_data_path = os.path.join("/mnt/data", str(cur_de.id), cur_de.name)
-            accessible_data_set.add(cur_data_path)
-            accessible_data_key_dict[cur_data_path] = cur_de.enc_key
+        # if cur_de.type == "file":
+        #     cur_data_path = os.path.join("/mnt/data", str(cur_de.id), cur_de.name)
+        #     accessible_data_set.add(cur_data_path)
+        #     accessible_data_key_dict[cur_data_path] = cur_de.enc_key
+        cur_de_name = f"{cur_de.id}.csv"
+        cur_de_path = os.path.join("/mnt/data", str(cur_de.id), cur_de_name)
+        accessible_data_set.add(cur_de_path)
+        accessible_data_key_dict[cur_de_path] = cur_de.enc_key
 
     accessible_data_obj = (accessible_data_set, accessible_data_key_dict)
+
+    print(accessible_data_obj)
 
     manager = multiprocessing.Manager()
 
@@ -133,8 +139,8 @@ def main():
 
     # run the function and pickle it
     ret = run_function(function_dict["function"], *function_dict["args"], **function_dict["kwargs"])
-    # print("Return value is", ret)
-    # print(dict(data_accessed_dict))
+    print("Return value is", ret)
+    print(dict(data_accessed_dict))
     # print(dict(decryption_time_dict))
     # print("Got function return......")
     # print(time.time() - start)

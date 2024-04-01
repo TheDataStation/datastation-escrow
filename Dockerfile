@@ -1,4 +1,5 @@
 FROM python:3.9
+#FROM --platform=linux/amd64 mcr.microsoft.com/devcontainers/python:0-3.9
 
 ENV PYTHONUNBUFFERED=1
 
@@ -13,6 +14,8 @@ RUN mkdir -p /mnt/data_mount
 
 COPY ds_dev_utils/docker/image .
 
+#RUN brew install openblas
+#RUN pip install dowhy
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY common common

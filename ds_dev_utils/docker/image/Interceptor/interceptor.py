@@ -219,7 +219,7 @@ class Xmp(Fuse):
 
                 if pid not in data_accessed_dict_global.keys():
                     data_accessed_dict_global[pid] = set()
-                    # print("Interceptor: accessed data dict is", data_accessed_dict_global)
+                    print("Interceptor: accessed data dict is", data_accessed_dict_global)
 
                 cur_set = data_accessed_dict_global[pid]
                 cur_set.add(str(self.file_path))
@@ -545,6 +545,8 @@ def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict, decryp
     args = ["-f", "-o", "root=" + root_dir, mount_point]
     # run in background
     # args = ["-o", "root=" + root_dir, mount_point]
+
+    print("Hello from Interceptor")
 
     global accessible_data_dict_global
     accessible_data_dict_global = accessible_data_dict
