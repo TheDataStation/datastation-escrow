@@ -290,9 +290,6 @@ class DataStation:
     def list_all_des_with_src(self):
         """
         List IDs of all des with the source agent IDs.
-
-        Parameters:
-            user_id: id of caller
         """
         return de_manager.list_all_des_with_src()
 
@@ -302,7 +299,7 @@ class DataStation:
         """
         return function_manager.get_all_functions()
 
-    def get_function_info(self, user_id, function_name):
+    def get_function_info(self, function_name):
         """
         Return docstring of given function.
         """

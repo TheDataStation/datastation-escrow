@@ -62,12 +62,12 @@ class EscrowAPI:
 
     # Authenticated
     @classmethod
-    def get_function_info(cls, user_id, function_name):
+    def get_function_info(cls, function_name):
         """
         For API endpoints
         Return docstring of given function.
         """
-        return cls.__comp.get_function_info(user_id, function_name)
+        return cls.__comp.get_function_info(function_name)
 
     # Authenticated
     @classmethod
