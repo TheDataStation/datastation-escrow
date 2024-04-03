@@ -50,27 +50,14 @@ if __name__ == '__main__':
     print(ds.call_api(facebook_token, "approve_contract", 1))
     print(ds.call_api(youtube_token, "approve_contract", 1))
 
-    print(ds.call_api(advertiser_token, "train_model_over_joined_data", model_name, label_name, query))
+    res = ds.call_api(advertiser_token, "train_model_over_joined_data", model_name, label_name, query)
+    print(res.coef_)
 
-    print(ds.call_api(advertiser_token, "train_model_over_joined_data", "decision_tree", "clicked_on_ad"))
+    # res = ds.call_api(advertiser_token, "train_model_over_joined_data", "decision_tree", "clicked_on_ad")
+    # tree.plot_tree(res)
+    # plt.show()
 
-    exit()
-
-    # # Contract 2/3: propose train_model contract with intermediate DE
-    # data_elements = [3]
-    # model_name = "logistic_regression"
-    # label_name = "clicked_on_ad"
-    # res = ds.call_api("advertiser", "train_ML_model", data_elements, model_name, label_name)
-    # print(res.coef_)
-    #
-    # data_elements = [3]
-    # model_name = "decision_tree"
-    # label_name = "clicked_on_ad"
-    # res = ds.call_api("advertiser", "train_ML_model", data_elements, model_name, label_name)
-    # # tree.plot_tree(res)
-    # # plt.show()
-
-    # Contract 4: test to see if facebook has a large population who will respond to the ad
+    # Query to see if facebook has a large population who will respond to the ad
     dest_agents = [1]
     data_elements = [1]
     query = "SELECT COUNT(*) AS total_records, " \
@@ -78,7 +65,7 @@ if __name__ == '__main__':
             "(SUM(CASE WHEN male = 1 AND married = 0 THEN 1 ELSE 0 END) * 1.0) / COUNT(*) AS proportion " \
             "FROM facebook;"
     print(ds.call_api(advertiser_token, "propose_contract", dest_agents, data_elements, "run_query", query))
-    print(ds.call_api(facebook_token, "approve_contract", 1))
+    print(ds.call_api(facebook_token, "approve_contract", 2))
     print(ds.call_api(advertiser_token, "run_query", query))
 
     # Last step: shut down the Data Station
