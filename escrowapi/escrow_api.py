@@ -24,11 +24,35 @@ class EscrowAPI:
             """
             return cls.__comp.csv_store_read(de_id)
 
+    class ObjectDEStore:
+        __comp = None
+
+        @classmethod
+        def set_comp(cls, api_implementation):
+            cls.__comp = api_implementation
+
+        # Authenticated
+        @classmethod
+        def write(cls, content):
+            """
+            Registers a new DE as an object.
+            Returns de_id of newly registerd DE if success.
+            """
+            return cls.__comp.object_store_write(content)
+
+        @classmethod
+        def read(cls, de_id):
+            """
+            Returns the object with {de_id}.
+            """
+            return cls.__comp.object_store_read(de_id)
+
     @classmethod
     def set_comp(cls, api_implementation):
         print("setting escrow api composition to: ", api_implementation)
         cls.__comp = api_implementation
         cls.CSVDEStore.set_comp(api_implementation)
+        cls.ObjectDEStore.set_comp(api_implementation)
 
     # Authenticated
     @classmethod

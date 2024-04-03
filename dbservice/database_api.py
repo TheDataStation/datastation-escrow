@@ -18,6 +18,7 @@ from .schemas.contract_de import ContractDE
 from .schemas.contract_status import ContractStatus
 from .schemas.policy import Policy
 from .schemas.cmp import CMP
+from .schemas.derived_de import DerivedDE
 
 
 # global engine
@@ -422,6 +423,19 @@ def check_policy_exists(a_id, de_ids, function, function_param):
             return True
         else:
             return False
+
+
+def create_derived_de(de_id, src_de_id):
+    with get_db() as db:
+        db_derived_de = DerivedDE(de_id=de_id, src_de_id=src_de_id)
+        try:
+            db.add(db_derived_de)
+            db.commit()
+            db.refresh(db_derived_de)
+        except SQLAlchemyError as e:
+            db.rollback()
+            return {"status": 1, "message": "database error: create derived DE failed"}
+        return {"status": 0, "message": "success"}
 
 
 def set_checkpoint_table_paths(table_paths):

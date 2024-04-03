@@ -20,4 +20,6 @@ class AppStateManager:
     def load(self, key):
         with open(self.app_state_path, "rb") as f:
             state_dict = pickle.load(f)
-            return state_dict[key]
+            if key in state_dict:
+                return state_dict[key]
+            return None

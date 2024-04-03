@@ -243,8 +243,9 @@ def get_contract_object(contract_id):
 def get_simple_des_from_het_des(het_de_ids):
     """
     Helper.
-    Given a heterogeneous set of DEs (simple or intermediate), return a simple set
+    Given a heterogeneous set of DEs (original or derived), return the original set
     """
+    # TODO: from here
     # het_des = database_api.get_des_by_ids(het_de_ids)["data"]
     # all_des = database_api.get_all_des()["data"]
     # # print(het_des)

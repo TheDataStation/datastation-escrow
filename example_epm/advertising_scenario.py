@@ -69,6 +69,36 @@ def run_query(query):
     return res_df
 
 
+@api_endpoint
+@function
+def train_model_over_joined_data(model_name, label_name, query=None):
+    if model_name not in ["logistic_regression", "linear_regression", "decision_tree"]:
+        return "Model Type not currently supported"
+    # First check if the joined df has been preserved already
+    joined_de_id = EscrowAPI.load("joined_de_id")
+    res_df = None
+    if joined_de_id:
+        print(joined_de_id)
+        res_df = EscrowAPI.ObjectDEStore.read(joined_de_id)
+    elif query:
+        res_df = run_query(query)
+        joined_de_id = EscrowAPI.ObjectDEStore.write(res_df)
+        EscrowAPI.store("joined_de_id", joined_de_id["de_id"])
+    if res_df is not None:
+        X = res_df.drop(label_name, axis=1)
+        y = res_df[label_name]
+        if model_name == "logistic_regression":
+            clf = LogisticRegression().fit(X, y)
+        elif model_name == "linear_regression":
+            clf = LinearRegression().fit(X, y)
+        else:
+            clf = tree.DecisionTreeClassifier().fit(X, y)
+        return clf
+    else:
+        return "There is no saved joined result or query to save data. Cannot train model."
+
+
+
 
 
 

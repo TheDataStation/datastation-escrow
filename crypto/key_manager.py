@@ -1,5 +1,6 @@
 from crypto import cryptoutils as cu
 from cryptography.hazmat.primitives import serialization
+from cryptography.fernet import Fernet
 
 class KeyManager:
     """
@@ -13,6 +14,7 @@ class KeyManager:
         # Own keys
         self.ds_private_key = None
         self.ds_public_key = None
+        self.ds_symmetric_key = None
         self.initialize_data_station_keys()
 
         # Agents' keys
@@ -28,6 +30,7 @@ class KeyManager:
         """
         # Generate public private key pair at runtime and store them in memory
         private_key, public_key = cu.generate_private_public_key_pair()
+        ds_symmetric_key = Fernet.generate_key()
         # self.ds_private_key = private_key
         # self.ds_public_key = public_key
         # Load private key from file
@@ -41,6 +44,12 @@ class KeyManager:
         with open('public_key.pem', 'rb') as f:
             public_pem = f.read()
             self.ds_public_key = serialization.load_pem_public_key(public_pem)
+        # Store DS's own symmetric key
+        with open('symmetric_key.key', 'rb') as f:
+            ds_symmetric_key = f.read()
+        cipher_sym_key = cu.encrypt_data_with_public_key(ds_symmetric_key, self.ds_public_key)
+        # We use an ID of 0 to represent DS's own symmetric key
+        self.store_agent_symmetric_key(0, cipher_sym_key)
 
     def store_agent_symmetric_key(self, agent_id, ciphertext_symmetric_key):
         """

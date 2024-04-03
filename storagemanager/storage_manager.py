@@ -52,12 +52,19 @@ class StorageManager:
             return {"status": 1, "message": f"DE id={de_id} already exists"}
         return {"status": 0, "message": "success", "de_id": de_id}
 
+    # The following definition of the function will only be called in development mode.
     def read(self, de_id, de_type):
+        dir_path = self.get_dir_path(de_id)
         # Type 1: CSV: we return the path to the file
         if de_type == "csv":
-            dir_path = self.get_dir_path(de_id)
             dst_file_path = path.join(dir_path, path.basename(f"{de_id}.csv"))
             return dst_file_path
+        # Type 2: Object: we return the pickled object
+        elif de_type == "object":
+            dst_file_path = path.join(dir_path, path.basename(str(de_id)))
+            with open(dst_file_path, 'rb') as f:
+                object_bytes = f.read()
+            return object_bytes
 
         # Other types of data elements are not currently supported
         return {"status": 1, "message": "DE type not currently supported"}

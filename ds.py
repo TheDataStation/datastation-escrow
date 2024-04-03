@@ -48,6 +48,7 @@ class DataStation:
         # for development mode
         self.accessible_de_development = set()
         self.accessed_de_development = set()
+        self.api_type_development = None
 
         # set up trust mode
         self.trust_mode = self.config.trust_mode
@@ -232,22 +233,91 @@ class DataStation:
     #                                       data_in_bytes,
     #                                       de_res["data"].type, )
 
-    # When intermediate DEs can be preserved, the following function can potentially be called from a sandbox
-    # We need to think about how to handle those
     def csv_store_write(self, content):
-        res = self.register_de(self.caller_id, False)
-        if res["status"]:
-            return res
-        if self.trust_mode == "no_trust":
-            content = cu.encrypt_data_with_symmetric_key(content,
-                                                         self.key_manager.agents_symmetric_key[self.caller_id])
-        return self.storage_manager.write(res["de_id"], content, "csv")
+        # If called from development mode, it could be called from api_endpoint or function
+        if self.api_type_development:
+            # If it's an api_endpoint, set "derived" to False, and encrypt with caller's sym_key if needed
+            if self.api_type_development == "api_endpoint":
+                res = self.register_de(self.caller_id, False)
+                if res["status"]:
+                    return res
+                if self.trust_mode == "no_trust":
+                    content = cu.encrypt_data_with_symmetric_key(content,
+                                                                 self.key_manager.agents_symmetric_key[self.caller_id])
+                return self.storage_manager.write(res["de_id"], content, "csv")
+            # If it's a function, we need to write an intermediate DE. We set its origin to accessed_de_dev.
+            # Don't give it an owner, and encrypt it with DS sym key if needed.
+            else:
+                print("Source DE for this derived DE is", self.accessed_de_development)
+                res = self.register_de(self.caller_id, True)
+                if res["status"]:
+                    return res
+                for src_de_id in self.accessed_de_development:
+                    if self.write_ahead_log:
+                        wal_entry = f"database_api.create_derived_de({res['de_id']}, {src_de_id})"
+                        self.write_ahead_log.log(self.caller_id, wal_entry, self.key_manager, )
+                    db_res = database_api.create_derived_de(res["de_id"], src_de_id)
+                    if db_res["status"] == 1:
+                        return db_res
+                # Encrypt with DS sym key if needed
+                if self.trust_mode == "no_trust":
+                    content = cu.encrypt_data_with_symmetric_key(content,
+                                                                 self.key_manager.agents_symmetric_key[0])
+                return self.storage_manager.write(res["de_id"], content, "csv")
 
-    # For development mode: (Since DEs can only be accessed in sandbox)
+        # Else, it can only be called from api_endpoint (the other implementation should be in EscrowAPIDocker)
+        else:
+            pass
+
+    def object_store_write(self, content):
+        # If called from development mode, it could be called from api_endpoint or function
+        if self.api_type_development:
+            # If it's an api_endpoint, set "derived" to False, and encrypt with caller's sym_key if needed
+            if self.api_type_development == "api_endpoint":
+                res = self.register_de(self.caller_id, False)
+                if res["status"]:
+                    return res
+                pickled_bytes = pickle.dumps(content)
+                if self.trust_mode == "no_trust":
+                    pickled_bytes = cu.encrypt_data_with_symmetric_key(pickled_bytes,
+                        self.key_manager.agents_symmetric_key[self.caller_id])
+                return self.storage_manager.write(res["de_id"], pickled_bytes, "object")
+            else:
+                print("Source DE for this derived DE is", self.accessed_de_development)
+                res = self.register_de(self.caller_id, True)
+                if res["status"]:
+                    return res
+                for src_de_id in self.accessed_de_development:
+                    if self.write_ahead_log:
+                        wal_entry = f"database_api.create_derived_de({res['de_id']}, {src_de_id})"
+                        self.write_ahead_log.log(self.caller_id, wal_entry, self.key_manager, )
+                    db_res = database_api.create_derived_de(res["de_id"], src_de_id)
+                    if db_res["status"] == 1:
+                        return db_res
+                # Encrypt with DS sym key if needed
+                pickled_bytes = pickle.dumps(content)
+                if self.trust_mode == "no_trust":
+                    pickled_bytes = cu.encrypt_data_with_symmetric_key(pickled_bytes,
+                        self.key_manager.agents_symmetric_key[0])
+                return self.storage_manager.write(res["de_id"], pickled_bytes, "object")
+        # If not in development,
+        # it can only be called from api_endpoint (the other implementation should be in EscrowAPIDocker)
+        else:
+            pass
+
+    # All DEStore.read below will only be called in development mode. (Since DEs can only be accessed in sandbox)
     # If called outside of development mode, call to this function shoule be disabled
     def csv_store_read(self, de_id):
         self.accessed_de_development.add(de_id)
         return self.storage_manager.read(de_id, "csv")
+
+    def object_store_read(self, de_id):
+        self.accessed_de_development.add(de_id)
+        pickled_bytes = self.storage_manager.read(de_id, "object")
+        if self.trust_mode == "no_trust":
+            pickled_bytes = cu.decrypt_data_with_symmetric_key(pickled_bytes,
+                                                               self.key_manager.agents_symmetric_key[self.caller_id])
+        return pickle.loads(pickled_bytes)
 
     def remove_de_from_storage(self, user_id, de_id):
         """
@@ -539,6 +609,7 @@ class DataStation:
             for cur_f in list_of_functions:
                 if api == cur_f.__name__:
                     print(f"Development mode: Calling function: {api}")
+                    self.api_type_development = "function"
                     # Step 1: Running the function
                     res = cur_f(*args, **kwargs)
 
@@ -559,6 +630,7 @@ class DataStation:
             # Else see if it's a pure api endpoint
             for cur_api in list_of_api_endpoints:
                 if api == cur_api.__name__:
+                    self.api_type_development = "api_endpoint"
                     print(f"Development mode: Calling pure api_endpoint: {api}")
                     return cur_api(*args, **kwargs)
             print("Development mode: Called api_endpoint not found:", api)

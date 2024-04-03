@@ -19,6 +19,9 @@ def register_de_in_DB(de_id,
         wal_entry = f"database_api.create_de({de_id}, {user_id}, {derived})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
+    if derived:
+        user_id = 0
+
     de_resp = database_api.create_de(int(de_id),
                                      int(user_id),
                                      derived)
