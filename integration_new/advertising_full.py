@@ -54,6 +54,8 @@ if __name__ == '__main__':
 
     print(ds.call_api(advertiser_token, "train_model_over_joined_data", "decision_tree", "clicked_on_ad"))
 
+    exit()
+
     # # Contract 2/3: propose train_model contract with intermediate DE
     # data_elements = [3]
     # model_name = "logistic_regression"

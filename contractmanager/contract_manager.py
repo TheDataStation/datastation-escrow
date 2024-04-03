@@ -52,9 +52,9 @@ def propose_contract(user_id,
     # Add to ContractStatus table. First get the src agents, default to DE owners.
     src_agent_de_dict = {}
 
-    simple_de_ids = get_simple_des_from_het_des(data_elements)
+    original_de_ids = get_original_des_from_het_des(data_elements)
 
-    for de_id in simple_de_ids:
+    for de_id in original_de_ids:
         owner_id_res = database_api.get_de_owner_id(de_id)
         if owner_id_res["status"] == 1:
             return owner_id_res
@@ -240,36 +240,29 @@ def get_contract_object(contract_id):
     return contract_obj
 
 
-def get_simple_des_from_het_des(het_de_ids):
+def get_original_des_from_het_des(het_de_ids):
     """
     Helper.
     Given a heterogeneous set of DEs (original or derived), return the original set
     """
-    # TODO: from here
-    # het_des = database_api.get_des_by_ids(het_de_ids)["data"]
-    # all_des = database_api.get_all_des()["data"]
-    # # print(het_des)
-    # simple_de_id_set = set()
-    # het_de_id_set = set()
-    # de_contract_dict = {}
-    # for de in het_des:
-    #     het_de_id_set.add(de.id)
-    # for de in all_des:
-    #     de_contract_dict[de.id] = de.contract_id
-    # while het_de_id_set:
-    #     cur_de_id = het_de_id_set.pop()
-    #     if de_contract_dict[cur_de_id] == 0:
-    #         simple_de_id_set.add(cur_de_id)
-    #     else:
-    #         # print(de_contract_dict)
-    #         # convert the intermediate DE into DEs from its contract
-    #         des_in_contract = database_api.get_de_for_contract(de_contract_dict[cur_de_id])
-    #         des_to_add = set(map(lambda ele: ele[0], des_in_contract))
-    #         het_de_id_set.update(des_to_add)
+    original_de_id_set = set()
+    het_de_id_set = set()
+    for het_de_id in het_de_ids:
+        het_de_id_set.add(het_de_id)
+    while het_de_id_set:
+        cur_de_id = het_de_id_set.pop()
+        cur_de = database_api.get_de_by_id(cur_de_id)["data"]
+        # If it's an original DE, add it to result set
+        if not cur_de.derived:
+            original_de_id_set.add(cur_de_id)
+        # If it's a derived DE: convert the DE to its source DEs, and add it back to het_de_id_set
+        else:
+            cur_src_des = database_api.get_source_des_for_derived_de(cur_de_id)
+            des_to_add = set(map(lambda ele: ele[0], cur_src_des))
+            het_de_id_set.update(des_to_add)
     # # print(het_de_id_set)
-    # # print(simple_de_id_set)
-    # return simple_de_id_set
-    return het_de_ids
+    # # print(original_de_id_set)
+    return original_de_id_set
 
 def check_release_status(dest_a_id, de_accessed, function, function_param):
     # Step 1: check if there's a policy existing: if yes, can release
@@ -290,8 +283,9 @@ def check_release_status(dest_a_id, de_accessed, function, function_param):
 
     # Step 1: Get what DEs in this contract are each src_agent are responsible for
     src_agent_de_dict = {}
-    simple_de_ids = get_simple_des_from_het_des(de_accessed)
-    for de_id in simple_de_ids:
+    original_de_ids = get_original_des_from_het_des(de_accessed)
+    # print("Check release status: Original DE IDs:", original_de_ids)
+    for de_id in original_de_ids:
         owner_id_res = database_api.get_de_owner_id(de_id)
         if owner_id_res["status"] == 1:
             return owner_id_res
@@ -330,7 +324,7 @@ def check_release_status(dest_a_id, de_accessed, function, function_param):
                 cur_src_approval_set.add(policy[1])
         cur_src_approval_set.update(de_accessible_to_all)
 
-        request_de_for_cur_src = set(de_accessed).intersection(src_agent_de_dict[src_a_id])
+        request_de_for_cur_src = original_de_ids.intersection(src_agent_de_dict[src_a_id])
         # print("Relevant request for current source agent is", request_de_for_cur_src)
         # print("Auto approved request for curret source agent is ", cur_src_approval_set)
         # We check if requested DE is a subset of approval set for the current source agent.
