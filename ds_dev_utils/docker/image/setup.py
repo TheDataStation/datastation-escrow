@@ -55,6 +55,8 @@ def main():
 
     # Set up the file interceptor using info from accessible_de
 
+    # TODO: need to add in the appstate file here: set its key to DS key
+
     accessible_data_set = set()
     accessible_data_key_dict = {}
     for cur_de in accessible_de:

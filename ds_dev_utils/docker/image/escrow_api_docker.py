@@ -14,10 +14,28 @@ class EscrowAPIDocker:
         #         cur_de.access_param = os.path.join("/mnt/data_mount/", cur_de.access_param)
         print(self.agents_symmetric_key)
 
+    # Return path to the CSV file
     def csv_store_read(self, de_id):
         dir_path = path.join("/mnt/data_mount", str(de_id))
         dst_file_path = path.join(dir_path, path.basename(f"{de_id}.csv"))
         return dst_file_path
+
+    # Return object stored
+    def object_store_read(self, de_id):
+        # Should just be reading the bytes and load it to an object then return...Interceptor will take care of rest
+        pass
+
+    # Write to ObjectDEStore
+    # Likely, this can only be done when we return to the Gatekeeper
+    def object_store_write(self, content):
+        ...
+
+    # State saving/loading
+    def save(self):
+        ...
+
+    def load(self):
+        ...
 
     # def get_all_accessible_des(self):
     #     return self.accessible_de

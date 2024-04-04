@@ -53,20 +53,6 @@ class DataStation:
         # set up trust mode
         self.trust_mode = self.config.trust_mode
 
-        # set up an instance of the storage_manager
-        self.storage_path = self.config.storage_path
-        self.storage_manager = StorageManager(self.storage_path)
-
-        # set up an instance of the app state manager
-        self.app_state_path = self.config.app_state_path
-        self.app_state_manager = AppStateManager(self.app_state_path)
-
-        # set up an instance of the log
-        log_in_memory_flag = self.config.log_in_memory_flag
-        log_path = self.config.log_path
-        self.data_station_log = Log(
-            log_in_memory_flag, log_path, self.trust_mode)
-
         # set up an instance of WAL and KeyManager
         wal_path = self.config.wal_path
         check_point_freq = self.config.check_point_freq
@@ -76,6 +62,25 @@ class DataStation:
         else:
             self.write_ahead_log = None
             self.key_manager = None
+
+        # set up an instance of the storage_manager
+        self.storage_path = self.config.storage_path
+        self.storage_manager = StorageManager(self.storage_path)
+
+        # set up an instance of the app state manager
+        self.app_state_path = self.config.app_state_path
+        if self.trust_mode == "no_trust":
+            self.app_state_manager = AppStateManager(self.app_state_path,
+                                                     self.key_manager.agents_symmetric_key[0])
+            self.app_state_manager = AppStateManager(self.app_state_path)
+        else:
+            self.app_state_manager = AppStateManager(self.app_state_path)
+
+        # set up an instance of the log
+        log_in_memory_flag = self.config.log_in_memory_flag
+        log_path = self.config.log_path
+        self.data_station_log = Log(
+            log_in_memory_flag, log_path, self.trust_mode)
 
         # print(self.storage_path)
         self.epf_path = self.config.epf_path
@@ -471,6 +476,8 @@ class DataStation:
                                            self.key_manager, )
 
     def store(self, key, value):
+        if self.trust_mode == "no_trust":
+            return self.app_state_manager.store(key, value, self.key_manager)
         return self.app_state_manager.store(key, value)
 
     def load(self, key):
