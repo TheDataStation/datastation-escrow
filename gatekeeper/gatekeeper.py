@@ -126,6 +126,7 @@ class Gatekeeper:
             else:
                 data_owner_symmetric_key = None
             cur_de = DataElement(cur_de.id,
+                                 cur_de.store_type,
                                  data_owner_symmetric_key)
             accessible_de.add(cur_de)
 
@@ -149,7 +150,12 @@ class Gatekeeper:
 
         api_result = ret["return_info"][0]
         de_paths_accessed = ret["return_info"][1]
-        decryption_time = ret["return_info"][2]
+        derived_des_to_create = ret["return_info"][2]
+        decryption_time = ret["return_info"][3]
+
+        print(api_result)
+        print(derived_des_to_create)
+        exit()
 
         de_ids_accessed = []
         for path in de_paths_accessed:

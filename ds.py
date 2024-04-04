@@ -189,6 +189,7 @@ class DataStation:
 
     def register_de(self,
                     user_id,
+                    store_type,
                     derived):
         """
         Registers a data element in Data Station's database.
@@ -202,6 +203,7 @@ class DataStation:
 
         return de_manager.register_de_in_DB(de_id,
                                             user_id,
+                                            store_type,
                                             derived,
                                             self.write_ahead_log,
                                             self.key_manager)
@@ -243,7 +245,7 @@ class DataStation:
         if self.api_type_development:
             # If it's an api_endpoint, set "derived" to False, and encrypt with caller's sym_key if needed
             if self.api_type_development == "api_endpoint":
-                res = self.register_de(self.caller_id, False)
+                res = self.register_de(self.caller_id, "csv", False)
                 if res["status"]:
                     return res
                 if self.trust_mode == "no_trust":
@@ -254,7 +256,7 @@ class DataStation:
             # Don't give it an owner, and encrypt it with DS sym key if needed.
             else:
                 print("Source DE for this derived DE is", self.accessed_de_development)
-                res = self.register_de(self.caller_id, True)
+                res = self.register_de(self.caller_id, "csv", True)
                 if res["status"]:
                     return res
                 for src_de_id in self.accessed_de_development:
@@ -272,14 +274,20 @@ class DataStation:
 
         # Else, it can only be called from api_endpoint (the other implementation should be in EscrowAPIDocker)
         else:
-            pass
+            res = self.register_de(self.caller_id, "csv", False)
+            if res["status"]:
+                return res
+            if self.trust_mode == "no_trust":
+                content = cu.encrypt_data_with_symmetric_key(content,
+                                                             self.key_manager.agents_symmetric_key[self.caller_id])
+            return self.storage_manager.write(res["de_id"], content, "csv")
 
     def object_store_write(self, content):
         # If called from development mode, it could be called from api_endpoint or function
         if self.api_type_development:
             # If it's an api_endpoint, set "derived" to False, and encrypt with caller's sym_key if needed
             if self.api_type_development == "api_endpoint":
-                res = self.register_de(self.caller_id, False)
+                res = self.register_de(self.caller_id, "object", False)
                 if res["status"]:
                     return res
                 pickled_bytes = pickle.dumps(content)
@@ -289,7 +297,7 @@ class DataStation:
                 return self.storage_manager.write(res["de_id"], pickled_bytes, "object")
             else:
                 print("Source DE for this derived DE is", self.accessed_de_development)
-                res = self.register_de(self.caller_id, True)
+                res = self.register_de(self.caller_id, "object", True)
                 if res["status"]:
                     return res
                 for src_de_id in self.accessed_de_development:
@@ -308,7 +316,15 @@ class DataStation:
         # If not in development,
         # it can only be called from api_endpoint (the other implementation should be in EscrowAPIDocker)
         else:
-            pass
+            res = self.register_de(self.caller_id, "object", False)
+            if res["status"]:
+                return res
+            pickled_bytes = pickle.dumps(content)
+            if self.trust_mode == "no_trust":
+                pickled_bytes = cu.encrypt_data_with_symmetric_key(pickled_bytes,
+                                                                   self.key_manager.agents_symmetric_key[
+                                                                       self.caller_id])
+            return self.storage_manager.write(res["de_id"], pickled_bytes, "object")
 
     # All DEStore.read below will only be called in development mode. (Since DEs can only be accessed in sandbox)
     # If called outside of development mode, call to this function shoule be disabled

@@ -102,10 +102,11 @@ def recover_users(users):
         return 0
 
 
-def create_de(de_id, user_id, derived):
+def create_de(de_id, user_id, store_type, derived):
     with get_db() as db:
         db_de = DataElement(id=de_id,
                             owner_id=user_id,
+                            store_type=store_type,
                             derived=derived)
 
         try:

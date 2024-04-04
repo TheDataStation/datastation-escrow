@@ -16,7 +16,8 @@ COPY ds_dev_utils/docker/image .
 
 #RUN brew install openblas
 #RUN pip install dowhy
-RUN pip install --no-cache-dir -r requirements.txt
+#RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 COPY common common
 COPY crypto crypto

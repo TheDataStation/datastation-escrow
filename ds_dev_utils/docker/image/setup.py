@@ -54,17 +54,22 @@ def main():
     EscrowAPI.set_comp(escrow_api_docker)
 
     # Set up the file interceptor using info from accessible_de
-
-    # TODO: need to add in the appstate file here: set its key to DS key
-
     accessible_data_set = set()
     accessible_data_key_dict = {}
+
+    app_state_path = "/mnt/data/app_state.pkl"
+    accessible_data_set.add(app_state_path)
+    # Set sym key for app_state to None if agents_symmetric_key is None
+    if agents_symmetric_key is not None:
+        accessible_data_key_dict[app_state_path] = agents_symmetric_key[0]
+    else:
+        accessible_data_key_dict[app_state_path] = None
+
     for cur_de in accessible_de:
-        # if cur_de.type == "file":
-        #     cur_data_path = os.path.join("/mnt/data", str(cur_de.id), cur_de.name)
-        #     accessible_data_set.add(cur_data_path)
-        #     accessible_data_key_dict[cur_data_path] = cur_de.enc_key
-        cur_de_name = f"{cur_de.id}.csv"
+        if cur_de.store_type == "csv":
+            cur_de_name = f"{cur_de.id}.csv"
+        elif cur_de.store_type == "object":
+            cur_de_name = f"{cur_de.id}"
         cur_de_path = os.path.join("/mnt/data", str(cur_de.id), cur_de_name)
         accessible_data_set.add(cur_de_path)
         accessible_data_key_dict[cur_de_path] = cur_de.enc_key
@@ -155,11 +160,15 @@ def main():
         data_accessed = []
     decryption_time = dict(decryption_time_dict)["total_time"]
 
-    # Removing newly created files
-    filtered_data_accessed = set(filter(lambda x: x.split("/")[-3] != "Staging_storage", data_accessed))
+    # Remove app_state.pkl from de_accessed
+
+    # Remove newly created files
+    filtered_de_accessed = set(filter(lambda x: x.split("/")[-3] != "Staging_storage", data_accessed))
+    filtered_de_accessed.discard(app_state_path)
 
     to_send_back = pickle.dumps({"return_value": ret,
-                                 "data_accessed": filtered_data_accessed,
+                                 "data_accessed": filtered_de_accessed,
+                                 "derived_des_to_create": escrow_api_docker.derived_des_to_create,
                                  "decryption_time": decryption_time})
     # print("To send back pickle constructed......")
     # print(time.time() - start)

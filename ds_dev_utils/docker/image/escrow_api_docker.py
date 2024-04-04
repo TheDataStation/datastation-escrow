@@ -9,6 +9,8 @@ class EscrowAPIDocker:
     def __init__(self, accessible_de, agents_symmetric_key):
         self.accessible_de = accessible_de
         self.agents_symmetric_key = agents_symmetric_key
+        self.app_state_path = "/mnt/data_mount/app_state.pkl"
+        self.derived_des_to_create = []
         # for cur_de in self.accessible_de:
         #     if cur_de.type == "file":
         #         cur_de.access_param = os.path.join("/mnt/data_mount/", cur_de.access_param)
@@ -25,17 +27,32 @@ class EscrowAPIDocker:
         # Should just be reading the bytes and load it to an object then return...Interceptor will take care of rest
         pass
 
-    # Write to ObjectDEStore
-    # Likely, this can only be done when we return to the Gatekeeper
+    # Write to ObjectDEStore.
+    # We just keep track of how many intermediate DEs we are writing. Their src DE will be all DEs accessed.
+    # GK will take care of the rest.
     def object_store_write(self, content):
-        ...
+        derived_de = ("object", content)
+        self.derived_des_to_create.append(derived_de)
 
     # State saving/loading
-    def save(self):
-        ...
+    # Decryption should have been done by interceptor already
+    def save(self, key, value):
+        with open(self.app_state_path, "rb") as f:
+            state_dict_bytes = f.read()
+        state_dict = pickle.loads(state_dict_bytes)
+        state_dict[key] = value
+        bytes_to_write = pickle.dumps(state_dict)
+        with open("/mnt/data_mount/app_state.pkl", 'wb+') as f:
+            f.write(bytes_to_write)
+            return 0
 
-    def load(self):
-        ...
+    def load(self, key):
+        with open(self.app_state_path, "rb") as f:
+            state_dict_bytes = f.read()
+        state_dict = pickle.loads(state_dict_bytes)
+        if key in state_dict:
+            return state_dict[key]
+        return None
 
     # def get_all_accessible_des(self):
     #     return self.accessible_de

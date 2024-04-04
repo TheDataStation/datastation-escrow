@@ -9,4 +9,5 @@ class DataElement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     owner_id = Column(Integer)
+    store_type = Column(String)
     derived = Column(Boolean)
