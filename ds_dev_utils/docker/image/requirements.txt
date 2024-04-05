@@ -6,4 +6,4 @@ numpy
 pandas
 duckdb
 scipy
-scikit-learn
+scikit-learn==1.2.0

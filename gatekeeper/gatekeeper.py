@@ -78,6 +78,7 @@ class Gatekeeper:
     def call_api(self,
                  function,
                  caller_id,
+                 start_de_id,
                  # contract_id,
                  *args,
                  **kwargs):
@@ -140,6 +141,7 @@ class Gatekeeper:
         ret = call_actual_api(function,
                               self.epf_path,
                               self.config,
+                              start_de_id,
                               agents_symmetric_key,
                               accessible_de,
                               self.get_new_docker_id(),
@@ -153,15 +155,14 @@ class Gatekeeper:
         derived_des_to_create = ret["return_info"][2]
         decryption_time = ret["return_info"][3]
 
-        print(api_result)
-        print(derived_des_to_create)
-        exit()
+        # print("Gakeeper printing function output", api_result)
+        # print(de_paths_accessed)
+        # print(derived_des_to_create)
 
         de_ids_accessed = []
         for path in de_paths_accessed:
             print(path)
             de_ids_accessed.append(int(path.split("/")[-2]))
-        # print("API result is", api_result)
 
         print("DE accessed is", de_ids_accessed)
         # print("accessible data by policy is", accessible_data_policy)
@@ -176,7 +177,7 @@ class Gatekeeper:
                                                                set(de_ids_accessed),
                                                                function,
                                                                param_str)
-        print(release_status)
+        # print(release_status)
         if release_status:
             self.data_station_log.log_intent_policy_match(caller_id,
                                                           function,
@@ -184,10 +185,14 @@ class Gatekeeper:
                                                           self.key_manager)
             response = {"status": 0,
                         "message": "Contract result can be released",
-                        "result": api_result}
+                        "result": api_result,
+                        "de_ids_accessed": de_ids_accessed,
+                        "derived_des_to_create": derived_des_to_create}
         else:
             response = {"status": 1,
-                        "message": "Result cannot be released"}
+                        "message": "Result cannot be released",
+                        "de_ids_accessed": de_ids_accessed,
+                        "derived_des_to_create": derived_des_to_create}
 
         # if set(de_ids_accessed).issubset(set(all_accessible_de_id)):
         #     # print("All data access allowed by policy.")
@@ -230,6 +235,7 @@ class Gatekeeper:
 def call_actual_api(function_name,
                     epf_path,
                     config: DSConfig,
+                    start_de_id,
                     agents_symmetric_key,
                     accessible_de,
                     docker_id,
@@ -259,7 +265,7 @@ def call_actual_api(function_name,
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
 
     config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "agents_symmetric_key": agents_symmetric_key,
-                   "operating_system": config.operating_system}
+                   "operating_system": config.operating_system, "start_de_id": start_de_id}
     print("The real epf path is", epf_realpath)
 
     # print(session.container.top())

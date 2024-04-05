@@ -190,7 +190,8 @@ class DataStation:
     def register_de(self,
                     user_id,
                     store_type,
-                    derived):
+                    derived,
+                    de_id=None):
         """
         Registers a data element in Data Station's database.
 
@@ -198,8 +199,9 @@ class DataStation:
             user_id: the unique id identifying which user owns the de
         """
         # Decide which de_id to use from self.cur_de_id
-        de_id = self.cur_de_id
-        self.cur_de_id += 1
+        if de_id is None:
+            de_id = self.cur_de_id
+            self.cur_de_id += 1
 
         return de_manager.register_de_in_DB(de_id,
                                             user_id,
@@ -293,7 +295,8 @@ class DataStation:
                 pickled_bytes = pickle.dumps(content)
                 if self.trust_mode == "no_trust":
                     pickled_bytes = cu.encrypt_data_with_symmetric_key(pickled_bytes,
-                        self.key_manager.agents_symmetric_key[self.caller_id])
+                                                                       self.key_manager.agents_symmetric_key[
+                                                                           self.caller_id])
                 return self.storage_manager.write(res["de_id"], pickled_bytes, "object")
             else:
                 print("Source DE for this derived DE is", self.accessed_de_development)
@@ -311,7 +314,7 @@ class DataStation:
                 pickled_bytes = pickle.dumps(content)
                 if self.trust_mode == "no_trust":
                     pickled_bytes = cu.encrypt_data_with_symmetric_key(pickled_bytes,
-                        self.key_manager.agents_symmetric_key[0])
+                                                                       self.key_manager.agents_symmetric_key[0])
                 return self.storage_manager.write(res["de_id"], pickled_bytes, "object")
         # If not in development,
         # it can only be called from api_endpoint (the other implementation should be in EscrowAPIDocker)
@@ -662,12 +665,36 @@ class DataStation:
             # First see if it's a function
             for cur_f in list_of_functions:
                 if api == cur_f.__name__:
-                    res = self.gatekeeper.call_api(api,
-                                                   self.caller_id,
-                                                   *args,
-                                                   **kwargs)
-                    if res["status"] == 0:
-                        return res["result"]
+                    gatekeeper_res = self.gatekeeper.call_api(api,
+                                                              self.caller_id,
+                                                              self.cur_de_id,
+                                                              *args,
+                                                              **kwargs)
+                    derived_des_to_create = gatekeeper_res["derived_des_to_create"]
+                    de_ids_accessed = gatekeeper_res["de_ids_accessed"]
+                    # Check to see if this function call creates any derived DEs. If yes, register and store them now.
+                    if len(derived_des_to_create) > 0:
+                        for derived_de in derived_des_to_create:
+                            print("Source DE for this derived DE is", de_ids_accessed)
+                            res = self.register_de(self.caller_id, derived_de[1], True, derived_de[0])
+                            if res["status"]:
+                                return res
+                            for src_de_id in de_ids_accessed:
+                                if self.write_ahead_log:
+                                    wal_entry = f"database_api.create_derived_de({res['de_id']}, {src_de_id})"
+                                    self.write_ahead_log.log(self.caller_id, wal_entry, self.key_manager, )
+                                db_res = database_api.create_derived_de(res["de_id"], src_de_id)
+                                if db_res["status"] == 1:
+                                    return db_res
+                            # Encrypt with DS sym key if needed
+                            pickled_bytes = pickle.dumps(derived_de[2])
+                            if self.trust_mode == "no_trust":
+                                pickled_bytes = cu.encrypt_data_with_symmetric_key(pickled_bytes,
+                                                                                   self.key_manager.agents_symmetric_key[
+                                                                                       0])
+                            self.storage_manager.write(res["de_id"], pickled_bytes, "object")
+                    if gatekeeper_res["status"] == 0:
+                        return gatekeeper_res["result"]
                     return None
             # Else see if it's a pure api endpoint
             for cur_api in list_of_api_endpoints:

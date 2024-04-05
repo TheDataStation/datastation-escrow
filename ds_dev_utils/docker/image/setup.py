@@ -44,13 +44,14 @@ def main():
     accessible_de = config_dict["accessible_de"]
     docker_id = config_dict["docker_id"]
     agents_symmetric_key = config_dict["agents_symmetric_key"]
+    start_de_id = config_dict["start_de_id"]
 
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
     print("setting up...")
 
     # Set up escrow_api docker
-    escrow_api_docker = EscrowAPIDocker(accessible_de, agents_symmetric_key)
+    escrow_api_docker = EscrowAPIDocker(accessible_de, agents_symmetric_key, start_de_id)
     EscrowAPI.set_comp(escrow_api_docker)
 
     # Set up the file interceptor using info from accessible_de

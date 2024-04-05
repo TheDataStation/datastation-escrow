@@ -6,10 +6,11 @@ from crypto import cryptoutils
 
 class EscrowAPIDocker:
 
-    def __init__(self, accessible_de, agents_symmetric_key):
+    def __init__(self, accessible_de, agents_symmetric_key, start_de_id):
         self.accessible_de = accessible_de
         self.agents_symmetric_key = agents_symmetric_key
         self.app_state_path = "/mnt/data_mount/app_state.pkl"
+        self.start_de_id = start_de_id
         self.derived_des_to_create = []
         # for cur_de in self.accessible_de:
         #     if cur_de.type == "file":
@@ -24,19 +25,28 @@ class EscrowAPIDocker:
 
     # Return object stored
     def object_store_read(self, de_id):
-        # Should just be reading the bytes and load it to an object then return...Interceptor will take care of rest
-        pass
+        # Should just be reading the bytes and load it to an object then return.Interceptor will take care of rest.
+        dir_path = path.join("/mnt/data_mount", str(de_id))
+        dst_file_path = path.join(dir_path, path.basename(str(de_id)))
+        with open(dst_file_path, 'rb') as f:
+            object_bytes = f.read()
+        return pickle.loads(object_bytes)
 
     # Write to ObjectDEStore.
-    # We just keep track of how many intermediate DEs we are writing. Their src DE will be all DEs accessed.
-    # GK will take care of the rest.
+    # We keep track of the id, type, and content of the intermediate DEs we are writing. (GK will do the actual writes)
+    # Their src DE will be all DEs accessed.
+    # We return the newly created DE ID.
     def object_store_write(self, content):
-        derived_de = ("object", content)
+        cur_derived_de_id = self.start_de_id
+        derived_de = (cur_derived_de_id, "object", content)
         self.derived_des_to_create.append(derived_de)
+        print(self.derived_des_to_create)
+        self.start_de_id += 1
+        return {"status": 0, "de_id": cur_derived_de_id}
 
     # State saving/loading
     # Decryption should have been done by interceptor already
-    def save(self, key, value):
+    def store(self, key, value):
         with open(self.app_state_path, "rb") as f:
             state_dict_bytes = f.read()
         state_dict = pickle.loads(state_dict_bytes)

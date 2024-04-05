@@ -53,6 +53,7 @@ if __name__ == '__main__':
     res = ds.call_api(advertiser_token, "train_model_over_joined_data", model_name, label_name, query)
     print(res.coef_)
 
+    # # Some test on intermediate DEs
     # res = ds.call_api(advertiser_token, "train_model_over_joined_data", "decision_tree", "clicked_on_ad")
     # tree.plot_tree(res)
     # plt.show()
