@@ -64,7 +64,7 @@ def login_agent(username, password):
     return {"status": 1, "message": "password does not match"}
 
 
-def authenticate_user(token: str):
+def authenticate_agent(token: str):
     # Credential Checking
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

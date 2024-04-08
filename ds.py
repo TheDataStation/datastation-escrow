@@ -625,7 +625,7 @@ class DataStation:
          result of calling the API
         """
 
-        self.caller_id = agent_manager.authenticate_user(agent_token)
+        self.caller_id = agent_manager.authenticate_agent(agent_token)
         list_of_api_endpoints = get_registered_api_endpoint()
         list_of_functions = get_registered_functions()
 
