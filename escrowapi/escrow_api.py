@@ -205,6 +205,7 @@ class EscrowAPI:
         return cls.__comp.compute_intermediate_DE(data_elements, function, *args, **kwargs)
 
     # Authenticated
+    # TODO: the implementation of this should probably be improved
     @classmethod
     def upload_cmp(cls, dest_a_id, de_id, function):
         """

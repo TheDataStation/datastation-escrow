@@ -649,6 +649,8 @@ class DataStation:
                                                                            param_str)
                     # Clear self.accessed_de_development
                     self.accessed_de_development = set()
+                    print(res)
+                    print(release_status)
                     if release_status:
                         return res
                     else:

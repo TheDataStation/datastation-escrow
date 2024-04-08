@@ -41,7 +41,23 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @app.post("/upload_data_in_csv")
 async def upload_data_in_csv(token: str = Depends(oauth2_scheme), file: UploadFile = File(...)):
-    return token
+    de_in_bytes = file.file.read()
+    return ds.call_api(token, "upload_data_in_csv", de_in_bytes)
+
+
+@app.post("/approve_all_causal_queries")
+async def approval_all_causal_queries(token: str = Depends(oauth2_scheme)):
+    return ds.call_api(token, "approve_all_causal_queries")
+
+
+@app.post("/run_causal_query")
+async def run_causal_query(user_de_id: int,
+                           additional_vars: list[str],
+                           dag_spec: list[tuple[str, str]],
+                           treatment: str,
+                           outcome: str,
+                           token: str = Depends(oauth2_scheme)):
+    return ds.call_api(token, "run_causal_query", user_de_id, additional_vars, dag_spec, treatment, outcome)
 
 
 if __name__ == "__main__":
@@ -70,32 +86,5 @@ if __name__ == "__main__":
     log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):
         os.remove(log_path)
-
-    # Get the list of api_endpoints defined in the EPM (not including @functions)
-    # Create FastAPI endpoints for them
-    # api_endpoints = get_registered_api_endpoint()
-    # for api in api_endpoints:
-    #     print(api.__name__)
-    #     if api.__name__ == "upload_data_in_csv":
-    #         upload_data_in_csv_def = api
-    #
-    #         def upload_data_in_csv(user_id: int, file: UploadFile = File(...)):
-    #             de_in_bytes = file.file.read()
-    #             return upload_data_in_csv_def(user_id, de_in_bytes)
-    #         app.add_api_route(f"/{api.__name__}", upload_data_in_csv, methods=["POST"])
-    #     elif api.__name__ == "approve_all_causal_queries":
-    #         app.add_api_route(f"/{api.__name__}", api, methods=["POST"])
-    #     elif api.__name__ == "run_causal_query":
-    #         run_causal_query_def = api
-    #
-    #         def run_causal_query(user_id: int,
-    #                              user_DE_id: int,
-    #                              additional_vars: list[str],
-    #                              dag_spec: list[tuple[str, str]],
-    #                              treatment: str,
-    #                              outcome: str):
-    #             return run_causal_query_def(user_id, user_DE_id, additional_vars, dag_spec, treatment, outcome)
-    #
-    #         app.add_api_route(f"/{api.__name__}", run_causal_query, methods=["POST"])
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
