@@ -11,10 +11,17 @@ from common.general_utils import clean_test_env
 
 app = FastAPI()
 
-
 # Create a new user.
-@app.post("/create_agent")
-def create_agent(username, password):
+@app.post("/create_agent",)
+def create_agent(username: str, password: str):
+    """
+    Creates a new agent.\n
+    Parameters:\n
+        username: username\n
+        password: password\n
+    Returns:\n
+        ID of the newly created user if success.
+    """
     return ds.create_agent(username, password)
 
 
