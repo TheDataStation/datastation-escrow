@@ -72,6 +72,11 @@ def propose_contract(user_id,
         if db_res["status"] == 1:
             return db_res
 
+    # Lastly, automatically invoke approve_contract for current caller
+    approval_res = approve_contract(user_id, contract_id, write_ahead_log, key_manager)
+    if approval_res["status"] == 1:
+        return approval_res
+
     return {"status": 0, "message": "success", "contract_id": contract_id}
 
 
@@ -140,6 +145,11 @@ def approve_contract(user_id,
             if write_ahead_log:
                 wal_entry = f"database_api.create_policy({a_id}, {de_ids_str}, {function}, {function_param})"
                 write_ahead_log.log(user_id, wal_entry, key_manager, )
+            print("In contract creation")
+            print(a_id)
+            print(de_ids_str)
+            print(function)
+            print(function_param)
             db_res = database_api.create_policy(a_id, de_ids_str, function, function_param)
             if db_res["status"] == 1:
                 return db_res
@@ -270,6 +280,11 @@ def check_release_status(dest_a_id, de_accessed, function, function_param):
     de_ids.sort()
     de_ids = [str(de_id) for de_id in de_ids]
     de_ids_str = " ".join(de_ids)
+    print("In check status")
+    print(dest_a_id)
+    print(de_ids_str)
+    print(function)
+    print(function_param)
     policy_exists = database_api.check_policy_exists(dest_a_id, de_ids_str, function, function_param)
     if policy_exists:
         return True

@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Optional
 import uvicorn
+import ast
 
 from main import initialize_system
 from common.general_utils import clean_test_env
@@ -51,18 +52,26 @@ async def upload_data_in_csv(token: str = Depends(oauth2_scheme), file: UploadFi
     de_in_bytes = file.file.read()
     return ds.call_api(token, "upload_data_in_csv", de_in_bytes)
 
-
 @app.post("/propose_contract")
 async def propose_contract(dest_agents: list[int],
                            des: list[int],
                            f: str,
                            token: str = Depends(oauth2_scheme),
-                           args: Optional[list] = None):
-    return ds.call_api(token, "propose_contract", dest_agents, des, f, *args)
+                           args: Optional[list[str]] = None):
+    # Do type conversion
+    if f == "show_schema":
+        args = ast.literal_eval(args[0])
+    return ds.call_api(token, "propose_contract", dest_agents, des, f, args)
+
+
+@app.post("/approve_contract")
+async def approve_contract(contract_id: int, token: str = Depends(oauth2_scheme)):
+    return ds.call_api(token, "approve_contract", contract_id)
 
 
 @app.post("/show_schema")
-async def show_schema(de_ids, token: str = Depends(oauth2_scheme)):
+async def show_schema(de_ids: list[int],
+                      token: str = Depends(oauth2_scheme)):
     return ds.call_api(token, "show_schema", de_ids)
 
 
