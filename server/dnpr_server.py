@@ -6,7 +6,6 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import uvicorn
 
 from main import initialize_system
-from dsapplicationregistration.dsar_core import get_registered_api_endpoint
 from common.general_utils import clean_test_env
 
 app = FastAPI()
@@ -81,14 +80,14 @@ if __name__ == "__main__":
 
     clean_test_env()
 
-    args = parser.parse_args()
+    sys_args = parser.parse_args()
     # print(args)
-    port = args.port
-    host = args.host
+    port = sys_args.port
+    host = sys_args.host
 
     # Initializing an instance of DS, according to the config file
     global ds
-    ds = initialize_system(args.ds_config)
+    ds = initialize_system(sys_args.ds_config)
 
     log_path = ds.data_station_log.log_path
     if os.path.exists(log_path):
