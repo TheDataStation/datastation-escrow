@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Optional, List, Any
 import uvicorn
+from fastapi.responses import JSONResponse
 
 from main import initialize_system
 from common.general_utils import clean_test_env
@@ -71,6 +72,22 @@ async def approve_contract(contract_id: int, token: str = Depends(oauth2_scheme)
 async def show_schema(de_ids: list[int],
                       token: str = Depends(oauth2_scheme)):
     return ds.call_api(token, "show_schema", de_ids)
+
+
+@app.post("/share_sample")
+async def share_sample(de_id: int,
+                       sample_size,
+                       token: str = Depends(oauth2_scheme),):
+    res = ds.call_api(token, "share_sample", de_id, sample_size)
+    return JSONResponse(content=res.to_json())
+
+
+@app.post("/check_column_compatibility")
+async def check_column_compatibility(de_1: int,
+                                     de_2: int,
+                                     cols_1: list[str],
+                                     cols_2: list[str]):
+    ...
 
 
 if __name__ == "__main__":

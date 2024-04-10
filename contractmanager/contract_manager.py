@@ -72,10 +72,11 @@ def propose_contract(user_id,
         if db_res["status"] == 1:
             return db_res
 
-    # Lastly, automatically invoke approve_contract for current caller
-    approval_res = approve_contract(user_id, contract_id, write_ahead_log, key_manager)
-    if approval_res["status"] == 1:
-        return approval_res
+    # Lastly, automatically invoke approve_contract for current caller, if caller is a source agent
+    if user_id in src_agent_de_dict:
+        approval_res = approve_contract(user_id, contract_id, write_ahead_log, key_manager)
+        if approval_res["status"] == 1:
+            return approval_res
 
     return {"status": 0, "message": "success", "contract_id": contract_id}
 
