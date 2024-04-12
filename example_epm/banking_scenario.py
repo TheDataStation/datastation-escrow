@@ -53,10 +53,12 @@ def share_de(de_id):
 @function
 def check_column_compatibility(de_1, de_2, cols_1, cols_2):
     """
-        Given two DEs, and two lists of column names from each DE, compare these columns 1 by 1.
-        """
+    Given two DEs, and two lists of column names from each DE, compare these columns 1 by 1.
+    We return the result in a string.
+    """
     # Loop through the cols array (needs to be same length)
     # For each pair: first get their types, then do KS test if both numerical, else jaccard similarity.
+    res_str = ""
     de_1_path = EscrowAPI.CSVDEStore.read(de_1)
     de_2_path = EscrowAPI.CSVDEStore.read(de_2)
     conn = duckdb.connect()
@@ -71,25 +73,32 @@ def check_column_compatibility(de_1, de_2, cols_1, cols_2):
         col_2 = df_2[cols_2[i]]
         type_1 = conn.execute(f"DESCRIBE SELECT {cols_1[i]} FROM read_csv_auto('{de_1_path}')").fetchall()[0][1]
         type_2 = conn.execute(f"DESCRIBE SELECT {cols_2[i]} FROM read_csv_auto('{de_2_path}')").fetchall()[0][1]
+        res_str += f"{cols_1[i]} vs {cols_2[i]}: "
         print(cols_1[i])
         print(cols_2[i])
         # Case 1: both are numerical types: calculate their ks statistic
         if type_1 in numerical_types and type_2 in numerical_types:
             statistic, p_value = ks_2samp(col_1, col_2)
             if p_value > 0.05:
+                res_str += "Both numerical types. The distributions are likely similar.   "
                 print("Both numerical types. The distributions are likely similar.")
             else:
+                res_str += "Both numerical types. The distributions are likely different.   "
                 print("Both numerical types. The distributions are likely different.")
         # Case 2: both are text types: run jaccard similarity
         elif type_1 in text_types and type_2 in text_types:
             intersection_size = len(set(col_1).intersection(set(col_2)))
             union_size = len(set(col_1).union(set(col_2)))
             jaccard_sim = intersection_size / union_size if union_size != 0 else 0
-            print(f"Both string/text types. Jaccard similarity is {jaccard_sim}")
+            res_str += f"Both string/text types. Jaccard similarity is {jaccard_sim}.   "
+            print(f"Both string/text types. Jaccard similarity is {jaccard_sim}.")
         elif type_1 in date_time_types and type_2 in date_time_types:
+            res_str += "Both date/time types.   "
             print("Both date/time types.")
         else:
+            res_str += "Date types are different.   "
             print("Date types are different.")
+    return res_str
 
 @api_endpoint
 @function

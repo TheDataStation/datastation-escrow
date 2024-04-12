@@ -12,8 +12,9 @@ from common.general_utils import clean_test_env
 
 app = FastAPI()
 
+
 # Create a new user.
-@app.post("/create_agent",)
+@app.post("/create_agent", )
 def create_agent(username: str, password: str):
     """
     Creates a new agent.\n
@@ -77,7 +78,7 @@ async def show_schema(de_ids: list[int],
 @app.post("/share_sample")
 async def share_sample(de_id: int,
                        sample_size,
-                       token: str = Depends(oauth2_scheme),):
+                       token: str = Depends(oauth2_scheme), ):
     res = ds.call_api(token, "share_sample", de_id, sample_size)
     return JSONResponse(content=res.to_json())
 
@@ -86,8 +87,30 @@ async def share_sample(de_id: int,
 async def check_column_compatibility(de_1: int,
                                      de_2: int,
                                      cols_1: list[str],
-                                     cols_2: list[str]):
-    ...
+                                     cols_2: list[str],
+                                     token: str = Depends(oauth2_scheme), ):
+    res = ds.call_api(token, "check_column_compatibility", de_1, de_2, cols_1, cols_2)
+    return res
+
+
+@app.post("/train_model_with_conditions")
+async def train_model_with_conditions(label_name: str,
+                                      train_de_ids: list[int],
+                                      test_de_ids: list[int],
+                                      size_constraint: int,
+                                      accuracy_constraint: float,
+                                      token: str = Depends(oauth2_scheme), ):
+    res = ds.call_api(token, "train_model_with_conditions",
+                      label_name, train_de_ids, test_de_ids, size_constraint, accuracy_constraint)
+    # coef_: Coefficients of the features in the decision function.
+    # intercept_: Intercept (bias) added to the decision function.
+    # classes_: Unique class labels.
+    model_parameters = {
+        "intercept": res.intercept_.tolist(),
+        "coefficients": res.coef_.tolist(),
+        "classes": res.classes_.tolist(),
+    }
+    return model_parameters
 
 
 if __name__ == "__main__":
