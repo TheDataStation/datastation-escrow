@@ -42,6 +42,7 @@ if __name__ == '__main__':
     f = "train_model_over_joined_data"
     model_name = "logistic_regression"
     label_name = "clicked_on_ad"
+    # "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad from facebook inner join youtube on facebook.first_name = youtube.first_name and facebook.last_name = youtube.last_name"
     query = "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
             "from facebook inner join youtube " \
             "on facebook.first_name = youtube.first_name and facebook.last_name = youtube.last_name"
@@ -59,6 +60,7 @@ if __name__ == '__main__':
     # plt.show()
 
     # Query to see if facebook has a large population who will respond to the ad
+    # "SELECT COUNT(*) AS total_records, SUM(CASE WHEN male = 1 AND married = 0 THEN 1 ELSE 0 END) AS male_1_married_0_records, (SUM(CASE WHEN male = 1 AND married = 0 THEN 1 ELSE 0 END) * 1.0) / COUNT(*) AS proportion FROM facebook;"
     dest_agents = [1]
     data_elements = [1]
     query = "SELECT COUNT(*) AS total_records, " \
