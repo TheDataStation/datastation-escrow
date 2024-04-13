@@ -82,7 +82,10 @@ async def train_model_over_joined_data(model_name: str,
                                        label_name: str,
                                        token: str = Depends(oauth2_scheme),
                                        query: Optional[str] = None):
-    res = ds.call_api(token, "train_model_over_joined_data", model_name, label_name, query)
+    if query is None:
+        res = ds.call_api(token, "train_model_over_joined_data", model_name, label_name)
+    else:
+        res = ds.call_api(token, "train_model_over_joined_data", model_name, label_name, query)
     if model_name == "logistic_regression":
         model_parameters = {
             "intercept": res.intercept_.tolist(),
@@ -90,6 +93,10 @@ async def train_model_over_joined_data(model_name: str,
             "classes": res.classes_.tolist(),
         }
     elif model_name == "decision_tree":
+        print(type(res.feature_importances_.tolist()))
+        print(type(res.get_depth()))
+        print(type(res.get_n_leaves()))
+        print(type(res.n_classes_()))
         model_parameters = {
             "feature_importances": res.feature_importances_.tolist(),
             "tree_depth": res.get_depth(),

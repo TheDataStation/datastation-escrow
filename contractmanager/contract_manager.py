@@ -277,7 +277,7 @@ def get_original_des_from_het_des(het_de_ids):
 
 def check_release_status(dest_a_id, de_accessed, function, function_param):
     # Step 1: check if there's a policy existing: if yes, can release
-    de_ids = list(de_accessed)
+    de_ids = list(get_original_des_from_het_des(de_accessed))
     de_ids.sort()
     de_ids = [str(de_id) for de_id in de_ids]
     de_ids_str = " ".join(de_ids)
