@@ -411,17 +411,19 @@ class DataStation:
         # We first register the contract in the DB
         # Decide which contract_id to use from self.cur_contract_id
         contract_id = self.cur_contract_id
-        self.cur_contract_id += 1
 
-        return contract_manager.propose_contract(self.caller_id,
-                                                 contract_id,
-                                                 dest_agents,
-                                                 data_elements,
-                                                 function,
-                                                 self.write_ahead_log,
-                                                 self.key_manager,
-                                                 *args,
-                                                 **kwargs, )
+        res = contract_manager.propose_contract(self.caller_id,
+                                                contract_id,
+                                                dest_agents,
+                                                data_elements,
+                                                function,
+                                                self.write_ahead_log,
+                                                self.key_manager,
+                                                *args,
+                                                **kwargs, )
+        if res["status"] == 0:
+            self.cur_contract_id += 1
+        return res
 
     def show_contract(self, contract_id):
         """

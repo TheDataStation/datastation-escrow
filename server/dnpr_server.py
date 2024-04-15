@@ -14,7 +14,7 @@ app = FastAPI()
 @app.post("/create_agent",)
 def create_agent(username: str, password: str):
     """
-    Creates a new agent.\n
+    Create a new agent.\n
     Parameters:\n
         username: username
         password: password
@@ -48,7 +48,7 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.post("/upload_data_in_csv")
 async def upload_data_in_csv(token: str = Depends(oauth2_scheme), dataset: UploadFile = File(...)):
     """
-    Uploads a new dataset in CSV format. Uploaded dataset needs to contain the column "CPR".\n
+    Upload a new dataset in CSV format. Uploaded dataset needs to contain the column "CPR".\n
     Parameters:\n
         dataset: the dataset to upload
     Returns:\n
