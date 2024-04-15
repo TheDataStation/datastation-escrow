@@ -93,15 +93,11 @@ async def train_model_over_joined_data(model_name: str,
             "classes": res.classes_.tolist(),
         }
     elif model_name == "decision_tree":
-        print(type(res.feature_importances_.tolist()))
-        print(type(res.get_depth()))
-        print(type(res.get_n_leaves()))
-        print(type(res.n_classes_()))
         model_parameters = {
             "feature_importances": res.feature_importances_.tolist(),
-            "tree_depth": res.get_depth(),
-            "n_leaves": res.get_n_leaves(),
-            "n_classes": res.n_classes_,
+            "tree_depth": int(res.get_depth()),
+            "n_leaves": int(res.get_n_leaves()),
+            # "n_classes": res.n_classes_,
         }
     else:
         model_parameters = None
