@@ -16,8 +16,8 @@ def create_agent(username: str, password: str):
     """
     Creates a new agent.\n
     Parameters:\n
-        username: username\n
-        password: password\n
+        username: username
+        password: password
     Returns:\n
         ID of the newly created user if success.
     """
@@ -46,13 +46,23 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @app.post("/upload_data_in_csv")
-async def upload_data_in_csv(token: str = Depends(oauth2_scheme), file: UploadFile = File(...)):
-    de_in_bytes = file.file.read()
+async def upload_data_in_csv(token: str = Depends(oauth2_scheme), dataset: UploadFile = File(...)):
+    """
+    Uploads a new dataset in CSV format. Uploaded dataset needs to contain the column "CPR".\n
+    Parameters:\n
+        dataset: the dataset to upload
+    Returns:\n
+        ID of the uploaded dataset if success.
+    """
+    de_in_bytes = dataset.file.read()
     return ds.call_api(token, "upload_data_in_csv", de_in_bytes)
 
 
 @app.post("/approve_all_causal_queries")
 async def approval_all_causal_queries(token: str = Depends(oauth2_scheme)):
+    """
+    For DNPR only: approve all incoming causal queries.\n
+    """
     return ds.call_api(token, "approve_all_causal_queries")
 
 
@@ -63,6 +73,21 @@ async def run_causal_query(user_de_id: int,
                            treatment: str,
                            outcome: str,
                            token: str = Depends(oauth2_scheme)):
+    """
+    For users looking to run causal queries with confounders from DNPR's data.\n
+    Available confounders from DNPR's data:\n
+        F32: Depression.
+        J9: Influenza.
+        K25: Gastric ulcer.
+    Parameters:\n
+        user_de_id: ID of user's data.
+        additional_vars: the list of confounders to use from DNPR's data. These will be joined to the user's data. (e.g. ["F32"])
+        dag_spec: specification of the causal DAG. This will be used to create a directed graph with networkx. (e.g.[("F32","smoking_status"), ("F32","HbA1c"), ("smoking_status", "HbA1c")])
+        treatment: the treatment variable from user's data. (e.g. smoking_status)
+        outcome: the outcome variable from users' data. (e.g. HbA1c)
+    Returns:\n
+        The calculated causal effect of treatment on outcome (a number).
+    """
     return ds.call_api(token, "run_causal_query", user_de_id, additional_vars, dag_spec, treatment, outcome)
 
 
