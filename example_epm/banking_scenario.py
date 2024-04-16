@@ -21,6 +21,14 @@ def approve_contract(contract_id):
     return EscrowAPI.approve_contract(contract_id)
 
 @api_endpoint
+def show_all_contracts_as_src():
+    return EscrowAPI.show_all_contracts_as_src()
+
+@api_endpoint
+def list_all_des_with_src():
+    return EscrowAPI.list_all_des_with_src()
+
+@api_endpoint
 @function
 def show_schema(de_ids):
     """Return the schema of all DEs in contract, along with their IDs."""

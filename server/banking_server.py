@@ -49,29 +49,38 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @app.post("/upload_data_in_csv")
-async def upload_data_in_csv(token: str = Depends(oauth2_scheme), file: UploadFile = File(...)):
-    de_in_bytes = file.file.read()
+async def upload_data_in_csv(token: str = Depends(oauth2_scheme), dataset: UploadFile = File(...)):
+    """
+    Upload a new dataset in CSV format.
+    Parameters:\n
+        dataset: the dataset to upload
+    Returns:\n
+        ID of the uploaded dataset if success.
+    """
+    de_in_bytes = dataset.file.read()
     return ds.call_api(token, "upload_data_in_csv", de_in_bytes)
 
 
-@app.post("/propose_contract")
-async def propose_contract(dest_agents: List[int],
-                           des: List[int],
-                           f: str,
-                           token: str = Depends(oauth2_scheme),
-                           args: Optional[List[Any]] = None
-                           ):
-    return ds.call_api(token, "propose_contract", dest_agents, des, f, *args)
-
-
-@app.post("/approve_contract")
-async def approve_contract(contract_id: int, token: str = Depends(oauth2_scheme)):
-    return ds.call_api(token, "approve_contract", contract_id)
+@app.post("/list_all_des_with_src")
+async def list_all_des_with_src(token: str = Depends(oauth2_scheme)):
+    """
+    List all the data along with their source agents.
+    Returns:\n
+        A dictionary where each key is a source agent ID and each value is the list of data IDs from the source agent.
+    """
+    return ds.call_api(token, "list_all_des_with_src")
 
 
 @app.post("/show_schema")
 async def show_schema(de_ids: list[int],
                       token: str = Depends(oauth2_scheme)):
+    """
+    Display the schema of requested data.\n
+    Parameters:\n
+        de_ids: a list of data IDs whose schema is to be displayed. (e.g. [1, 2, 3])
+    Returns:\n
+        Schema of the data.
+    """
     return ds.call_api(token, "show_schema", de_ids)
 
 
@@ -79,6 +88,14 @@ async def show_schema(de_ids: list[int],
 async def share_sample(de_id: int,
                        sample_size,
                        token: str = Depends(oauth2_scheme), ):
+    """
+    Return a sample of requested data.\n
+    Parameters:\n
+        de_id: data ID. (e.g. 1)
+        sample_size: size of the sample.
+    Returns:\n
+        Sample of the data.
+    """
     res = ds.call_api(token, "share_sample", de_id, sample_size)
     return JSONResponse(content=res.to_json())
 
@@ -89,6 +106,17 @@ async def check_column_compatibility(de_1: int,
                                      cols_1: list[str],
                                      cols_2: list[str],
                                      token: str = Depends(oauth2_scheme), ):
+    """
+    Check the compatibility of selected columns from 2 DEs.\n
+    Numerical columns are compared based on the KS statistic. Textual columns are compared based on Jaccard similarity.\n
+    Parameters:\n
+        de_1: the first data ID. (e.g. 1)
+        de_2: the second data ID. (e.g. 2)
+        cols_1: a list of column names from the first data. (e.g. ["amt", "gender", "city", "state", "city_pop_thousands", "dob"])
+        cols_2: a list of column names from the second data. (e.g. ["dollar_amount", "gender", "city", "state", "city_population", "customer_date_of_birth"])
+    Returns:\n
+        Comparison results.
+    """
     res = ds.call_api(token, "check_column_compatibility", de_1, de_2, cols_1, cols_2)
     return res
 
@@ -100,17 +128,63 @@ async def train_model_with_conditions(label_name: str,
                                       size_constraint: int,
                                       accuracy_constraint: float,
                                       token: str = Depends(oauth2_scheme), ):
+    """
+    Train a joint model over the bank's joint data with 2 conditions: 1) each bank contributes enough data, 2) only release result model if it's sufficiently accurate.\n
+    Parameters:\n
+        label_name: name of the dependent variable (e.g. is_fraud)
+        train_de_ids: the list of training data IDs (e.g. [1, 3])
+        test_de_ids: the list of test data IDs (e.g. [2, 4])
+        size_constraint: the minimum number of train records each bank must provide (e.g. 2000)
+        accuracy_constraint: the minimum accuracy the result model needs to achieve to be released. (e.g. 0.95)
+    Returns:\n
+        Parameters of the model.
+    """
     res = ds.call_api(token, "train_model_with_conditions",
                       label_name, train_de_ids, test_de_ids, size_constraint, accuracy_constraint)
-    # coef_: Coefficients of the features in the decision function.
-    # intercept_: Intercept (bias) added to the decision function.
-    # classes_: Unique class labels.
     model_parameters = {
         "intercept": res.intercept_.tolist(),
         "coefficients": res.coef_.tolist(),
         "classes": res.classes_.tolist(),
     }
     return model_parameters
+
+
+@app.post("/propose_contract")
+async def propose_contract(dest_agents: List[int],
+                           des: List[int],
+                           f: str,
+                           token: str = Depends(oauth2_scheme),
+                           args: Optional[List[Any]] = None
+                           ):
+    """
+    For advertiser: proposes a new contract.\n
+    Parameters:\n
+        dest_agents: list of agent IDs who can access the contract output. (e.g. [1])
+        des: list of data IDs the contract needs to access. (e.g. [1,2])
+        f: function to run in this contract. (e.g. train_model_with_conditions)
+        args: arguments of this function, given in a list. (e.g. if f is train_model_with_conditions, args can be ["is_fraud", [1,3], [2,4], 2000, 0.95])
+    Returns:\n
+        ID of the newly proposed contract if success.
+    """
+    return ds.call_api(token, "propose_contract", dest_agents, des, f, *args)
+
+
+@app.post("/approve_contract")
+async def approve_contract(contract_id: int, token: str = Depends(oauth2_scheme)):
+    """
+    Approve contract.\n
+    Parameters:\n
+        contract_id: id of the contract to approve.
+    """
+    return ds.call_api(token, "approve_contract", contract_id)
+
+
+@app.post("/show_all_contracts_as_src")
+async def show_all_contracts_as_src(token: str = Depends(oauth2_scheme)):
+    """
+    Display all contract waiting for current user's approval.
+    """
+    return ds.call_api(token, "show_all_contracts_as_src")
 
 
 if __name__ == "__main__":

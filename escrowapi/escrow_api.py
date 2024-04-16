@@ -196,13 +196,13 @@ class EscrowAPI:
         """
         return cls.__comp.execute_contract(user_id, contract_id)
 
-    @classmethod
-    def write_intermediate_DE(cls,
-                              data_elements,
-                              function,
-                              *args,
-                              **kwargs, ):
-        return cls.__comp.compute_intermediate_DE(data_elements, function, *args, **kwargs)
+    # @classmethod
+    # def write_intermediate_DE(cls,
+    #                           data_elements,
+    #                           function,
+    #                           *args,
+    #                           **kwargs, ):
+    #     return cls.__comp.compute_intermediate_DE(data_elements, function, *args, **kwargs)
 
     # Authenticated
     # TODO: the implementation of this should probably be improved

@@ -36,9 +36,12 @@ def show_all_contracts_as_src():
     return EscrowAPI.show_all_contracts_as_src()
 
 @api_endpoint
+def list_all_des_with_src():
+    return EscrowAPI.list_all_des_with_src()
+
+@api_endpoint
 def approve_contract(contract_id):
     return EscrowAPI.approve_contract(contract_id)
-
 
 
 # What should the income query look like? We will do a query replacement
