@@ -442,17 +442,17 @@ class DataStation:
         """
         return contract_manager.show_contract(self.caller_id, contract_id)
 
-    def show_all_contracts_as_dest(self):
+    def show_my_contracts_pending_approval(self):
         """
-        Display all contracts, for which caller is a destination agent.
+        Display all contracts that the caller is a destination agent for, and has not been approved.
         """
-        return contract_manager.show_all_contracts_as_dest(self.caller_id)
+        return contract_manager.show_my_contracts_pending_approval(self.caller_id)
 
-    def show_all_contracts_as_src(self):
+    def show_contracts_pending_my_approval(self):
         """
-        Display all contracts, for which caller is an approval agent.
+        Display all contracts that the caller has not approved yet.
         """
-        return contract_manager.show_all_contracts_as_src(self.caller_id)
+        return contract_manager.show_contracts_pending_my_approval(self.caller_id)
 
     def approve_contract(self, contract_id):
         """
@@ -656,7 +656,8 @@ class DataStation:
                     if release_status:
                         return res
                     else:
-                        return None
+                        res = {"status": 1, "message": "Contract result has not been approved to be released."}
+                        return res
             # Else see if it's a pure api endpoint
             for cur_api in list_of_api_endpoints:
                 if api == cur_api.__name__:

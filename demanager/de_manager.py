@@ -61,5 +61,10 @@ def list_all_des_with_src():
         src_agent_id_resp = database_api.get_de_owner_id(de_id)
         if src_agent_id_resp["status"] == 1:
             return src_agent_id_resp
-        res.append({"DE": de_id, "Source Agent": src_agent_id_resp["data"]})
+        a_id = src_agent_id_resp["data"]
+        src_agent_resp = database_api.get_user_by_id(a_id)
+        if src_agent_resp["status"] == 1:
+            return src_agent_resp
+        a_name = src_agent_resp["data"].user_name
+        res.append({"Data ID": de_id, "Owner ID": a_id, "Owner Name": a_name})
     return res

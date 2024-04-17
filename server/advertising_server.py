@@ -188,3 +188,5 @@ if __name__ == "__main__":
         os.remove(log_path)
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
+
+# From the data FB collected from me, I suppose this is the information FB has about people

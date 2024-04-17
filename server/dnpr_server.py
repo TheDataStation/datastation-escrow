@@ -82,7 +82,7 @@ async def run_causal_query(user_de_id: int,
     Parameters:\n
         user_de_id: ID of user's data.
         additional_vars: the list of confounders to use from DNPR's data. These will be joined to the user's data. (e.g. ["F32"])
-        dag_spec: specification of the causal DAG. This will be used to create a directed graph with networkx. (e.g.[("F32","smoking_status"), ("F32","HbA1c"), ("smoking_status", "HbA1c")])
+        dag_spec: specification of the causal DAG. This will be used to create a directed graph with networkx. (e.g.[["F32","smoking_status"], ["F32","HbA1c"], ["smoking_status", "HbA1c"]])
         treatment: the treatment variable from user's data. (e.g. smoking_status)
         outcome: the outcome variable from users' data. (e.g. HbA1c)
     Returns:\n

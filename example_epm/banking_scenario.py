@@ -21,8 +21,12 @@ def approve_contract(contract_id):
     return EscrowAPI.approve_contract(contract_id)
 
 @api_endpoint
-def show_all_contracts_as_src():
-    return EscrowAPI.show_all_contracts_as_src()
+def show_contracts_pending_my_approval():
+    return EscrowAPI.show_contracts_pending_my_approval()
+
+@api_endpoint
+def show_my_contracts_pending_approval():
+    return EscrowAPI.show_my_contracts_pending_approval()
 
 @api_endpoint
 def list_all_des_with_src():

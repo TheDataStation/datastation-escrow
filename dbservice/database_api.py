@@ -68,6 +68,25 @@ def get_user_by_user_name(user_name):
             return {"status": 1, "message": "database error: get user by username failed"}
 
 
+def get_user_by_id(a_id):
+    with get_db() as db:
+        res = db.query(User).filter(User.id == a_id)
+        user = res.first()
+        if user:
+            return {"status": 0, "message": "success", "data": user}
+        else:
+            return {"status": 1, "message": "database error: get user by id failed"}
+
+
+def get_users_by_ids(a_ids):
+    with get_db() as db:
+        agents = db.query(User).filter(User.id.in_(tuple(a_ids))).all()
+        if len(agents) == len(a_ids):
+            return {"status": 0, "message": "success", "data": agents}
+        else:
+            return {"status": 1, "message": "database error: not all agents found for given agent IDs"}
+
+
 def get_user_with_max_id():
     with get_db() as db:
         max_id = db.query(func.max(User.id)).scalar_subquery()
@@ -363,13 +382,14 @@ def get_all_contracts_for_dest(dest_agent_id):
             return {"status": 1, "message": "No contracts found for destination agent."}
 
 
-def get_all_contracts_for_src(src_agent_id):
+def get_contracts_pending_my_approval(src_agent_id):
     with get_db() as db:
-        contract_ids = db.query(ContractStatus.c_id).filter(ContractStatus.a_id == src_agent_id).all()
+        contract_ids = db.query(ContractStatus.c_id).filter(ContractStatus.a_id == src_agent_id,
+                                                            ContractStatus.status == 0).all()
         if contract_ids:
             return {"status": 0, "message": "success", "data": contract_ids}
         else:
-            return {"status": 1, "message": "No contracts found for source agent."}
+            return {"status": 1, "message": "No contracts pending current user's approval."}
 
 
 def approve_contract(a_id, contract_id):

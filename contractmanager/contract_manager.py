@@ -94,23 +94,31 @@ def show_contract(user_id, contract_id):
     return get_contract_object(contract_id)
 
 
-def show_all_contracts_as_dest(user_id):
+def show_my_contracts_pending_approval(user_id):
     contract_ids_resp = database_api.get_all_contracts_for_dest(user_id)
     contract_objects = []
     if contract_ids_resp["status"] == 0:
         for c_id in contract_ids_resp["data"]:
             cur_contract = get_contract_object(c_id[0])
-            contract_objects.append(cur_contract)
+            if not cur_contract["ready_status"]:
+                del cur_contract["ready_status"]
+                contract_objects.append(cur_contract)
+    if not len(contract_objects):
+        return "There is no contracts pending approval whose output the current user will access."
     return contract_objects
 
 
-def show_all_contracts_as_src(user_id):
-    contract_ids_resp = database_api.get_all_contracts_for_src(user_id)
+def show_contracts_pending_my_approval(user_id):
+    contract_ids_resp = database_api.get_contracts_pending_my_approval(user_id)
     contract_objects = []
     if contract_ids_resp["status"] == 0:
         for c_id in contract_ids_resp["data"]:
             cur_contract = get_contract_object(c_id[0])
-            contract_objects.append(cur_contract)
+            if not cur_contract["ready_status"]:
+                del cur_contract["ready_status"]
+                contract_objects.append(cur_contract)
+    if not len(contract_objects):
+        return "There is no contracts pending the current user's approval."
     return contract_objects
 
 
@@ -236,13 +244,20 @@ def get_contract_object(contract_id):
     des_list = list(map(lambda ele: ele[0], des_in_contract))
     dest_agents = database_api.get_dest_for_contract(contract_id)
     dest_agents_list = list(map(lambda ele: ele[0], dest_agents))
+    agents_db_resp = database_api.get_users_by_ids(dest_agents_list)
+    dest_agents_info_list = []
+    if agents_db_resp["status"] == 0:
+        agents = agents_db_resp["data"]
+        for agent in agents:
+            dest_agents_info_list.append({"Username": agent.user_name, "User ID": agent.id})
     contract_db_res = database_api.get_contract(contract_id)
     function_param = json.loads(contract_db_res["data"].function_param)
     ready_status = check_contract_ready(contract_id)
 
     contract_obj = {
-        "a_dest": dest_agents_list,
-        "des": des_list,
+        "contract_id": contract_id,
+        "who_can_access_contract_output": dest_agents_info_list,
+        "data_needs_to_be_accessed": des_list,
         "function": contract_db_res["data"].function,
         "args": function_param["args"],
         "kwargs": function_param["kwargs"],

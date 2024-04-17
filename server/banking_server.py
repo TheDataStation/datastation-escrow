@@ -51,7 +51,7 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.post("/upload_data_in_csv")
 async def upload_data_in_csv(token: str = Depends(oauth2_scheme), dataset: UploadFile = File(...)):
     """
-    Upload a new dataset in CSV format.
+    Upload a new dataset in CSV format.\n
     Parameters:\n
         dataset: the dataset to upload
     Returns:\n
@@ -61,12 +61,12 @@ async def upload_data_in_csv(token: str = Depends(oauth2_scheme), dataset: Uploa
     return ds.call_api(token, "upload_data_in_csv", de_in_bytes)
 
 
-@app.post("/list_all_des_with_src")
-async def list_all_des_with_src(token: str = Depends(oauth2_scheme)):
+@app.post("/list_all_datasets")
+async def list_all_datasets(token: str = Depends(oauth2_scheme)):
     """
-    List all the data along with their source agents.
+    List all uploaded datasets.\n
     Returns:\n
-        A dictionary where each key is a source agent ID and each value is the list of data IDs from the source agent.
+        A list of {data ID, owner ID, owner username}.
     """
     return ds.call_api(token, "list_all_des_with_src")
 
@@ -86,7 +86,7 @@ async def show_schema(de_ids: list[int],
 
 @app.post("/share_sample")
 async def share_sample(de_id: int,
-                       sample_size,
+                       sample_size: int,
                        token: str = Depends(oauth2_scheme), ):
     """
     Return a sample of requested data.\n
@@ -157,7 +157,7 @@ async def propose_contract(dest_agents: List[int],
                            args: Optional[List[Any]] = None
                            ):
     """
-    For advertiser: proposes a new contract.\n
+    Proposes a new contract.\n
     Parameters:\n
         dest_agents: list of agent IDs who can access the contract output. (e.g. [1])
         des: list of data IDs the contract needs to access. (e.g. [1,2])
@@ -179,12 +179,20 @@ async def approve_contract(contract_id: int, token: str = Depends(oauth2_scheme)
     return ds.call_api(token, "approve_contract", contract_id)
 
 
-@app.post("/show_all_contracts_as_src")
-async def show_all_contracts_as_src(token: str = Depends(oauth2_scheme)):
+@app.post("/show_contracts_pending_my_approval")
+async def show_contracts_pending_my_approval(token: str = Depends(oauth2_scheme)):
     """
-    Display all contract waiting for current user's approval.
+    Show all contracts pending the current user's approval.
     """
-    return ds.call_api(token, "show_all_contracts_as_src")
+    return ds.call_api(token, "show_contracts_pending_my_approval")
+
+
+@app.post("/show_my_contracts_pending_approval")
+async def show_my_contracts_pending_approval(token: str = Depends(oauth2_scheme)):
+    """
+    Show all contracts pending approval that the current users will access.
+    """
+    return ds.call_api(token, "show_my_contracts_pending_approval")
 
 
 if __name__ == "__main__":

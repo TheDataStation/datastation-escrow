@@ -141,21 +141,20 @@ class EscrowAPI:
 
     # Authenticated
     @classmethod
-    def show_all_contracts_as_dest(cls):
+    def show_my_contracts_pending_approval(cls):
         """
         For API endpoints.
         Display all contracts, for which caller is a destination agent.
         """
-        return cls.__comp.show_all_contracts_as_dest()
+        return cls.__comp.show_my_contracts_pending_approval()
 
     # Authenticated
     @classmethod
-    def show_all_contracts_as_src(cls):
+    def show_contracts_pending_my_approval(cls):
         """
-        For API endpoints.
-        Display all contracts, for which caller is an approval agent.
+        Display all contracts that the caller has not approved yet.
         """
-        return cls.__comp.show_all_contracts_as_src()
+        return cls.__comp.show_contracts_pending_my_approval()
 
     # Authenticated
     @classmethod
