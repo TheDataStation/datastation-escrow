@@ -72,7 +72,6 @@ class DataStation:
         if self.trust_mode == "no_trust":
             self.app_state_manager = AppStateManager(self.app_state_path,
                                                      self.key_manager.agents_symmetric_key[0])
-            self.app_state_manager = AppStateManager(self.app_state_path)
         else:
             self.app_state_manager = AppStateManager(self.app_state_path)
 
@@ -160,11 +159,11 @@ class DataStation:
             self.key_manager.store_agent_public_key(user_id, user_public_key)
 
         # Part two: Call the user_register to register the user in the DB
-        response = agent_manager.create_agent(user_id,
-                                              username,
-                                              password,
-                                              self.write_ahead_log,
-                                              self.key_manager, )
+        response = agent_manager.register(user_id,
+                                          username,
+                                          password,
+                                          self.write_ahead_log,
+                                          self.key_manager, )
 
         if response["status"] == 1:
             return response

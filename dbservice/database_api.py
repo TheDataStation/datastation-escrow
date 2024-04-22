@@ -150,10 +150,10 @@ def get_de_by_id(de_id: int):
 def get_des_by_ids(de_ids):
     with get_db() as db:
         des = db.query(DataElement).filter(DataElement.id.in_(tuple(de_ids))).all()
-        if len(des) > 0:
+        if len(des) == len(de_ids):
             return {"status": 0, "message": "success", "data": des}
         else:
-            return {"status": 1, "message": "database error: no DE found for give DE IDs"}
+            return {"status": 1, "message": "database error: not all data found for given data IDs"}
 
 
 def remove_de_by_id(de_id):

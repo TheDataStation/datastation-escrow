@@ -72,37 +72,37 @@ async def list_all_datasets(token: str = Depends(oauth2_scheme)):
 
 
 @app.post("/show_schema")
-async def show_schema(de_ids: list[int],
+async def show_schema(data_ids: list[int],
                       token: str = Depends(oauth2_scheme)):
     """
     Display the schema of requested data.\n
     Parameters:\n
-        de_ids: a list of data IDs whose schema is to be displayed. (e.g. [1, 2, 3])
+        data_ids: a list of data IDs whose schema is to be displayed. (e.g. [1, 2, 3])
     Returns:\n
         Schema of the data.
     """
-    return ds.call_api(token, "show_schema", de_ids)
+    return ds.call_api(token, "show_schema", data_ids)
 
 
 @app.post("/share_sample")
-async def share_sample(de_id: int,
+async def share_sample(data_id: int,
                        sample_size: int,
                        token: str = Depends(oauth2_scheme), ):
     """
     Return a sample of requested data.\n
     Parameters:\n
-        de_id: data ID. (e.g. 1)
+        data_id: data ID. (e.g. 1)
         sample_size: size of the sample.
     Returns:\n
         Sample of the data.
     """
-    res = ds.call_api(token, "share_sample", de_id, sample_size)
+    res = ds.call_api(token, "share_sample", data_id, sample_size)
     return JSONResponse(content=res.to_json())
 
 
 @app.post("/check_column_compatibility")
-async def check_column_compatibility(de_1: int,
-                                     de_2: int,
+async def check_column_compatibility(data_id_1: int,
+                                     data_id_2: int,
                                      cols_1: list[str],
                                      cols_2: list[str],
                                      token: str = Depends(oauth2_scheme), ):
@@ -110,21 +110,21 @@ async def check_column_compatibility(de_1: int,
     Check the compatibility of selected columns from 2 DEs.\n
     Numerical columns are compared based on the KS statistic. Textual columns are compared based on Jaccard similarity.\n
     Parameters:\n
-        de_1: the first data ID. (e.g. 1)
-        de_2: the second data ID. (e.g. 2)
+        data_id_1: the first data ID. (e.g. 1)
+        data_id_2: the second data ID. (e.g. 2)
         cols_1: a list of column names from the first data. (e.g. ["amt", "gender", "city", "state", "city_pop_thousands", "dob"])
         cols_2: a list of column names from the second data. (e.g. ["dollar_amount", "gender", "city", "state", "city_population", "customer_date_of_birth"])
     Returns:\n
         Comparison results.
     """
-    res = ds.call_api(token, "check_column_compatibility", de_1, de_2, cols_1, cols_2)
+    res = ds.call_api(token, "check_column_compatibility", data_id_1, data_id_2, cols_1, cols_2)
     return res
 
 
 @app.post("/train_model_with_conditions")
 async def train_model_with_conditions(label_name: str,
-                                      train_de_ids: list[int],
-                                      test_de_ids: list[int],
+                                      train_data_ids: list[int],
+                                      test_data_ids: list[int],
                                       size_constraint: int,
                                       accuracy_constraint: float,
                                       token: str = Depends(oauth2_scheme), ):
@@ -132,15 +132,15 @@ async def train_model_with_conditions(label_name: str,
     Train a joint model over the bank's joint data with 2 conditions: 1) each bank contributes enough data, 2) only release result model if it's sufficiently accurate.\n
     Parameters:\n
         label_name: name of the dependent variable (e.g. is_fraud)
-        train_de_ids: the list of training data IDs (e.g. [1, 3])
-        test_de_ids: the list of test data IDs (e.g. [2, 4])
+        train_data_ids: the list of training data IDs (e.g. [1, 3])
+        test_data_ids: the list of test data IDs (e.g. [2, 4])
         size_constraint: the minimum number of train records each bank must provide (e.g. 2000)
         accuracy_constraint: the minimum accuracy the result model needs to achieve to be released. (e.g. 0.95)
     Returns:\n
         Parameters of the model.
     """
     res = ds.call_api(token, "train_model_with_conditions",
-                      label_name, train_de_ids, test_de_ids, size_constraint, accuracy_constraint)
+                      label_name, train_data_ids, test_data_ids, size_constraint, accuracy_constraint)
     model_parameters = {
         "intercept": res.intercept_.tolist(),
         "coefficients": res.coef_.tolist(),
@@ -150,8 +150,8 @@ async def train_model_with_conditions(label_name: str,
 
 
 @app.post("/propose_contract")
-async def propose_contract(dest_agents: List[int],
-                           des: List[int],
+async def propose_contract(receiving_user_ids: List[int],
+                           data_ids: List[int],
                            f: str,
                            token: str = Depends(oauth2_scheme),
                            args: Optional[List[Any]] = None
@@ -159,14 +159,14 @@ async def propose_contract(dest_agents: List[int],
     """
     Proposes a new contract.\n
     Parameters:\n
-        dest_agents: list of agent IDs who can access the contract output. (e.g. [1])
-        des: list of data IDs the contract needs to access. (e.g. [1,2])
+        receiving_user_ids: list of user IDs who can access the contract output. (e.g. [1])
+        data_ids: list of data IDs the contract needs to access. (e.g. [1,2])
         f: function to run in this contract. (e.g. train_model_with_conditions)
         args: arguments of this function, given in a list. (e.g. if f is train_model_with_conditions, args can be ["is_fraud", [1,3], [2,4], 2000, 0.95])
     Returns:\n
         ID of the newly proposed contract if success.
     """
-    return ds.call_api(token, "propose_contract", dest_agents, des, f, *args)
+    return ds.call_api(token, "propose_contract", receiving_user_ids, data_ids, f, *args)
 
 
 @app.post("/approve_contract")
@@ -223,3 +223,6 @@ if __name__ == "__main__":
         os.remove(log_path)
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
+
+# we probs say that "there's this secondary communication channel": we should discuss these issues that we have discovered
+# challenge: what does this communication look like?

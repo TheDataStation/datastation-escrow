@@ -23,11 +23,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-def create_agent(user_id,
-                 user_name,
-                 password,
-                 write_ahead_log,
-                 key_manager, ):
+def register(user_id,
+             user_name,
+             password,
+             write_ahead_log,
+             key_manager, ):
     # print(user_id)
     # check if there is an existing user
     user_resp = database_api.get_user_by_user_name(user_name)

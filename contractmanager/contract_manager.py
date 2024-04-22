@@ -23,6 +23,16 @@ def propose_contract(user_id,
     if function not in function_res["data"]:
         return {"status": 1, "message": "Contract function not valid"}
 
+    # Check that all agents exist
+    agents_res = database_api.get_users_by_ids(dest_agents)
+    if agents_res["status"] == 1:
+        return agents_res
+
+    # Check that all data elements exist
+    des_res = database_api.get_des_by_ids(data_elements)
+    if des_res["status"] == 1:
+        return des_res
+
     # Add to the Contract table
     if write_ahead_log:
         wal_entry = f"database_api.create_contract({contract_id}, {function}, {param_str})"

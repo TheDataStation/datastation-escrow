@@ -179,21 +179,21 @@ class EscrowAPI:
         """
         return cls.__comp.reject_contract(user_id, contract_id)
 
-    # Authenticated
-    @classmethod
-    def execute_contract(cls, user_id, contract_id):
-        """
-        For API endpoints.
-        Execute a contract.
-
-        Parameters:
-            user_id: caller username (should be one of the dest agents)
-            contract_id: id of the contract
-
-        Returns:
-            The result of executing the contract (f(P))
-        """
-        return cls.__comp.execute_contract(user_id, contract_id)
+    # # Authenticated
+    # @classmethod
+    # def execute_contract(cls, user_id, contract_id):
+    #     """
+    #     For API endpoints.
+    #     Execute a contract.
+    #
+    #     Parameters:
+    #         user_id: caller username (should be one of the dest agents)
+    #         contract_id: id of the contract
+    #
+    #     Returns:
+    #         The result of executing the contract (f(P))
+    #     """
+    #     return cls.__comp.execute_contract(user_id, contract_id)
 
     # @classmethod
     # def write_intermediate_DE(cls,
