@@ -150,6 +150,7 @@ def approve_contract(user_id,
     approval_res = database_api.approve_contract(user_id, contract_id)
     if approval_res["status"] == 1:
         return approval_res
+
     # Whenever approve contract is called, we see if the associated contract is approved completely.
     # If True, add a list of policies to Policy table.
     contract_status = check_contract_ready(contract_id)
@@ -164,7 +165,7 @@ def approve_contract(user_id,
             if write_ahead_log:
                 wal_entry = f"database_api.create_policy({a_id}, {de_ids_str}, {function}, {function_param})"
                 write_ahead_log.log(user_id, wal_entry, key_manager, )
-            print("In contract creation")
+            print("In policy creation")
             print(a_id)
             print(de_ids_str)
             print(function)

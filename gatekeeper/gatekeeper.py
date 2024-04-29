@@ -95,32 +95,9 @@ class Gatekeeper:
         Returns:
          Response based on what happens
         """
-
-        # print(trust_mode)
-
-        # # Check if caller is in destination agent
-        # dest_a_ids = contract_manager.get_dest_ids_for_contract(contract_id)
-        # if cur_user_id not in dest_a_ids:
-        #     print("Caller not a destination agent")
-        #     return None
-
-        # # Check if the share has been approved by all approval agents
-        # contract_ready_flag = contract_manager.check_contract_ready(contract_id)
-        # if not contract_ready_flag:
-        #     print("This contract has not been approved to execute yet.")
-        #     return None
-        #
-        # # If yes, set the accessible_de to be the entirety of P
-        # all_accessible_de_id = contract_manager.get_de_ids_for_contract(contract_id)
-        # # print(f"all accessible data elements are: {all_accessible_de_id}")
-
-        # get_des_by_ids_res = database_api.get_des_by_ids(all_accessible_de_id)
-        # if get_des_by_ids_res["status"] == 1:
-        #     print("No accessible DE for", function)
-        #     return get_des_by_ids_res
-        #
+        # Prepare information needed by Docker: all DEs, and the derived DE origins
+        all_des = set()
         get_des_res = database_api.get_all_des()
-        accessible_de = set()
         for cur_de in get_des_res["data"]:
             if self.trust_mode == "no_trust":
                 data_owner_symmetric_key = self.key_manager.get_agent_symmetric_key(cur_de.owner_id)
@@ -128,10 +105,27 @@ class Gatekeeper:
                 data_owner_symmetric_key = None
             cur_de = DataElement(cur_de.id,
                                  cur_de.store_type,
+                                 cur_de.derived,
                                  data_owner_symmetric_key)
-            accessible_de.add(cur_de)
+            all_des.add(cur_de)
 
-        # print(accessible_de)
+        # Get all DE sets approved by policies (there can be multiple sets)
+        param_json = {"args": args, "kwargs": kwargs}
+        param_str = json.dumps(param_json)
+        approve_de_sets = []
+
+        approved_de_sets_res = database_api.get_approved_de_sets_from_policies(caller_id,
+                                                                               function,
+                                                                               param_str)
+        # Each element of approved_de_sets_res is a str: we convert it to a set of DE IDs
+        for cur_de_set in approved_de_sets_res:
+            cur_de_set = set(map(int, cur_de_set[0].split(" ")))
+            approve_de_sets.append(cur_de_set)
+
+        # TODO: think about CMR's connection with contract approvals
+
+        print(approve_de_sets)
+        exit()
 
         # actual api call
         if self.trust_mode == "full_trust":
@@ -143,7 +137,7 @@ class Gatekeeper:
                               self.config,
                               start_de_id,
                               agents_symmetric_key,
-                              accessible_de,
+                              all_des,
                               self.get_new_docker_id(),
                               self.docker_session,
                               *args,
@@ -171,8 +165,6 @@ class Gatekeeper:
 
         # We now check if it can be released by asking contract_manager.
         # We know the caller, the args, and DEs accessed (in development mode)
-        param_json = {"args": args, "kwargs": kwargs}
-        param_str = json.dumps(param_json)
         release_status = contract_manager.check_release_status(caller_id,
                                                                set(de_ids_accessed),
                                                                function,

@@ -4,7 +4,7 @@ import json
 
 class DataElement:
 
-    def __init__(self, id, store_type, enc_key=None):
+    def __init__(self, id, store_type, derived, enc_key=None):
         """
         For initializing an abstraction Data Element
 
@@ -20,6 +20,7 @@ class DataElement:
         # self.type = type
         # self.access_param = access_param
         self.store_type = store_type
+        self.derived = derived
         self.enc_key = enc_key
         # if self.type == "file":
         #     self.access_param = os.path.join(str(self.id), str(self.access_param))

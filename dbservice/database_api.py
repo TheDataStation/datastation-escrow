@@ -446,6 +446,13 @@ def check_policy_exists(a_id, de_ids, function, function_param):
             return False
 
 
+def get_approved_de_sets_from_policies(a_id, function, function_param):
+    with get_db() as db:
+        return db.query(Policy.de_ids).filter(Policy.a_id == a_id,
+                                              Policy.function == function,
+                                              Policy.function_param == function_param).all()
+
+
 def create_derived_de(de_id, src_de_id):
     with get_db() as db:
         db_derived_de = DerivedDE(de_id=de_id, src_de_id=src_de_id)
