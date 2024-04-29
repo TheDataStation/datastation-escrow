@@ -39,9 +39,12 @@ if __name__ == '__main__':
     dest_agents = [1, 2]
     des = [1, 3]
     ds.call_api(bank1_token, "propose_contract", dest_agents, des, "show_schema", des)
-    ds.call_api(bank1_token, "approve_contract", 1)
-    ds.call_api(bank2_token, "approve_contract", 1)
+    # ds.call_api(bank1_token, "approve_contract", 1)
+    # ds.call_api(bank2_token, "approve_contract", 1)
+    # TODO: add a test for upload_cmr here
     print(ds.call_api(bank1_token, "show_schema", des))
+
+    exit()
 
     # Contract 2: an attempt to privately integrate data
     dest_agents = [1, 2]

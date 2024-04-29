@@ -206,7 +206,7 @@ class EscrowAPI:
     # Authenticated
     # TODO: the implementation of this should probably be improved
     @classmethod
-    def upload_cmp(cls, dest_a_id, de_id, function):
+    def upload_cmr(cls, dest_a_id, de_id, function):
         """
         Upload a new contract management policy.
         dest_a_id: 0 means any destination agent is approved

@@ -21,6 +21,10 @@ def approve_contract(contract_id):
     return EscrowAPI.approve_contract(contract_id)
 
 @api_endpoint
+def upload_cmr(dest_a_id, de_id, f):
+    return EscrowAPI.upload_cmr(dest_a_id, de_id, f)
+
+@api_endpoint
 def show_contracts_pending_my_approval():
     return EscrowAPI.show_contracts_pending_my_approval()
 

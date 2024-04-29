@@ -20,7 +20,7 @@ def upload_data_in_csv(de_in_bytes):
 
 @api_endpoint
 def approve_all_causal_queries():
-    upload_cmp_res = EscrowAPI.upload_cmp(0, 1, "run_causal_query")
+    upload_cmp_res = EscrowAPI.upload_cmr(0, 1, "run_causal_query")
     if upload_cmp_res["status"] == 0:
         EscrowAPI.store("cmp_uploaded", True)
     return upload_cmp_res
