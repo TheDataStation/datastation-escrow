@@ -161,7 +161,6 @@ def propose_contract(user_id,
                 return approval_res
         print(f"For current source agent {src_a_id}, dest request dict is", dest_request_dict_for_cur_src)
         print(f"For current source agent {src_a_id}, dest approval dict is", dest_approval_dict_for_cur_src)
-    exit()
 
     return {"status": 0, "message": "success", "contract_id": contract_id}
 

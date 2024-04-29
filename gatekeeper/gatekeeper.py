@@ -124,8 +124,7 @@ class Gatekeeper:
 
         # TODO: think about CMR's connection with contract approvals
 
-        print(approve_de_sets)
-        exit()
+        print("Gatekeeper: approved DE sets are", approve_de_sets)
 
         # actual api call
         if self.trust_mode == "full_trust":

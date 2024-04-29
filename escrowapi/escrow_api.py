@@ -213,7 +213,7 @@ class EscrowAPI:
         de_id: 0 means any de is approved
         function: name of the function in the contract
         """
-        return cls.__comp.upload_cmp(dest_a_id, de_id, function)
+        return cls.__comp.upload_cmr(dest_a_id, de_id, function)
 
     # @classmethod
     # def get_contract_de_ids(cls):
