@@ -51,7 +51,9 @@ def propose_contract(user_id,
         if db_res["status"] == 1:
             return db_res
 
-    for de_id in data_elements:
+    original_de_ids = get_original_des_from_het_des(data_elements)
+
+    for de_id in original_de_ids:
         if write_ahead_log:
             wal_entry = f"database_api.create_contract_de({contract_id}, {de_id})"
             write_ahead_log.log(user_id, wal_entry, key_manager, )
@@ -61,8 +63,6 @@ def propose_contract(user_id,
 
     # Add to ContractStatus table. First get the src agents, default to DE owners.
     src_agent_de_dict = {}
-
-    original_de_ids = get_original_des_from_het_des(data_elements)
 
     for de_id in original_de_ids:
         owner_id_res = database_api.get_de_owner_id(de_id)
@@ -292,7 +292,12 @@ def upload_cmr(user_id,
         wal_entry = f"database_api.create_cmp({user_id}, {dest_a_id}, {de_id}, {function})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    return database_api.create_cmp(user_id, dest_a_id, de_id, function)
+    database_api.create_cmp(user_id, dest_a_id, de_id, function)
+
+    # Lastly: apply current CMR to all existing contracts
+    # Find all contracts such that the current caller is an approval agent, and has not approved (f needs to match)
+    database_api.get_relevant_contracts_for_cmr(user_id, function)
+
 
 
 def check_contract_ready(contract_id):

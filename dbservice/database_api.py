@@ -418,6 +418,14 @@ def reject_contract(a_id, contract_id):
         return {"status": 0, "message": "success"}
 
 
+def get_relevant_contracts_for_cmr(src_a_id, f):
+    ...
+    # result = session.query(Table1, Table2, Table3). \
+    #     join(Table2, Table1.id == Table2.id). \
+    #     join(Table3, Table1.id == Table3.id). \
+    #     all()
+
+
 def create_policy(a_id, de_ids, function, function_param):
     with get_db() as db:
         db_policy = Policy(a_id=a_id,
