@@ -39,9 +39,9 @@ if __name__ == '__main__':
     dest_agents = [1, 2]
     des = [1, 3]
     # The two lines below tests upload_cmr
-    ds.call_api(bank1_token, "upload_cmr", 0, 1, "show_schema")
-    ds.call_api(bank2_token, "upload_cmr", 1, 0, "show_schema")
     ds.call_api(bank1_token, "propose_contract", dest_agents, des, "show_schema", des)
+    # ds.call_api(bank1_token, "upload_cmr", 0, 1, "show_schema")
+    ds.call_api(bank2_token, "upload_cmr", 1, 0, "show_schema")
     # ds.call_api(bank1_token, "approve_contract", 1)
     # ds.call_api(bank2_token, "approve_contract", 1)
     print(ds.call_api(bank1_token, "show_schema", des))

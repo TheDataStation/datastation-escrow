@@ -419,11 +419,27 @@ def reject_contract(a_id, contract_id):
 
 
 def get_relevant_contracts_for_cmr(src_a_id, f):
-    ...
-    # result = session.query(Table1, Table2, Table3). \
-    #     join(Table2, Table1.id == Table2.id). \
-    #     join(Table3, Table1.id == Table3.id). \
-    #     all()
+    with get_db() as db:
+        # Step 1: query tbe DB
+        all_contracts = db.query(Contract.id, ContractDest.a_id, ContractDE.de_id). \
+            join(ContractDE, Contract.id == ContractDE.c_id). \
+            join(ContractStatus, Contract.id == ContractStatus.c_id). \
+            join(ContractDest, Contract.id == ContractDest.c_id). \
+            join(DataElement, ContractDE.de_id == DataElement.id). \
+            filter(ContractStatus.a_id == src_a_id). \
+            filter(ContractStatus.status == 0). \
+            filter(Contract.function == f). \
+            filter(DataElement.owner_id == src_a_id). \
+            all()
+        # Step 2: clean the return
+        all_contracts_dict = {}
+        for contract in all_contracts:
+            if contract[0] in all_contracts_dict:
+                all_contracts_dict[contract[0]][0].add(contract[1])
+                all_contracts_dict[contract[0]][1].add(contract[2])
+            else:
+                all_contracts_dict[contract[0]] = [{contract[1]}, {contract[2]}]
+        return all_contracts_dict
 
 
 def create_policy(a_id, de_ids, function, function_param):
