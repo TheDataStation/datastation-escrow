@@ -242,6 +242,7 @@ def flask_thread(port, q: Queue, function_dict_to_send):
         ret = (ret_dict["return_value"],
                ret_dict["data_accessed"],
                ret_dict["derived_des_to_create"],
+               ret_dict["approved_de_sets"],
                ret_dict["decryption_time"])
         # print("Child Thread, return value: ", ret)
 

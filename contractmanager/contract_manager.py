@@ -292,7 +292,7 @@ def upload_cmr(user_id,
         wal_entry = f"database_api.create_cmp({user_id}, {dest_a_id}, {de_id}, {function})"
         write_ahead_log.log(user_id, wal_entry, key_manager, )
 
-    database_api.create_cmp(user_id, dest_a_id, de_id, function)
+    res = database_api.create_cmp(user_id, dest_a_id, de_id, function)
 
     # Lastly: apply current CMR to all existing contracts
     # Find all contracts such that the current caller is an approval agent, and has not approved (f needs to match)
@@ -304,59 +304,60 @@ def upload_cmr(user_id,
         dest_request_dict = {}
         dest_agents = all_contracts_dict[c_id][0]
         cur_src_des = all_contracts_dict[c_id][1]
+        # Build the request dict
         for dest_a_id in dest_agents:
             dest_request_dict[dest_a_id] = cur_src_des
         # A source agent does not need to approve themselves
         del dest_request_dict[user_id]
         # print(dest_request_dict)
-        # # Step 2.2: Build the approval dict from CMRs
-        # dest_approval_dict_for_cur_src = {}
-        # de_accessible_to_all = set()
-        # cur_src_cmrs = database_api.get_cmp_for_src_and_f(src_a_id, function)
-        # cur_src_cmrs = list(map(lambda ele: [ele.dest_a_id, ele.de_id], cur_src_cmrs))
-        # # print(cur_src_cmrs)
-        # for cur_rule in cur_src_cmrs:
-        #     # case 1: source agent auto-approves all DEs for all agents for this f()
-        #     if cur_rule == [0, 0]:
-        #         cur_source_approved = True
-        #         break
-        #     # case 2: source agent auto-approves one DE for all dest agents for this f()
-        #     elif cur_rule[0] == 0:
-        #         de_accessible_to_all.add(cur_rule[1])
-        #     # case 3: source agent auto-approves all DEs for one dest agent for this f()
-        #     elif cur_rule[1] == 0:
-        #         dest_approval_dict_for_cur_src[cur_rule[0]] = original_de_ids.intersection(
-        #             src_agent_de_dict[src_a_id])
-        #     # case 4: source agent auto-approve 1 DE for 1 dest agent for this f()
-        #     else:
-        #         if cur_rule[0] in dest_approval_dict_for_cur_src:
-        #             dest_approval_dict_for_cur_src[cur_rule[0]].add(cur_rule[1])
-        #         else:
-        #             dest_approval_dict_for_cur_src[cur_rule[0]] = {cur_rule[1]}
-        # for dest_a_id in dest_request_dict_for_cur_src:
-        #     if dest_a_id in dest_approval_dict_for_cur_src:
-        #         dest_approval_dict_for_cur_src[dest_a_id].update(de_accessible_to_all)
-        #     else:
-        #         dest_approval_dict_for_cur_src[dest_a_id] = de_accessible_to_all
-        # # Check value inclusion as described above
-        # if not cur_source_approved:
-        #     all_dest_approved = True
-        #     for dest_a_id in dest_request_dict_for_cur_src:
-        #         if dest_a_id not in dest_approval_dict_for_cur_src or not \
-        #                 dest_request_dict_for_cur_src[dest_a_id].issubset(
-        #                     dest_approval_dict_for_cur_src[dest_a_id]):
-        #             all_dest_approved = False
-        #             break
-        #     if all_dest_approved:
-        #         cur_source_approved = True
+        # Build the approval dict from CMRs
+        dest_approval_dict = {}
+        de_accessible_to_all = set()
+        cur_src_cmrs = database_api.get_cmp_for_src_and_f(user_id, function)
+        cur_src_cmrs = list(map(lambda ele: [ele.dest_a_id, ele.de_id], cur_src_cmrs))
+        # print(cur_src_cmrs)
+        for cur_rule in cur_src_cmrs:
+            # case 1: source agent auto-approves all DEs for all agents for this f()
+            if cur_rule == [0, 0]:
+                source_approved = True
+                break
+            # case 2: source agent auto-approves one DE for all dest agents for this f()
+            elif cur_rule[0] == 0:
+                de_accessible_to_all.add(cur_rule[1])
+            # case 3: source agent auto-approves all DEs for one dest agent for this f()
+            elif cur_rule[1] == 0:
+                dest_approval_dict[cur_rule[0]] = cur_src_des
+            # case 4: source agent auto-approve 1 DE for 1 dest agent for this f()
+            else:
+                if cur_rule[0] in dest_approval_dict:
+                    dest_approval_dict[cur_rule[0]].add(cur_rule[1])
+                else:
+                    dest_approval_dict[cur_rule[0]] = {cur_rule[1]}
+        for dest_a_id in dest_request_dict:
+            if dest_a_id in dest_approval_dict:
+                dest_approval_dict[dest_a_id].update(de_accessible_to_all)
+            else:
+                dest_approval_dict[dest_a_id] = de_accessible_to_all
+        # Check value inclusion as described above
+        if not source_approved:
+            all_dest_approved = True
+            for dest_a_id in dest_request_dict:
+                if dest_a_id not in dest_approval_dict or not \
+                        dest_request_dict[dest_a_id].issubset(
+                            dest_approval_dict[dest_a_id]):
+                    all_dest_approved = False
+                    break
+            if all_dest_approved:
+                source_approved = True
         # # Auto-approve the contract if cur_source_approved
-        # if cur_source_approved:
-        #     approval_res = approve_contract(src_a_id, contract_id, write_ahead_log, key_manager)
-        #     if approval_res["status"] == 1:
-        #         return approval_res
-        # print(f"For current source agent {src_a_id}, dest request dict is", dest_request_dict_for_cur_src)
-        # print(f"For current source agent {src_a_id}, dest approval dict is", dest_approval_dict_for_cur_src)
-    exit()
+        if source_approved:
+            approval_res = approve_contract(user_id, c_id, write_ahead_log, key_manager)
+            if approval_res["status"] == 1:
+                return approval_res
+        print(f"For current source agent {user_id}, dest request dict is", dest_request_dict)
+        print(f"For current source agent {user_id}, dest approval dict is", dest_approval_dict)
+
+    return res
 
 def check_contract_ready(contract_id):
     db_res = database_api.get_status_for_contract(contract_id)

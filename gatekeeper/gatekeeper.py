@@ -110,9 +110,10 @@ class Gatekeeper:
             all_des.add(cur_de)
 
         # Get all DE sets approved by policies (there can be multiple sets)
+        # Note: We don't have to worry about CMRs, because those are already applied.
         param_json = {"args": args, "kwargs": kwargs}
         param_str = json.dumps(param_json)
-        approve_de_sets = []
+        approved_de_sets = []
 
         approved_de_sets_res = database_api.get_approved_de_sets_from_policies(caller_id,
                                                                                function,
@@ -120,11 +121,9 @@ class Gatekeeper:
         # Each element of approved_de_sets_res is a str: we convert it to a set of DE IDs
         for cur_de_set in approved_de_sets_res:
             cur_de_set = set(map(int, cur_de_set[0].split(" ")))
-            approve_de_sets.append(cur_de_set)
+            approved_de_sets.append(cur_de_set)
 
-        # TODO: think about CMR's connection with contract approvals
-
-        print("Gatekeeper: approved DE sets are", approve_de_sets)
+        # print("Gatekeeper: approved DE sets are", approved_de_sets)
 
         # actual api call
         if self.trust_mode == "full_trust":
@@ -137,6 +136,7 @@ class Gatekeeper:
                               start_de_id,
                               agents_symmetric_key,
                               all_des,
+                              approved_de_sets,
                               self.get_new_docker_id(),
                               self.docker_session,
                               *args,
@@ -146,7 +146,8 @@ class Gatekeeper:
         api_result = ret["return_info"][0]
         de_paths_accessed = ret["return_info"][1]
         derived_des_to_create = ret["return_info"][2]
-        decryption_time = ret["return_info"][3]
+        approved_de_sets = ret["return_info"][3]
+        decryption_time = ret["return_info"][4]
 
         # print("Gakeeper printing function output", api_result)
         # print(de_paths_accessed)
@@ -157,18 +158,20 @@ class Gatekeeper:
             print(path)
             de_ids_accessed.append(int(path.split("/")[-2]))
 
-        print("DE accessed is", de_ids_accessed)
-        # print("accessible data by policy is", accessible_data_policy)
-        # print("all accessible DE is", all_accessible_de_id)
+        print("Back to Gatekeeper: DE accessed is", de_ids_accessed)
+        print("Back to Gatekeeper: Approved DE sets remaining are", approved_de_sets)
         # print("Decryption time is", decryption_time)
 
-        # We now check if it can be released by asking contract_manager.
-        # We know the caller, the args, and DEs accessed (in development mode)
-        release_status = contract_manager.check_release_status(caller_id,
-                                                               set(de_ids_accessed),
-                                                               function,
-                                                               param_str)
+        release_status = True if len(approved_de_sets) > 0 else False
+
+        # # We now check if it can be released by asking contract_manager.
+        # # We know the caller, the args, and DEs accessed (in development mode)
+        # release_status = contract_manager.check_release_status(caller_id,
+        #                                                        set(de_ids_accessed),
+        #                                                        function,
+        #                                                        param_str)
         # print(release_status)
+
         if release_status:
             self.data_station_log.log_intent_policy_match(caller_id,
                                                           function,
@@ -228,7 +231,8 @@ def call_actual_api(function_name,
                     config: DSConfig,
                     start_de_id,
                     agents_symmetric_key,
-                    accessible_de,
+                    all_des,
+                    approved_de_sets,
                     docker_id,
                     docker_session: DSDocker,
                     *args,
@@ -242,7 +246,8 @@ def call_actual_api(function_name,
      epf_path: path to the epf file
      config: DS config
      agents_symmetric_key: key manager storing all the sym keys
-     accessible_de: a set of accessible DataElement
+     all_des: all DataElement
+     approved_de_sets: a list of approved DE sets this function call can access
      docker_id: id assigned to docker container
      docker_session: docker container
      *args / *kwargs for api
@@ -255,7 +260,8 @@ def call_actual_api(function_name,
     # print(api_name, *args, **kwargs)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
 
-    config_dict = {"accessible_de": accessible_de, "docker_id": docker_id, "agents_symmetric_key": agents_symmetric_key,
+    config_dict = {"accessible_de": all_des, "docker_id": docker_id,
+                   "agents_symmetric_key": agents_symmetric_key, "approved_de_sets": approved_de_sets,
                    "operating_system": config.operating_system, "start_de_id": start_de_id}
     print("The real epf path is", epf_realpath)
 

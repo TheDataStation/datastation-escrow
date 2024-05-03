@@ -36,23 +36,23 @@ def unpickle(function_name):
         arg_dict = pickle.load(f)
     return arg_dict
 
-def run_function(function_name, *args, **kwargs):
-    """
-    runs the function from the function name and provided pickle file for inputs
-
-    Parameters:
-     function name
-
-    Returns: function return value
-    """
-
-    list_of_apis = get_registered_functions()
-    # print("list_of_apis:", list_of_apis)
-    for cur_api in list_of_apis:
-        if function_name == cur_api.__name__:
-            # print("call", function_name)
-            result = cur_api(*args, **kwargs)
-            return result
+# def run_function(function_name, *args, **kwargs):
+#     """
+#     runs the function from the function name and provided pickle file for inputs
+#
+#     Parameters:
+#      function name
+#
+#     Returns: function return value
+#     """
+#
+#     list_of_apis = get_registered_functions()
+#     # print("list_of_apis:", list_of_apis)
+#     for cur_api in list_of_apis:
+#         if function_name == cur_api.__name__:
+#             # print("call", function_name)
+#             result = cur_api(*args, **kwargs)
+#             return result
 
 def main():
     # only one argument: which function, by str name, to run

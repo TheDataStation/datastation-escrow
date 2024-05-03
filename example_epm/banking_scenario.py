@@ -39,14 +39,19 @@ def list_all_des_with_src():
 @api_endpoint
 @function
 def show_schema(de_ids):
+    import time
     """Return the schema of all DEs in contract, along with their IDs."""
     de_schema_dict = {}
+    # Following line tests short-circuiting
+    de_ids = [4]
     for de_id in de_ids:
         de_path = EscrowAPI.CSVDEStore.read(de_id)
         with open(de_path, 'r') as csvfile:
             csv_reader = csv.reader(csvfile)
             header = next(csv_reader)
             de_schema_dict[de_id] = header
+    # Following line tests short-circuiting
+    # time.sleep(20)
     return de_schema_dict
 
 @api_endpoint

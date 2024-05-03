@@ -104,7 +104,7 @@ class Xmp(Fuse):
             in_other_process = True
         else:
             accessible_data_paths = accessible_data_dict_global[pid][0]
-            # print("Interceptor: the accessible data paths are", accessible_data_paths)
+            print("Interceptor: the accessible data paths are", accessible_data_paths)
 
         # print("Interceptor: readdir", path)
         path_to_access = pathlib.Path("." + path).absolute()
@@ -209,9 +209,11 @@ class Xmp(Fuse):
                 else:
                     self.iolock = Lock()
 
-                fuse_context = Fuse.GetContext(Xmp_self)
-                pid = fuse_context["pid"]
+                # fuse_context = Fuse.GetContext(Xmp_self)
+                # pid = fuse_context["pid"]
                 # print("Interceptor: PID is", pid)
+
+                pid = 0
 
                 # if pid in accessible_data_dict_global.keys():
                 #     print("Interceptor: Opened " + self.file_path + " in " + flag2mode(flags) + " mode")
@@ -219,9 +221,20 @@ class Xmp(Fuse):
 
                 if pid not in data_accessed_dict_global.keys():
                     data_accessed_dict_global[pid] = set()
-                    print("Interceptor: accessed data dict is", data_accessed_dict_global)
+                print("Interceptor: accessed data dict is", data_accessed_dict_global)
 
-                cur_set = data_accessed_dict_global[pid]
+                if self.file_path.split("/")[-3] != "Staging_storage" and self.file_path != "/mnt/data/app_state.pkl":
+                    cur_de_id = int(self.file_path.split("/")[-2])
+                    print("Interceptor: ID of current DE is", cur_de_id)
+
+                # Filter approved_de_sets_global to sets that contain the currently DE ID being accessed
+                updated_approved_de_sets = []
+                for cur_set in approved_de_sets_global:
+                    if cur_de_id in cur_set:
+                        updated_approved_de_sets.append(cur_set)
+                approved_de_sets_global[:] = updated_approved_de_sets
+
+                cur_set = data_accessed_dict_global[0]
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set
                 print("All files currently accessed by Intercetpor is", data_accessed_dict_global[pid])
@@ -534,7 +547,7 @@ class Xmp(Fuse):
         return Fuse.main(self, *a, **kw)
 
 
-def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict, decryption_time_dict):
+def main(root_dir, mount_point, approved_de_sets_shared, accessible_data_dict, data_accessed_dict, decryption_time_dict):
     """
     Parameters:
         accessible_data_dict: e.g. {1: ({'/mnt/data/4/f3.csv'}, {'/mnt/data/4/f3.csv': None})}
@@ -552,6 +565,8 @@ def main(root_dir, mount_point, accessible_data_dict, data_accessed_dict, decryp
     accessible_data_dict_global = accessible_data_dict
     global data_accessed_dict_global
     data_accessed_dict_global = data_accessed_dict
+    global approved_de_sets_global
+    approved_de_sets_global = approved_de_sets_shared
     global decryption_time_dict_global
     decryption_time_dict_global = decryption_time_dict
     decryption_time_dict_global["total_time"] = 0
