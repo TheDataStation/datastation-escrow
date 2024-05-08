@@ -15,11 +15,13 @@ class KeyManager:
         self.ds_private_key = None
         self.ds_public_key = None
         self.ds_symmetric_key = None
-        self.initialize_data_station_keys()
 
         # Agents' keys
         self.agents_symmetric_key = dict()
         self.agents_public_key = dict()
+
+        # Initialize keys
+        self.initialize_data_station_keys()
 
     def initialize_data_station_keys(self):
         """
