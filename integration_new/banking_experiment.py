@@ -1,8 +1,105 @@
 import os
+import numpy as np
+import random
+import pandas as pd
 
 from main import initialize_system
 from common.general_utils import clean_test_env
 from crypto import cryptoutils as cu
+
+
+def banking_data_gen(num_agents=5, num_MB=1, output_dir="integration_new/test_files/banking_p/exp"):
+    def generate_indicator(vector_size, proportion_of_ones):
+        num_ones = int(vector_size * proportion_of_ones)
+        random_vector = np.concatenate([np.zeros(vector_size - num_ones), np.ones(num_ones)])
+        np.random.shuffle(random_vector)
+        return random_vector
+    random.seed(42)
+    num_records = 10000 * num_MB
+    # Need to generate independent vars: amt, gender, lat, long, merch_lat, merch_long, city_pop_thousands, age
+    amt_ranges = [(1, 10), (20, 100), (100, 500)]
+    amt_probs = [0.47, 0.48, 0.05]
+    city_pop_thousands_ranges = [(1, 5), (10, 200), (500, 1500)]
+    city_pop_probs = [0.2, 0.6, 0.2]
+    age_ranges = [(18, 30), (31, 50), (51, 80)]
+    age_probs = [0.6, 0.35, 0.05]
+    amt_arr = []
+    lat_arr = []
+    long_arr = []
+    merch_lat_arr = []
+    merch_long_arr = []
+    city_pop_thousands_arr = []
+    age_arr = []
+    for _ in range(num_records):
+        selected_range = random.choices(amt_ranges, weights=amt_probs)[0]
+        amount = random.randint(selected_range[0], selected_range[1])
+        amt_arr.append(amount)
+        lat = random.uniform(-100, 100)
+        long = random.uniform(-100, 100)
+        merch_lat = random.uniform(-100, 100)
+        merch_long = random.uniform(-100, 100)
+        lat_arr.append(lat)
+        long_arr.append(long)
+        merch_lat_arr.append(merch_lat)
+        merch_long_arr.append(merch_long)
+        selected_range = random.choices(city_pop_thousands_ranges, weights=city_pop_probs)[0]
+        city_pop = random.randint(selected_range[0], selected_range[1])
+        city_pop_thousands_arr.append(city_pop)
+        selected_range = random.choices(age_ranges, weights=age_probs)[0]
+        age = random.randint(selected_range[0], selected_range[1])
+        age_arr.append(age)
+
+    gender_arr = generate_indicator(num_records, 0.5)
+    matrix = np.column_stack((amt_arr,
+                              gender_arr,
+                              lat_arr,
+                              long_arr,
+                              merch_lat_arr,
+                              merch_long_arr,
+                              city_pop_thousands_arr,
+                              age_arr))
+    # Need to generate the dependent variable: is_fraud
+    is_fraud_arr = []
+    coefficients = np.array([0.5, 3, 0, 0, 0, 0, 0.1, -5])
+    linear_combination = np.dot(matrix, coefficients)
+    probabilities = 1 / (1 + np.exp(-linear_combination))
+
+    for probs in probabilities:
+        if probs == 1:
+            is_fraud_arr.append(1)
+        else:
+            is_fraud_arr.append(0)
+
+    matrix_with_label = np.column_stack((matrix, is_fraud_arr))
+    # Convert matrices to Pandas DataFrames
+    col_names = ["amt",
+                 "gender",
+                 "lat",
+                 "long",
+                 "merch_lat",
+                 "merch_long",
+                 "city_pop_thousands",
+                 "age",
+                 "is_fraud"]
+    final_df = pd.DataFrame(matrix_with_label, columns=[f'{col_names[i]}'
+                                                        for i in range(matrix_with_label.shape[1])])
+
+    # Display the resulting DataFrame
+    print("Resulting DataFrame:")
+    print(final_df[:5])
+
+    # Partition the data and write to files
+    num_train_per_bank = int(num_records * (4/25))
+    num_test_per_bank = int(num_records * (1/25))
+    prev_index = 0
+    for i in range(num_agents):
+        cur_train_partition = final_df[prev_index: prev_index+num_train_per_bank]
+        cur_test_partition = final_df[prev_index+num_train_per_bank: prev_index+num_train_per_bank+num_test_per_bank]
+        prev_index = prev_index+num_train_per_bank+num_test_per_bank
+        cur_train_path = os.path.join(output_dir, f"train_{i}.csv")
+        cur_test_path = os.path.join(output_dir, f"test_{i}.csv")
+        cur_train_partition.to_csv(cur_train_path, index=False)
+        cur_test_partition.to_csv(cur_test_path, index=False)
 
 
 if __name__ == '__main__':
@@ -24,10 +121,10 @@ if __name__ == '__main__':
     if os.path.exists(log_path):
         os.remove(log_path)
 
-    # Step 1: Agent creation.
+    # Step 1: Agent creation. Let's use 5 agents for short-circuiting purposes.
     cipher_sym_key_list = []
     public_key_list = []
-    num_users = 2
+    num_users = 5
     for i in range(num_users):
         sym_key = b'oHRZBUvF_jn4N3GdUpnI6mW8mts-EB7atAUjhVNMI58='
         cipher_sym_key = cu.encrypt_data_with_public_key(sym_key, ds_public_key)
@@ -38,6 +135,16 @@ if __name__ == '__main__':
 
     bank1_token = ds.login_agent("bank1", "string")["data"]
     bank2_token = ds.login_agent("bank2", "string")["data"]
+    bank3_token = ds.login_agent("bank3", "string")["data"]
+    bank4_token = ds.login_agent("bank4", "string")["data"]
+    bank5_token = ds.login_agent("bank5", "string")["data"]
+
+    # Step 2: Generate the data. They will be stored to integration_new/test_files/banking_p/exp folder.
+    banking_data_gen()
+
+    # Step 3: Upload the data
+    print("Before exit!!!")
+    exit()
 
     for i in range(2):
         if i == 0:
@@ -63,7 +170,7 @@ if __name__ == '__main__':
     ds.call_api(bank1_token, "approve_contract", 1)
     ds.call_api(bank2_token, "approve_contract", 1)
     res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 3], [2, 4], 2000, 0.95)
-    print(res.coef_)
+    print(res)
 
     # Last step: shut down the Data Station
     ds.shut_down()
