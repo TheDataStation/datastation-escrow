@@ -114,7 +114,8 @@ def propose_contract(user_id,
         for dest_a_id in dest_agents:
             dest_request_dict_for_cur_src[dest_a_id] = original_de_ids.intersection(src_agent_de_dict[src_a_id])
         # A source agent does not need to approve themselves
-        del dest_request_dict_for_cur_src[src_a_id]
+        if src_a_id in dest_request_dict_for_cur_src:
+            del dest_request_dict_for_cur_src[src_a_id]
         # print(dest_request_dict_for_cur_src)
         # Step 2.2: Build the approval dict from CMRs
         dest_approval_dict_for_cur_src = {}

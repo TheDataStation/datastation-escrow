@@ -69,6 +69,7 @@ def main():
     accessible_data_set = set()
     accessible_data_key_dict = {}
 
+    # Set up the key for application states
     app_state_path = "/mnt/data/app_state.pkl"
     accessible_data_set.add(app_state_path)
     # Set sym key for app_state to None if agents_symmetric_key is None
