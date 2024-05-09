@@ -143,20 +143,15 @@ if __name__ == '__main__':
     banking_data_gen()
 
     # Step 3: Upload the data
-    print("Before exit!!!")
-    exit()
-
-    for i in range(2):
-        if i == 0:
-            cur_token = bank1_token
-        else:
-            cur_token = bank2_token
-        cur_train_de = f"integration_new/test_files/banking_p/clean_train_{i}.csv"
+    token_dict = {0: bank1_token, 1: bank2_token, 2: bank3_token, 3: bank4_token, 4: bank5_token}
+    for i in range(num_users):
+        cur_token = token_dict[i]
+        cur_train_de = f"integration_new/test_files/banking_p/exp/train_{i}.csv"
         f = open(cur_train_de, "rb")
         plaintext_bytes = f.read()
         f.close()
         print(ds.call_api(cur_token, "upload_data_in_csv", plaintext_bytes))
-        cur_test_de = f"integration_new/test_files/banking_p/clean_test_{i}.csv"
+        cur_test_de = f"integration_new/test_files/banking_p/exp/test_{i}.csv"
         f = open(cur_test_de, "rb")
         plaintext_bytes = f.read()
         f.close()
@@ -166,11 +161,15 @@ if __name__ == '__main__':
     dest_agents = [1, 2]
     data_elements = [1, 2, 3, 4]
     ds.call_api(bank1_token, "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
-                "is_fraud", [1, 3], [2, 4], 2000, 0.95)
+                "is_fraud", [1, 3], [2, 4], 1000, 0.95)
     ds.call_api(bank1_token, "approve_contract", 1)
     ds.call_api(bank2_token, "approve_contract", 1)
-    res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 3], [2, 4], 2000, 0.95)
+    # To get multiple results, just need to run the line below multiple times
+    res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 3], [2, 4], 1000, 0.95)
     print(res)
+
+    # TODO: modify the code above to simulate the w/o short-circuiting runtime!
+    # TODO: approved is [1,2,3,4,5,6], [1,7,8,9,10], but try to access [1,2,3,4,5,6,7,8,9,10]
 
     # Last step: shut down the Data Station
     ds.shut_down()
