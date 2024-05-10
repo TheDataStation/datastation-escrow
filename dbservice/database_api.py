@@ -490,6 +490,11 @@ def create_derived_de(de_id, src_de_id):
         return {"status": 0, "message": "success"}
 
 
+def get_all_derived_des():
+    with get_db() as db:
+        return db.query(DerivedDE).all()
+
+
 def get_source_des_for_derived_de(de_id):
     with get_db() as db:
         return db.query(DerivedDE.src_de_id).filter(DerivedDE.de_id == de_id).all()

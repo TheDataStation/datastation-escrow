@@ -675,7 +675,6 @@ class DataStation:
                                                               *args,
                                                               **kwargs)
                     derived_des_to_create = gatekeeper_res["derived_des_to_create"]
-                    print("Data Station call_api", derived_des_to_create)
                     de_ids_accessed = gatekeeper_res["de_ids_accessed"]
                     # Check to see if this function call creates any derived DEs. If yes, register and store them now.
                     if len(derived_des_to_create) > 0:

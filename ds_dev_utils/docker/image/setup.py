@@ -56,6 +56,7 @@ def main():
     agents_symmetric_key = config_dict["agents_symmetric_key"]
     start_de_id = config_dict["start_de_id"]
     approved_de_sets = config_dict["approved_de_sets"]
+    derived_de_origin_dict = config_dict["derived_de_origin_dict"]
 
     connector_dir = "/usr/src/ds/functions"
     load_connectors(connector_dir)
@@ -99,6 +100,8 @@ def main():
     data_accessed_dict = manager.dict()
     decryption_time_dict = manager.dict()
     approved_de_sets_shared = manager.list(approved_de_sets)
+    derived_de_origin_shared = manager.dict()
+    derived_de_origin_shared.update(derived_de_origin_dict)
 
     accessible_data_dict[0] = accessible_data_obj
 
@@ -109,6 +112,7 @@ def main():
                                                   args=(storage_path,
                                                         mount_path,
                                                         approved_de_sets_shared,
+                                                        derived_de_origin_shared,
                                                         accessible_data_dict,
                                                         data_accessed_dict,
                                                         decryption_time_dict,))
@@ -184,6 +188,7 @@ def main():
     # Following code block is without short-circuiting
     ret = f_res_queue.get(block=True)
 
+    # Check what is produced for this function run
     print("Return value is", ret[0])
     print(approved_de_sets_shared)
     print(dict(data_accessed_dict))
@@ -211,7 +216,7 @@ def main():
 
     to_send_back = pickle.dumps({"return_value": ret[0],
                                  "data_accessed": filtered_de_accessed,
-                                 "derived_des_to_create": escrow_api_docker.derived_des_to_create,
+                                 "derived_des_to_create": ret[1],
                                  "approved_de_sets": list(approved_de_sets_shared),
                                  "decryption_time": decryption_time})
     # print("To send back pickle constructed......")

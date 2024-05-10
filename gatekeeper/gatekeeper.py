@@ -109,6 +109,16 @@ class Gatekeeper:
                                  data_owner_symmetric_key)
             all_des.add(cur_de)
 
+        # We use a dictionary to store the derived DE origins
+        derived_des_res = database_api.get_all_derived_des()
+        derived_de_origin_dict = {}
+        if len(derived_des_res):
+            for cur_origin in derived_des_res:
+                if cur_origin.de_id in derived_de_origin_dict:
+                    derived_de_origin_dict[cur_origin.de_id].add(cur_origin.src_de_id)
+                else:
+                    derived_de_origin_dict[cur_origin.de_id] = {cur_origin.src_de_id}
+
         # Get all DE sets approved by policies (there can be multiple sets)
         # Note: We don't have to worry about CMRs, because those are already applied.
         param_json = {"args": args, "kwargs": kwargs}
@@ -136,6 +146,7 @@ class Gatekeeper:
                               start_de_id,
                               agents_symmetric_key,
                               all_des,
+                              derived_de_origin_dict,
                               approved_de_sets,
                               self.get_new_docker_id(),
                               self.docker_session,
@@ -149,15 +160,13 @@ class Gatekeeper:
         approved_de_sets = ret["return_info"][3]
         decryption_time = ret["return_info"][4]
 
-        print("Gakeeper printing function output", api_result)
-        print(de_paths_accessed)
-        print(derived_des_to_create)
-
         de_ids_accessed = []
         for path in de_paths_accessed:
             print(path)
             de_ids_accessed.append(int(path.split("/")[-2]))
 
+        print("Back to Gakeeper: Function output is", api_result)
+        print("Back to Gatekeeper: Derived DEs to create are", derived_des_to_create)
         print("Back to Gatekeeper: DE accessed is", de_ids_accessed)
         print("Back to Gatekeeper: Approved DE sets remaining are", approved_de_sets)
         # print("Decryption time is", decryption_time)
@@ -232,6 +241,7 @@ def call_actual_api(function_name,
                     start_de_id,
                     agents_symmetric_key,
                     all_des,
+                    derived_de_origin_dict,
                     approved_de_sets,
                     docker_id,
                     docker_session: DSDocker,
@@ -247,6 +257,7 @@ def call_actual_api(function_name,
      config: DS config
      agents_symmetric_key: key manager storing all the sym keys
      all_des: all DataElement
+     derived_de_origin_dict: a dictionary storing the mapping of {derived DE iD, set{source DE IDs}}
      approved_de_sets: a list of approved DE sets this function call can access
      docker_id: id assigned to docker container
      docker_session: docker container
@@ -260,7 +271,7 @@ def call_actual_api(function_name,
     # print(api_name, *args, **kwargs)
     epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
 
-    config_dict = {"accessible_de": all_des, "docker_id": docker_id,
+    config_dict = {"accessible_de": all_des, "derived_de_origin_dict": derived_de_origin_dict, "docker_id": docker_id,
                    "agents_symmetric_key": agents_symmetric_key, "approved_de_sets": approved_de_sets,
                    "operating_system": config.operating_system, "start_de_id": start_de_id}
     print("The real epf path is", epf_realpath)

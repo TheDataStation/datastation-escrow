@@ -230,10 +230,24 @@ class Xmp(Fuse):
 
                 # Filter approved_de_sets_global to sets that contain the currently DE ID being accessed
                 # Note: we only want to do this if we are accessing an actual DE (i.e. not app_state.pkl)
+                # Also need to convert derived DEs to a set of (simple DEs)
+                def get_original_des_from_derived_de(derived_de_id):
+                    original_de_id_set = set()
+                    het_de_id_set = {derived_de_id}
+                    while het_de_id_set:
+                        cur_het_de_id = het_de_id_set.pop()
+                        if cur_het_de_id in derived_de_origin_global:
+                            cur_src_des = derived_de_origin_global[cur_het_de_id]
+                            het_de_id_set.update(cur_src_des)
+                        else:
+                            original_de_id_set.add(cur_het_de_id)
+                    return original_de_id_set
+
                 if cur_de_id is not None:
+                    cur_de_id_original = get_original_des_from_derived_de(cur_de_id)
                     updated_approved_de_sets = []
                     for cur_set in approved_de_sets_global:
-                        if cur_de_id in cur_set:
+                        if cur_de_id_original.issubset(cur_set):
                             updated_approved_de_sets.append(cur_set)
                     approved_de_sets_global[:] = updated_approved_de_sets
 
@@ -550,7 +564,13 @@ class Xmp(Fuse):
         return Fuse.main(self, *a, **kw)
 
 
-def main(root_dir, mount_point, approved_de_sets_shared, accessible_data_dict, data_accessed_dict, decryption_time_dict):
+def main(root_dir,
+         mount_point,
+         approved_de_sets_shared,
+         derived_de_origin_shared,
+         accessible_data_dict,
+         data_accessed_dict,
+         decryption_time_dict):
     """
     Parameters:
         accessible_data_dict: e.g. {1: ({'/mnt/data/4/f3.csv'}, {'/mnt/data/4/f3.csv': None})}
@@ -570,6 +590,8 @@ def main(root_dir, mount_point, approved_de_sets_shared, accessible_data_dict, d
     data_accessed_dict_global = data_accessed_dict
     global approved_de_sets_global
     approved_de_sets_global = approved_de_sets_shared
+    global derived_de_origin_global
+    derived_de_origin_global = derived_de_origin_shared
     global decryption_time_dict_global
     decryption_time_dict_global = decryption_time_dict
     decryption_time_dict_global["total_time"] = 0

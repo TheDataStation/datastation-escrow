@@ -68,8 +68,10 @@ if __name__ == '__main__':
     print(ds.call_api(facebook_token, "approve_contract", 1))
     print(ds.call_api(youtube_token, "approve_contract", 1))
 
-    res = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
-    print(res.coef_)
+    res_1 = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
+    print(res_1.coef_)
+    res_2 = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
+    print(res_2.coef_)
 
     # Last step: shut down the Data Station
     ds.shut_down()
