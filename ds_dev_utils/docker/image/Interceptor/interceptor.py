@@ -223,21 +223,24 @@ class Xmp(Fuse):
                     data_accessed_dict_global[pid] = set()
                 print("Interceptor: accessed data dict is", data_accessed_dict_global)
 
+                cur_de_id = None
                 if self.file_path.split("/")[-3] != "Staging_storage" and self.file_path != "/mnt/data/app_state.pkl":
                     cur_de_id = int(self.file_path.split("/")[-2])
                     print("Interceptor: ID of current DE is", cur_de_id)
 
                 # Filter approved_de_sets_global to sets that contain the currently DE ID being accessed
-                updated_approved_de_sets = []
-                for cur_set in approved_de_sets_global:
-                    if cur_de_id in cur_set:
-                        updated_approved_de_sets.append(cur_set)
-                approved_de_sets_global[:] = updated_approved_de_sets
+                # Note: we only want to do this if we are accessing an actual DE (i.e. not app_state.pkl)
+                if cur_de_id is not None:
+                    updated_approved_de_sets = []
+                    for cur_set in approved_de_sets_global:
+                        if cur_de_id in cur_set:
+                            updated_approved_de_sets.append(cur_set)
+                    approved_de_sets_global[:] = updated_approved_de_sets
 
                 cur_set = data_accessed_dict_global[0]
                 cur_set.add(str(self.file_path))
                 data_accessed_dict_global[pid] = cur_set
-                print("All files currently accessed by Intercetpor is", data_accessed_dict_global[pid])
+                print("All files currently accessed by Intercetor is", data_accessed_dict_global[pid])
 
                 self.symmetric_key = None
                 self.decrypted_bytes = None

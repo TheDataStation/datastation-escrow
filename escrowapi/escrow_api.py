@@ -240,6 +240,10 @@ class EscrowAPI:
         """
         return cls.__comp.load(key)
 
+    @classmethod
+    def get_comp(cls):
+        return cls.__comp
+
     # @classmethod
     # def get_de_by_id(cls, de_id):
     #     """

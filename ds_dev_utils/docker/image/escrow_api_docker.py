@@ -15,7 +15,7 @@ class EscrowAPIDocker:
         # for cur_de in self.accessible_de:
         #     if cur_de.type == "file":
         #         cur_de.access_param = os.path.join("/mnt/data_mount/", cur_de.access_param)
-        print(self.agents_symmetric_key)
+        # print(self.agents_symmetric_key)
 
     # Return path to the CSV file
     def csv_store_read(self, de_id):
@@ -37,6 +37,7 @@ class EscrowAPIDocker:
     # Their src DE will be all DEs accessed.
     # We return the newly created DE ID.
     def object_store_write(self, content):
+        print("In EscrowAPIDocker: calling object store write")
         cur_derived_de_id = self.start_de_id
         derived_de = (cur_derived_de_id, "object", content)
         self.derived_des_to_create.append(derived_de)

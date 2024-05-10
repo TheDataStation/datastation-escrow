@@ -149,9 +149,9 @@ class Gatekeeper:
         approved_de_sets = ret["return_info"][3]
         decryption_time = ret["return_info"][4]
 
-        # print("Gakeeper printing function output", api_result)
-        # print(de_paths_accessed)
-        # print(derived_des_to_create)
+        print("Gakeeper printing function output", api_result)
+        print(de_paths_accessed)
+        print(derived_des_to_create)
 
         de_ids_accessed = []
         for path in de_paths_accessed:

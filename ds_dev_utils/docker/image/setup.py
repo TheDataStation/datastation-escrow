@@ -29,7 +29,7 @@ def run_function(f_res_queue, function_name, f_args, f_kwargs):
         if function_name == cur_api.__name__:
             # print("call", function_name)
             result = cur_api(*f_args, **f_kwargs)
-            f_res_queue.put(result)
+            f_res_queue.put((result, EscrowAPI.get_comp().derived_des_to_create))
 
 def main():
 
@@ -184,9 +184,10 @@ def main():
     # Following code block is without short-circuiting
     ret = f_res_queue.get(block=True)
 
-    print("Return value is", ret)
+    print("Return value is", ret[0])
     print(approved_de_sets_shared)
     print(dict(data_accessed_dict))
+    print("Derived DEs to create is", ret[1])
     # print(dict(decryption_time_dict))
     # print("Got function return......")
     # print(time.time() - start)
@@ -208,7 +209,7 @@ def main():
     # Remove app_state.pkl from de_accessed
     filtered_de_accessed.discard(app_state_path)
 
-    to_send_back = pickle.dumps({"return_value": ret,
+    to_send_back = pickle.dumps({"return_value": ret[0],
                                  "data_accessed": filtered_de_accessed,
                                  "derived_des_to_create": escrow_api_docker.derived_des_to_create,
                                  "approved_de_sets": list(approved_de_sets_shared),
