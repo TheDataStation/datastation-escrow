@@ -170,23 +170,23 @@ def main():
     # f_process_id = f_process.pid
     # print("Docker setup.py: PID for process running the function is", f_process_id)
 
-    # # Following code block is with short-circuiting
-    # ret = None
-    # while len(approved_de_sets_shared) > 0:
-    #     print("Looping to get function return")
-    #     try:
-    #         ret = f_res_queue.get(timeout=2)
-    #         break
-    #     except:
-    #         pass
-    #
-    # # If approve_de_sets is empty at this point, we set return value to None and terminate f_process
-    # if not len(approved_de_sets_shared):
-    #     ret = None
-    #     f_process.terminate()
+    # Following code block is with short-circuiting
+    ret = None
+    while len(approved_de_sets_shared) > 0:
+        print("Looping to get function return")
+        try:
+            ret = f_res_queue.get(timeout=2)
+            break
+        except:
+            pass
 
-    # Following code block is without short-circuiting
-    ret = f_res_queue.get(block=True)
+    # If approve_de_sets is empty at this point, we set return value to None and terminate f_process
+    if not len(approved_de_sets_shared):
+        ret = None
+        f_process.terminate()
+
+    # # Following code block is without short-circuiting
+    # ret = f_res_queue.get(block=True)
 
     # Check what is produced for this function run
     print("Return value is", ret[0])

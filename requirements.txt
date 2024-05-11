@@ -41,5 +41,6 @@ Flask~=2.0.3
 docker~=6.0.1
 duckdb~=0.7.1
 Werkzeug==2.2.2
+faker
 # torch~=1.10.2
 # psycopg2~=2.9.5

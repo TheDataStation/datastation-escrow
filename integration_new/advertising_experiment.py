@@ -2,10 +2,75 @@ import os
 import numpy as np
 import random
 import pandas as pd
+from faker import Faker
 
 from main import initialize_system
 from common.general_utils import clean_test_env
 from crypto import cryptoutils as cu
+
+def advertising_data_gen(num_MB = 1):
+    def generate_indicator(vector_size, proportion_of_ones):
+        num_ones = int(vector_size * proportion_of_ones)
+        random_vector = np.concatenate([np.zeros(vector_size - num_ones), np.ones(num_ones)])
+        np.random.shuffle(random_vector)
+        return random_vector
+    fake = Faker()
+    Faker.seed(42)
+    np.random.seed(42)
+    num_records = 20000 * num_MB
+    # Generate random first names, last names, and email
+    random_first_names = [fake.first_name() for _ in range(num_records)]
+    random_last_names = [fake.last_name() for _ in range(num_records)]
+    random_emails = [fake.email() for _ in range(num_records)]
+    less_than_twenty_five = generate_indicator(num_records, 0.7)
+    male = generate_indicator(num_records, 0.5)
+    live_in_states = generate_indicator(num_records, 0.9)
+    married = generate_indicator(num_records, 0.2)
+    liked_game_page = generate_indicator(num_records, 0.05)
+    matrix = np.column_stack((less_than_twenty_five,
+                              male,
+                              live_in_states,
+                              married,
+                              liked_game_page))
+    # Coefficients
+    coefficients = np.array([1, 2, 0.01, -5, 3])
+    linear_combination = np.dot(matrix, coefficients)
+
+    # Apply the logistic function to obtain probabilities
+    probabilities = 1 / (1 + np.exp(-linear_combination))
+    labels = []
+    for probs in probabilities:
+        if probs > 0.95:
+            label = np.random.choice([0, 1], size=1, p=[0.8, 0.2])
+            labels.append(label[0])
+        else:
+            labels.append(0)
+    # print(labels[:10])
+    matrix_with_label = np.column_stack((matrix, labels))
+    # Convert matrices to Pandas DataFrames
+    df1 = pd.DataFrame(random_first_names, columns=['first_name'])
+    df2 = pd.DataFrame(random_last_names, columns=['last_name'])
+    df3 = pd.DataFrame(random_emails, columns=['email'])
+    indicator_col_names = ["less_than_twenty_five",
+                           "male",
+                           "live_in_states",
+                           "married",
+                           "liked_games_page",
+                           "clicked_on_ad"]
+    df4 = pd.DataFrame(matrix_with_label, columns=[f'{indicator_col_names[i]}'
+                                                   for i in range(matrix_with_label.shape[1])])
+
+    # Concatenate DataFrames horizontally
+    result_df = pd.concat([df1, df2, df3, df4], axis=1)
+
+    # # Display the resulting DataFrame
+    # print("Resulting DataFrame:")
+    # print(result_df)
+    youtube_to_write = ['first_name', 'last_name', "email", "male", "clicked_on_ad"]
+    facebook_to_write = ['first_name', 'last_name', "email", "male",
+                         'less_than_twenty_five', 'live_in_states', "married", 'liked_games_page']
+    result_df[youtube_to_write].to_csv('youtube.csv', index=False)
+    result_df[facebook_to_write].to_csv('facebook.csv', index=False)
 
 if __name__ == '__main__':
 
