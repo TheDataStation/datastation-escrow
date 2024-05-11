@@ -8,7 +8,7 @@ from main import initialize_system
 from common.general_utils import clean_test_env
 from crypto import cryptoutils as cu
 
-def advertising_data_gen(num_MB = 1):
+def advertising_data_gen(num_MB=1, output_dir="integration_new/test_files/advertising_p/exp"):
     def generate_indicator(vector_size, proportion_of_ones):
         num_ones = int(vector_size * proportion_of_ones)
         random_vector = np.concatenate([np.zeros(vector_size - num_ones), np.ones(num_ones)])
@@ -69,8 +69,10 @@ def advertising_data_gen(num_MB = 1):
     youtube_to_write = ['first_name', 'last_name', "email", "male", "clicked_on_ad"]
     facebook_to_write = ['first_name', 'last_name', "email", "male",
                          'less_than_twenty_five', 'live_in_states', "married", 'liked_games_page']
-    result_df[youtube_to_write].to_csv('youtube.csv', index=False)
-    result_df[facebook_to_write].to_csv('facebook.csv', index=False)
+    facebook_path = os.path.join(output_dir, "facebook.csv")
+    youtube_path = os.path.join(output_dir, "youtube.csv")
+    result_df[facebook_to_write].to_csv(facebook_path, index=False)
+    result_df[youtube_to_write].to_csv(youtube_path, index=False)
 
 if __name__ == '__main__':
 
@@ -105,6 +107,12 @@ if __name__ == '__main__':
 
     facebook_token = ds.login_agent("facebook", "string")["data"]
     youtube_token = ds.login_agent("youtube", "string")["data"]
+
+    # Step 2: Generate the data. They will be stored to integration_new/test_files/advertising_p/exp folder.
+    advertising_data_gen()
+
+    print("before exit!!!")
+    exit()
 
     # Step 2: Upload the data.
     for agent in agents:
