@@ -2,6 +2,7 @@ import os
 import numpy as np
 import random
 import pandas as pd
+import time
 
 from main import initialize_system
 from common.general_utils import clean_test_env
@@ -140,7 +141,7 @@ if __name__ == '__main__':
     bank5_token = ds.login_agent("bank5", "string")["data"]
 
     # Step 2: Generate the data. They will be stored to integration_new/test_files/banking_p/exp folder.
-    banking_data_gen()
+    banking_data_gen(num_agents=5, num_MB=100)
 
     # Step 3: Upload the data
     token_dict = {0: bank1_token, 1: bank2_token, 2: bank3_token, 3: bank4_token, 4: bank5_token}
@@ -157,19 +158,32 @@ if __name__ == '__main__':
         f.close()
         print(ds.call_api(cur_token, "upload_data_in_csv", plaintext_bytes))
 
-    # The final contract: combine the data and train the model.
-    dest_agents = [1, 2]
-    data_elements = [1, 2, 3, 4]
+    # To test short-circuiting: first approve two contracts
+    dest_agents = [1]
+    data_elements = [1, 2, 3, 4, 5, 6]
     ds.call_api(bank1_token, "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
-                "is_fraud", [1, 3], [2, 4], 1000, 0.95)
-    ds.call_api(bank1_token, "approve_contract", 1)
+                "is_fraud", 1000, 0.95)
     ds.call_api(bank2_token, "approve_contract", 1)
-    # To get multiple results, just need to run the line below multiple times
-    res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 3], [2, 4], 1000, 0.95)
-    print(res)
+    ds.call_api(bank3_token, "approve_contract", 1)
 
-    # TODO: modify the code above to simulate the w/o short-circuiting runtime!
-    # TODO: approved is [1,2,3,4,5,6], [1,7,8,9,10], but try to access [1,2,3,4,5,6,7,8,9,10]
+    # dest_agents = [1]
+    # data_elements = [1, 2, 7, 8, 9, 10]
+    # ds.call_api(bank1_token, "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
+    #             "is_fraud", [1, 7, 9], [2, 8, 10], 1000, 0.95)
+    # ds.call_api(bank4_token, "approve_contract", 2)
+    # ds.call_api(bank5_token, "approve_contract", 2)
+
+    # # Test: running the contracts
+    # res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 3, 5], [2, 4, 6], 1000, 0.95)
+    # print(res)
+    # res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 7, 9], [2, 8, 10], 1000, 0.95)
+    # print(res)
+
+    start_time = time.time()
+    res = ds.call_api(bank1_token, "train_model_with_conditions",
+                      "is_fraud", 1000, 0.95)
+    print("Time taken for executing f():", time.time() - start_time)
+    print(res)
 
     # Last step: shut down the Data Station
     ds.shut_down()

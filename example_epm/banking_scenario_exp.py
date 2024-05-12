@@ -21,8 +21,8 @@ def approve_contract(contract_id):
 @api_endpoint
 @function
 def train_model_with_conditions(label_name,
-                                train_de_ids,
-                                test_de_ids,
+                                # train_de_ids,
+                                # test_de_ids,
                                 size_constraint,
                                 accuracy_constraint):
     """
@@ -30,13 +30,13 @@ def train_model_with_conditions(label_name,
     """
     train_df_list = []
     test_df_list = []
-    for de_id in train_de_ids:
+    for de_id in [1, 3, 5, 7]:
         de_path = EscrowAPI.CSVDEStore.read(de_id)
         cur_df = pd.read_csv(de_path)
         if len(cur_df) < size_constraint:
             return "Pre-condition: input size constraint failed. Model did not train."
         train_df_list.append(cur_df)
-    for de_id in test_de_ids:
+    for de_id in [2, 4, 6, 8]:
         de_path = EscrowAPI.CSVDEStore.read(de_id)
         cur_df = pd.read_csv(de_path)
         test_df_list.append(cur_df)

@@ -165,7 +165,7 @@ class Gatekeeper:
             print(path)
             de_ids_accessed.append(int(path.split("/")[-2]))
 
-        print("Back to Gakeeper: Function output is", api_result)
+        # print("Back to Gakeeper: Function output is", api_result)
         print("Back to Gatekeeper: Derived DEs to create are", derived_des_to_create)
         print("Back to Gatekeeper: DE accessed is", de_ids_accessed)
         print("Back to Gatekeeper: Approved DE sets remaining are", approved_de_sets)

@@ -189,10 +189,11 @@ def main():
     # ret = f_res_queue.get(block=True)
 
     # Check what is produced for this function run
-    print("Return value is", ret[0])
+    if ret is not None:
+        print("Return value is", ret[0])
+        print("Derived DEs to create is", ret[1])
     print(approved_de_sets_shared)
     print(dict(data_accessed_dict))
-    print("Derived DEs to create is", ret[1])
     # print(dict(decryption_time_dict))
     # print("Got function return......")
     # print(time.time() - start)
@@ -214,9 +215,14 @@ def main():
     # Remove app_state.pkl from de_accessed
     filtered_de_accessed.discard(app_state_path)
 
-    to_send_back = pickle.dumps({"return_value": ret[0],
+    return_value = None
+    derived_des_to_create = []
+    if ret is not None:
+        return_value = ret[0]
+        derived_des_to_create = ret[1]
+    to_send_back = pickle.dumps({"return_value": return_value,
                                  "data_accessed": filtered_de_accessed,
-                                 "derived_des_to_create": ret[1],
+                                 "derived_des_to_create": derived_des_to_create,
                                  "approved_de_sets": list(approved_de_sets_shared),
                                  "decryption_time": decryption_time})
     # print("To send back pickle constructed......")

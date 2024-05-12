@@ -111,16 +111,13 @@ if __name__ == '__main__':
     # Step 2: Generate the data. They will be stored to integration_new/test_files/advertising_p/exp folder.
     advertising_data_gen()
 
-    print("before exit!!!")
-    exit()
-
     # Step 2: Upload the data.
     for agent in agents:
         if agent == "facebook":
             cur_token = facebook_token
         else:
             cur_token = youtube_token
-        agent_de = f"integration_new/test_files/advertising_p/{agent}.csv"
+        agent_de = f"integration_new/test_files/advertising_p/exp/{agent}.csv"
         f = open(agent_de, "rb")
         plaintext_bytes = f.read()
         f.close()
@@ -135,7 +132,9 @@ if __name__ == '__main__':
     # "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad from facebook inner join youtube on facebook.first_name = youtube.first_name and facebook.last_name = youtube.last_name"
     query = "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
             "from facebook inner join youtube " \
-            "on facebook.first_name = youtube.first_name and facebook.last_name = youtube.last_name"
+            "on facebook.first_name = youtube.first_name " \
+            "and facebook.last_name = youtube.last_name " \
+            "and jaro_similarity(facebook.email, youtube.email) > 0.9"
     print(ds.call_api(facebook_token, "propose_contract",
                       dest_agents, data_elements, f, label_name, query))
     print(ds.call_api(facebook_token, "approve_contract", 1))
