@@ -3,6 +3,7 @@ import numpy as np
 import random
 import pandas as pd
 from faker import Faker
+import time
 
 from main import initialize_system
 from common.general_utils import clean_test_env
@@ -17,7 +18,7 @@ def advertising_data_gen(num_MB=1, output_dir="integration_new/test_files/advert
     fake = Faker()
     Faker.seed(42)
     np.random.seed(42)
-    num_records = 20000 * num_MB
+    num_records = int(20000 * num_MB)
     # Generate random first names, last names, and email
     random_first_names = [fake.first_name() for _ in range(num_records)]
     random_last_names = [fake.last_name() for _ in range(num_records)]
@@ -140,10 +141,20 @@ if __name__ == '__main__':
     print(ds.call_api(facebook_token, "approve_contract", 1))
     print(ds.call_api(youtube_token, "approve_contract", 1))
 
-    res_1 = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
-    print(res_1.coef_)
-    res_2 = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
-    print(res_2.coef_)
+    # res_1 = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
+    # print(res_1.coef_)
+
+    # For recording time: run it 10 times
+    start_time = time.time()
+    for _ in range(10):
+        run_start_time = time.time()
+        res = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
+        run_end_time = time.time()
+        # experiment_time_arr[0] is docker start time; experiment_time_arr[1] is f_end_time;
+        print(res["experiment_time_arr"][0] - run_start_time,
+              res["experiment_time_arr"][1] - res["experiment_time_arr"][0],
+              run_end_time-res["experiment_time_arr"][1])
+    print("Time for 10 runs", time.time() - start_time)
 
     # Last step: shut down the Data Station
     ds.shut_down()

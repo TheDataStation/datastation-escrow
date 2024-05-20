@@ -28,12 +28,17 @@ def run_function(f_res_queue, function_name, f_args, f_kwargs):
     for cur_api in list_of_functions:
         if function_name == cur_api.__name__:
             # print("call", function_name)
-            result = cur_api(*f_args, **f_kwargs)
-            f_res_queue.put((result, EscrowAPI.get_comp().derived_des_to_create))
+            try:
+                result = cur_api(*f_args, **f_kwargs)
+                f_res_queue.put((result, EscrowAPI.get_comp().derived_des_to_create))
+            except:
+                f_res_queue.put((None, []))
 
 def main():
 
     # Step 0: get all the information we need
+
+    docker_start_time = time.time()
 
     with open("/usr/src/ds/args.pkl", "rb") as f:
         config_dict_data_bytes = f.read()
@@ -98,7 +103,7 @@ def main():
 
     accessible_data_dict = manager.dict()
     data_accessed_dict = manager.dict()
-    decryption_time_dict = manager.dict()
+    experiment_time_dict = manager.dict()
     approved_de_sets_shared = manager.list(approved_de_sets)
     derived_de_origin_shared = manager.dict()
     derived_de_origin_shared.update(derived_de_origin_dict)
@@ -115,7 +120,7 @@ def main():
                                                         derived_de_origin_shared,
                                                         accessible_data_dict,
                                                         data_accessed_dict,
-                                                        decryption_time_dict,))
+                                                        experiment_time_dict,))
 
     interceptor_process.start()
 
@@ -188,6 +193,8 @@ def main():
     # # Following code block is without short-circuiting
     # ret = f_res_queue.get(block=True)
 
+    f_end_time = time.time()
+
     # Check what is produced for this function run
     if ret is not None:
         print("Return value is", ret[0])
@@ -198,7 +205,6 @@ def main():
     # print("Got function return......")
     # print(time.time() - start)
     # print(f"Size of returned value is {sys.getsizeof(ret)}")
-    start = time.time()
 
     # if f_process_id in dict(data_accessed_dict):
     #     data_accessed = dict(data_accessed_dict)[f_process_id]
@@ -208,7 +214,8 @@ def main():
         data_accessed = dict(data_accessed_dict)[0]
     else:
         data_accessed = []
-    decryption_time = dict(decryption_time_dict)["total_time"]
+    decryption_time = dict(experiment_time_dict)["total_decryption_time"]
+    experiment_time_arr = [docker_start_time, f_end_time, decryption_time]
 
     # Remove newly created files
     filtered_de_accessed = set(filter(lambda x: x.split("/")[-3] != "Staging_storage", data_accessed))
@@ -224,7 +231,7 @@ def main():
                                  "data_accessed": filtered_de_accessed,
                                  "derived_des_to_create": derived_des_to_create,
                                  "approved_de_sets": list(approved_de_sets_shared),
-                                 "decryption_time": decryption_time})
+                                 "experiment_time_arr": experiment_time_arr})
     # print("To send back pickle constructed......")
     # print(time.time() - start)
     # start = time.time()

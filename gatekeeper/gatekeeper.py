@@ -158,7 +158,7 @@ class Gatekeeper:
         de_paths_accessed = ret["return_info"][1]
         derived_des_to_create = ret["return_info"][2]
         approved_de_sets = ret["return_info"][3]
-        decryption_time = ret["return_info"][4]
+        experiment_time_arr = ret["return_info"][4]
 
         de_ids_accessed = []
         for path in de_paths_accessed:
@@ -189,6 +189,7 @@ class Gatekeeper:
             response = {"status": 0,
                         "message": "Contract result can be released",
                         "result": api_result,
+                        "experiment_time_arr": experiment_time_arr,
                         "de_ids_accessed": de_ids_accessed,
                         "derived_des_to_create": derived_des_to_create}
         else:

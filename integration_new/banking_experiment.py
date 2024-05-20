@@ -179,10 +179,14 @@ if __name__ == '__main__':
     # res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 7, 9], [2, 8, 10], 1000, 0.95)
     # print(res)
 
+    # For recording time: run it 10 times and 50 times
     start_time = time.time()
-    res = ds.call_api(bank1_token, "train_model_with_conditions",
-                      "is_fraud", 1000, 0.95)
-    print("Time taken for executing f():", time.time() - start_time)
+    for _ in range(10):
+        # res = ds.call_api(bank1_token, "train_model_with_conditions",
+        #                   "is_fraud", [1, 3, 5, 7, 9], [2, 4, 6, 8, 10], 1000, 0.95)
+        res = ds.call_api(bank1_token, "train_model_with_conditions",
+                          "is_fraud", 1000, 0.95)
+    print("Time for 10 runs:", time.time() - start_time)
     print(res)
 
     # Last step: shut down the Data Station

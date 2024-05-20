@@ -698,7 +698,8 @@ class DataStation:
                                                                                        0])
                             self.storage_manager.write(res["de_id"], pickled_bytes, "object")
                     if gatekeeper_res["status"] == 0:
-                        return gatekeeper_res["result"]
+                        return gatekeeper_res
+                        # return gatekeeper_res["result"]
                     return None
             # Else see if it's a pure api endpoint
             for cur_api in list_of_api_endpoints:

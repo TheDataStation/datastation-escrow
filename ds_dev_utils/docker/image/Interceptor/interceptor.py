@@ -308,7 +308,7 @@ class Xmp(Fuse):
                                 end = time.perf_counter()
                                 decryption_time = end - start
                                 print(f"{decryption_time} seconds for decryption")
-                                decryption_time_dict_global["total_time"] += decryption_time
+                                decryption_time_dict_global["total_decryption_time"] += decryption_time
 
             def read(self, length, offset):
                 print("Interceptor: I am reading " + str(self.file_path))
@@ -594,7 +594,7 @@ def main(root_dir,
     derived_de_origin_global = derived_de_origin_shared
     global decryption_time_dict_global
     decryption_time_dict_global = decryption_time_dict
-    decryption_time_dict_global["total_time"] = 0
+    decryption_time_dict_global["total_decryption_time"] = 0
 
     usage = """
 Userspace nullfs-alike: mirror the filesystem tree from some point on.
