@@ -70,8 +70,8 @@ def advertising_data_gen(num_MB=1, output_dir="integration_new/test_files/advert
     youtube_to_write = ['first_name', 'last_name', "email", "male", "clicked_on_ad"]
     facebook_to_write = ['first_name', 'last_name', "email", "male",
                          'less_than_twenty_five', 'live_in_states', "married", 'liked_games_page']
-    facebook_path = os.path.join(output_dir, "facebook.csv")
-    youtube_path = os.path.join(output_dir, "youtube.csv")
+    facebook_path = os.path.join(output_dir, f"facebook_{num_MB}.csv")
+    youtube_path = os.path.join(output_dir, f"youtube_{num_MB}.csv")
     result_df[facebook_to_write].to_csv(facebook_path, index=False)
     result_df[youtube_to_write].to_csv(youtube_path, index=False)
 
@@ -94,6 +94,13 @@ if __name__ == '__main__':
     if os.path.exists(log_path):
         os.remove(log_path)
 
+    # # Step 0.5: Generate the data (only need to run once).
+    # # They will be stored to integration_new/test_files/advertising_p/exp folder.
+    # advertising_data_gen(1)
+    # advertising_data_gen(9)
+    # advertising_data_gen(100)
+    # exit()
+
     # Step 1: Agent creation. 2 agents: facebook and youtube.
     cipher_sym_key_list = []
     public_key_list = []
@@ -109,16 +116,14 @@ if __name__ == '__main__':
     facebook_token = ds.login_agent("facebook", "string")["data"]
     youtube_token = ds.login_agent("youtube", "string")["data"]
 
-    # Step 2: Generate the data. They will be stored to integration_new/test_files/advertising_p/exp folder.
-    advertising_data_gen()
-
     # Step 2: Upload the data.
+    num_MB = 1
     for agent in agents:
         if agent == "facebook":
             cur_token = facebook_token
         else:
             cur_token = youtube_token
-        agent_de = f"integration_new/test_files/advertising_p/exp/{agent}.csv"
+        agent_de = f"integration_new/test_files/advertising_p/exp/{agent}_{num_MB}.csv"
         f = open(agent_de, "rb")
         plaintext_bytes = f.read()
         f.close()
@@ -150,9 +155,10 @@ if __name__ == '__main__':
         run_start_time = time.time()
         res = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
         run_end_time = time.time()
-        # experiment_time_arr[0] is docker start time; experiment_time_arr[1] is f_end_time;
+        # 1: fixed overhead 2: join DE time 3: model train time 4: fixed overhead
         print(res["experiment_time_arr"][0] - run_start_time,
-              res["experiment_time_arr"][1] - res["experiment_time_arr"][0],
+              res["result"][1] - res["experiment_time_arr"][0],
+              res["experiment_time_arr"][1] - res["result"][1],
               run_end_time-res["experiment_time_arr"][1])
     print("Time for 10 runs", time.time() - start_time)
 

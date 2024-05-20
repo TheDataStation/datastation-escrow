@@ -38,8 +38,6 @@ def main():
 
     # Step 0: get all the information we need
 
-    docker_start_time = time.time()
-
     with open("/usr/src/ds/args.pkl", "rb") as f:
         config_dict_data_bytes = f.read()
         config_dict = pickle.loads(config_dict_data_bytes)
@@ -168,6 +166,8 @@ def main():
     # print(time.time() - start)
     # start = time.time()
 
+    f_start_time = time.time()
+
     f_res_queue = multiprocessing.Queue()
     f_process = multiprocessing.Process(target=run_function, args=(f_res_queue, function_dict["function"],
                                                                    function_dict["args"], function_dict["kwargs"]))
@@ -215,7 +215,7 @@ def main():
     else:
         data_accessed = []
     decryption_time = dict(experiment_time_dict)["total_decryption_time"]
-    experiment_time_arr = [docker_start_time, f_end_time, decryption_time]
+    experiment_time_arr = [f_start_time, f_end_time, decryption_time]
 
     # Remove newly created files
     filtered_de_accessed = set(filter(lambda x: x.split("/")[-3] != "Staging_storage", data_accessed))

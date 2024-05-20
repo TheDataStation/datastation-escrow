@@ -1,6 +1,7 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
 from escrowapi.escrow_api import EscrowAPI
 
+import time
 import duckdb
 from sklearn.linear_model import LogisticRegression
 
@@ -66,11 +67,12 @@ def train_model_over_joined_data(label_name, query=None):
         print("Need to preserve intermediate DEs!")
         joined_de_id = EscrowAPI.ObjectDEStore.write(res_df)
         EscrowAPI.store("joined_de_id", joined_de_id["de_id"])
+    get_combined_data_time = time.time()
     if res_df is not None:
         X = res_df.drop(label_name, axis=1)
         y = res_df[label_name]
         clf = LogisticRegression().fit(X, y)
-        return clf
+        return clf, get_combined_data_time
 
 
 # @api_endpoint
