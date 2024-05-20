@@ -1,6 +1,6 @@
 import os
 import numpy as np
-import random
+import csv
 import pandas as pd
 from faker import Faker
 import time
@@ -75,7 +75,12 @@ def advertising_data_gen(num_MB=1, output_dir="integration_new/test_files/advert
     result_df[facebook_to_write].to_csv(facebook_path, index=False)
     result_df[youtube_to_write].to_csv(youtube_path, index=False)
 
+
 if __name__ == '__main__':
+
+    # Experiment setups
+    num_MB = 100
+    save_intermediate = True
 
     # Clean up
     clean_test_env()
@@ -117,7 +122,6 @@ if __name__ == '__main__':
     youtube_token = ds.login_agent("youtube", "string")["data"]
 
     # Step 2: Upload the data.
-    num_MB = 1
     for agent in agents:
         if agent == "facebook":
             cur_token = facebook_token
@@ -132,7 +136,10 @@ if __name__ == '__main__':
     # Step 3: Train the joint model.
     dest_agents = [1]
     data_elements = [1, 2]
-    f = "train_model_over_joined_data"
+    if save_intermediate:
+        f = "train_model_over_joined_data_v1"
+    else:
+        f = "train_model_over_joined_data_v2"
     model_name = "logistic_regression"
     label_name = "clicked_on_ad"
     # "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad from facebook inner join youtube on facebook.first_name = youtube.first_name and facebook.last_name = youtube.last_name"
@@ -149,18 +156,20 @@ if __name__ == '__main__':
     # res_1 = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
     # print(res_1.coef_)
 
-    # For recording time: run it 10 times
+    # For recording time: run it 11 times (1 time for warmup)
     start_time = time.time()
-    for _ in range(10):
+    for _ in range(11):
         run_start_time = time.time()
-        res = ds.call_api(facebook_token, "train_model_over_joined_data", label_name, query)
+        res = ds.call_api(facebook_token, f, label_name, query)
         run_end_time = time.time()
         # 1: fixed overhead 2: join DE time 3: model train time 4: fixed overhead
-        print(res["experiment_time_arr"][0] - run_start_time,
-              res["result"][1] - res["experiment_time_arr"][0],
-              res["experiment_time_arr"][1] - res["result"][1],
-              run_end_time-res["experiment_time_arr"][1])
-    print("Time for 10 runs", time.time() - start_time)
+        with open(f"numbers/advertising/{num_MB}_{save_intermediate}.csv", "a") as file:
+            writer = csv.writer(file)
+            writer.writerow([res["experiment_time_arr"][0] - run_start_time,
+                             res["result"][1] - res["experiment_time_arr"][0],
+                             res["experiment_time_arr"][1] - res["result"][1],
+                             run_end_time-res["experiment_time_arr"][1]])
+    print("Time for all runs", time.time() - start_time)
 
     # Last step: shut down the Data Station
     ds.shut_down()

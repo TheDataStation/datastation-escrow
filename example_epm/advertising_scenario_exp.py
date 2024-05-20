@@ -55,7 +55,7 @@ def run_query(query):
 
 @api_endpoint
 @function
-def train_model_over_joined_data(label_name, query=None):
+def train_model_over_joined_data_v1(label_name, query=None):
     # First check if the joined df has been preserved already
     joined_de_id = EscrowAPI.load("joined_de_id")
     res_df = None
@@ -75,21 +75,13 @@ def train_model_over_joined_data(label_name, query=None):
         return clf, get_combined_data_time
 
 
-# @api_endpoint
-# @function
-# def train_model_over_joined_data(label_name, query=None):
-#     # First check if the joined df has been preserved already
-#     # print(EscrowAPI)
-#     # print(EscrowAPI.test_get_comp())
-#     joined_de_id = EscrowAPI.load("joined_de_id")
-#     res_df = None
-#     if joined_de_id:
-#         print(joined_de_id)
-#         res_df = EscrowAPI.ObjectDEStore.read(joined_de_id)
-#     if query:
-#         res_df = run_query(query)
-#     if res_df is not None:
-#         X = res_df.drop(label_name, axis=1)
-#         y = res_df[label_name]
-#         clf = LogisticRegression().fit(X, y)
-#         return clf
+@api_endpoint
+@function
+def train_model_over_joined_data_v2(label_name, query):
+    res_df = run_query(query)
+    get_combined_data_time = time.time()
+    if res_df is not None:
+        X = res_df.drop(label_name, axis=1)
+        y = res_df[label_name]
+        clf = LogisticRegression().fit(X, y)
+        return clf, get_combined_data_time
