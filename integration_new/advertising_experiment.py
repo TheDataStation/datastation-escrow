@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import csv
 import pandas as pd
@@ -70,8 +71,8 @@ def advertising_data_gen(num_MB=1, output_dir="integration_new/test_files/advert
     youtube_to_write = ['first_name', 'last_name', "email", "male", "clicked_on_ad"]
     facebook_to_write = ['first_name', 'last_name', "email", "male",
                          'less_than_twenty_five', 'live_in_states', "married", 'liked_games_page']
-    facebook_path = os.path.join(output_dir, f"facebook_{num_MB}.csv")
-    youtube_path = os.path.join(output_dir, f"youtube_{num_MB}.csv")
+    facebook_path = os.path.join(output_dir, f"facebook_{int(num_MB)}.csv")
+    youtube_path = os.path.join(output_dir, f"youtube_{int(num_MB)}.csv")
     result_df[facebook_to_write].to_csv(facebook_path, index=False)
     result_df[youtube_to_write].to_csv(youtube_path, index=False)
 
@@ -79,8 +80,9 @@ def advertising_data_gen(num_MB=1, output_dir="integration_new/test_files/advert
 if __name__ == '__main__':
 
     # Experiment setups
-    num_MB = 100
-    save_intermediate = True
+    num_MB = int(sys.argv[1])
+    save_intermediate = bool(sys.argv[2])
+    model_name = sys.argv[3]
 
     # Clean up
     clean_test_env()
@@ -101,10 +103,7 @@ if __name__ == '__main__':
 
     # # Step 0.5: Generate the data (only need to run once).
     # # They will be stored to integration_new/test_files/advertising_p/exp folder.
-    # advertising_data_gen(1)
-    # advertising_data_gen(9)
-    # advertising_data_gen(100)
-    # exit()
+    # advertising_data_gen(num_MB)
 
     # Step 1: Agent creation. 2 agents: facebook and youtube.
     cipher_sym_key_list = []
@@ -127,7 +126,7 @@ if __name__ == '__main__':
             cur_token = facebook_token
         else:
             cur_token = youtube_token
-        agent_de = f"integration_new/test_files/advertising_p/exp/{agent}_{num_MB}.csv"
+        agent_de = f"integration_new/test_files/advertising_p/exp/{agent}_{int(num_MB)}.csv"
         f = open(agent_de, "rb")
         plaintext_bytes = f.read()
         f.close()
@@ -140,7 +139,6 @@ if __name__ == '__main__':
         f = "train_model_over_joined_data_v1"
     else:
         f = "train_model_over_joined_data_v2"
-    model_name = "logistic_regression"
     label_name = "clicked_on_ad"
     # "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad from facebook inner join youtube on facebook.first_name = youtube.first_name and facebook.last_name = youtube.last_name"
     query = "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
@@ -149,7 +147,7 @@ if __name__ == '__main__':
             "and facebook.last_name = youtube.last_name " \
             "and jaro_similarity(facebook.email, youtube.email) > 0.9"
     print(ds.call_api(facebook_token, "propose_contract",
-                      dest_agents, data_elements, f, label_name, query))
+                      dest_agents, data_elements, f, model_name, label_name, query))
     print(ds.call_api(facebook_token, "approve_contract", 1))
     print(ds.call_api(youtube_token, "approve_contract", 1))
 
@@ -158,17 +156,18 @@ if __name__ == '__main__':
 
     # For recording time: run it 11 times (1 time for warmup)
     start_time = time.time()
-    for _ in range(11):
+    for _ in range(5):
         run_start_time = time.time()
-        res = ds.call_api(facebook_token, f, label_name, query)
+        res = ds.call_api(facebook_token, f, model_name, label_name, query)
         run_end_time = time.time()
         # 1: fixed overhead 2: join DE time 3: model train time 4: fixed overhead
-        with open(f"numbers/advertising/{num_MB}_{save_intermediate}.csv", "a") as file:
+        with open(f"numbers/advertising/{num_MB}_{model_name}_{save_intermediate}.csv", "a") as file:
             writer = csv.writer(file)
-            writer.writerow([res["experiment_time_arr"][0] - run_start_time,
-                             res["result"][1] - res["experiment_time_arr"][0],
-                             res["experiment_time_arr"][1] - res["result"][1],
-                             run_end_time-res["experiment_time_arr"][1]])
+            if res["result"] is not None:
+                writer.writerow([res["experiment_time_arr"][0] - run_start_time,
+                                 res["result"][1] - res["experiment_time_arr"][0],
+                                 res["experiment_time_arr"][1] - res["result"][1],
+                                 run_end_time-res["experiment_time_arr"][1]])
     print("Time for all runs", time.time() - start_time)
 
     # Last step: shut down the Data Station
