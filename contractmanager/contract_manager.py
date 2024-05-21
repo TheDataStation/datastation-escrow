@@ -155,8 +155,8 @@ def propose_contract(user_id,
                     break
             if all_dest_approved:
                 cur_source_approved = True
-        # Auto-approve the contract if cur_source_approved
-        if cur_source_approved:
+        # Auto-approve the contract if cur_source_approved is True (note: user_id has already approved)
+        if cur_source_approved and src_a_id != user_id:
             approval_res = approve_contract(src_a_id, contract_id, write_ahead_log, key_manager)
             if approval_res["status"] == 1:
                 return approval_res
