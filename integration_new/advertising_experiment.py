@@ -10,12 +10,14 @@ from main import initialize_system
 from common.general_utils import clean_test_env
 from crypto import cryptoutils as cu
 
+
 def advertising_data_gen(num_MB=1, output_dir="integration_new/test_files/advertising_p/exp"):
     def generate_indicator(vector_size, proportion_of_ones):
         num_ones = int(vector_size * proportion_of_ones)
         random_vector = np.concatenate([np.zeros(vector_size - num_ones), np.ones(num_ones)])
         np.random.shuffle(random_vector)
         return random_vector
+
     fake = Faker()
     Faker.seed(42)
     np.random.seed(42)
@@ -150,7 +152,26 @@ if __name__ == '__main__':
             "and jaro_similarity(facebook.email, youtube.email) > 0.9"
     print(ds.call_api(facebook_token, "propose_contract",
                       dest_agents, data_elements, f, model_name, label_name, query))
-    ds.call_api(facebook_token, f, model_name, label_name, query)
+    start_time = time.time()
+    for _ in range(3):
+        run_start_time = time.time()
+        res = ds.call_api(facebook_token, f, model_name, label_name, query)
+        run_end_time = time.time()
+        # TODO: need to adjust the args a bit
+        with open(f"numbers/shortcircuit/{num_MB}_{model_name}_{save_intermediate}.csv", "a") as file:
+            writer = csv.writer(file)
+            # Case 1: With short-circuiting: f() gets terminated
+            if res["result"] is None:
+                print([res["experiment_time_arr"][0] - run_start_time,
+                       res["experiment_time_arr"][1] - res["experiment_time_arr"][0],
+                       run_end_time - res["experiment_time_arr"][1]])
+            # Case 2: No short-circuiting: f() runs to completion
+            else:
+                print([res["experiment_time_arr"][0] - run_start_time,
+                       res["result"][1] - res["experiment_time_arr"][0],
+                       res["experiment_time_arr"][1] - res["result"][1],
+                       run_end_time - res["experiment_time_arr"][1]])
+    print("Time for all runs", time.time() - start_time)
 
     # # Step 3: Train the joint model.
     # dest_agents = [1]
@@ -181,7 +202,7 @@ if __name__ == '__main__':
     #     res = ds.call_api(facebook_token, f, model_name, label_name, query)
     #     run_end_time = time.time()
     #     # 1: fixed overhead 2: join DE time 3: model train time 4: fixed overhead
-    #     with open(f"numbers/advertising/{num_MB}_{model_name}_{save_intermediate}.csv", "a") as file:
+    #     with open(f"numbers/intermediate/{num_MB}_{model_name}_{save_intermediate}.csv", "a") as file:
     #         writer = csv.writer(file)
     #         if res["result"] is not None:
     #             writer.writerow([res["experiment_time_arr"][0] - run_start_time,
