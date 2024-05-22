@@ -153,24 +153,23 @@ if __name__ == '__main__':
     print(ds.call_api(facebook_token, "propose_contract",
                       dest_agents, data_elements, f, model_name, label_name, query))
     start_time = time.time()
-    for _ in range(3):
+    for _ in range(11):
         run_start_time = time.time()
         res = ds.call_api(facebook_token, f, model_name, label_name, query)
         run_end_time = time.time()
-        # TODO: need to adjust the args a bit
-        with open(f"numbers/shortcircuit/{num_MB}_{model_name}_{save_intermediate}.csv", "a") as file:
+        with open(f"numbers/shortcircuit/{num_MB}.csv", "a") as file:
             writer = csv.writer(file)
             # Case 1: With short-circuiting: f() gets terminated
             if res["result"] is None:
-                print([res["experiment_time_arr"][0] - run_start_time,
-                       res["experiment_time_arr"][1] - res["experiment_time_arr"][0],
-                       run_end_time - res["experiment_time_arr"][1]])
+                writer.writerow([res["experiment_time_arr"][0] - run_start_time,
+                                 res["experiment_time_arr"][1] - res["experiment_time_arr"][0],
+                                 run_end_time - res["experiment_time_arr"][1]])
             # Case 2: No short-circuiting: f() runs to completion
             else:
-                print([res["experiment_time_arr"][0] - run_start_time,
-                       res["result"][1] - res["experiment_time_arr"][0],
-                       res["experiment_time_arr"][1] - res["result"][1],
-                       run_end_time - res["experiment_time_arr"][1]])
+                writer.writerow([res["experiment_time_arr"][0] - run_start_time,
+                                 res["result"][1] - res["experiment_time_arr"][0],
+                                 res["experiment_time_arr"][1] - res["result"][1],
+                                 run_end_time - res["experiment_time_arr"][1]])
     print("Time for all runs", time.time() - start_time)
 
     # # Step 3: Train the joint model.
