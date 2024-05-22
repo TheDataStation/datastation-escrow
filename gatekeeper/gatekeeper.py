@@ -171,8 +171,8 @@ class Gatekeeper:
         print("Back to Gatekeeper: Approved DE sets remaining are", approved_de_sets)
         # print("Decryption time is", decryption_time)
 
-        # release_status = True if len(approved_de_sets) > 0 else False
-        release_status = True
+        release_status = True if len(approved_de_sets) > 0 else False
+        # release_status = True
 
         # # We now check if it can be released by asking contract_manager.
         # # We know the caller, the args, and DEs accessed (in development mode)

@@ -164,7 +164,7 @@ if __name__ == '__main__':
         run_start_time = time.time()
         res = ds.call_api(facebook_token, f, model_name, label_name, query)
         run_end_time = time.time()
-        with open(f"numbers/shortcircuit/{num_MB}_{DE_approval_status}.csv", "a") as file:
+        with open(f"numbers/shortcircuit/{num_MB}_{DE_approval_status}_advertising.csv", "a") as file:
             writer = csv.writer(file)
             # Case 1: With short-circuiting: f() gets terminated
             if res["result"] is None:

@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import random
 import pandas as pd
@@ -9,6 +10,7 @@ from common.general_utils import clean_test_env
 from crypto import cryptoutils as cu
 
 
+# TODO: from here
 def banking_data_gen(num_agents=5, num_MB=1, output_dir="integration_new/test_files/banking_p/exp"):
     def generate_indicator(vector_size, proportion_of_ones):
         num_ones = int(vector_size * proportion_of_ones)
@@ -105,6 +107,9 @@ def banking_data_gen(num_agents=5, num_MB=1, output_dir="integration_new/test_fi
 
 if __name__ == '__main__':
 
+    # Experiment setups
+    num_MB = int(sys.argv[1])
+
     # Clean up
     clean_test_env()
 
@@ -141,7 +146,7 @@ if __name__ == '__main__':
     bank5_token = ds.login_agent("bank5", "string")["data"]
 
     # Step 2: Generate the data. They will be stored to integration_new/test_files/banking_p/exp folder.
-    banking_data_gen(num_agents=5, num_MB=100)
+    banking_data_gen(num_agents=5, num_MB=num_MB)
 
     # Step 3: Upload the data
     token_dict = {0: bank1_token, 1: bank2_token, 2: bank3_token, 3: bank4_token, 4: bank5_token}
@@ -166,24 +171,9 @@ if __name__ == '__main__':
     ds.call_api(bank2_token, "approve_contract", 1)
     ds.call_api(bank3_token, "approve_contract", 1)
 
-    # dest_agents = [1]
-    # data_elements = [1, 2, 7, 8, 9, 10]
-    # ds.call_api(bank1_token, "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
-    #             "is_fraud", [1, 7, 9], [2, 8, 10], 1000, 0.95)
-    # ds.call_api(bank4_token, "approve_contract", 2)
-    # ds.call_api(bank5_token, "approve_contract", 2)
-
-    # # Test: running the contracts
-    # res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 3, 5], [2, 4, 6], 1000, 0.95)
-    # print(res)
-    # res = ds.call_api(bank1_token, "train_model_with_conditions", "is_fraud", [1, 7, 9], [2, 8, 10], 1000, 0.95)
-    # print(res)
-
     # For recording time: run it 10 times and 50 times
     start_time = time.time()
     for _ in range(10):
-        # res = ds.call_api(bank1_token, "train_model_with_conditions",
-        #                   "is_fraud", [1, 3, 5, 7, 9], [2, 4, 6, 8, 10], 1000, 0.95)
         res = ds.call_api(bank1_token, "train_model_with_conditions",
                           "is_fraud", 1000, 0.95)
     print("Time for 10 runs:", time.time() - start_time)
