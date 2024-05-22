@@ -94,7 +94,7 @@ def train_model_over_joined_data_v2(model_name, label_name, query):
         y = res_df[label_name]
         if model_name == "logistic_regression":
             clf = LogisticRegression().fit(X, y)
-            return clf.coefs_, get_combined_data_time
+            return clf.coef_, get_combined_data_time
         elif model_name == "MLP":
             clf = MLPClassifier()
             clf.fit(X, y)
