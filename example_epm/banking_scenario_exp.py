@@ -49,10 +49,12 @@ def train_model_with_conditions(label_name,
     X_train_scaled = scaler.transform(X_train)
     clf = MLPClassifier()
     clf.fit(X_train_scaled, y_train)
+    print("fitting the clf done")
     X_test = test_df.drop("is_fraud", axis=1)
     X_test_scaled = scaler.transform(X_test)
     y_test = test_df["is_fraud"]
     if clf.score(X_test_scaled, y_test) < accuracy_constraint:
         return "Post-condition: accuracy requirement failed. Model cannot be released."
+    print("coefs are", clf.coefs_)
     print(clf.score(X_test_scaled, y_test))
     return clf.coefs_

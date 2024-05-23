@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import random
+import csv
 import pandas as pd
 import time
 
@@ -10,13 +11,13 @@ from common.general_utils import clean_test_env
 from crypto import cryptoutils as cu
 
 
-# TODO: from here
 def banking_data_gen(num_agents=5, num_MB=1, output_dir="integration_new/test_files/banking_p/exp"):
     def generate_indicator(vector_size, proportion_of_ones):
         num_ones = int(vector_size * proportion_of_ones)
         random_vector = np.concatenate([np.zeros(vector_size - num_ones), np.ones(num_ones)])
         np.random.shuffle(random_vector)
         return random_vector
+
     random.seed(42)
     num_records = 10000 * num_MB
     # Need to generate independent vars: amt, gender, lat, long, merch_lat, merch_long, city_pop_thousands, age
@@ -92,20 +93,26 @@ def banking_data_gen(num_agents=5, num_MB=1, output_dir="integration_new/test_fi
     print(final_df[:5])
 
     # Partition the data and write to files
-    num_train_per_bank = int(num_records * (4/25))
-    num_test_per_bank = int(num_records * (1/25))
+    num_train_per_bank = int(num_records * (4 / 25))
+    num_test_per_bank = int(num_records * (1 / 25))
     prev_index = 0
     for i in range(num_agents):
-        cur_train_partition = final_df[prev_index: prev_index+num_train_per_bank]
-        cur_test_partition = final_df[prev_index+num_train_per_bank: prev_index+num_train_per_bank+num_test_per_bank]
-        prev_index = prev_index+num_train_per_bank+num_test_per_bank
-        cur_train_path = os.path.join(output_dir, f"train_{i}.csv")
-        cur_test_path = os.path.join(output_dir, f"test_{i}.csv")
+        cur_train_partition = final_df[prev_index: prev_index + num_train_per_bank]
+        cur_test_partition = final_df[
+                             prev_index + num_train_per_bank: prev_index + num_train_per_bank + num_test_per_bank]
+        prev_index = prev_index + num_train_per_bank + num_test_per_bank
+        cur_train_path = os.path.join(output_dir, f"train_{i}_{num_MB}.csv")
+        cur_test_path = os.path.join(output_dir, f"test_{i}_{num_MB}.csv")
         cur_train_partition.to_csv(cur_train_path, index=False)
         cur_test_partition.to_csv(cur_test_path, index=False)
 
 
 if __name__ == '__main__':
+
+    # Run the following code once: Generate the data.
+    # The data will be stored to integration_new/test_files/banking_p/exp folder.
+    # banking_data_gen(num_agents=5, num_MB=10)
+    # banking_data_gen(num_agents=5, num_MB=100)
 
     # Experiment setups
     num_MB = int(sys.argv[1])
@@ -137,7 +144,7 @@ if __name__ == '__main__':
         cipher_sym_key_list.append(cipher_sym_key)
         cur_private_key, cur_public_key = cu.generate_private_public_key_pair()
         public_key_list.append(cur_public_key)
-        ds.create_agent(f"bank{i+1}", "string", cipher_sym_key_list[i], public_key_list[i], )
+        ds.create_agent(f"bank{i + 1}", "string", cipher_sym_key_list[i], public_key_list[i], )
 
     bank1_token = ds.login_agent("bank1", "string")["data"]
     bank2_token = ds.login_agent("bank2", "string")["data"]
@@ -145,39 +152,43 @@ if __name__ == '__main__':
     bank4_token = ds.login_agent("bank4", "string")["data"]
     bank5_token = ds.login_agent("bank5", "string")["data"]
 
-    # Step 2: Generate the data. They will be stored to integration_new/test_files/banking_p/exp folder.
-    banking_data_gen(num_agents=5, num_MB=num_MB)
-
-    # Step 3: Upload the data
+    # Step 2: Upload the data
     token_dict = {0: bank1_token, 1: bank2_token, 2: bank3_token, 3: bank4_token, 4: bank5_token}
     for i in range(num_users):
         cur_token = token_dict[i]
-        cur_train_de = f"integration_new/test_files/banking_p/exp/train_{i}.csv"
+        cur_train_de = f"integration_new/test_files/banking_p/exp/train_{i}_{num_MB}.csv"
         f = open(cur_train_de, "rb")
         plaintext_bytes = f.read()
         f.close()
         print(ds.call_api(cur_token, "upload_data_in_csv", plaintext_bytes))
-        cur_test_de = f"integration_new/test_files/banking_p/exp/test_{i}.csv"
+        cur_test_de = f"integration_new/test_files/banking_p/exp/test_{i}_{num_MB}.csv"
         f = open(cur_test_de, "rb")
         plaintext_bytes = f.read()
         f.close()
         print(ds.call_api(cur_token, "upload_data_in_csv", plaintext_bytes))
 
-    # To test short-circuiting: first approve two contracts
-    dest_agents = [1]
-    data_elements = [1, 2, 3, 4, 5, 6]
-    ds.call_api(bank1_token, "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
-                "is_fraud", 1000, 0.95)
-    ds.call_api(bank2_token, "approve_contract", 1)
-    ds.call_api(bank3_token, "approve_contract", 1)
+    # # To test short-circuiting: first approve two contracts
+    # # When test "none", comment out the code block below
+    # dest_agents = [1]
+    # data_elements = [1, 2, 3, 4, 5, 6]
+    # ds.call_api(bank1_token, "propose_contract", dest_agents, data_elements, "train_model_with_conditions",
+    #             "is_fraud", 1000, 0.95)
+    # ds.call_api(bank2_token, "approve_contract", 1)
+    # ds.call_api(bank3_token, "approve_contract", 1)
 
     # For recording time: run it 10 times and 50 times
     start_time = time.time()
-    for _ in range(10):
+    for _ in range(11):
+        run_start_time = time.time()
         res = ds.call_api(bank1_token, "train_model_with_conditions",
                           "is_fraud", 1000, 0.95)
-    print("Time for 10 runs:", time.time() - start_time)
-    print(res)
+        run_end_time = time.time()
+        with open(f"numbers/shortcircuit/{num_MB}_none_banking.csv", "a") as file:
+            writer = csv.writer(file)
+            writer.writerow([res["experiment_time_arr"][0] - run_start_time,
+                             res["experiment_time_arr"][1] - res["experiment_time_arr"][0],
+                             run_end_time - res["experiment_time_arr"][1]])
+    print("Time for all runs:", time.time() - start_time)
 
     # Last step: shut down the Data Station
     ds.shut_down()
