@@ -8,8 +8,8 @@ from ast import literal_eval
 
 from run_function import load_connectors
 from Interceptor import interceptor
-from escrow_api_docker import EscrowAPIDocker
-from escrowapi.escrow_api import EscrowAPI
+from contract_api_docker import ContractAPIDocker
+from contractapi.contract_api import ContractAPI
 import multiprocessing
 from dsapplicationregistration.dsar_core import get_registered_functions
 
@@ -30,7 +30,7 @@ def run_function(f_res_queue, function_name, f_args, f_kwargs):
             # print("call", function_name)
             try:
                 result = cur_api(*f_args, **f_kwargs)
-                f_res_queue.put((result, EscrowAPI.get_comp().derived_des_to_create))
+                f_res_queue.put((result, ContractAPI.get_comp().derived_des_to_create))
             except:
                 f_res_queue.put((None, []))
 
@@ -66,8 +66,8 @@ def main():
     print("setting up...")
 
     # Set up escrow_api docker
-    escrow_api_docker = EscrowAPIDocker(accessible_de, agents_symmetric_key, start_de_id)
-    EscrowAPI.set_comp(escrow_api_docker)
+    escrow_api_docker = ContractAPIDocker(accessible_de, agents_symmetric_key, start_de_id)
+    ContractAPI.set_comp(escrow_api_docker)
 
     # Step 1: Set up the interceptor
     accessible_data_set = set()

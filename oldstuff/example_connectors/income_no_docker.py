@@ -6,7 +6,7 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 
 from dsapplicationregistration.dsar_core import register
-from escrowapi import escrow_api
+from contractapi import contract_api
 
 
 @register

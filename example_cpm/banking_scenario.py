@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 
 import csv
 import pandas as pd
@@ -10,31 +10,31 @@ from sklearn import preprocessing
 
 @api_endpoint
 def upload_data_in_csv(de_in_bytes):
-    return EscrowAPI.CSVDEStore.write(de_in_bytes)
+    return ContractAPI.CSVDEStore.write(de_in_bytes)
 
 @api_endpoint
 def propose_contract(dest_agents, des, f, *args, **kwargs):
-    return EscrowAPI.propose_contract(dest_agents, des, f, *args, **kwargs)
+    return ContractAPI.propose_contract(dest_agents, des, f, *args, **kwargs)
 
 @api_endpoint
 def approve_contract(contract_id):
-    return EscrowAPI.approve_contract(contract_id)
+    return ContractAPI.approve_contract(contract_id)
 
 @api_endpoint
 def upload_cmr(dest_a_id, de_id, f):
-    return EscrowAPI.upload_cmr(dest_a_id, de_id, f)
+    return ContractAPI.upload_cmr(dest_a_id, de_id, f)
 
 @api_endpoint
 def show_contracts_pending_my_approval():
-    return EscrowAPI.show_contracts_pending_my_approval()
+    return ContractAPI.show_contracts_pending_my_approval()
 
 @api_endpoint
 def show_my_contracts_pending_approval():
-    return EscrowAPI.show_my_contracts_pending_approval()
+    return ContractAPI.show_my_contracts_pending_approval()
 
 @api_endpoint
 def list_all_des_with_src():
-    return EscrowAPI.list_all_des_with_src()
+    return ContractAPI.list_all_des_with_src()
 
 @api_endpoint
 @function
@@ -44,19 +44,17 @@ def show_schema(de_ids):
     de_schema_dict = {}
     # Following line tests short-circuiting
     for de_id in de_ids:
-        de_path = EscrowAPI.CSVDEStore.read(de_id)
+        de_path = ContractAPI.CSVDEStore.read(de_id)
         with open(de_path, 'r') as csvfile:
             csv_reader = csv.reader(csvfile)
             header = next(csv_reader)
             de_schema_dict[de_id] = header
-    # Following line tests short-circuiting
-    # time.sleep(20)
     return de_schema_dict
 
 @api_endpoint
 @function
 def share_sample(de_id, sample_size):
-    de_path = EscrowAPI.CSVDEStore.read(de_id)
+    de_path = ContractAPI.CSVDEStore.read(de_id)
     df = pd.read_csv(de_path)
     sample_size = min(sample_size, len(df))
     sample = df.sample(n=sample_size)
@@ -65,7 +63,7 @@ def share_sample(de_id, sample_size):
 @api_endpoint
 @function
 def share_de(de_id):
-    de_path = EscrowAPI.CSVDEStore.read(de_id)
+    de_path = ContractAPI.CSVDEStore.read(de_id)
     df = pd.read_csv(de_path)
     return df
 
@@ -79,8 +77,8 @@ def check_column_compatibility(de_1, de_2, cols_1, cols_2):
     # Loop through the cols array (needs to be same length)
     # For each pair: first get their types, then do KS test if both numerical, else jaccard similarity.
     res_str = ""
-    de_1_path = EscrowAPI.CSVDEStore.read(de_1)
-    de_2_path = EscrowAPI.CSVDEStore.read(de_2)
+    de_1_path = ContractAPI.CSVDEStore.read(de_1)
+    de_2_path = ContractAPI.CSVDEStore.read(de_2)
     conn = duckdb.connect()
     numerical_types = ['INT', 'BIGINT', 'SMALLINT', 'FLOAT', 'DOUBLE', 'DECIMAL']
     text_types = ['CHAR', 'VARCHAR', 'TEXT']
@@ -133,13 +131,13 @@ def train_model_with_conditions(label_name,
     train_df_list = []
     test_df_list = []
     for de_id in train_de_ids:
-        de_path = EscrowAPI.CSVDEStore.read(de_id)
+        de_path = ContractAPI.CSVDEStore.read(de_id)
         cur_df = pd.read_csv(de_path)
         if len(cur_df) < size_constraint:
             return "Pre-condition: input size constraint failed. Model did not train."
         train_df_list.append(cur_df)
     for de_id in test_de_ids:
-        de_path = EscrowAPI.CSVDEStore.read(de_id)
+        de_path = ContractAPI.CSVDEStore.read(de_id)
         cur_df = pd.read_csv(de_path)
         test_df_list.append(cur_df)
     train_df = pd.concat(train_df_list, ignore_index=True, axis=0)

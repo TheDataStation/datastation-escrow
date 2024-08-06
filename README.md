@@ -1,9 +1,13 @@
-# Data Station
+# Programmable Dataflows
 
-This project contains the source code for the Data Station, which is a computational and data management infrastructure 
-designed to enable the formation of data-sharing consortia. (an intermediary **data escrow**)
+This project contains the source code for **programmable dataflows**, a programming model designed to facilitate data-sharing
+through the **contract** abstraction, implemented on top of an intermediary **data escrow**.
 
 ## Setup
+
+Clone the repo.
+
+    git clone https://github.com/TheDataStation/DataStation.git
 
 Run the following command from the root directory to install the necessary packages.
 
@@ -15,11 +19,11 @@ Create the needed directories
 
 ## Run a simple application
 
-Here is the code to run a simple application: printing out the first line of a file.
+Here is the code to run a simple data sharing application: share the schema of a csv file with others.
 
 Use the following configs in data_station_config.yaml
 
-    epm_path: "example_epm/general_test.py"
+    cpm_path: "example_cpm/share_schema_app.py"
     trust_mode: "full_trust"
     in_development: True
 
@@ -48,45 +52,72 @@ Use the following configs in data_station_config.yaml
 
     in_development: False
 
-## Notes For Developers
- 
-Data Station is a computational and data management infrastructure.
-Developers will write applications they want to run on top of Data Station. 
-In this section, we explain how to develop applications for Data Station.
+[//]: # (## Notes For Developers)
 
-An application that can run on Data Station is specified as a python file under the
-example_epm/ directory, called an **EPM file**. An example of an EPM file is:
+[//]: # ( )
+[//]: # (Data Station is a computational and data management infrastructure.)
 
-    example_epm/sharing_consortia.py
+[//]: # (Developers will write applications they want to run on top of Data Station. )
 
-Each application (EPM file) exposes to users a set of APIs they can call. 
-These are functions tagged with @api_endpoint. These APIs can include functionalities
-like registering a data element, proposing a contract, etc. 
-An example of an API endpoint in sharing_consortia.py is
+[//]: # (In this section, we explain how to develop applications for Data Station.)
 
-    @api_endpoint
-    def register_de(...):
+[//]: # ()
+[//]: # (An application that can run on Data Station is specified as a python file under the)
 
-A special class of APIs are additionally tagged with @function. 
-These are APIs that users can call, that need to access the content of data elements. 
-An example of such an API endpoint in sharing_consortia.py is
+[//]: # (example_epm/ directory, called an **EPM file**. An example of an EPM file is:)
 
-    @api_endpoint
-    @function
-    def calc_pi_and_pip():
+[//]: # ()
+[//]: # (    example_epm/sharing_consortia.py)
 
-Data Station provides a set of default implementation for some of these 
-functionalities. Those are written in escrowapi/escrow_api.py.
+[//]: # ()
+[//]: # (Each application &#40;EPM file&#41; exposes to users a set of APIs they can call. )
 
-To run an application once it's written, modify data_station_config.yaml.
+[//]: # (These are functions tagged with @api_endpoint. These APIs can include functionalities)
 
-    epm_path: "example_epm/<Your EPM File>"
+[//]: # (like registering a data element, proposing a contract, etc. )
 
-You can test the application by writing a script, or interact it through FastAPI 
-interface. To use the FastAPI interface, run the following command:
+[//]: # (An example of an API endpoint in sharing_consortia.py is)
 
-    python3 -m server.fastapi_server
+[//]: # ()
+[//]: # (    @api_endpoint)
 
-Then, in your browser, enter:
+[//]: # (    def register_de&#40;...&#41;:)
 
-    http://localhost:8000/docs
+[//]: # ()
+[//]: # (A special class of APIs are additionally tagged with @function. )
+
+[//]: # (These are APIs that users can call, that need to access the content of data elements. )
+
+[//]: # (An example of such an API endpoint in sharing_consortia.py is)
+
+[//]: # ()
+[//]: # (    @api_endpoint)
+
+[//]: # (    @function)
+
+[//]: # (    def calc_pi_and_pip&#40;&#41;:)
+
+[//]: # ()
+[//]: # (Data Station provides a set of default implementation for some of these )
+
+[//]: # (functionalities. Those are written in escrowapi/escrow_api.py.)
+
+[//]: # ()
+[//]: # (To run an application once it's written, modify data_station_config.yaml.)
+
+[//]: # ()
+[//]: # (    epm_path: "example_epm/<Your EPM File>")
+
+[//]: # ()
+[//]: # (You can test the application by writing a script, or interact it through FastAPI )
+
+[//]: # (interface. To use the FastAPI interface, run the following command:)
+
+[//]: # ()
+[//]: # (    python3 -m server.fastapi_server)
+
+[//]: # ()
+[//]: # (Then, in your browser, enter:)
+
+[//]: # ()
+[//]: # (    http://localhost:8000/docs)

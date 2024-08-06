@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 import duckdb
 
 @api_endpoint
@@ -9,40 +9,40 @@ def register_de(username,
                 access_param,
                 optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_de(username, data_name, data_type, access_param, optimistic)
+    return ContractAPI.register_de(username, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
 def upload_de(username,
               data_id,
               data_in_bytes):
-    return EscrowAPI.upload_de(username, data_id, data_in_bytes)
+    return ContractAPI.upload_de(username, data_id, data_in_bytes)
 
 @api_endpoint
 def list_discoverable_des(username,):
-    return EscrowAPI.list_discoverable_des(username)
+    return ContractAPI.list_discoverable_des(username)
 
 @api_endpoint
 def suggest_share(username, dest_agents, data_elements, template, *args, **kwargs):
-    return EscrowAPI.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
+    return ContractAPI.suggest_share(username, dest_agents, data_elements, template, *args, **kwargs)
 
 @api_endpoint
 def show_share(username, share_id):
-    return EscrowAPI.show_share(username, share_id)
+    return ContractAPI.show_share(username, share_id)
 
 @api_endpoint
 def approve_share(username, share_id):
-    return EscrowAPI.approve_share(username, share_id)
+    return ContractAPI.approve_share(username, share_id)
 
 @api_endpoint
 def execute_share(username, share_id):
-    return EscrowAPI.execute_share(username, share_id)
+    return ContractAPI.execute_share(username, share_id)
 
 def get_data(de):
     if de.type == "file":
         return f"'{de.access_param}'"
 
 def assemble_table(conn, table_name):
-    accessible_de = EscrowAPI.get_all_accessible_des()
+    accessible_de = ContractAPI.get_all_accessible_des()
     new_table_flag = True
     for de in accessible_de:
         if de.name == f"{table_name}.csv":
@@ -58,7 +58,7 @@ def assemble_table(conn, table_name):
                 conn.execute(query)
 
 def assemble_orders(conn):
-    accessible_de = EscrowAPI.get_all_accessible_des()
+    accessible_de = ContractAPI.get_all_accessible_des()
     first_table_flag = True
     for de in accessible_de:
         if de.name == f"orders.csv":
@@ -104,7 +104,7 @@ def assemble_table_in_duckdb(conn, accessible_de, joint_table_name):
 @function
 def run_actual_query(query, joint_table_name):
     conn = duckdb.connect()
-    accessible_de = EscrowAPI.get_all_accessible_des()
+    accessible_de = ContractAPI.get_all_accessible_des()
     assemble_table_in_duckdb(conn, accessible_de, joint_table_name)
     query_result = conn.execute(query).fetchall()
     return query_result

@@ -4,7 +4,7 @@ import pickle
 from crypto import cryptoutils
 
 
-class EscrowAPIDocker:
+class ContractAPIDocker:
 
     def __init__(self, accessible_de, agents_symmetric_key, start_de_id):
         self.accessible_de = accessible_de
@@ -37,7 +37,7 @@ class EscrowAPIDocker:
     # Their src DE will be all DEs accessed.
     # We return the newly created DE ID.
     def object_store_write(self, content):
-        print("In EscrowAPIDocker: calling object store write")
+        print("In ContractAPIDocker: calling object store write")
         cur_derived_de_id = self.start_de_id
         derived_de = (cur_derived_de_id, "object", content)
         self.derived_des_to_create.append(derived_de)

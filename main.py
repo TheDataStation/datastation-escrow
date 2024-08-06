@@ -1,7 +1,7 @@
 from ds import DataStation
 from multiprocessing import Process, Event, Queue, Manager
 from common import general_utils
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 
 def initialize_system(ds_config_path, need_to_recover=False):
     """
@@ -17,6 +17,6 @@ def initialize_system(ds_config_path, need_to_recover=False):
 
     ds_config = general_utils.parse_config(ds_config_path)
     ds = DataStation(ds_config, need_to_recover)
-    EscrowAPI.set_comp(ds)
+    ContractAPI.set_comp(ds)
 
     return ds

@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 
 import duckdb
 from sklearn.linear_model import LogisticRegression
@@ -9,39 +9,39 @@ import pickle
 
 @api_endpoint
 def list_all_agents(user_id):
-    return EscrowAPI.list_all_agents(user_id)
+    return ContractAPI.list_all_agents(user_id)
 
 @api_endpoint
 def register_and_upload_de(user_id, de_name, data_in_bytes):
-    register_res = EscrowAPI.register_de(user_id, de_name, "file", de_name)
+    register_res = ContractAPI.register_de(user_id, de_name, "file", de_name)
     if register_res["status"] == 1:
         return register_res
-    return EscrowAPI.upload_de(user_id, register_res["de_id"], data_in_bytes)
+    return ContractAPI.upload_de(user_id, register_res["de_id"], data_in_bytes)
 
 @api_endpoint
 def train_ML_model(user_id, data_elements, model_name, label_name, query=None):
     # TODO: CMP specified afterwards?
-    proposition_res = EscrowAPI.propose_contract(user_id, [user_id], data_elements, "train_ML_model", 1,
-                                                 model_name, label_name, query)
+    proposition_res = ContractAPI.propose_contract(user_id, [user_id], data_elements, "train_ML_model", 1,
+                                                   model_name, label_name, query)
     if proposition_res["contract_id"]:
-        return EscrowAPI.execute_contract(user_id, proposition_res["contract_id"])
+        return ContractAPI.execute_contract(user_id, proposition_res["contract_id"])
     return proposition_res
 
 @api_endpoint
 def propose_SQL_query(user_id, dest_agents, data_elements, query):
-    return EscrowAPI.propose_contract(user_id, dest_agents, data_elements, "run_SQL_query", 0,
-                                      query)
+    return ContractAPI.propose_contract(user_id, dest_agents, data_elements, "run_SQL_query", 0,
+                                        query)
 
 @api_endpoint
 def approve_SQL_query(user_id, contract_id):
-    return EscrowAPI.approve_contract(user_id, contract_id)
+    return ContractAPI.approve_contract(user_id, contract_id)
 
 @api_endpoint
 def execute_SQL_query(user_id, contract_id):
-    return EscrowAPI.execute_contract(user_id, contract_id)
+    return ContractAPI.execute_contract(user_id, contract_id)
 
 def helper_for_SQL_query(query):
-    accessible_des = EscrowAPI.get_all_accessible_des()
+    accessible_des = ContractAPI.get_all_accessible_des()
     facebook_path = None
     youtube_path = None
     for de in accessible_des:
@@ -71,7 +71,7 @@ def train_ML_model(model_name, label_name, query=None):
     if query:
         res_df = run_SQL_query(query)
     else:
-        des = EscrowAPI.get_all_accessible_des()
+        des = ContractAPI.get_all_accessible_des()
         if len(des) != 1:
             print("Wrong number of DEs in contract")
             return -1

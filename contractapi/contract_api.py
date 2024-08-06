@@ -1,4 +1,4 @@
-class EscrowAPI:
+class ContractAPI:
     __comp = None
 
     class CSVDEStore:

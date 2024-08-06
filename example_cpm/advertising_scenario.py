@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 
 import duckdb
 from sklearn.linear_model import LogisticRegression
@@ -9,39 +9,39 @@ import pickle
 
 @api_endpoint
 def list_all_agents():
-    return EscrowAPI.list_all_agents()
+    return ContractAPI.list_all_agents()
 
 @api_endpoint
 def list_all_des_with_src():
-    return EscrowAPI.list_all_des_with_src()
+    return ContractAPI.list_all_des_with_src()
 
 @api_endpoint
 def get_all_functions():
-    return EscrowAPI.get_all_functions()
+    return ContractAPI.get_all_functions()
 
 @api_endpoint
 def get_function_info(function_name):
-    return EscrowAPI.get_function_info(function_name)
+    return ContractAPI.get_function_info(function_name)
 
 @api_endpoint
 def upload_data_in_csv(content):
-    return EscrowAPI.CSVDEStore.write(content)
+    return ContractAPI.CSVDEStore.write(content)
 
 @api_endpoint
 def propose_contract(dest_agents, des, f, *args, **kwargs):
-    return EscrowAPI.propose_contract(dest_agents, des, f, *args, **kwargs)
+    return ContractAPI.propose_contract(dest_agents, des, f, *args, **kwargs)
 
 @api_endpoint
 def show_all_contracts_as_src():
-    return EscrowAPI.show_all_contracts_as_src()
+    return ContractAPI.show_all_contracts_as_src()
 
 @api_endpoint
 def list_all_des_with_src():
-    return EscrowAPI.list_all_des_with_src()
+    return ContractAPI.list_all_des_with_src()
 
 @api_endpoint
 def approve_contract(contract_id):
-    return EscrowAPI.approve_contract(contract_id)
+    return ContractAPI.approve_contract(contract_id)
 
 
 # What should the income query look like? We will do a query replacement
@@ -57,10 +57,10 @@ def update_query(query):
     facebook_accessed = query.lower().find("facebook")
     youtube_accessed = query.lower().find("youtube")
     if facebook_accessed != -1:
-        facebook_path = EscrowAPI.CSVDEStore.read(1)
+        facebook_path = ContractAPI.CSVDEStore.read(1)
         query_second_half = query_second_half.replace("facebook", f"read_csv_auto('{facebook_path}') as facebook", 1)
     if youtube_accessed != -1:
-        youtube_path = EscrowAPI.CSVDEStore.read(2)
+        youtube_path = ContractAPI.CSVDEStore.read(2)
         query_second_half = query_second_half.replace("youtube", f"read_csv_auto('{youtube_path}') as youtube", 1)
     return query_first_half + query_second_half
 
@@ -84,15 +84,15 @@ def train_model_over_joined_data(model_name, label_name, query=None):
     if model_name not in ["logistic_regression", "linear_regression", "decision_tree"]:
         return "Model Type not currently supported"
     # First check if the joined df has been preserved already
-    joined_de_id = EscrowAPI.load("joined_de_id")
+    joined_de_id = ContractAPI.load("joined_de_id")
     res_df = None
     if joined_de_id:
         print(joined_de_id)
-        res_df = EscrowAPI.ObjectDEStore.read(joined_de_id)
+        res_df = ContractAPI.ObjectDEStore.read(joined_de_id)
     elif query:
         res_df = run_query(query)
-        joined_de_id = EscrowAPI.ObjectDEStore.write(res_df)
-        EscrowAPI.store("joined_de_id", joined_de_id["de_id"])
+        joined_de_id = ContractAPI.ObjectDEStore.write(res_df)
+        ContractAPI.store("joined_de_id", joined_de_id["de_id"])
     if res_df is not None:
         X = res_df.drop(label_name, axis=1)
         y = res_df[label_name]

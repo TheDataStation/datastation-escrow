@@ -20,7 +20,7 @@ class Gatekeeper:
                  write_ahead_log: WAL,
                  key_manager: KeyManager,
                  trust_mode: str,
-                 epf_path,
+                 cpm_path,
                  config: DSConfig,
                  development_mode,
                  ):
@@ -38,7 +38,7 @@ class Gatekeeper:
         self.key_manager = key_manager
         self.trust_mode = trust_mode
 
-        self.epf_path = epf_path
+        self.cpm_path = cpm_path
         self.mount_dir = self.config.ds_storage_path
         self.docker_id = 1
         self.server = FlaskDockerServer()
@@ -141,7 +141,7 @@ class Gatekeeper:
         else:
             agents_symmetric_key = self.key_manager.agents_symmetric_key
         ret = call_actual_api(function,
-                              self.epf_path,
+                              self.cpm_path,
                               self.config,
                               start_de_id,
                               agents_symmetric_key,
@@ -238,7 +238,7 @@ class Gatekeeper:
 
 
 def call_actual_api(function_name,
-                    epf_path,
+                    cpm_path,
                     config: DSConfig,
                     start_de_id,
                     agents_symmetric_key,
@@ -255,7 +255,7 @@ def call_actual_api(function_name,
 
     Parameters:
      function_name: name of API to run on Docker container
-     epf_path: path to the epf file
+     cpm_path: path to the cpm file
      config: DS config
      agents_symmetric_key: key manager storing all the sym keys
      all_des: all DataElement
@@ -271,12 +271,12 @@ def call_actual_api(function_name,
 
     print(os.path.dirname(os.path.realpath(__file__)))
     # print(api_name, *args, **kwargs)
-    epf_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + epf_path
+    cpm_realpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + cpm_path
 
     config_dict = {"accessible_de": all_des, "derived_de_origin_dict": derived_de_origin_dict, "docker_id": docker_id,
                    "agents_symmetric_key": agents_symmetric_key, "approved_de_sets": approved_de_sets,
                    "operating_system": config.operating_system, "start_de_id": start_de_id}
-    print("The real epf path is", epf_realpath)
+    print("The real CPM path is", cpm_realpath)
 
     # print(session.container.top())
 
@@ -288,7 +288,7 @@ def call_actual_api(function_name,
         if function_name == cur_f.__name__:
             # print(cur_f.__name__)
             print("call", function_name)
-            docker_session.flask_run(function_name, epf_realpath, config.ds_storage_path, config_dict, *args, **kwargs)
+            docker_session.flask_run(function_name, cpm_realpath, config.ds_storage_path, config_dict, *args, **kwargs)
             ret = docker_session.server.q.get(block=True)
             # print(ret)
             return ret

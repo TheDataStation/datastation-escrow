@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 
 import csv
 import psycopg2
@@ -36,37 +36,37 @@ def register_de(username,
                 access_param,
                 optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_de(username, de_name, de_type, access_param, optimistic)
+    return ContractAPI.register_de(username, de_name, de_type, access_param, optimistic)
 
 
 @api_endpoint
 def upload_data(username,
                 data_id,
                 data_in_bytes):
-    return EscrowAPI.upload_de(username, data_id, data_in_bytes)
+    return ContractAPI.upload_de(username, data_id, data_in_bytes)
 
 
 @api_endpoint
 def upload_policy(username, user_id, api, data_id):
     print("This is a customized upload policy!")
-    return EscrowAPI.upload_policy(username, user_id, api, data_id)
+    return ContractAPI.upload_policy(username, user_id, api, data_id)
 
 
 @api_endpoint
 def suggest_share(username, agents, functions, data_elements):
-    return EscrowAPI.suggest_share(username, agents, functions, data_elements)
+    return ContractAPI.suggest_share(username, agents, functions, data_elements)
 
 
 @api_endpoint
 def ack_data_in_share(username, data_id, share_id):
-    return EscrowAPI.approve_share(username, data_id, share_id)
+    return ContractAPI.approve_share(username, data_id, share_id)
 
 
 @api_endpoint
 @function
 def retrieve_data():
     """get the content of the data elements"""
-    accessible_de = EscrowAPI.get_all_accessible_des()
+    accessible_de = ContractAPI.get_all_accessible_des()
     res = []
     for cur_de in set(accessible_de):
         print(cur_de.type)
@@ -86,7 +86,7 @@ def retrieve_data():
 def line_count():
     """count number of lines in a file"""
     print("starting counting line numbers")
-    accessible_de = EscrowAPI.get_all_accessible_des()
+    accessible_de = ContractAPI.get_all_accessible_des()
     res = []
     for cur_de in set(accessible_de):
         file_name = get_data(cur_de)

@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 from typing import List, Tuple
 import duckdb
 import numpy as np
@@ -11,14 +11,14 @@ def get_data(de):
         return f"'{de.access_param}'"
 
 def get_column(de_id, attr_name) -> List:
-    de = EscrowAPI.get_de_by_id(de_id)
+    de = ContractAPI.get_de_by_id(de_id)
     table_name = get_data(de)
     query = f"SELECT {attr_name} FROM {table_name}"
     res = duckdb.sql(query).fetchall()
     return res
 
 def cast_colummn(de_id, attr_name, cast_type) -> List:
-    de = EscrowAPI.get_de_by_id(de_id)
+    de = ContractAPI.get_de_by_id(de_id)
     table_name = get_data(de)
     query = f"SELECT CAST({attr_name} AS {cast_type}) FROM {table_name}"
     try:
@@ -29,7 +29,7 @@ def cast_colummn(de_id, attr_name, cast_type) -> List:
         return None
 
 def get_column_type(de_id, attr_name) -> str:
-    de = EscrowAPI.get_de_by_id(de_id)
+    de = ContractAPI.get_de_by_id(de_id)
     table_name = get_data(de)
     con = duckdb.connect()
     qry = f"DESCRIBE SELECT {attr_name} FROM '{de.access_param}'"
@@ -45,21 +45,21 @@ def register_data(username,
                   access_param,
                   optimistic):
     print("This is a customized register data!")
-    return EscrowAPI.register_de(username, data_name, data_type, access_param, optimistic)
+    return ContractAPI.register_de(username, data_name, data_type, access_param, optimistic)
 
 @api_endpoint
 def upload_data(username,
                 data_id,
                 data_in_bytes):
-    return EscrowAPI.upload_de(username, data_id, data_in_bytes)
+    return ContractAPI.upload_de(username, data_id, data_in_bytes)
 
 @api_endpoint
 def suggest_share(username, agents, functions, data_elements):
-    return EscrowAPI.suggest_share(username, agents, functions, data_elements)
+    return ContractAPI.suggest_share(username, agents, functions, data_elements)
 
 @api_endpoint
 def ack_data_in_share(username, data_id, share_id):
-    return EscrowAPI.approve_share(username, data_id, share_id)
+    return ContractAPI.approve_share(username, data_id, share_id)
 
 '''
 returns all data elements registered in enclave mode with the data station
@@ -67,7 +67,7 @@ returns all data elements registered in enclave mode with the data station
 @api_endpoint
 @function
 def show_data_in_ds() -> List[Tuple]:
-    data_elements = EscrowAPI.get_all_accessible_des()
+    data_elements = ContractAPI.get_all_accessible_des()
     ret: List[Tuple] = []
     for de in data_elements:
         ret.append((de.id, de.owner_id))
@@ -79,7 +79,7 @@ Returns description for DE provided during register
 @api_endpoint
 @function
 def show_de_description(de_id) -> str:
-    de = EscrowAPI.get_de_by_id(de_id)
+    de = ContractAPI.get_de_by_id(de_id)
     return de.desc
 
 '''
@@ -88,13 +88,13 @@ Returns format for DE
 @api_endpoint
 @function
 def show_de_format(de_id) -> str:
-    de = EscrowAPI.get_de_by_id(de_id)
+    de = ContractAPI.get_de_by_id(de_id)
     return de.type
 
 
 @api_endpoint
 def request_de_schema(username, user_id, data_id): 
-    return EscrowAPI.suggest_share(username, user_id, [user_id], ["show_de_schema"], [data_id])    
+    return ContractAPI.suggest_share(username, user_id, [user_id], ["show_de_schema"], [data_id])
 
 '''
 Returns schema for DE
@@ -102,7 +102,7 @@ Returns schema for DE
 @api_endpoint
 @function
 def show_de_schema(de_id) -> List[Tuple[str, str]]:
-    de = EscrowAPI.get_de_by_id(de_id)
+    de = ContractAPI.get_de_by_id(de_id)
     if de.type == "file":
         con = duckdb.connect()
         qry = f"DESCRIBE SELECT * FROM '{de.access_param}'"
@@ -125,8 +125,8 @@ def request_column_intersection(username, user_id, data_id, my_data_id=None):
     data_elements = [data_id]
     if my_data_id is not None:
         data_elements.append(my_data_id)
-    return EscrowAPI.suggest_share(username, [user_id], ["column_intersection"],
-                                   data_elements)
+    return ContractAPI.suggest_share(username, [user_id], ["column_intersection"],
+                                     data_elements)
 
 '''
 Performs private set intersection between values in column attr_name in DE
@@ -149,8 +149,8 @@ def column_intersection(src_de_id, src_attr: str, values: List = None,
 
 @api_endpoint
 def request_compatibility_check(username, user_id, src_de_id, tgt_de_id):
-    return EscrowAPI.suggest_share(username, [user_id], ["is_format_compatible"],
-                                   [src_de_id, tgt_de_id])
+    return ContractAPI.suggest_share(username, [user_id], ["is_format_compatible"],
+                                     [src_de_id, tgt_de_id])
 
 @api_endpoint
 @function
@@ -205,8 +205,8 @@ def reformat_data(user_id, de_id, attr_name, fmt: str):
 
 @api_endpoint
 def request_compare_distrib(username, user_id, src_data_id, tgt_data_id):
-    return EscrowAPI.suggest_share(username, [user_id], ["compare_distributions"],
-                                   [src_data_id, tgt_data_id])
+    return ContractAPI.suggest_share(username, [user_id], ["compare_distributions"],
+                                     [src_data_id, tgt_data_id])
 
 '''
 Compare distributions between attributes within data elements
@@ -228,8 +228,8 @@ Request sample of data
 '''
 @api_endpoint
 def request_sample(username, user_id, data_id):
-    return EscrowAPI.suggest_share(username, [user_id], ["show_sample"],
-                                   [data_id])
+    return ContractAPI.suggest_share(username, [user_id], ["show_sample"],
+                                     [data_id])
 
 '''
 Return sample of column from data element; default sample size is 10 rows
@@ -239,7 +239,7 @@ Return sample of column from data element; default sample size is 10 rows
 # NOTE: sample-size has to be fixed or this function could be abused. 
 # are there other situations where that can be the case?
 def show_sample(de_id, attr_name):
-    de = EscrowAPI.get_de_by_id(de_id)
+    de = ContractAPI.get_de_by_id(de_id)
     con = duckdb.connect()
     qry = "SELECT {attr_name} FROM {de.access_param} LIMIT 10"
     results = con.execute(qry).fetchall() # results of the form: [(N,)]

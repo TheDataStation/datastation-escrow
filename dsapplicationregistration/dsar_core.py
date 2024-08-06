@@ -62,8 +62,8 @@ class APIEndPoint:
 function = Function()
 api_endpoint = APIEndPoint()
 
-def register_epf(epf_path):
-    spec = importlib.util.spec_from_file_location("", epf_path)
+def register_cpm(cpm_path):
+    spec = importlib.util.spec_from_file_location("", cpm_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 

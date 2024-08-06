@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 
 from dowhy import CausalModel
 import io
@@ -13,16 +13,16 @@ def upload_data_in_csv(de_in_bytes):
     # Check that user's uploaded data has an attribute called "CPR": the join key.
     df = pd.read_csv(io.BytesIO(de_in_bytes))
     if "CPR" in df.columns:
-        return EscrowAPI.CSVDEStore.write(de_in_bytes, )
+        return ContractAPI.CSVDEStore.write(de_in_bytes, )
     else:
         return "Error: Input not CSV, or 'CPR' column does not exist in the data."
 
 
 @api_endpoint
 def approve_all_causal_queries():
-    upload_cmp_res = EscrowAPI.upload_cmr(0, 1, "run_causal_query")
+    upload_cmp_res = ContractAPI.upload_cmr(0, 1, "run_causal_query")
     if upload_cmp_res["status"] == 0:
-        EscrowAPI.store("cmp_uploaded", True)
+        ContractAPI.store("cmp_uploaded", True)
     return upload_cmp_res
 
 
@@ -38,8 +38,8 @@ def run_causal_query(user_de_id, additional_vars, dag_spec, treatment, outcome):
     outcome: name of outcome variable.
     :return: calculated effect (assuming linear) of treatment on outcome
     """
-    dnpr_de_path = EscrowAPI.CSVDEStore.read(1)
-    input_de_path = EscrowAPI.CSVDEStore.read(user_de_id)
+    dnpr_de_path = ContractAPI.CSVDEStore.read(1)
+    input_de_path = ContractAPI.CSVDEStore.read(user_de_id)
     # First run the join
     conn = duckdb.connect()
     addtional_var_statement = ""
@@ -66,12 +66,12 @@ def run_causal_query(user_de_id, additional_vars, dag_spec, treatment, outcome):
 
 # @api_endpoint
 # def run_causal_query(user_id, user_DE_id, additional_vars, dag_spec, treatment, outcome):
-#     cmp_uploaded = EscrowAPI.load("cmp_uploaded")
+#     cmp_uploaded = ContractAPI.load("cmp_uploaded")
 #     if cmp_uploaded:
 #         # TODO: de_id = calc_causal_dnpr(params...)
-#         proposition_res = EscrowAPI.propose_contract(user_id, [user_id], [1, user_DE_id], "calc_causal_dnpr",
+#         proposition_res = ContractAPI.propose_contract(user_id, [user_id], [1, user_DE_id], "calc_causal_dnpr",
 #                                                      additional_vars, dag_spec, treatment, outcome)
-#         return EscrowAPI.execute_contract(user_id, proposition_res["contract_id"])
+#         return ContractAPI.execute_contract(user_id, proposition_res["contract_id"])
 #
 #         # TODO: return calc_causal_dnpr(additional_vars, dag_spec, treatment, outcome)
 #     else:
@@ -90,12 +90,12 @@ def run_causal_query(user_de_id, additional_vars, dag_spec, treatment, outcome):
 #     outcome: name of outcome variable.
 #     :return: calculated effect (assuming linear) of treatment on outcome
 #     """
-#     de_ids = EscrowAPI.get_contract_de_ids()
+#     de_ids = ContractAPI.get_contract_de_ids()
 #     for de_id in de_ids:
 #         if de_id == 1:
-#             dnpr_de_path = EscrowAPI.CSVDEStore.read(de_id)
+#             dnpr_de_path = ContractAPI.CSVDEStore.read(de_id)
 #         else:
-#             input_de_path = EscrowAPI.CSVDEStore.read(de_id)
+#             input_de_path = ContractAPI.CSVDEStore.read(de_id)
 #     # First run the join
 #     conn = duckdb.connect()
 #     addtional_var_statement = ""

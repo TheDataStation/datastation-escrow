@@ -22,7 +22,7 @@ from dsapplicationregistration.dsar_core import (get_registered_api_endpoint,
                                                  get_registered_functions,
                                                  clear_api_endpoint,
                                                  clear_function,
-                                                 register_epf, )
+                                                 register_cpm, )
 from agentmanager import agent_manager
 from functionmanager import function_manager
 from common.abstraction import DataElement
@@ -82,10 +82,10 @@ class DataStation:
             log_in_memory_flag, log_path, self.trust_mode)
 
         # print(self.storage_path)
-        self.epf_path = self.config.epf_path
+        self.cpm_path = self.config.cpm_path
 
         # register all api_endpoints
-        register_epf(self.epf_path)
+        register_cpm(self.cpm_path)
 
         # set up the gatekeeper
         self.gatekeeper = Gatekeeper(
@@ -93,7 +93,7 @@ class DataStation:
             self.write_ahead_log,
             self.key_manager,
             self.trust_mode,
-            self.epf_path,
+            self.cpm_path,
             self.config,
             # self.config.ds_storage_path,
             self.development_mode,
@@ -273,7 +273,7 @@ class DataStation:
                                                                  self.key_manager.agents_symmetric_key[0])
                 return self.storage_manager.write(res["de_id"], content, "csv")
 
-        # Else, it can only be called from api_endpoint (the other implementation should be in EscrowAPIDocker)
+        # Else, it can only be called from api_endpoint (the other implementation should be in ContractAPIDocker)
         else:
             res = self.register_de(self.caller_id, "csv", False)
             if res["status"]:
@@ -316,7 +316,7 @@ class DataStation:
                                                                        self.key_manager.agents_symmetric_key[0])
                 return self.storage_manager.write(res["de_id"], pickled_bytes, "object")
         # If not in development,
-        # it can only be called from api_endpoint (the other implementation should be in EscrowAPIDocker)
+        # it can only be called from api_endpoint (the other implementation should be in ContractAPIDocker)
         else:
             res = self.register_de(self.caller_id, "object", False)
             if res["status"]:

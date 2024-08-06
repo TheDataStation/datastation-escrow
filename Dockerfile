@@ -21,5 +21,5 @@ RUN pip install -r requirements.txt
 
 COPY common common
 COPY crypto crypto
-COPY escrowapi escrowapi
+COPY contractapi escrowapi
 COPY dsapplicationregistration dsapplicationregistration

@@ -30,7 +30,7 @@ class DSConfig:
             ds_config["storage_path"]).absolute())
 
         # EPF connector
-        self.epf_path = ds_config["epf_path"]
+        self.cpm_path = ds_config["cpm_path"]
 
         # development mode
         self.development_mode = ds_config["in_development_mode"]

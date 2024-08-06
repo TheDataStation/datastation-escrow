@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 from dsapplicationregistration.dsar_core import register
-from escrowapi import escrow_api
+from contractapi import contract_api
 
 
 @register

@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 
 import time
 import duckdb
@@ -8,19 +8,19 @@ from sklearn.neural_network import MLPClassifier
 
 @api_endpoint
 def upload_data_in_csv(de_in_bytes):
-    return EscrowAPI.CSVDEStore.write(de_in_bytes)
+    return ContractAPI.CSVDEStore.write(de_in_bytes)
 
 @api_endpoint
 def propose_contract(dest_agents, des, f, *args, **kwargs):
-    return EscrowAPI.propose_contract(dest_agents, des, f, *args, **kwargs)
+    return ContractAPI.propose_contract(dest_agents, des, f, *args, **kwargs)
 
 @api_endpoint
 def approve_contract(contract_id):
-    return EscrowAPI.approve_contract(contract_id)
+    return ContractAPI.approve_contract(contract_id)
 
 @api_endpoint
 def upload_data_in_csv(content):
-    return EscrowAPI.CSVDEStore.write(content)
+    return ContractAPI.CSVDEStore.write(content)
 
 # What should the income query look like? We will do a query replacement
 # select * from facebook
@@ -35,10 +35,10 @@ def update_query(query):
     facebook_accessed = query.lower().find("facebook")
     youtube_accessed = query.lower().find("youtube")
     if facebook_accessed != -1:
-        facebook_path = EscrowAPI.CSVDEStore.read(1)
+        facebook_path = ContractAPI.CSVDEStore.read(1)
         query_second_half = query_second_half.replace("facebook", f"read_csv_auto('{facebook_path}') as facebook", 1)
     if youtube_accessed != -1:
-        youtube_path = EscrowAPI.CSVDEStore.read(2)
+        youtube_path = ContractAPI.CSVDEStore.read(2)
         query_second_half = query_second_half.replace("youtube", f"read_csv_auto('{youtube_path}') as youtube", 1)
     return query_first_half + query_second_half
 
@@ -59,16 +59,16 @@ def run_query(query):
 @function
 def train_model_over_joined_data_v1(model_name, label_name, query=None):
     # First check if the joined df has been preserved already
-    joined_de_id = EscrowAPI.load("joined_de_id")
+    joined_de_id = ContractAPI.load("joined_de_id")
     res_df = None
     if joined_de_id:
         print(joined_de_id)
-        res_df = EscrowAPI.ObjectDEStore.read(joined_de_id)
+        res_df = ContractAPI.ObjectDEStore.read(joined_de_id)
     elif query:
         print("Need to preserve intermediate DEs!")
         res_df = run_query(query)
-        joined_de_id = EscrowAPI.ObjectDEStore.write(res_df)
-        EscrowAPI.store("joined_de_id", joined_de_id["de_id"])
+        joined_de_id = ContractAPI.ObjectDEStore.write(res_df)
+        ContractAPI.store("joined_de_id", joined_de_id["de_id"])
     get_combined_data_time = time.time()
     if res_df is not None:
         X = res_df.drop(label_name, axis=1)

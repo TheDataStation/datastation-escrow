@@ -1,5 +1,5 @@
 from dsapplicationregistration.dsar_core import api_endpoint, function
-from escrowapi.escrow_api import EscrowAPI
+from contractapi.contract_api import ContractAPI
 
 import pandas as pd
 from sklearn.neural_network import MLPClassifier
@@ -8,17 +8,17 @@ from sklearn import preprocessing
 
 @api_endpoint
 def upload_data_in_csv(de_in_bytes):
-    return EscrowAPI.CSVDEStore.write(de_in_bytes)
+    return ContractAPI.CSVDEStore.write(de_in_bytes)
 
 
 @api_endpoint
 def propose_contract(dest_agents, des, f, *args, **kwargs):
-    return EscrowAPI.propose_contract(dest_agents, des, f, *args, **kwargs)
+    return ContractAPI.propose_contract(dest_agents, des, f, *args, **kwargs)
 
 
 @api_endpoint
 def approve_contract(contract_id):
-    return EscrowAPI.approve_contract(contract_id)
+    return ContractAPI.approve_contract(contract_id)
 
 
 @api_endpoint
@@ -32,13 +32,13 @@ def train_model_with_conditions(label_name,
     train_df_list = []
     test_df_list = []
     for de_id in [1, 3, 5, 7, 9]:
-        de_path = EscrowAPI.CSVDEStore.read(de_id)
+        de_path = ContractAPI.CSVDEStore.read(de_id)
         cur_df = pd.read_csv(de_path)
         if len(cur_df) < size_constraint:
             return "Pre-condition: input size constraint failed. Model did not train."
         train_df_list.append(cur_df)
     for de_id in [2, 4, 6, 8, 10]:
-        de_path = EscrowAPI.CSVDEStore.read(de_id)
+        de_path = ContractAPI.CSVDEStore.read(de_id)
         cur_df = pd.read_csv(de_path)
         test_df_list.append(cur_df)
     train_df = pd.concat(train_df_list, ignore_index=True, axis=0)
