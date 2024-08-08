@@ -21,6 +21,9 @@ policies.pkl
 stagings.pkl
 provenances.pkl
 symmetric_keys.pkl
+symmetric_key.key
+private_key.pem
+public_key.pem
 test_process.py
 test_main.py
 oldstuff/integration_tests/test_file_full_trust
