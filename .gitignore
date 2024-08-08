@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 numbers/
+data_comparisons/
 .idea/
 Working/
 oldstuff/numbers/
