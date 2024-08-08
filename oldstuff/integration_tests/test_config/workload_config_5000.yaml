@@ -1,7 +1,0 @@
-num_files: 5000    # how many files in total are we uploading
-data_with_policy_proportion: 1    # what proportion of datasets have policies on them
-policy_proportion: 1    # for all combinations of (api, data_id), what proportion should have a policy on them
-opt_data_proportion: 0.2    # what proportion of datasets should be labeled as optimistic
-num_calls: 5    # how many calls of the function do we want to do
-
-start_mode: "fresh"    # "fresh": no need to recover; "recovery": need to recover the DB from snapshot/WAL first
