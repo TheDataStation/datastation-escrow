@@ -16,9 +16,29 @@ fraud detection model.
 
 ## What makes data sharing problems challenging?
 
-## Solving the challenges with contracts
+Consider the following data sharing problem: a few banks are interested
+in pooling credit card transaction data to train more accurate fraud
+detection models, subject to the following constraints. 1) It is not commercially interesting to pool their data, unless every bank has the guarantee that the joint
+model benefits themselves, instead of only helping others. 2) The shared data should only
+be used for model training, and nothing else.
 
-## Set up the repo
+A main challenge of data sharing is that people lack information
+to assess whether a dataflow is desirable before it takes place. For example, the
+banks only want to release a joint model if it meets some accuracy threshold,
+but they have no way of ensuring that without sharing the data to train the model. Additionally,
+banks have no guarantee that the other banks will only use the data for model training, once they share
+the raw data. To preclude adverse consequences, many people default to not sharing.
+
+## Solving the challenges with programmable dataflows
+
+We introduce a new *contract* abstraction that bounds the consequences of each dataflow by making it explicit *who* contributes data, *what
+computation* takes place on that data, *who* receives the result,
+and under *what conditions*. Importantly, it provides this information before an intended dataflow takes place, thus addressing
+the challenge by helping agents make an informed decision on
+whether to allow the dataflow. The programming model implements the contract abstraction, enabling people to solve
+any data sharing problem through a sequence of contract *propositions*, *approvals*, and *executions*.
+
+# Set up the repo
 
 Clone the repo.
 
