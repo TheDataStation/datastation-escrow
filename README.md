@@ -1,9 +1,24 @@
 # Programmable Dataflows
 
-This project contains the source code for **programmable dataflows**, a programming model designed to facilitate data-sharing
-through the **contract** abstraction, implemented on top of an intermediary **data escrow**.
+Data sharing is central to a wide variety of applications such as
+fraud detection, ad matching, and research. Yet, the lack of data sharing abstractions makes the solution to each data sharing problem
+bespoke and cost-intensive, hampering value generation.This project contains the source code for **programmable dataflows**, a programming model 
+for implementing any data sharing problems with a new **contract** abstraction, allowing people to move towards a 
+common sharing goal without violating any regulatory, privacy, or preference constraints.
+The programming model is implemented on top of an intermediary **data escrow**. ([Link to paper](https://arxiv.org/pdf/2408.04092))
 
-## Setup
+## What are data sharing problems?
+
+We refer to any scenario in which one party wants access to anothers data a *data sharing problem*.
+Examples include: advertisers use a data cleanroom to run analysis on joint data; national patient
+registry shares medical data with researchers for causal discovery; banks pool data to train joint
+fraud detection model.
+
+## What makes data sharing problems challenging?
+
+## Solving the challenges with contracts
+
+## Set up the repo
 
 Clone the repo.
 
