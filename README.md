@@ -5,7 +5,7 @@ fraud detection, ad matching, and research. Yet, the lack of data sharing abstra
 bespoke and cost-intensive, hampering value generation.This project contains the source code for **programmable dataflows**, a programming model 
 for implementing any data sharing problems with a new **contract** abstraction, allowing people to move towards a 
 common sharing goal without violating any regulatory, privacy, or preference constraints.
-The programming model is implemented on top of an intermediary **data escrow**. ([Link to paper](https://arxiv.org/pdf/2408.04092))
+The programming model is implemented on top of an intermediary **data escrow**. ([Link to programmable dataflow paper](https://arxiv.org/pdf/2408.04092)) ([Link to data escrow paper](https://arxiv.org/pdf/2305.03842))
 
 ## What are data sharing problems?
 
