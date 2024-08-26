@@ -87,6 +87,10 @@ Use the following configs in data_station_config.yaml
 
     in_development: False
 
+## Acknowledgments
+
+This work was supported by the National Science Foundation (NSF) under No. 2040718.
+
 [//]: # (## Notes For Developers)
 
 [//]: # ( )
