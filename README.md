@@ -5,7 +5,7 @@ fraud detection, ad matching, and research. Yet, the lack of data sharing abstra
 bespoke and cost-intensive, hampering value generation.This project contains the source code for **programmable dataflows**, a programming model 
 for implementing any data sharing problems with a new **contract** abstraction, allowing people to move towards a 
 common sharing goal without violating any regulatory, privacy, or preference constraints.
-The programming model is implemented on top of an intermediary **data escrow**. ([Link to programmable dataflow paper](https://arxiv.org/pdf/2408.04092)) ([Link to data escrow paper](https://arxiv.org/pdf/2305.03842))
+The programming model is implemented on top of an intermediary **data escrow**.
 
 ## What are data sharing problems?
 
@@ -42,7 +42,7 @@ any data sharing problem through a sequence of contract *propositions*, *approva
 
 Clone the repo.
 
-    git clone https://github.com/TheDataStation/DataStation.git
+    git clone <repo link>
 
 Run the following command from the root directory to install the necessary packages.
 
@@ -86,10 +86,6 @@ Start Docker on linux:
 Use the following configs in data_station_config.yaml
 
     in_development: False
-
-## Acknowledgments
-
-This work was supported by the National Science Foundation (NSF) under No. 2040718.
 
 [//]: # (## Notes For Developers)
 
