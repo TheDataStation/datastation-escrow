@@ -29,8 +29,8 @@ def upload_data_in_csv(content):
 # update_query will do replace("facebook") with read_csv_auto("path_to_facebook") as facebook
 # (and similarly for YouTube)
 def update_query(query):
-    query.format(de1_filepath = EscrowAPI.CSVDEStore.read(1), de2_filepath = EscrowAPI.CSVDEStore.read(2))
-    return query
+    formatted = query.format(de1_filepath = EscrowAPI.CSVDEStore.read(1), de2_filepath = EscrowAPI.CSVDEStore.read(2))
+    return formatted
 
 @api_endpoint
 @function
