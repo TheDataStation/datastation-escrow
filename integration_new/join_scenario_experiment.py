@@ -14,7 +14,7 @@ from crypto import cryptoutils as cu
 if __name__ == '__main__':
 
     # Experiment setups
-    num_MB = int(sys.argv[1])
+    num_MB = sys.argv[1]
     if sys.argv[2] == "False":
         save_intermediate = False
     else:
@@ -76,11 +76,6 @@ if __name__ == '__main__':
     f = "run_query"
     label_name = "clicked_on_ad"
     # "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad from facebook inner join youtube on facebook.first_name = youtube.first_name and facebook.last_name = youtube.last_name"
-    query = "select youtube.male, less_than_twenty_five, live_in_states, married, liked_games_page, clicked_on_ad " \
-            "from facebook inner join youtube " \
-            "on facebook.first_name = youtube.first_name " \
-            "and facebook.last_name = youtube.last_name " \
-            "and jaro_similarity(facebook.email, youtube.email) > 0.9"
     query = """
 CREATE TABLE ORDERS1  ( O_ORDERKEY       INTEGER NOT NULL,
             O_CUSTKEY        INTEGER NOT NULL,
@@ -105,7 +100,7 @@ CREATE TABLE ORDERS2  ( O_ORDERKEY       INTEGER NOT NULL,
 COPY ORDERS1 FROM '{de1_filepath}' DELIMITER '|';
 COPY ORDERS2 FROM '{de2_filepath}' DELIMITER '|';
 
-SELECT COUNT(*) FROM orders1 JOIN orders2 ON o1.o_custkey = o2.o_custkey"""
+SELECT COUNT(*) FROM ORDERS1 JOIN ORDERS2 ON o1.o_custkey = o2.o_custkey"""
     print(ds.call_api(agent_1_token, "propose_contract",
                       dest_agents, data_elements, f,
                       # function parameters
@@ -122,7 +117,7 @@ SELECT COUNT(*) FROM orders1 JOIN orders2 ON o1.o_custkey = o2.o_custkey"""
     start_time = time.time()
     for _ in range(2):
         run_start_time = time.time()
-        res = ds.call_api(agent_1_token, f, model_name, label_name, query)
+        res = ds.call_api(agent_1_token, f, query)
         run_end_time = time.time()
         # 1: fixed overhead 2: join DE time 3: model train time 4: fixed overhead
         with open(f"numbers/intermediate/{num_MB}_{model_name}_{save_intermediate}.csv", "a") as file:
