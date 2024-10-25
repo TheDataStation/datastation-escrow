@@ -42,6 +42,7 @@ def run_query(query):
     print(updated_query)
     conn = duckdb.connect()
     res_df = conn.execute(updated_query).fetchdf()
+    print(res_df)
     conn.close()
     return res_df
 
