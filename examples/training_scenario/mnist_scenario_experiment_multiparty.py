@@ -10,6 +10,8 @@ import pickle
 from main import initialize_system
 from common.general_utils import clean_test_env
 from crypto import cryptoutils as cu
+from torchvision.datasets import FashionMNIST
+from torchvision import transforms
 
 NUMBERS_DIR = "./examples/training_scenario/mnist_mp"
 
@@ -53,6 +55,13 @@ if __name__ == '__main__':
     clean_test_env()
     
     num_agents = int(sys.argv[2])
+    
+    transform = transforms.ToTensor()
+
+    # download data
+    raw_train_dataset = FashionMNIST(root="fashion-mnist/data", transform=transform, download=True, train=True)
+    raw_test_dataset = FashionMNIST(root="fashion-mnist/data", transform=transform, download=True, train=False)
+
     
     if os.path.exists(f"fashion-mnist/data/fashion/train-images-mp-1-{num_agents}"):
         print("Data already split")
